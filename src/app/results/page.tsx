@@ -122,7 +122,7 @@ function ResultsContent() {
           <div className="w-16 h-16 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
         </div>
         <h2 className="text-2xl font-black tracking-tighter text-stone-800 mb-1">
-          <span className="text-stone-200">VES</span><span className="gradient-text">PER</span>
+          <span className="text-stone-400">VES</span><span className="gradient-text">PER</span>
         </h2>
         <p className="text-sm text-indigo-500 font-medium animate-pulse">Assembling your media suite…</p>
       </div>
@@ -156,7 +156,7 @@ function ResultsContent() {
                 </span>
               </div>
               <h1 className="text-3xl font-black tracking-tighter text-stone-800">
-                <span className="text-stone-200">VES</span><span className="gradient-text">PER</span>
+                <span className="text-stone-400">VES</span><span className="gradient-text">PER</span>
               </h1>
             </div>
           </div>

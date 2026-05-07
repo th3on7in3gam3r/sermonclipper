@@ -190,7 +190,7 @@ export default function Home() {
 
             <div>
               <h1 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter leading-none">
-                <span className="text-stone-200 select-none">VES</span><span className="gradient-text">PER</span>
+                <span className="text-stone-400 select-none">VES</span><span className="gradient-text">PER</span>
               </h1>
               <div className="h-px w-20 bg-gradient-to-r from-indigo-400 to-violet-400 mx-auto mt-3 rounded-full" />
             </div>
