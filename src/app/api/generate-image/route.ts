@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAIClient() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +17,7 @@ export async function POST(req: NextRequest) {
 
     console.log('[DALL-E] Generating image for prompt:', prompt);
 
+    const openai = getOpenAIClient();
     const response = await openai.images.generate({
       model: "dall-e-3",
       prompt: prompt,
