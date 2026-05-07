@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SermonClipper
+
+SermonClipper is a full-stack web application built with Next.js 14 that automatically transcribes video sermons and uses AI to identify and extract the most engaging segments for social media (9:16 format).
+
+## Features
+
+- **Upload or Link:** Support for local video file uploads or YouTube URLs.
+- **AI Transcription:** Uses OpenAI Whisper for accurate, word-level transcription.
+- **Smart Analysis:** Powered by Anthropic Claude (Claude 3.5 Sonnet) to find the most impactful moments.
+- **Automated Video Editing:** Automatically cuts clips, crops to 9:16, and burns in captions using FFmpeg.
+- **Real-time Progress:** Live updates via Server-Sent Events (SSE).
+
+## Prerequisites
+
+Before running the application, ensure you have the following installed:
+
+1. **Node.js (v18+)**: [Download Node.js](https://nodejs.org/)
+2. **FFmpeg**: 
+   - Mac: `brew install ffmpeg`
+   - Linux: `sudo apt install ffmpeg`
+   - Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
+3. **Python 3**: Needed for `yt-dlp` (YouTube downloads).
+4. **yt-dlp**: `brew install yt-dlp` (or follow [installation guide](https://github.com/yt-dlp/yt-dlp))
 
 ## Getting Started
 
-First, run the development server:
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd sermon-clipper
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. **Configure Environment Variables:**
+   Create a `.env.local` file in the root directory and add your API keys:
+   ```env
+   OPENAI_API_KEY=your_openai_api_key
+   ANTHROPIC_API_KEY=your_anthropic_api_key
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+4. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+5. **Open the app:**
+   Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Learn More
+## Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework:** Next.js 14 (App Router)
+- **Styling:** Tailwind CSS
+- **Transcription:** OpenAI Whisper
+- **AI Analysis:** Anthropic Claude 3.5 Sonnet
+- **Video Processing:** fluent-ffmpeg / FFmpeg
+- **YouTube Downloads:** yt-dlp
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
