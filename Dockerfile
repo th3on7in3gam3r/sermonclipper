@@ -1,8 +1,8 @@
 # Use the official Node.js 18 runtime as the base image
 FROM node:18-alpine
 
-# Install comprehensive system dependencies needed for ffmpeg, python, and build tools
-# Updated for Koyeb deployment - v3
+# Install system dependencies needed for ffmpeg, python, and build tools
+# Simplified for better compatibility
 RUN apk add --no-cache \
     ffmpeg \
     python3 \
@@ -15,9 +15,7 @@ RUN apk add --no-cache \
     zlib-dev \
     libffi-dev \
     openssl-dev \
-    && ln -sf python3 /usr/bin/python \
-    && python3 -m ensurepip --upgrade \
-    && pip3 install --upgrade pip
+    && ln -sf python3 /usr/bin/python
 
 # Set the working directory in the container
 WORKDIR /app
