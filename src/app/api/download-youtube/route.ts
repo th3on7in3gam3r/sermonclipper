@@ -34,20 +34,45 @@ export async function POST(req: NextRequest) {
 
     try {
       console.log('[Download] Running yt-dlp...');
-      const output = await youtubeDl(url, {
+      // Cast to unknown first to pass flags not in the outdated YtFlags type definition
+      type ExtendedFlags = Parameters<typeof youtubeDl>[1] & {
+        extractor_args?: string;
+      };
+      const flags: ExtendedFlags = {
         output: filePath,
-        format: 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        // Best quality mp4, capped at 1080p to keep file sizes manageable
+        format: 'bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/bestvideo[ext=mp4]+bestaudio/best[ext=mp4]/best',
         noCheckCertificate: true,
         noWarnings: true,
-        preferFreeFormats: true,
-        userAgent: 'googlebot',
-        referer: 'https://www.youtube.com',
-      });
+        // iOS client bypasses YouTube bot-detection without needing cookies
+        extractor_args: 'youtube:player_client=ios',
+        // Realistic mobile user-agent — googlebot actively triggers bot checks
+        addHeader: 'User-Agent:Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+      };
+      const output = await youtubeDl(url, flags as Parameters<typeof youtubeDl>[1]);
       console.log(`[Download] yt-dlp stdout: ${JSON.stringify(output)}`);
     } catch (dlErr: unknown) {
       const msg = dlErr instanceof Error ? dlErr.message : String(dlErr);
       console.error('[Download] yt-dlp error:', dlErr);
-      return NextResponse.json({ error: `YouTube download failed: ${msg}` }, { status: 500 });
+
+      // Retry with web_creator client as fallback
+      console.log('[Download] Retrying with web_creator client...');
+      try {
+        type ExtendedFlags = Parameters<typeof youtubeDl>[1] & { extractor_args?: string };
+        const retryFlags: ExtendedFlags = {
+          output: filePath,
+          format: 'best[ext=mp4]/best',
+          noCheckCertificate: true,
+          noWarnings: true,
+          extractor_args: 'youtube:player_client=web_creator',
+        };
+        const retryOutput = await youtubeDl(url, retryFlags as Parameters<typeof youtubeDl>[1]);
+        console.log(`[Download] Retry succeeded: ${JSON.stringify(retryOutput)}`);
+      } catch (retryErr: unknown) {
+        const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
+        console.error('[Download] Retry also failed:', retryErr);
+        return NextResponse.json({ error: `YouTube download failed: ${retryMsg}` }, { status: 500 });
+      }
     }
 
     // Verify file exists or find it if extension changed
