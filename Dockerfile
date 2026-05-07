@@ -2,6 +2,7 @@
 FROM node:18-alpine
 
 # Install system dependencies needed for ffmpeg and other packages
+# Updated for Koyeb deployment - v2
 RUN apk add --no-cache \
     ffmpeg \
     python3 \
