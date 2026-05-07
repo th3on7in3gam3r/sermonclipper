@@ -39,7 +39,7 @@ function ResultsContent() {
     main_theme?: string;
     tone?: string;
   }>({});
-  
+
   const [activeTab, setActiveTab] = useState<'overview' | 'videos' | 'sermon_imgs' | 'quote_imgs' | 'devotional'>('overview');
   const [summaryTab, setSummaryTab] = useState<'one' | 'bullets' | 'detailed'>('one');
   const [loading, setLoading] = useState(true);
@@ -57,19 +57,10 @@ function ResultsContent() {
 
     const fetchData = async () => {
       try {
-        console.log(`[DEBUG] Fetching Media Kit for Job ID: ${jobId}`);
         const response = await fetch(`/api/clips?jobId=${jobId}`);
         const data = await response.json();
-        
-        console.log('[DEBUG] Media Kit Data Received:', data);
 
         if (data.success) {
-          if (data.clips) {
-            setClips(data.clips);
-          } else {
-            console.warn('[DEBUG] No clips found in Media Kit response.');
-          }
-
           const mergedClips = (data.clips || []).map((clip: ClipData) => {
             const captionsObj = (data.social_captions || []).find((c: Record<string, unknown>) => c.clip_number === clip.clip_number);
             return {
@@ -77,52 +68,32 @@ function ResultsContent() {
               suggested_captions: captionsObj ? captionsObj.captions : (clip.suggested_captions || [])
             };
           });
-
           setClips(mergedClips);
 
-          const clipSource = mergedClips;
           const sermonImagePrompts = data.sermon_images || [];
           const quotePrompts = data.quotes_and_verses || [];
 
-          // Ensure Art and Quote tabs always render one card per clip.
-          const transformedSermonImages = clipSource.map((clip: ClipData, index: number) => {
+          setSermonImages(mergedClips.map((clip: ClipData, index: number) => {
             const prompt = sermonImagePrompts[index] ||
-              `Create an attention-grabbing social media graphic for the sermon clip titled "${clip.title}" with a premium cinematic look and the sermon theme woven in.`;
+              `Create an attention-grabbing social media graphic for the sermon clip titled "${clip.title}" with a premium cinematic look.`;
+            return { title: clip.title, description: (prompt as string).split(' - ')[0] || clip.title, full_image_prompt: prompt };
+          }));
 
-            return {
-              title: clip.title,
-              description: (prompt as string).split(' - ')[0] || clip.title,
-              full_image_prompt: prompt
-            };          });
-
-          const transformedQuotesAndVerses = clipSource.map((clip: ClipData, index: number) => {
+          setQuotesAndVerses(mergedClips.map((clip: ClipData, index: number) => {
             const item = quotePrompts[index] as string | undefined;
             const quoteMatch = item?.match(/Typography card: '([^']+)'/);
             const quote = quoteMatch ? quoteMatch[1] : item || clip.main_quote || clip.title;
-            const prompt = item ||
-              `Typography card: '${quote}' - a premium scripture design using branding colors, modern fonts, and a minimal layout.`;
+            const prompt = item || `Typography card: '${quote}' - a premium scripture design using branding colors, modern fonts, and a minimal layout.`;
+            return { type: 'scripture', text: quote, reference: clip.title, full_image_prompt: prompt };
+          }));
 
-            return {
-              type: 'scripture',
-              text: quote,
-              reference: clip.title,
-              full_image_prompt: prompt
-            };
-          });
-
-          setSermonImages(transformedSermonImages);
-          setQuotesAndVerses(transformedQuotesAndVerses);
           setDevotional(data.five_day_devotional || []);
-          setSermonData({
-            summaries: data.summaries,
-            main_theme: data.main_theme,
-            tone: data.tone
-          });
+          setSermonData({ summaries: data.summaries, main_theme: data.main_theme, tone: data.tone });
         } else {
           setError(data.error || 'Failed to load assets.');
         }
       } catch {
-        setError('An error occurred.');
+        setError('An error occurred loading your media kit.');
       } finally {
         setLoading(false);
       }
@@ -136,151 +107,143 @@ function ResultsContent() {
     window.location.href = `/api/export?jobId=${jobId}`;
   };
 
+  const tabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'videos', label: 'Clips' },
+    { id: 'sermon_imgs', label: 'Art' },
+    { id: 'quote_imgs', label: 'Quotes' },
+    { id: 'devotional', label: 'Devotional' },
+  ] as const;
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="relative mb-10">
-          <div className="w-32 h-32 border-t-2 border-violet-500 rounded-full animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-16 h-16 bg-violet-500/20 rounded-full animate-pulse" />
-          </div>
+      <div className="min-h-screen bg-[#fdfcf8] flex flex-col items-center justify-center p-6 text-center">
+        <div className="relative mb-8">
+          <div className="w-16 h-16 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
         </div>
-        <h2 className="text-4xl font-black tracking-tighter uppercase mb-2">
-          <span className="font-extralight tracking-widest opacity-30">VES</span>PER
+        <h2 className="text-2xl font-black tracking-tighter text-stone-800 mb-1">
+          <span className="text-stone-200">VES</span><span className="gradient-text">PER</span>
         </h2>
-        <p className="text-sm font-black uppercase tracking-[0.35em] text-violet-400 animate-pulse">Assembling Your Media Suite</p>
+        <p className="text-sm text-indigo-500 font-medium animate-pulse">Assembling your media suite…</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
-        <p className="text-red-400 font-black uppercase tracking-widest">{error}</p>
+      <div className="min-h-screen bg-[#fdfcf8] flex flex-col items-center justify-center p-6 text-center">
+        <p className="text-red-500 font-semibold">{error}</p>
+        <button onClick={() => router.push('/')} className="mt-4 text-sm text-indigo-600 underline">Go back home</button>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-black text-zinc-100 selection:bg-violet-500/30 font-sans">
-      {/* Background Ambience */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-violet-600/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 left-0 w-[50%] h-[50%] bg-emerald-600/5 rounded-full blur-[150px]" />
-      </div>
+    <main className="min-h-screen bg-[#fdfcf8] font-sans">
+      {/* Subtle top gradient */}
+      <div className="fixed inset-x-0 top-0 h-64 bg-gradient-to-b from-indigo-50/50 to-transparent pointer-events-none z-0" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 space-y-8">
-        
-        {/* Unified Suite Header */}
-        <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 border-b border-white/5 xl:h-[128px] xl:pb-0">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-black uppercase tracking-widest">
-              Live Media Kit
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        {/* Header */}
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-stone-200">
+          <div className="flex items-center gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-xs font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
+                  Live Kit
+                </span>
+              </div>
+              <h1 className="text-3xl font-black tracking-tighter text-stone-800">
+                <span className="text-stone-200">VES</span><span className="gradient-text">PER</span>
+              </h1>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter uppercase leading-none">
-              <span className="font-extralight tracking-widest opacity-30">VES</span>PER
-            </h1>
           </div>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full xl:gap-6">
-            <nav className="min-w-0 w-full sm:flex-1 h-full bg-zinc-950/50 p-2 rounded-2xl border border-white/5 flex flex-wrap sm:flex-nowrap gap-2 overflow-x-auto items-center">
-              {[
-                { id: 'overview', label: 'Overview', color: 'bg-zinc-800' },
-                { id: 'videos', label: 'Videos', color: 'bg-violet-600' },
-                { id: 'sermon_imgs', label: 'Art', color: 'bg-amber-600' },
-                { id: 'quote_imgs', label: 'Quotes', color: 'bg-violet-600' },
-                { id: 'devotional', label: 'Devotional', color: 'bg-emerald-600' }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as 'overview' | 'videos' | 'sermon_imgs' | 'quote_imgs' | 'devotional')}
-                  className={`flex-none min-w-[80px] px-3 py-2 rounded-xl text-sm font-black transition-all uppercase tracking-[0.12em] ${
-                    activeTab === tab.id ? `${tab.color} text-white shadow-xl` : 'text-zinc-500 hover:text-zinc-300'
-                  }`}>
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-            <div className="flex flex-wrap gap-2 justify-end w-full sm:w-auto items-center">
-              <button
-                onClick={handleExportAll}
-                className="min-h-[44px] px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all font-black text-sm uppercase tracking-[0.12em] shadow-xl flex items-center gap-2 justify-center h-11"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Export Suite
-              </button>
-              <button
-                onClick={() => router.push('/')}
-                className="min-h-[44px] px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl transition-all font-black text-sm uppercase tracking-[0.12em] border border-white/5 h-11"
-              >
-                New Mission
-              </button>
-            </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={handleExportAll}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all shadow-sm shadow-emerald-200"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export All
+            </button>
+            <button
+              onClick={() => router.push('/')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 hover:border-stone-300 text-stone-600 rounded-xl text-sm font-semibold transition-all"
+            >
+              New Sermon
+            </button>
           </div>
         </header>
 
-        {/* Content Stages */}
-        <section className="animate-fade-in min-h-[600px]">
+        {/* Tab nav */}
+        <nav className="flex gap-1 p-1 bg-stone-100 rounded-xl w-fit">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                activeTab === tab.id
+                  ? 'bg-white text-indigo-600 shadow-sm border border-stone-200'
+                  : 'text-stone-500 hover:text-stone-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Content */}
+        <section className="animate-fade-in min-h-[500px]">
           {activeTab === 'overview' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-              {/* Left Side: Headline Clip */}
-              <div className="lg:col-span-2 space-y-8">
-                <div className="relative group rounded-3xl overflow-hidden border border-white/10 aspect-video lg:aspect-auto lg:h-[500px]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-5">
+                <div className="relative rounded-2xl overflow-hidden bg-stone-900 aspect-video lg:aspect-auto lg:h-[460px] border border-stone-200 shadow-sm">
                   {clips.length > 0 ? (
                     <>
                       {videoError && (
-                        <div className="absolute inset-0 bg-red-950/80 flex flex-col items-center justify-center z-20 rounded-3xl p-6 text-center">
-                          <div className="text-red-400 font-bold mb-3">⚠️ Video Playback Error</div>
-                          <p className="text-red-300 text-sm font-mono break-words mb-4">{videoError}</p>
-                          <p className="text-sm text-red-200">The video file may be corrupted. Try re-processing the sermon.</p>
+                        <div className="absolute inset-0 bg-red-900/90 flex flex-col items-center justify-center z-20 p-6 text-center">
+                          <p className="text-red-300 font-semibold mb-2">⚠ Video Playback Error</p>
+                          <p className="text-red-400 text-xs font-mono break-words">{videoError}</p>
                         </div>
                       )}
-                      <video 
-                        src={clips[0].url} 
+                      <video
+                        src={clips[0].url}
                         poster={clips[0].thumbnailUrl}
                         controls
                         preload="metadata"
                         playsInline
-                        onLoadStart={() => console.log(`[DEBUG] Headline Video Load Start: ${clips[0].url}`)}
-                        onLoadedMetadata={(e) => console.log(`[DEBUG] Headline Video Metadata Loaded. Duration: ${e.currentTarget.duration}`)}
                         onError={(e) => {
-                          const error = e.currentTarget.error;
-                          const errorMessages: Record<number, string> = {
-                            1: 'Video aborted by user',
-                            2: 'Network error - video failed to load',
-                            3: 'Video decoding failed - file may be corrupted or invalid',
-                            4: 'Video format not supported or has no valid streams'
-                          };
-                          const errorMsg = `[DEBUG] Headline Video Error! Code: ${error?.code} | Message: ${error?.message || errorMessages[error?.code ?? 0] || 'Unknown error'} | URL: ${clips[0].url}`;
-                          console.error(errorMsg);
-                          setVideoError(errorMsg);
+                          const err = e.currentTarget.error;
+                          setVideoError(`Code ${err?.code}: ${err?.message || 'Unknown error'}`);
                         }}
-                        onStalled={() => console.warn(`[DEBUG] Headline Video Playback Stalled: ${clips[0].url}`)}
                         className="w-full h-full object-cover"
                       />
+                      <div className="absolute top-4 left-4 px-3 py-1 bg-indigo-600 text-white text-xs font-semibold rounded-full shadow">
+                        Headline Clip
+                      </div>
                     </>
                   ) : (
-                    <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
-                      <p className="text-zinc-700 font-black uppercase tracking-widest">Processing Media...</p>
+                    <div className="w-full h-full flex items-center justify-center">
+                      <p className="text-stone-500 text-sm font-medium">Processing media…</p>
                     </div>
                   )}
-                  <div className="absolute top-6 left-6 px-4 py-2 bg-violet-600 text-white text-sm font-black uppercase tracking-widest rounded-full shadow-2xl">
-                    Headline Media
-                  </div>
                 </div>
 
-                <div className="p-8 rounded-3xl bg-zinc-900/30 border border-white/5">
-                  <h3 className="text-xl font-bold mb-4">Main Sermon Theme</h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed italic">&quot;{sermonData.main_theme || 'Analyzing main theme...'}&quot;</p>
-                  <p className="text-sm text-zinc-600 mt-4 uppercase tracking-widest">[DEBUG] Active Tab: {activeTab} | Clips: {clips.length}</p>
+                <div className="card p-6">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-2">Main Theme</p>
+                  <p className="text-stone-700 leading-relaxed italic text-sm">
+                    &quot;{sermonData.main_theme || 'Analyzing sermon theme…'}&quot;
+                  </p>
                 </div>
               </div>
 
-              {/* Right Side: Sermon Brief */}
               <div className="lg:col-span-1">
-                <SermonBrief 
+                <SermonBrief
                   summaries={sermonData.summaries}
                   main_theme={sermonData.main_theme}
                   tone={sermonData.tone}
@@ -292,22 +255,28 @@ function ResultsContent() {
           )}
 
           {activeTab === 'videos' && (
-            <div className="space-y-8">
-              <div className="space-y-3">
-                <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight">Your Clips</h2>
-                <p className="text-sm text-zinc-400 max-w-2xl">Review every generated sermon clip, preview the best cut, and download the media for social sharing.</p>
+            <div className="space-y-5">
+              <div>
+                <h2 className="text-2xl font-black text-stone-800 tracking-tight">Your Clips</h2>
+                <p className="text-sm text-stone-500 mt-1">Preview, review, and download every generated sermon clip.</p>
               </div>
               <ClipGrid clips={clips} />
             </div>
           )}
-          {activeTab === 'sermon_imgs' && <SermonArtGallery assets={(sermonImages as unknown) as Parameters<typeof SermonArtGallery>[0]['assets']} />}
-          {activeTab === 'quote_imgs' && <QuoteVerseGallery assets={(quotesAndVerses as unknown) as Parameters<typeof QuoteVerseGallery>[0]['assets']} />}
-          {activeTab === 'devotional' && <DevotionalTimeline devotional={(devotional as unknown) as Parameters<typeof DevotionalTimeline>[0]['devotional']} />}
+
+          {activeTab === 'sermon_imgs' && (
+            <SermonArtGallery assets={(sermonImages as unknown) as Parameters<typeof SermonArtGallery>[0]['assets']} />
+          )}
+          {activeTab === 'quote_imgs' && (
+            <QuoteVerseGallery assets={(quotesAndVerses as unknown) as Parameters<typeof QuoteVerseGallery>[0]['assets']} />
+          )}
+          {activeTab === 'devotional' && (
+            <DevotionalTimeline devotional={(devotional as unknown) as Parameters<typeof DevotionalTimeline>[0]['devotional']} />
+          )}
         </section>
 
-        {/* Footer Actions */}
-        <footer className="pt-20 border-t border-white/5 text-center">
-          <p className="text-zinc-600 text-sm font-black uppercase tracking-[0.4em] mb-8">VESPER / MEDIA ENGINE V2.0</p>
+        <footer className="pt-10 border-t border-stone-100 text-center">
+          <p className="text-stone-300 text-xs font-medium tracking-widest uppercase">Vesper · Media Engine</p>
         </footer>
       </div>
     </main>
@@ -316,7 +285,11 @@ function ResultsContent() {
 
 export default function Results() {
   return (
-    <Suspense fallback={<div>Loading Suite...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#fdfcf8] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
+      </div>
+    }>
       <ResultsContent />
     </Suspense>
   );

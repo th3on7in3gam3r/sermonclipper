@@ -17,34 +17,45 @@ interface ProgressStepsProps {
 
 export default function ProgressSteps({ steps, currentStepIndex }: ProgressStepsProps) {
   return (
-    <div className="w-full max-w-3xl mx-auto py-8">
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
+    <div className="w-full max-w-2xl mx-auto">
+      <div className="flex items-center justify-between">
         {steps.map((step, index) => {
           const isActive = index === currentStepIndex;
           const isCompleted = index < currentStepIndex || step.status === 'completed';
+          const isLast = index === steps.length - 1;
 
           return (
-            <div key={step.id} className="flex flex-col items-center text-center min-w-0">
-              <div 
-                className={`w-11 h-11 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                  isCompleted 
-                    ? 'bg-emerald-500 border-emerald-500 text-white' 
-                    : isActive 
-                      ? 'bg-violet-600 border-violet-600 text-white animate-pulse' 
-                      : 'bg-zinc-900 border-zinc-700 text-zinc-500'
+            <React.Fragment key={step.id}>
+              <div className="flex flex-col items-center gap-2 min-w-0">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                  isCompleted
+                    ? 'bg-emerald-500 border-emerald-500 text-white'
+                    : isActive
+                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200'
+                      : 'bg-white border-stone-200 text-stone-400'
                 }`}>
-                {isCompleted ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                ) : (
-                  <span className="font-bold text-sm">{index + 1}</span>
-                )}
+                  {isCompleted ? (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : isActive ? (
+                    <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                  ) : (
+                    <span className="text-xs font-semibold">{index + 1}</span>
+                  )}
+                </div>
+                <span className={`text-xs font-medium whitespace-nowrap ${
+                  isActive ? 'text-indigo-600' : isCompleted ? 'text-emerald-600' : 'text-stone-400'
+                }`}>
+                  {step.label}
+                </span>
               </div>
-              <span className={`mt-2 text-sm font-medium ${isActive ? 'text-violet-400' : isCompleted ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                {step.label}
-              </span>
-            </div>
+              {!isLast && (
+                <div className={`flex-1 h-px mx-2 mb-5 transition-all duration-500 ${
+                  isCompleted ? 'bg-emerald-300' : 'bg-stone-200'
+                }`} />
+              )}
+            </React.Fragment>
           );
         })}
       </div>

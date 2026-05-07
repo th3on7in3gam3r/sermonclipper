@@ -9,20 +9,13 @@ interface QuoteVerse {
   full_image_prompt: string;
 }
 
-interface QuoteVerseCardProps {
-  asset: QuoteVerse;
-}
-
-function QuoteVerseCard({ asset }: QuoteVerseCardProps) {
+function QuoteVerseCard({ asset }: { asset: QuoteVerse }) {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
 
   const handleGenerate = async () => {
-    if (!asset.full_image_prompt) {
-      alert('Missing image prompt in data. Cannot generate image.');
-      return;
-    }
+    if (!asset.full_image_prompt) { alert('Missing image prompt.'); return; }
     setIsGenerating(true);
     try {
       const res = await fetch('/api/generate-image', {
@@ -30,123 +23,92 @@ function QuoteVerseCard({ asset }: QuoteVerseCardProps) {
         body: JSON.stringify({ prompt: asset.full_image_prompt }),
       });
       const data = await res.json();
-      if (data.success) {
-        setGeneratedImage(data.imageUrl);
-      } else {
-        alert(data.error || 'Failed to generate image');
-      }
+      if (data.success) setGeneratedImage(data.imageUrl);
+      else alert(data.error || 'Failed to generate image');
     } catch {
-      alert('Error connecting to DALL-E');
+      alert('Error connecting to image API');
     } finally {
       setIsGenerating(false);
     }
   };
 
   return (
-    <div className="group h-full flex flex-col">
-      {/* Scripture Preview Card */}
+    <div className="card flex flex-col overflow-hidden">
+      {/* Quote preview */}
       {!generatedImage && !isGenerating && (
-        <div className="bg-gradient-to-br from-violet-600/10 to-violet-900/10 border border-violet-500/20 rounded-2xl p-5 mb-4 space-y-3 flex-1 flex flex-col justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/30 text-violet-400 text-sm font-black uppercase tracking-widest mb-3">
-              ✨ Scripture Art
-            </div>
-            <p className="text-base md:text-sm font-black leading-relaxed text-white italic line-clamp-4">
-              &quot;{asset.text}&quot;
-            </p>
-          </div>
-          <div className="space-y-2">
-            {asset.reference && (
-              <p className="text-sm text-violet-300 font-black uppercase tracking-widest">— {asset.reference}</p>
-            )}
-            <div className="flex flex-wrap gap-2 pt-2">
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 text-violet-300 text-sm font-black uppercase tracking-wider">📱 Stories</span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 text-violet-300 text-sm font-black uppercase tracking-wider">🙏 Devotions</span>
-            </div>
-          </div>
+        <div className="p-5 bg-indigo-50 border-b border-indigo-100 space-y-2">
+          <span className="inline-block px-2.5 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">
+            Scripture Art
+          </span>
+          <p className="font-semibold text-stone-800 text-sm leading-snug italic line-clamp-3">
+            &quot;{asset.text}&quot;
+          </p>
+          {asset.reference && (
+            <p className="text-indigo-600 text-xs font-semibold">— {asset.reference}</p>
+          )}
         </div>
       )}
 
-      {/* Generation Area */}
-      <div className="flex-1 flex flex-col">
+      {/* Image area */}
+      <div className="flex-1">
         {generatedImage ? (
-          <div className="aspect-[9/16] w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative group/img">
+          <div className="aspect-[9/16] relative group/img overflow-hidden">
             <img src={generatedImage} alt={asset.text} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center p-6 text-center gap-3">
-              <a 
-                href={generatedImage} 
-                target="_blank" 
-                className="px-6 py-3 bg-white text-black font-black rounded-xl hover:scale-105 transition-transform text-sm tracking-widest uppercase"
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 p-4">
+              <a
+                href={generatedImage}
+                target="_blank"
+                className="px-5 py-2.5 bg-white text-stone-800 font-semibold rounded-xl text-sm hover:bg-stone-100 transition-all"
               >
-                ⬇️ Download
+                Download
               </a>
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  setGeneratedImage(null);
-                }}
-                className="px-6 py-3 bg-violet-600/30 hover:bg-violet-600/50 text-violet-300 font-black rounded-xl transition-all text-sm tracking-widest uppercase border border-violet-500/30"
+                onClick={() => setGeneratedImage(null)}
+                className="px-5 py-2.5 bg-white/20 text-white font-semibold rounded-xl text-sm hover:bg-white/30 transition-all border border-white/30"
               >
-                🔄 Regenerate
+                Regenerate
               </button>
             </div>
           </div>
         ) : isGenerating ? (
-          <div className="aspect-[9/16] w-full rounded-2xl bg-gradient-to-br from-violet-950/20 to-violet-900/20 flex flex-col items-center justify-center space-y-4 border border-violet-500/20 backdrop-blur-sm">
-            <div className="relative">
-              <div className="w-12 h-12 border-4 border-violet-500/30 rounded-full" />
-              <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-violet-500 rounded-full animate-spin" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-black uppercase tracking-[0.2em] text-violet-400 mb-1">Crafting Vision</p>
-              <p className="text-sm text-violet-300/60">Creating your spiritual visual...</p>
-            </div>
+          <div className="aspect-[9/16] bg-indigo-50 flex flex-col items-center justify-center gap-3">
+            <div className="w-8 h-8 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
+            <p className="text-xs text-indigo-600 font-medium">Generating…</p>
           </div>
         ) : (
           <button
             onClick={handleGenerate}
-            className="aspect-[9/16] w-full rounded-2xl bg-gradient-to-br from-violet-600/20 to-violet-900/20 flex flex-col items-center justify-center space-y-4 border-2 border-dashed border-violet-500/30 group-hover:border-violet-500/60 transition-all cursor-pointer group/btn"
+            className="aspect-[9/16] w-full bg-stone-50 hover:bg-indigo-50 border-2 border-dashed border-stone-200 hover:border-indigo-300 flex flex-col items-center justify-center gap-3 transition-all group/btn"
           >
-            <div className="w-16 h-16 rounded-full flex items-center justify-center transition-all group-hover/btn:scale-110 bg-violet-600 shadow-2xl shadow-violet-600/30 group-hover/btn:shadow-violet-600/50">
-              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <div className="w-12 h-12 rounded-full bg-indigo-100 group-hover/btn:bg-indigo-200 flex items-center justify-center transition-all">
+              <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <div className="text-center">
-                <div className="text-sm font-black text-violet-400 uppercase tracking-[0.2em]">Generate Design</div>
-                <div className="text-sm text-violet-300/60 mt-1">AI-powered verse art</div>
-            </div>
+            <span className="text-xs font-semibold text-stone-500 group-hover/btn:text-indigo-600 transition-colors">Generate Design</span>
           </button>
         )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 mt-4">
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowPrompt(!showPrompt);
-          }}
-          className="flex-1 min-h-[44px] py-3 bg-violet-600/20 hover:bg-violet-600/30 text-violet-400 font-black rounded-xl transition-all uppercase text-sm tracking-widest border border-violet-500/30 hover:border-violet-500/60"
+      {/* Actions */}
+      <div className="p-4 border-t border-stone-100 flex gap-2">
+        <button
+          onClick={() => setShowPrompt(!showPrompt)}
+          className="flex-1 py-2 bg-stone-50 hover:bg-stone-100 text-stone-600 text-xs font-semibold rounded-lg transition-all border border-stone-200"
         >
-          {showPrompt ? '✕ Hide Prompt' : '📋 View Prompt'}
+          {showPrompt ? 'Hide Prompt' : 'View Prompt'}
         </button>
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            navigator.clipboard.writeText(asset.full_image_prompt);
-            alert('Prompt copied!');
-          }}
-          className="py-3 px-3 bg-white/5 hover:bg-white/10 text-zinc-400 font-black rounded-xl transition-all uppercase text-sm tracking-widest border border-white/5"
+        <button
+          onClick={() => { navigator.clipboard.writeText(asset.full_image_prompt); }}
+          className="py-2 px-3 bg-stone-50 hover:bg-stone-100 text-stone-500 text-xs font-semibold rounded-lg transition-all border border-stone-200"
+          title="Copy prompt"
         >
-          📋
+          Copy
         </button>
       </div>
-
-      {/* Prompt Preview */}
       {showPrompt && (
-        <div className="mt-3 p-3 bg-zinc-900/50 rounded-lg border border-white/5">
-          <p className="text-sm text-zinc-400 leading-relaxed font-mono line-clamp-4">
+        <div className="px-4 pb-4">
+          <p className="text-xs text-stone-500 font-mono leading-relaxed bg-stone-50 rounded-lg p-3 border border-stone-100 line-clamp-4">
             {asset.full_image_prompt}
           </p>
         </div>
@@ -161,15 +123,17 @@ interface QuoteVerseGalleryProps {
 
 export default function QuoteVerseGallery({ assets }: QuoteVerseGalleryProps) {
   return (
-    <div className="space-y-8">
-      <div className="space-y-3 border-b border-white/5 pb-6">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-600/10 border border-violet-500/30 text-violet-400 text-sm font-black uppercase tracking-widest">
-          ✨ Scripture Gallery
+    <div className="space-y-6">
+      <div className="pb-4 border-b border-stone-200">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="inline-block px-2.5 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-full">
+            Scripture Gallery
+          </span>
         </div>
-        <h2 className="text-2xl font-black text-white">Verse Art Collection</h2>
-        <p className="text-zinc-400 text-sm">Transform powerful scriptures into beautiful visual designs for sharing, prayers, and daily devotions.</p>
+        <h2 className="text-2xl font-black text-stone-800 tracking-tight">Verse Art</h2>
+        <p className="text-stone-500 text-sm mt-1">Turn powerful scriptures into shareable visual designs.</p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {assets.map((asset, index) => (
           <QuoteVerseCard key={index} asset={asset} />
         ))}
