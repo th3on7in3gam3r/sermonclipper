@@ -12,13 +12,30 @@ function ResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const jobId = searchParams.get('jobId');
-  
-  const [clips, setClips] = useState<any[]>([]);
-  const [sermonImages, setSermonImages] = useState<any[]>([]);
-  const [quotesAndVerses, setQuotesAndVerses] = useState<any[]>([]);
-  const [devotional, setDevotional] = useState<any[]>([]);
+
+  interface ClipData {
+    id: string;
+    url: string;
+    title: string;
+    thumbnailUrl?: string;
+    hook_title?: string;
+    main_quote?: string;
+    why_it_works?: string;
+    reason?: string;
+    hashtags?: string;
+    suggested_captions?: string[];
+    clip_number?: number;
+    start_time: number;
+    end_time: number;
+    [key: string]: unknown;
+  }
+
+  const [clips, setClips] = useState<ClipData[]>([]);
+  const [sermonImages, setSermonImages] = useState<Record<string, unknown>[]>([]);
+  const [quotesAndVerses, setQuotesAndVerses] = useState<Record<string, unknown>[]>([]);
+  const [devotional, setDevotional] = useState<Record<string, unknown>[]>([]);
   const [sermonData, setSermonData] = useState<{
-    summaries?: any;
+    summaries?: Record<string, unknown>;
     main_theme?: string;
     tone?: string;
   }>({});
@@ -31,8 +48,10 @@ function ResultsContent() {
 
   useEffect(() => {
     if (!jobId) {
-      setError('No Job ID found.');
-      setLoading(false);
+      Promise.resolve().then(() => {
+        setError('No Job ID found.');
+        setLoading(false);
+      });
       return;
     }
 
@@ -51,8 +70,8 @@ function ResultsContent() {
             console.warn('[DEBUG] No clips found in Media Kit response.');
           }
 
-          const mergedClips = (data.clips || []).map((clip: any) => {
-            const captionsObj = (data.social_captions || []).find((c: any) => c.clip_number === clip.clip_number);
+          const mergedClips = (data.clips || []).map((clip: ClipData) => {
+            const captionsObj = (data.social_captions || []).find((c: Record<string, unknown>) => c.clip_number === clip.clip_number);
             return {
               ...clip,
               suggested_captions: captionsObj ? captionsObj.captions : (clip.suggested_captions || [])
@@ -66,19 +85,18 @@ function ResultsContent() {
           const quotePrompts = data.quotes_and_verses || [];
 
           // Ensure Art and Quote tabs always render one card per clip.
-          const transformedSermonImages = clipSource.map((clip: any, index: number) => {
+          const transformedSermonImages = clipSource.map((clip: ClipData, index: number) => {
             const prompt = sermonImagePrompts[index] ||
               `Create an attention-grabbing social media graphic for the sermon clip titled "${clip.title}" with a premium cinematic look and the sermon theme woven in.`;
 
             return {
               title: clip.title,
-              description: prompt.split(' - ')[0] || clip.title,
+              description: (prompt as string).split(' - ')[0] || clip.title,
               full_image_prompt: prompt
-            };
-          });
+            };          });
 
-          const transformedQuotesAndVerses = clipSource.map((clip: any, index: number) => {
-            const item = quotePrompts[index];
+          const transformedQuotesAndVerses = clipSource.map((clip: ClipData, index: number) => {
+            const item = quotePrompts[index] as string | undefined;
             const quoteMatch = item?.match(/Typography card: '([^']+)'/);
             const quote = quoteMatch ? quoteMatch[1] : item || clip.main_quote || clip.title;
             const prompt = item ||
@@ -103,7 +121,7 @@ function ResultsContent() {
         } else {
           setError(data.error || 'Failed to load assets.');
         }
-      } catch (err) {
+      } catch {
         setError('An error occurred.');
       } finally {
         setLoading(false);
@@ -131,6 +149,14 @@ function ResultsContent() {
           <span className="font-extralight tracking-widest opacity-30">VES</span>PER
         </h2>
         <p className="text-sm font-black uppercase tracking-[0.35em] text-violet-400 animate-pulse">Assembling Your Media Suite</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
+        <p className="text-red-400 font-black uppercase tracking-widest">{error}</p>
       </div>
     );
   }
@@ -167,7 +193,7 @@ function ResultsContent() {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as 'overview' | 'videos' | 'sermon_imgs' | 'quote_imgs' | 'devotional')}
                   className={`flex-none min-w-[80px] px-3 py-2 rounded-xl text-sm font-black transition-all uppercase tracking-[0.12em] ${
                     activeTab === tab.id ? `${tab.color} text-white shadow-xl` : 'text-zinc-500 hover:text-zinc-300'
                   }`}>
@@ -221,13 +247,13 @@ function ResultsContent() {
                         onLoadedMetadata={(e) => console.log(`[DEBUG] Headline Video Metadata Loaded. Duration: ${e.currentTarget.duration}`)}
                         onError={(e) => {
                           const error = e.currentTarget.error;
-                          const errorMessages: { [key: number]: string } = {
+                          const errorMessages: Record<number, string> = {
                             1: 'Video aborted by user',
                             2: 'Network error - video failed to load',
                             3: 'Video decoding failed - file may be corrupted or invalid',
                             4: 'Video format not supported or has no valid streams'
                           };
-                          const errorMsg = `[DEBUG] Headline Video Error! Code: ${error?.code} | Message: ${error?.message || errorMessages[error?.code || 0] || 'Unknown error'} | URL: ${clips[0].url}`;
+                          const errorMsg = `[DEBUG] Headline Video Error! Code: ${error?.code} | Message: ${error?.message || errorMessages[error?.code ?? 0] || 'Unknown error'} | URL: ${clips[0].url}`;
                           console.error(errorMsg);
                           setVideoError(errorMsg);
                         }}
@@ -247,7 +273,7 @@ function ResultsContent() {
 
                 <div className="p-8 rounded-3xl bg-zinc-900/30 border border-white/5">
                   <h3 className="text-xl font-bold mb-4">Main Sermon Theme</h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed italic">"{sermonData.main_theme || 'Analyzing main theme...'}"</p>
+                  <p className="text-sm text-zinc-400 leading-relaxed italic">&quot;{sermonData.main_theme || 'Analyzing main theme...'}&quot;</p>
                   <p className="text-sm text-zinc-600 mt-4 uppercase tracking-widest">[DEBUG] Active Tab: {activeTab} | Clips: {clips.length}</p>
                 </div>
               </div>
@@ -274,9 +300,9 @@ function ResultsContent() {
               <ClipGrid clips={clips} />
             </div>
           )}
-          {activeTab === 'sermon_imgs' && <SermonArtGallery assets={sermonImages} />}
-          {activeTab === 'quote_imgs' && <QuoteVerseGallery assets={quotesAndVerses} />}
-          {activeTab === 'devotional' && <DevotionalTimeline devotional={devotional} />}
+          {activeTab === 'sermon_imgs' && <SermonArtGallery assets={(sermonImages as unknown) as Parameters<typeof SermonArtGallery>[0]['assets']} />}
+          {activeTab === 'quote_imgs' && <QuoteVerseGallery assets={(quotesAndVerses as unknown) as Parameters<typeof QuoteVerseGallery>[0]['assets']} />}
+          {activeTab === 'devotional' && <DevotionalTimeline devotional={(devotional as unknown) as Parameters<typeof DevotionalTimeline>[0]['devotional']} />}
         </section>
 
         {/* Footer Actions */}

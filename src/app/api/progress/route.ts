@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     start(controller) {
       const encoder = new TextEncoder();
 
-      const sendUpdate = (data: any) => {
+      const sendUpdate = (data: unknown) => {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
       };
 

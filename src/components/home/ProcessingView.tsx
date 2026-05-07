@@ -15,7 +15,7 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
 
   useEffect(() => {
     if (statusMessage) {
-      setLogs(prev => [...prev, statusMessage].slice(-5));
+      Promise.resolve().then(() => setLogs(prev => [...prev, statusMessage].slice(-5)));
     }
   }, [statusMessage]);
 

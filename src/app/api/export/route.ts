@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
         'Content-Length': fileStat.size.toString(),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Export error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

@@ -36,15 +36,16 @@ export async function POST(req: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("🔥 TRANSCRIBE API ERROR:", error);
-    console.error("Stack:", error?.stack);
-    console.error("Message:", error?.message);
+    const err = error as { stack?: string; message?: string; code?: string };
+    console.error("Stack:", err?.stack);
+    console.error("Message:", err?.message);
 
     return Response.json({
       error: "Transcription failed",
-      message: error?.message || "Unknown error occurred",
-      code: error?.code
+      message: err?.message || "Unknown error occurred",
+      code: err?.code
     }, { status: 500 });
   }
 }

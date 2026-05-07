@@ -34,7 +34,7 @@ function SermonArtCard({ asset }: SermonArtCardProps) {
       } else {
         alert(data.error || 'Failed to generate image');
       }
-    } catch (err) {
+    } catch {
       alert('Error connecting to DALL-E');
     } finally {
       setIsGenerating(false);

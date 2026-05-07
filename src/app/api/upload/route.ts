@@ -43,8 +43,9 @@ export async function POST(req: NextRequest) {
       r2Key = `uploads/${jobId}/${file.name}`;
       r2Url = await uploadBufferToR2(r2Key, buffer, file.type || 'application/octet-stream');
       console.log('[Upload] Saved source file to R2:', r2Key);
-    } catch (r2Err: any) {
-      console.warn('[Upload] R2 upload skipped:', r2Err.message);
+    } catch (r2Err: unknown) {
+      const msg = r2Err instanceof Error ? r2Err.message : String(r2Err);
+      console.warn('[Upload] R2 upload skipped:', msg);
     }
 
     progressManager.update(jobId, { 
@@ -61,8 +62,9 @@ export async function POST(req: NextRequest) {
       r2Key,
       r2Url,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Upload error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

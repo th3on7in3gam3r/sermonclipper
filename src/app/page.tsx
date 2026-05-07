@@ -34,7 +34,7 @@ export default function Home() {
     fonts: 'Outfit for headings, Inter for body'
   });
   const [showBranding, setShowBranding] = useState(false);
-  const [recentWork, setRecentWork] = useState<any[]>([]);
+  const [recentWork, setRecentWork] = useState<{ id: string; title: string; date: string }[]>([]);
   const [jobId, setJobId] = useState('');
   const [currentStepIndex, setCurrentStepIndex] = useState(-1);
   const [statusMessage, setStatusMessage] = useState('');
@@ -46,7 +46,7 @@ export default function Home() {
     // Load recent work from local storage
     const saved = localStorage.getItem('vesper_recent_work');
     if (saved) {
-      setRecentWork(JSON.parse(saved));
+      Promise.resolve().then(() => setRecentWork(JSON.parse(saved)));
     }
   }, []);
 
@@ -86,6 +86,7 @@ export default function Home() {
 
       return () => eventSource.close();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId, isProcessing]);
 
   const handleGenerate = async () => {
@@ -179,8 +180,9 @@ export default function Home() {
 
       setCurrentStepIndex(4);
       router.push(`/results?jobId=${newJobId}`);
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setError(msg);
       setIsProcessing(false);
     }
   };

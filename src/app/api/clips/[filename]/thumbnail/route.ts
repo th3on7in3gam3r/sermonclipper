@@ -40,7 +40,7 @@ export async function GET(
         'Cache-Control': 'public, max-age=3600',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Thumbnail serving error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

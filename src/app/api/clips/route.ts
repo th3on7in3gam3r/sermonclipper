@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readdir, readFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 
 export async function GET(req: NextRequest) {
@@ -30,10 +30,11 @@ export async function GET(req: NextRequest) {
         tone: data.tone || '',
         social_captions: data.social_captions || []
       });
-    } catch (e) {
+    } catch {
       return NextResponse.json({ success: true, clips: [] });
     }
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

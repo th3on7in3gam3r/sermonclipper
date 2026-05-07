@@ -54,7 +54,7 @@ export default function DevotionalTimeline({ devotional }: DevotionalTimelinePro
                     <span className="text-sm font-black text-zinc-500 uppercase tracking-widest">Deep Reflection</span>
                   </div>
                   <p className="text-zinc-300 text-sm italic leading-relaxed font-medium">
-                    "{day.reflection_question}"
+                    &quot;{day.reflection_question}&quot;
                   </p>
                 </div>
                 <div className="space-y-4 p-6 bg-zinc-950/50 rounded-2xl border border-white/5 hover:border-emerald-500/30 transition-colors">

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile, stat } from 'fs/promises';
-import { join, extname } from 'path';
-import { existsSync, createReadStream } from 'fs';
+import { extname } from 'path';
+import { existsSync } from 'fs';
 
 export async function GET(req: NextRequest) {
   try {
@@ -50,8 +50,9 @@ export async function GET(req: NextRequest) {
         'Content-Disposition': `inline`,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Download error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

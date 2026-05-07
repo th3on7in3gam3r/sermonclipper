@@ -8,7 +8,7 @@ import { progressManager } from '../../../lib/progress';
 import ffmpegPath from 'ffmpeg-static';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { uploadBufferToR2, getR2ObjectUrl } from '@/lib/r2';
+import { uploadBufferToR2 } from '@/lib/r2';
 
 const execAsync = promisify(exec);
 
@@ -54,11 +54,10 @@ async function probeVideoStreams(filePath: string): Promise<{ hasAudio: boolean;
       hasAudio,
       duration
     };
-  } catch (err) {
+  } catch {
     console.warn('[Process] Failed to probe video streams, assuming audio exists');
     return { hasVideo: true, hasAudio: true };
-  }
-}
+  }}
 
 // Parse time string like "0:15" or "1:30" into seconds
 function parseTimeString(timeStr: string): number {
@@ -168,15 +167,14 @@ export async function POST(req: NextRequest) {
         progress: (i / clips.length) * 100
       });
 
-      const hasWords = transcription && transcription.words && transcription.words.length > 0;
-      let srtPath = '';
       let clipR2Url: string | undefined;
       let thumbR2Url: string | undefined;
       
+      const hasWords = transcription && transcription.words && transcription.words.length > 0;
       if (hasWords) {
         try {
           const srtContent = generateSRT(transcription.words, clip.start_time, clip.end_time);
-          srtPath = join(clipsDir, `sub-${i + 1}.srt`);
+          const srtPath = join(clipsDir, `sub-${i + 1}.srt`);
           await writeFile(srtPath, srtContent);
         } catch (srtErr) {
           console.warn('[Process] Failed to generate SRT for clip:', i + 1, srtErr);
@@ -186,16 +184,16 @@ export async function POST(req: NextRequest) {
       // --- CLIP CUTTING WITH VALIDATION ---
       try {
         const filter = `crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920`;
-        const duration = clip.end_time - clip.start_time;
+        const clipDuration = clip.end_time - clip.start_time;
 
         const streams = await probeVideoStreams(filePath);
         console.log(`[Process] Source streams for clip ${i + 1}: video=${streams.hasVideo}, audio=${streams.hasAudio}`);
 
         let cutCmd: string;
         if (streams.hasAudio) {
-          cutCmd = `"${finalFfmpegPath}" -ss ${clip.start_time} -i "${filePath}" -t ${duration} -vf "${filter}" -map 0:v:0 -map 0:a:0 -c:v libx264 -profile:v main -level:v 3.0 -pix_fmt yuv420p -preset veryfast -crf 23 -tune fastdecode -movflags +faststart -c:a aac -b:a 128k -ac 2 -f mp4 -y "${outputPath}"`;
+          cutCmd = `"${finalFfmpegPath}" -ss ${clip.start_time} -i "${filePath}" -t ${clipDuration} -vf "${filter}" -map 0:v:0 -map 0:a:0 -c:v libx264 -profile:v main -level:v 3.0 -pix_fmt yuv420p -preset veryfast -crf 23 -tune fastdecode -movflags +faststart -c:a aac -b:a 128k -ac 2 -f mp4 -y "${outputPath}"`;
         } else {
-          cutCmd = `"${finalFfmpegPath}" -ss ${clip.start_time} -i "${filePath}" -t ${duration} -vf "${filter}" -f lavfi -i anullsrc=r=44100:cl=stereo -map 0:v:0 -map 1:a:0 -c:v libx264 -profile:v main -level:v 3.0 -pix_fmt yuv420p -preset veryfast -crf 23 -tune fastdecode -movflags +faststart -c:a aac -b:a 128k -ac 2 -shortest -f mp4 -y "${outputPath}"`;
+          cutCmd = `"${finalFfmpegPath}" -ss ${clip.start_time} -i "${filePath}" -t ${clipDuration} -vf "${filter}" -f lavfi -i anullsrc=r=44100:cl=stereo -map 0:v:0 -map 1:a:0 -c:v libx264 -profile:v main -level:v 3.0 -pix_fmt yuv420p -preset veryfast -crf 23 -tune fastdecode -movflags +faststart -c:a aac -b:a 128k -ac 2 -shortest -f mp4 -y "${outputPath}"`;
         }
 
         console.log(`[Process] Cutting clip ${i + 1}: ${outputFileName}`);
@@ -214,14 +212,14 @@ export async function POST(req: NextRequest) {
         }
         console.log(`[Process] Clip ${i + 1} file size: ${(fileStat.size / 1024 / 1024).toFixed(2)} MB`);
 
-        let clipR2Url: string | undefined;
         try {
           const clipBuffer = await readFile(outputPath);
           const clipKey = `processed-clips/${jobId}/${outputFileName}`;
           clipR2Url = await uploadBufferToR2(clipKey, clipBuffer, 'video/mp4');
           console.log(`[Process] Uploaded clip ${i + 1} to R2: ${clipKey}`);
-        } catch (clipR2Err: any) {
-          console.warn('[Process] R2 clip upload skipped:', clipR2Err.message);
+        } catch (clipR2Err: unknown) {
+          const msg = clipR2Err instanceof Error ? clipR2Err.message : String(clipR2Err);
+          console.warn('[Process] R2 clip upload skipped:', msg);
         }
 
         try {
@@ -238,9 +236,10 @@ export async function POST(req: NextRequest) {
             console.log(`[Process] Added audio to clip ${i + 1}`);
           }
           console.log(`[Process] Clip ${i + 1} verified: video=${outputStreams.hasVideo}, audio=${outputStreams.hasAudio}`);
-        } catch (probeErr: any) {
-          console.error(`[Process] Stream validation failed for clip ${i + 1}:`, probeErr.message);
-          throw new Error(`Failed to validate output streams: ${probeErr.message}`);
+        } catch (probeErr: unknown) {
+          const msg = probeErr instanceof Error ? probeErr.message : String(probeErr);
+          console.error(`[Process] Stream validation failed for clip ${i + 1}:`, msg);
+          throw new Error(`Failed to validate output streams: ${msg}`);
         }
 
         try {
@@ -252,20 +251,22 @@ export async function POST(req: NextRequest) {
             throw new Error(`Final validation failed: clip too short (${finalStreams.duration}s) in ${outputFileName}`);
           }
           console.log(`[Process] Final validation passed for clip ${i + 1}: duration=${finalStreams.duration?.toFixed(1)}s`);
-        } catch (finalErr: any) {
-          console.error(`[Process] Final validation failed for clip ${i + 1}:`, finalErr.message);
+        } catch (finalErr: unknown) {
+          const msg = finalErr instanceof Error ? finalErr.message : String(finalErr);
+          console.error(`[Process] Final validation failed for clip ${i + 1}:`, msg);
           try {
             const fs = await import('fs');
             if (fs.existsSync(outputPath)) {
               fs.unlinkSync(outputPath);
             }
-          } catch (cleanupErr) {
+          } catch {
             console.warn(`[Process] Failed to clean up corrupted file: ${outputFileName}`);
           }
           continue;
         }
-      } catch (err: any) {
-        console.error(`[Process] Cut failed for clip ${i + 1}:`, err.message);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[Process] Cut failed for clip ${i + 1}:`, msg);
         continue;
       }
 
@@ -293,12 +294,14 @@ export async function POST(req: NextRequest) {
             const thumbKey = `processed-clips/${jobId}/${thumbFileName}`;
             thumbR2Url = await uploadBufferToR2(thumbKey, thumbBuffer, 'image/jpeg');
             console.log(`[Process] Uploaded thumbnail ${i + 1} to R2: ${thumbKey}`);
-          } catch (thumbR2Err: any) {
-            console.warn('[Process] R2 thumbnail upload skipped:', thumbR2Err.message);
+          } catch (thumbR2Err: unknown) {
+            const msg = thumbR2Err instanceof Error ? thumbR2Err.message : String(thumbR2Err);
+            console.warn('[Process] R2 thumbnail upload skipped:', msg);
           }
         }
-      } catch (thumbErr: any) {
-        console.error(`[Process] Thumbnail failed for clip ${i + 1}:`, thumbErr.message);
+      } catch (thumbErr: unknown) {
+        const msg = thumbErr instanceof Error ? thumbErr.message : String(thumbErr);
+        console.error(`[Process] Thumbnail failed for clip ${i + 1}:`, msg);
       }
 
       // --- ADD TO PROCESSED LIST ---
@@ -333,13 +336,20 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, jobId, clips: processedClips });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Process clips error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
-function generateSRT(words: any[], start: number, end: number) {
+interface WordEntry {
+  word: string;
+  start: number;
+  end: number;
+}
+
+function generateSRT(words: WordEntry[], start: number, end: number) {
   if (!words) return '';
   
   const clipWords = words.filter(w => w.start >= start && w.end <= end);

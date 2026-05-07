@@ -109,7 +109,7 @@ export async function GET(
         },
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Clip serving error:', error);
     return new Response('Internal Server Error', { status: 500 });
   }

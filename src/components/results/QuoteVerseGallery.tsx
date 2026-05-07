@@ -35,7 +35,7 @@ function QuoteVerseCard({ asset }: QuoteVerseCardProps) {
       } else {
         alert(data.error || 'Failed to generate image');
       }
-    } catch (err) {
+    } catch {
       alert('Error connecting to DALL-E');
     } finally {
       setIsGenerating(false);
@@ -52,7 +52,7 @@ function QuoteVerseCard({ asset }: QuoteVerseCardProps) {
               ✨ Scripture Art
             </div>
             <p className="text-base md:text-sm font-black leading-relaxed text-white italic line-clamp-4">
-              "{asset.text}"
+              &quot;{asset.text}&quot;
             </p>
           </div>
           <div className="space-y-2">

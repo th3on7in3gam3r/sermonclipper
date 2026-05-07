@@ -58,7 +58,7 @@ export default function SermonBrief({ summaries, main_theme, tone, summaryTab, s
               ].map((tab) => (
                 <button 
                   key={tab.id}
-                  onClick={() => setSummaryTab(tab.id as any)}
+                  onClick={() => setSummaryTab(tab.id as 'one' | 'bullets' | 'detailed')}
                   className={`relative whitespace-nowrap pb-4 px-4 text-sm font-black uppercase tracking-[0.12em] transition-all ${
                     summaryTab === tab.id ? 'text-violet-400' : 'text-zinc-500 hover:text-zinc-300'
                   }`}
@@ -78,7 +78,7 @@ export default function SermonBrief({ summaries, main_theme, tone, summaryTab, s
                   <div className="relative">
                     <div className="absolute -left-6 top-0 bottom-0 w-[2px] bg-gradient-to-b from-violet-500 to-transparent opacity-30" />
                     <p className="text-zinc-200 text-base md:text-lg leading-7 font-medium italic tracking-tight">
-                      "{summaries?.one_minute_summary}"
+                      &quot;{summaries?.one_minute_summary}&quot;
                     </p>
                   </div>
                 )}

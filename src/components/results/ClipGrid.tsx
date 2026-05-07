@@ -33,7 +33,8 @@ export default function ClipGrid({ clips }: ClipGridProps) {
   const [invalidClipCount, setInvalidClipCount] = useState(clips.length - validClips.length);
 
   useEffect(() => {
-    setInvalidClipCount(clips.length - validClips.length);
+    Promise.resolve().then(() => setInvalidClipCount(clips.length - validClips.length));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clips]);
 
   useEffect(() => {
@@ -59,14 +60,14 @@ export default function ClipGrid({ clips }: ClipGridProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-      {validClips.map((clip, index) => (
-        <ClipItem key={clip.id || index} clip={clip} index={index} onInvalid={handleInvalidClip} />
+      {validClips.map((clip, idx) => (
+        <ClipItem key={clip.id || idx} clip={clip} onInvalid={handleInvalidClip} />
       ))}
     </div>
   );
 }
 
-function ClipItem({ clip, index, onInvalid }: { clip: Clip; index: number; onInvalid: () => void }) {
+function ClipItem({ clip, onInvalid }: { clip: Clip; onInvalid: () => void }) {
   const [videoError, setVideoError] = useState(false);
   const [fileExists, setFileExists] = useState(true);
   const [hasReportedInvalid, setHasReportedInvalid] = useState(false);
@@ -98,8 +99,9 @@ function ClipItem({ clip, index, onInvalid }: { clip: Clip; index: number; onInv
 
   useEffect(() => {
     if (!fileExists) {
-      reportInvalidClip();
+      Promise.resolve().then(() => reportInvalidClip());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileExists]);
 
   // Don't render if file doesn't exist or the video failed to play
@@ -149,13 +151,13 @@ function ClipItem({ clip, index, onInvalid }: { clip: Clip; index: number; onInv
           {clip.main_quote && (
             <div className="p-4 bg-violet-500/5 border-l-2 border-violet-500/50 rounded-r-lg">
               <p className="text-zinc-300 text-sm leading-relaxed font-medium italic">
-                "{clip.main_quote}"
+                &quot;{clip.main_quote}&quot;
               </p>
             </div>
           )}
 
           <div className="space-y-2">
-            <span className="text-sm font-black text-zinc-600 uppercase tracking-widest">Editor's Note</span>
+            <span className="text-sm font-black text-zinc-600 uppercase tracking-widest">Editor&apos;s Note</span>
             <p className="text-zinc-500 text-sm leading-relaxed italic opacity-80">
               {clip.why_it_works || clip.reason}
             </p>

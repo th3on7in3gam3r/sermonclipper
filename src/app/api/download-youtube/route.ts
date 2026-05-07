@@ -44,9 +44,10 @@ export async function POST(req: NextRequest) {
         referer: 'https://www.youtube.com',
       });
       console.log(`[Download] yt-dlp stdout: ${JSON.stringify(output)}`);
-    } catch (dlErr: any) {
+    } catch (dlErr: unknown) {
+      const msg = dlErr instanceof Error ? dlErr.message : String(dlErr);
       console.error('[Download] yt-dlp error:', dlErr);
-      return NextResponse.json({ error: `YouTube download failed: ${dlErr.message}` }, { status: 500 });
+      return NextResponse.json({ error: `YouTube download failed: ${msg}` }, { status: 500 });
     }
 
     // Verify file exists or find it if extension changed
@@ -79,8 +80,9 @@ export async function POST(req: NextRequest) {
       r2Key = `downloads/${jobId}/${remoteName}`;
       r2Url = await uploadBufferToR2(r2Key, videoBuffer, 'video/mp4');
       console.log('[Download] Saved downloaded video to R2:', r2Key);
-    } catch (r2Err: any) {
-      console.warn('[Download] R2 upload skipped:', r2Err.message);
+    } catch (r2Err: unknown) {
+      const msg = r2Err instanceof Error ? r2Err.message : String(r2Err);
+      console.warn('[Download] R2 upload skipped:', msg);
     }
 
     progressManager.update(jobId, { 
@@ -96,8 +98,9 @@ export async function POST(req: NextRequest) {
       r2Key,
       r2Url,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Download] Critical error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

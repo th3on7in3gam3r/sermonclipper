@@ -24,9 +24,9 @@ function AssetCard({ asset, type }: AssetCardProps) {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const prompt = (asset as any).full_image_prompt || (asset as any).prompt || (asset as any).image_prompt;
-  const title = (asset as any).title || (asset as any).text;
-  const subtitle = (asset as any).description || (asset as any).reference || (asset as any).type;
+  const prompt = (asset as SermonImage & QuoteVerse).full_image_prompt || (asset as SermonImage & QuoteVerse & { prompt?: string; image_prompt?: string }).prompt || (asset as SermonImage & QuoteVerse & { image_prompt?: string }).image_prompt;
+  const title = (asset as SermonImage).title || (asset as QuoteVerse).text;
+  const subtitle = (asset as SermonImage).description || (asset as QuoteVerse).reference || (asset as QuoteVerse).type;
 
   const handleGenerate = async () => {
     if (!prompt) {
@@ -45,7 +45,7 @@ function AssetCard({ asset, type }: AssetCardProps) {
       } else {
         alert(data.error || 'Failed to generate image');
       }
-    } catch (err) {
+    } catch {
       alert('Error connecting to DALL-E');
     } finally {
       setIsGenerating(false);
@@ -102,7 +102,7 @@ function AssetCard({ asset, type }: AssetCardProps) {
       <button 
         onClick={(e) => {
           e.stopPropagation();
-          navigator.clipboard.writeText(prompt);
+          navigator.clipboard.writeText(prompt ?? '');
           alert('Design prompt copied!');
         }}
         className="w-full py-4 bg-white/5 hover:bg-white/10 text-zinc-400 font-black rounded-xl transition-all flex items-center justify-center gap-2 uppercase text-sm tracking-widest border border-white/5"
@@ -114,7 +114,7 @@ function AssetCard({ asset, type }: AssetCardProps) {
 }
 
 interface AssetGalleryProps {
-  assets: any[];
+  assets: (SermonImage | QuoteVerse)[];
   type: 'sermon' | 'quote';
 }
 

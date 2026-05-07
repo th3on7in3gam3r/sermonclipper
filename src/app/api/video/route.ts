@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
         },
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Video serving error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

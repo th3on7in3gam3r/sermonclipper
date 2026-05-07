@@ -33,8 +33,9 @@ export async function POST(req: NextRequest) {
       success: true, 
       imageUrl 
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('DALL-E error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

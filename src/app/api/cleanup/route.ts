@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { rm, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     const tmpDir = join(process.cwd(), 'tmp');
     
@@ -23,8 +23,9 @@ export async function POST(req: NextRequest) {
       success: true, 
       message: 'Cache was already empty' 
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Cleanup error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

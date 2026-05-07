@@ -23,15 +23,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No transcription provided' }, { status: 400 });
     }
 
-    const brandingContext = branding ? `
-USER BRANDING SETTINGS:
-- Template Style: ${branding.template || 'Modern Cinematic'}
-- Primary Color: ${branding.primaryColor || '#8b5cf6'}
-- Accent Color: ${branding.accentColor || '#d946ef'}
-- Logo Description: ${branding.logoDescription || 'A subtle, modern cross icon'}
-- Fonts: ${branding.fonts || 'Outfit for headings, Inter for body'}
-` : 'Use a modern, premium faith-inspired aesthetic with glassmorphism and soft gradients.';
-
     progressManager.update(jobId, { 
       step: 'Analyzing', 
       status: 'loading', 
@@ -92,10 +83,11 @@ Begin processing now.`;
     let data;
     try {
       data = JSON.parse(content);
-    } catch (parseErr: any) {
-      console.error('[Analyze] JSON parse error:', parseErr.message);
+    } catch (parseErr: unknown) {
+      const msg = parseErr instanceof Error ? parseErr.message : String(parseErr);
+      console.error('[Analyze] JSON parse error:', msg);
       console.error('[Analyze] Raw content:', content);
-      throw new Error(`Failed to parse OpenAI response: ${parseErr.message}`);
+      throw new Error(`Failed to parse OpenAI response: ${msg}`);
     }
     
     // Map new structure to expected format
@@ -106,7 +98,7 @@ Begin processing now.`;
         main_theme: data.sermon_info?.main_theme,
         tone: data.sermon_info?.tone,
         five_day_devotional: data.five_day_devotional || [],
-        clips: (data.sermon_clips || []).map((clip: any) => ({
+        clips: (data.sermon_clips || []).map((clip: Record<string, unknown>) => ({
           clip_number: clip.clip_number,
           start_time: clip.start,
           end_time: clip.end,
@@ -116,7 +108,7 @@ Begin processing now.`;
           why_it_works: clip.why_it_works,
           hashtags: clip.hashtags
         })),
-        social_captions: (data.social_captions || []).map((cap: any) => ({
+        social_captions: (data.social_captions || []).map((cap: Record<string, unknown>) => ({
           clip_number: cap.clip_number,
           captions: [cap.instagram_caption, cap.tiktok_caption].filter(Boolean)
         })),
@@ -124,9 +116,10 @@ Begin processing now.`;
         quotes_and_verses: data.quotes_and_verses || []
       };
       console.log('[Analyze] Mapped data successfully');
-    } catch (mapErr: any) {
-      console.error('[Analyze] Mapping error:', mapErr.message);
-      throw new Error(`Failed to map response data: ${mapErr.message}`);
+    } catch (mapErr: unknown) {
+      const msg = mapErr instanceof Error ? mapErr.message : String(mapErr);
+      console.error('[Analyze] Mapping error:', msg);
+      throw new Error(`Failed to map response data: ${msg}`);
     }
     
     progressManager.update(jobId, { 
@@ -139,8 +132,9 @@ Begin processing now.`;
       success: true, 
       ...mappedData
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Analysis error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
