@@ -1,4 +1,5 @@
 import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { Readable } from 'stream';
 
 const accountId = process.env.CF_ACCOUNT_ID;
 const bucket = process.env.R2_BUCKET;
@@ -34,8 +35,6 @@ export function getR2ObjectUrl(key: string) {
   }
   return `${endpoint}/${bucket}/${encodeURIComponent(key)}`;
 }
-
-import { Readable } from 'stream';
 
 export async function uploadBufferToR2(key: string, buffer: Uint8Array, contentType = 'application/octet-stream') {
   const client = getR2Client();

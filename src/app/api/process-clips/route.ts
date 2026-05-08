@@ -8,8 +8,8 @@ import { progressManager } from '../../../lib/progress';
 import ffmpegPath from 'ffmpeg-static';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { uploadBufferToR2 } from '@/lib/r2';
-import { TMP_DIR } from '@/lib/paths';
+import { uploadBufferToR2 } from '../../../lib/r2';
+import { TMP_DIR } from '../../../lib/paths';
 
 const execAsync = promisify(exec);
 

@@ -6,8 +6,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { progressManager } from '@/lib/progress';
-import { uploadBufferToR2 } from '@/lib/r2';
+import { progressManager } from '../../../lib/progress';
+import { uploadBufferToR2 } from '../../../lib/r2';
 
 export async function POST(req: NextRequest) {
   try {
