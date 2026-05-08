@@ -64,6 +64,20 @@ Before running the application, ensure you have the following installed:
 5. **Open the app:**
    Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Deploying on Koyeb
+If you deploy on Koyeb and want YouTube downloads to work for videos behind anti-bot checks, provide cookies to `yt-dlp` using one of these environment variables:
+
+- `YTDLP_COOKIES_PATH=/path/to/youtube_cookies.txt`
+- `YTDLP_COOKIES_BROWSER=chrome`
+
+On Koyeb, you can:
+
+1. Upload a cookies file as a mounted secret or volume.
+2. Set `YTDLP_COOKIES_PATH` to the mounted file path.
+3. Or set `YTDLP_COOKIES_BROWSER` if `yt-dlp` can access the host browser cookie store.
+
+> Note: browser console errors are limited for server-side failures. Check your Koyeb logs for the exact yt-dlp error message and the route stack trace.
+
 ## Tech Stack
 
 - **Framework:** Next.js 14 (App Router)
