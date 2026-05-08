@@ -20,10 +20,11 @@ const BOT_BLOCK_REGEX =
 
 // ── Invidious resolver ────────────────────────────────────────────────────────
 const INVIDIOUS_INSTANCES = [
-  'https://inv.nadeko.net',
-  'https://invidious.privacyredirect.com',
-  'https://yt.cdaut.de',
-  'https://invidious.fdn.fr',
+  'https://invidious.projectsegfau.lt',
+  'https://invidious.perennialte.ch',
+  'https://iv.melmac.space',
+  'https://invidious.snopyta.org',
+  'https://yewtu.be',
 ];
 
 interface InvidiousStream {
@@ -90,7 +91,22 @@ async function downloadDirectStream(streamUrl: string, filePath: string): Promis
 
 // ── yt-dlp helpers ────────────────────────────────────────────────────────────
 function buildBaseFlags(filePath: string, format: string): Record<string, unknown> {
-  return { output: filePath, format, noCheckCertificate: true, noWarnings: true };
+  return { 
+    output: filePath, 
+    format, 
+    noCheckCertificate: true, 
+    noWarnings: true,
+    // Impersonate a real browser to bypass bot detection
+    impersonate: 'chrome',
+    addHeader: [
+      'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+      'Accept-Language: en-US,en;q=0.9',
+      'Sec-Ch-Ua: "Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+      'Sec-Ch-Ua-Mobile: ?0',
+      'Sec-Ch-Ua-Platform: "Windows"',
+    ]
+  };
 }
 
 function applyPlayerClient(flags: Record<string, unknown>, playerClient: string): Record<string, unknown> {
@@ -123,7 +139,10 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
     try {
       writeFileSync(provPath, cookieContent);
       cookiePath = provPath;
-      console.log(`[Download] Provisioned cookies to ${provPath}`);
+      console.log(`[Download] Provisioned cookies to ${provPath} (Length: ${cookieContent.length})`);
+      if (cookieContent.length < 50) {
+        console.warn('[Download] WARNING: YTDLP_COOKIES_CONTENT seems too short. Check your env var.');
+      }
     } catch (err) {
       console.error('[Download] Failed to write cookies to /tmp:', err);
     }
