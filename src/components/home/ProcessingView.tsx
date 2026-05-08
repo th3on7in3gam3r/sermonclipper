@@ -30,43 +30,35 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
   const progressPercent = Math.min(100, Math.max(5, ((currentStepIndex + 1) / steps.length) * 100));
 
   return (
-    <div className="max-w-lg w-full text-center animate-platinum">
-      <h2 className="text-4xl font-black tracking-tighter mb-2">Processing Your Sermon</h2>
-      <p className="text-[#A1A1AA] mb-12 text-lg font-light tracking-tight">This usually takes 4–10 minutes depending on length</p>
+    <div className="animate-up" style={{ width: '100%', maxWidth: '500px', textAlign: 'center' }}>
+      <h2 style={{ fontSize: '32px', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: '8px' }}>Processing Your Sermon</h2>
+      <p style={{ color: '#A1A1AA', fontSize: '18px', fontWeight: 300, marginBottom: '48px' }}>This usually takes 4–10 minutes depending on length</p>
 
       {/* Progress Card */}
-      <div className="bg-[#111114] border border-[#222] rounded-3xl p-8 mb-8 shadow-2xl relative overflow-hidden">
-        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-4">
-          <span className="text-white/40">{statusMessage.startsWith('[Raw]') ? 'Deep Resolution...' : (statusMessage || 'Analyzing...')}</span>
-          <span className="text-[#8B5CF6]">{Math.round(progressPercent)}%</span>
+      <div className="platinum-card" style={{ padding: '32px', position: 'relative', overflow: 'hidden' }}>
+        <div className="progress-header">
+          <span style={{ opacity: 0.5 }}>{statusMessage.startsWith('[Raw]') ? 'Deep Resolution...' : (statusMessage || 'Analyzing...')}</span>
+          <span style={{ color: '#8B5CF6' }}>{Math.round(progressPercent)}%</span>
         </div>
         
-        <div className="h-2.5 bg-[#222] rounded-full overflow-hidden mb-10">
+        <div className="progress-bar-bg">
           <div 
-            className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#F4B942] transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(139,92,246,0.5)]"
-            style={{ width: `${progressPercent}%` }}
+            className="progress-bar-fill" 
+            style={{ width: `${progressPercent}%`, boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)' }} 
           />
         </div>
 
-        <div className="space-y-5 text-left">
+        <div className="status-list">
           {steps.map((step, i) => {
             const isDone = i < currentStepIndex;
             const isCurrent = i === currentStepIndex;
             
             return (
-              <div key={step.id} className="flex items-center gap-4 text-sm transition-all duration-500">
-                <div className={`flex items-center justify-center w-5 h-5 rounded-full border ${
-                  isDone ? 'bg-[#22C55E] border-[#22C55E] text-white' : 
-                  isCurrent ? 'border-[#F4B942] text-[#F4B942] animate-pulse' : 
-                  'border-white/10 text-white/10'
-                }`}>
+              <div key={step.id} className={`status-item ${isDone ? 'done' : isCurrent ? 'active' : ''}`}>
+                <div className="status-dot">
                   {isDone ? '✓' : isCurrent ? '⟳' : '•'}
                 </div>
-                <span className={`font-bold tracking-tight ${
-                  isDone ? 'text-[#22C55E]' : 
-                  isCurrent ? 'text-[#F4B942]' : 
-                  'text-[#555]'
-                }`}>
+                <span style={{ letterSpacing: '-0.01em' }}>
                   {step.label}
                 </span>
               </div>
@@ -75,16 +67,7 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
         </div>
       </div>
 
-      {/* Diagnostic Feed (Hidden by default, shown on error or if toggled) */}
-      <div className="text-left mt-8 p-4 bg-black/40 rounded-xl border border-white/5 opacity-40">
-        <div ref={scrollRef} className="h-16 overflow-y-auto font-mono text-[9px] text-white/20 scrollbar-hide">
-          {logs.map((log, i) => (
-            <div key={i} className="truncate">› {log}</div>
-          ))}
-        </div>
-      </div>
-
-      <p className="text-[#555] text-[10px] font-black uppercase tracking-[0.4em] mt-8 select-none">
+      <p style={{ textAlign: 'center', color: '#555', marginTop: '40px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>
         Please keep this window open
       </p>
     </div>

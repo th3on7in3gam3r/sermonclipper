@@ -17,25 +17,27 @@ function ResultsContent() {
   };
 
   return (
-    <div className="max-w-6xl w-full animate-platinum">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 border-b border-white/5 pb-8">
-        <div>
-          <h1 className="text-5xl font-black tracking-tighter uppercase leading-none text-white">
-            Sermon <span className="text-[#8B5CF6]">Results</span>
+    <div className="animate-up" style={{ width: '100%', maxWidth: '1200px', padding: '0 20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '64px', borderBottom: '1px solid #222228', paddingBottom: '32px' }}>
+        <div style={{ flex: 1 }}>
+          <h1 style={{ fontSize: '48px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', lineHeight: 1 }}>
+            Sermon <span style={{ color: '#8B5CF6' }}>Results</span>
           </h1>
-          <p className="text-[#A1A1AA] text-lg font-light tracking-tight mt-2">Neural harvesting complete. Clips are ready for social.</p>
+          <p style={{ color: '#A1A1AA', fontSize: '18px', fontWeight: 300, marginTop: '8px' }}>Neural harvesting complete. Clips are ready for social.</p>
         </div>
-        <div className="flex gap-4 w-full md:w-auto">
+        <div style={{ display: 'flex', gap: '16px' }}>
           <button 
             onClick={handleCopy}
-            className="flex-1 md:flex-none px-8 py-4 rounded-2xl bg-white/5 border border-[#222] font-bold text-[10px] uppercase tracking-widest transition hover:bg-white/10"
+            className="platinum-btn"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid #222', fontSize: '11px', flex: 1 }}
           >
             {copied ? 'Copied Link' : 'Copy Session Link'}
           </button>
           <a 
             href={videoUrl || '#'} 
             download
-            className="flex-1 md:flex-none px-8 py-4 rounded-2xl bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] font-bold text-[10px] uppercase tracking-widest text-white text-center shadow-lg shadow-[#8B5CF6]/20 transition hover:brightness-110"
+            className="platinum-btn"
+            style={{ fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', flex: 1 }}
           >
             Download Master
           </a>
@@ -43,50 +45,43 @@ function ResultsContent() {
       </div>
 
       {/* Clips Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="dashboard-grid">
         {/* Main Session Clip */}
-        <div className="bg-[#111114] border border-[#222] rounded-3xl overflow-hidden shadow-2xl group transition hover:border-[#8B5CF6]/50">
-          <div className="aspect-video bg-black relative">
+        <div className="clip-card">
+          <div className="clip-preview">
             {videoUrl ? (
-              <video className="w-full h-full object-cover" src={videoUrl} controls></video>
+              <video style={{ width: '100%', height: '100%', objectCover: 'cover' }} src={videoUrl} controls></video>
             ) : (
-              <div className="w-full h-full flex items-center justify-center opacity-10">
-                <p className="text-xs uppercase font-black tracking-widest">Feed Loading...</p>
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.1 }}>
+                <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em' }}>Feed Loading...</p>
               </div>
             )}
-            <div className="absolute bottom-3 left-3 bg-black/70 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md border border-white/10">Full Session</div>
+            <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(0,0,0,0.7)', padding: '4px 12px', borderRadius: '100px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Full Session</div>
           </div>
-          <div className="p-6 space-y-4">
-            <h3 className="font-bold text-lg tracking-tight line-clamp-2">Master Sermon Session</h3>
-            <p className="text-white/20 text-xs leading-relaxed">High-resolution session capture. Perfect for full-length archiving.</p>
-            <button disabled className="w-full bg-[#8B5CF6]/10 text-[#8B5CF6] py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest opacity-50">
-              Master Stream Online
-            </button>
+          <div className="clip-info">
+            <h3 style={{ fontWeight: 900, fontSize: '18px', marginBottom: '8px', letterSpacing: '-0.01em' }}>Master Sermon Session</h3>
+            <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.6 }}>High-resolution session capture. Perfect for full-length archiving.</p>
           </div>
         </div>
 
         {/* Social Clip Placeholders */}
         {[1, 2].map((i) => (
-          <div key={i} className="bg-[#111114] border border-[#222] rounded-3xl overflow-hidden shadow-2xl opacity-60">
-            <div className="aspect-[9/16] bg-black/40 relative flex items-center justify-center border-b border-white/5">
-              <div className="text-center space-y-2">
-                <span className="text-2xl opacity-20">🎬</span>
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/10">AI Harvesting {i}...</p>
+          <div key={i} className="clip-card" style={{ opacity: 0.4 }}>
+            <div className="clip-preview vertical" style={{ background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎬</div>
+                <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.3 }}>Harvesting {i}...</p>
               </div>
-              <div className="absolute top-4 right-4"><div className="w-2 h-2 rounded-full bg-[#F4B942] animate-pulse" /></div>
             </div>
-            <div className="p-6">
-              <div className="h-4 w-3/4 bg-white/5 rounded-lg mb-3 animate-pulse" />
-              <div className="h-4 w-1/2 bg-white/5 rounded-lg mb-6 animate-pulse opacity-50" />
-              <button disabled className="w-full bg-white/5 text-white/10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest">
-                Processing Social Pack
-              </button>
+            <div className="clip-info">
+              <div style={{ height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', marginBottom: '12px' }} />
+              <div style={{ height: '14px', width: '60%', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }} />
             </div>
           </div>
         ))}
       </div>
 
-      <p className="text-center text-[#555] text-[10px] font-black uppercase tracking-[0.4em] mt-24">
+      <p style={{ textAlign: 'center', color: '#333', marginTop: '96px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>
         Professional Suite · Ironclad Build 2.8
       </p>
     </div>
@@ -95,12 +90,12 @@ function ResultsContent() {
 
 export default function Results() {
   return (
-    <main className="min-h-screen bg-[#0A0A0F] text-white p-8 md:p-16 flex justify-center relative overflow-hidden">
+    <main style={{ minHeight: '100vh', padding: '64px 20px', display: 'flex', justifyContent: 'center' }}>
       <div className="spiritual-rays" />
       <Suspense fallback={
-        <div className="flex flex-col items-center justify-center h-screen space-y-6">
-          <div className="w-12 h-12 border-4 border-[#8B5CF6] border-t-transparent rounded-full animate-spin" />
-          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 animate-pulse">Synchronizing Neural Dashboard...</p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '50vh', gap: '24px' }}>
+          <div style={{ width: '48px', height: '48px', border: '4px solid #8B5CF6', borderTopColor: 'transparent', borderRadius: '100px', animation: 'spin 1s linear infinite' }} />
+          <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5em', color: '#555' }}>Synchronizing Neural Dashboard...</p>
         </div>
       }>
         <ResultsContent />
