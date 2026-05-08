@@ -6,6 +6,7 @@ export interface ProgressUpdate {
   filePath?: string;
   r2Key?: string;
   r2Url?: string;
+  finalPath?: string;
 }
 
 class ProgressManager {
