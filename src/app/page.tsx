@@ -52,79 +52,77 @@ export default function Home() {
 
   if (isProcessing) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+      <main className="min-h-screen bg-[#0A0A0F] text-white flex items-center justify-center p-6 relative overflow-hidden">
         <div className="spiritual-rays" />
-        <div className="spiritual-motif" />
         <ProcessingView 
           steps={[
-            { id: 'engine', label: 'Neural Connection' },
-            { id: 'analysis', label: 'Spiritual Analysis' },
-            { id: 'extraction', label: 'Clip Extraction' }
+            { id: 'engine', label: 'Extracting Audio...' },
+            { id: 'transcribe', label: 'Transcription...' },
+            { id: 'analysis', label: 'Analyzing Moments...' },
+            { id: 'visuals', label: 'Generating Clips...' }
           ]}
-          currentStepIndex={0}
-          statusMessage={status?.message || 'Waking Engine...'}
+          currentStepIndex={status?.step === 'Uploading' ? 0 : status?.step === 'Transcribing' ? 1 : 2}
+          statusMessage={status?.message || 'Initializing...'}
         />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <main className="min-h-screen bg-[#0A0A0F] text-white flex items-center justify-center p-6 font-inter relative overflow-hidden">
       <div className="spiritual-rays" />
-      <div className="spiritual-motif" />
-
-      <div className="w-full max-w-xl space-y-16 animate-platinum text-center">
-        {/* Platinum Branding */}
-        <div className="space-y-4">
-          <h1 className="text-6xl font-black tracking-tighter uppercase leading-none text-white">
-            SERMON<span className="gradient-text">CLIPPER</span>
+      
+      <div className="max-w-xl w-full animate-platinum">
+        {/* Logo Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-6xl font-bold tracking-tighter mb-2">
+            SERMON<span className="text-[#8B5CF6]">CLIPPER</span>
           </h1>
-          <p className="text-sm font-bold uppercase tracking-[0.5em] text-white/40">
+          <p className="text-[#A1A1AA] text-xl font-light">
             Turn long sermons into powerful short-form content
           </p>
         </div>
 
-        {/* Input Section */}
-        <div className="platinum-card space-y-8 purple-glow">
-          <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Paste YouTube Link"
-              className="input-platinum"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
-            <button 
-              onClick={handleProcess}
-              className="btn-platinum w-full text-lg"
-            >
-              Process Sermon
-            </button>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5" /></div>
-            <div className="relative flex justify-center"><span className="bg-[#121212] px-4 text-[10px] font-black text-white/20 uppercase tracking-widest">or</span></div>
-          </div>
-
-          {/* Drag & Drop Area */}
-          <div className="border-2 border-dashed border-white/5 rounded-2xl p-12 text-center hover:border-white/10 transition-colors group cursor-pointer">
-            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-              <svg className="w-6 h-6 text-white/20 group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
+        {/* Input Card */}
+        <div className="bg-[#111114] border border-[#222228] rounded-3xl p-10 shadow-xl space-y-8">
+          <div>
+            <label className="block text-[10px] uppercase tracking-[0.3em] text-[#777] mb-3 font-black">YouTube Link</label>
+            <div className="flex flex-col md:flex-row gap-3">
+              <input 
+                type="text" 
+                placeholder="https://www.youtube.com/watch?v=..."
+                className="flex-1 bg-[#1A1A1F] border border-[#333] focus:border-[#8B5CF6] rounded-2xl px-6 py-4 text-lg outline-none transition-all placeholder:text-white/10"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
+              <button 
+                onClick={handleProcess}
+                className="bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] hover:brightness-110 px-10 py-4 rounded-2xl font-bold text-sm tracking-widest transition uppercase"
+              >
+                PROCESS SERMON
+              </button>
             </div>
-            <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Drag & drop video upload</p>
-            <p className="text-[10px] text-white/10 mt-1">Upload video file directly</p>
+          </div>
+
+          <div className="flex items-center">
+            <div className="flex-1 h-px bg-[#222]"></div>
+            <span className="px-6 text-[#555] text-xs font-black uppercase tracking-widest">or</span>
+            <div className="flex-1 h-px bg-[#222]"></div>
+          </div>
+
+          {/* Upload Zone */}
+          <div className="border-2 border-dashed border-[#444] hover:border-[#8B5CF6] rounded-3xl p-14 text-center transition-all cursor-pointer group bg-black/20">
+            <div className="mx-auto w-16 h-16 bg-[#1F1F24] rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#8B5CF6]/20 transition-colors">
+              <span className="text-2xl">📤</span>
+            </div>
+            <p className="text-xl font-bold mb-1 tracking-tight">Upload Video File</p>
+            <p className="text-[#777] text-[10px] uppercase font-black tracking-widest">MP4, MOV • Max 2GB supported</p>
           </div>
         </div>
 
-        {/* Spiritual Footer */}
-        <div className="pt-12">
-          <p className="text-[9px] font-black tracking-[0.8em] text-white/5 uppercase select-none">
-            Empowering Ministry Through AI
-          </p>
-        </div>
+        <p className="text-center text-[#555] mt-10 text-[10px] font-black uppercase tracking-[0.4em] select-none">
+          Built for churches • Private & Secure
+        </p>
       </div>
     </main>
   );

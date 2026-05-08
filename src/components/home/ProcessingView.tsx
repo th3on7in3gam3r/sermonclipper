@@ -15,8 +15,7 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
   useEffect(() => {
     if (statusMessage) {
       setLogs(prev => {
-        const last = prev[prev.length - 1];
-        if (last === statusMessage && !statusMessage.startsWith('[Raw]')) return prev;
+        if (prev[prev.length - 1] === statusMessage && !statusMessage.startsWith('[Raw]')) return prev;
         return [...prev, statusMessage].slice(-10);
       });
     }
@@ -31,74 +30,63 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
   const progressPercent = Math.min(100, Math.max(5, ((currentStepIndex + 1) / steps.length) * 100));
 
   return (
-    <div className="w-full max-w-xl animate-platinum flex flex-col items-center">
-      <div className="w-full space-y-12">
-        {/* Platinum Header */}
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-accent">Neural Analysis in Progress</span>
-          </div>
-          <h2 className="text-4xl font-black tracking-tighter uppercase leading-none text-white">
-            Processing <span className="gradient-text">Neural Stream</span>
-          </h2>
-        </div>
+    <div className="max-w-lg w-full text-center animate-platinum">
+      <h2 className="text-4xl font-black tracking-tighter mb-2">Processing Your Sermon</h2>
+      <p className="text-[#A1A1AA] mb-12 text-lg font-light tracking-tight">This usually takes 4–10 minutes depending on length</p>
 
-        {/* Platinum Progress Bar */}
-        <div className="space-y-6">
-          <div className="progress-container gold-glow">
-            <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
-          </div>
-          <div className="flex justify-between items-center px-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">
-              {steps[currentStepIndex]?.label || 'Resolving'}
-            </span>
-            <span className="text-2xl font-black text-white/5 tracking-tighter">{Math.round(progressPercent)}%</span>
-          </div>
+      {/* Progress Card */}
+      <div className="bg-[#111114] border border-[#222] rounded-3xl p-8 mb-8 shadow-2xl relative overflow-hidden">
+        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-4">
+          <span className="text-white/40">{statusMessage.startsWith('[Raw]') ? 'Deep Resolution...' : (statusMessage || 'Analyzing...')}</span>
+          <span className="text-[#8B5CF6]">{Math.round(progressPercent)}%</span>
         </div>
-
-        {/* Platinum Console */}
-        <div className="platinum-card !p-0 border-white/5 overflow-hidden shadow-2xl bg-black/40">
-          <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-            <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em]">Diagnostic Live Feed</span>
-            <div className="flex gap-1">
-              <div className="w-1 h-1 rounded-full bg-primary/40" />
-              <div className="w-1 h-1 rounded-full bg-accent/40" />
-            </div>
-          </div>
-          
+        
+        <div className="h-2.5 bg-[#222] rounded-full overflow-hidden mb-10">
           <div 
-            ref={scrollRef}
-            className="p-6 h-56 overflow-y-auto font-mono scrollbar-hide space-y-2.5"
-          >
-            {logs.map((log, i) => {
-              const isRaw = log.startsWith('[Raw]');
-              const isError = /error|failed|blocked/i.test(log);
-              const isWarning = /warning|trying|attempting/i.test(log);
-              
-              const cleanLog = log.replace('[Raw]', '').trim();
-              
-              let textColor = 'text-white/10';
-              if (i === logs.length - 1) textColor = 'text-accent';
-              if (isRaw) textColor = 'text-white/5';
-              if (isWarning) textColor = 'text-primary/80';
-              if (isError) textColor = 'text-red-400 font-bold';
-
-              return (
-                <div key={i} className={`text-[10px] flex items-start gap-3 transition-all duration-300 ${textColor}`}>
-                  <span className="opacity-10 shrink-0">›</span>
-                  <span className="break-words leading-relaxed">{cleanLog}</span>
-                </div>
-              );
-            })}
-          </div>
+            className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#F4B942] transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(139,92,246,0.5)]"
+            style={{ width: `${progressPercent}%` }}
+          />
         </div>
 
-        {/* Branding Footer */}
-        <div className="text-center opacity-5">
-          <p className="text-[8px] font-black tracking-[0.8em] uppercase">Professional Suite · Ironclad Build 2.7</p>
+        <div className="space-y-5 text-left">
+          {steps.map((step, i) => {
+            const isDone = i < currentStepIndex;
+            const isCurrent = i === currentStepIndex;
+            
+            return (
+              <div key={step.id} className="flex items-center gap-4 text-sm transition-all duration-500">
+                <div className={`flex items-center justify-center w-5 h-5 rounded-full border ${
+                  isDone ? 'bg-[#22C55E] border-[#22C55E] text-white' : 
+                  isCurrent ? 'border-[#F4B942] text-[#F4B942] animate-pulse' : 
+                  'border-white/10 text-white/10'
+                }`}>
+                  {isDone ? '✓' : isCurrent ? '⟳' : '•'}
+                </div>
+                <span className={`font-bold tracking-tight ${
+                  isDone ? 'text-[#22C55E]' : 
+                  isCurrent ? 'text-[#F4B942]' : 
+                  'text-[#555]'
+                }`}>
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* Diagnostic Feed (Hidden by default, shown on error or if toggled) */}
+      <div className="text-left mt-8 p-4 bg-black/40 rounded-xl border border-white/5 opacity-40">
+        <div ref={scrollRef} className="h-16 overflow-y-auto font-mono text-[9px] text-white/20 scrollbar-hide">
+          {logs.map((log, i) => (
+            <div key={i} className="truncate">› {log}</div>
+          ))}
+        </div>
+      </div>
+
+      <p className="text-[#555] text-[10px] font-black uppercase tracking-[0.4em] mt-8 select-none">
+        Please keep this window open
+      </p>
     </div>
   );
 }
