@@ -3,7 +3,7 @@ import { create } from 'yt-dlp-exec';
 import { v4 as uuidv4 } from 'uuid';
 import { join, basename } from 'path';
 import { mkdir, readdir, readFile } from 'fs/promises';
-import { existsSync, createWriteStream, writeFileSync, mkdirSync, createReadStream } from 'fs';
+import { existsSync, createWriteStream, writeFileSync, mkdirSync, createReadStream, readFileSync } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 import { progressManager, ProgressUpdate } from '../../../lib/progress';
@@ -209,6 +209,14 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
       writeFileSync(provPath, sanitized);
       cookiePath = provPath;
       console.log(`[Download] Provisioned and SANITIZED cookies to ${provPath} (Length: ${sanitized.length})`);
+      
+      // DIAGNOSTIC: Read the first line back to verify integrity
+      try {
+        const firstLine = readFileSync(provPath, 'utf8').split('\n')[0];
+        console.log(`[Download] Cookie Diagnostic (First Line): ${firstLine.slice(0, 50)}...`);
+      } catch (diagErr) {
+        console.error('[Download] Cookie Diagnostic FAILED:', diagErr);
+      }
     } catch (err) {
       console.error('[Download] Failed to write cookies to /tmp:', err);
     }
