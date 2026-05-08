@@ -10,8 +10,7 @@ import { progressManager, ProgressUpdate } from '../../../lib/progress';
 import { uploadStreamToR2 } from '../../../lib/r2';
 import { TMP_DIR } from '../../../lib/paths';
 
-const binPath = join(process.cwd(), 'node_modules', 'yt-dlp-exec', 'bin', 'yt-dlp');
-const youtubeDl = create(binPath);
+const youtubeDl = create('yt-dlp');
 
 const youtubeCookiesBrowser = process.env.YTDLP_COOKIES_BROWSER;
 
@@ -99,7 +98,7 @@ function buildBaseFlags(filePath: string, format: string): Record<string, unknow
     // Cloud stability flags
     forceIpv4: true,
     // Use a very robust User-Agent
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0',
   };
 }
 

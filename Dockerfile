@@ -15,7 +15,8 @@ RUN apk add --no-cache \
     zlib-dev \
     libffi-dev \
     openssl-dev \
-    && ln -sf python3 /usr/bin/python
+    && ln -sf python3 /usr/bin/python \
+    && python3 -m pip install --no-cache-dir yt-dlp
 
 # Set the working directory in the container
 WORKDIR /app
