@@ -9,6 +9,14 @@ import { Readable } from 'stream';
 import { progressManager, ProgressUpdate } from '../../../lib/progress';
 import { uploadStreamToR2 } from '../../../lib/r2';
 import { TMP_DIR } from '../../../lib/paths';
+import * as dns from 'dns';
+
+// Force Google DNS to fix ENOTFOUND issues on Koyeb
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch (e) {
+  console.warn('Could not set custom DNS servers:', e);
+}
 
 const youtubeDl = create('yt-dlp');
 
