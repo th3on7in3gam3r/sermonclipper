@@ -9,6 +9,26 @@ import { uploadBufferToR2 } from '@/lib/r2';
 
 const binPath = join(process.cwd(), 'node_modules', 'yt-dlp-exec', 'bin', 'yt-dlp');
 const youtubeDl = create(binPath);
+const youtubeCookiePath = process.env.YTDLP_COOKIES_PATH;
+const youtubeCookiesBrowser = process.env.YTDLP_COOKIES_BROWSER;
+
+function buildYoutubeFlags(filePath: string, format: string) {
+  const flags: Record<string, unknown> = {
+    output: filePath,
+    format,
+    noCheckCertificate: true,
+    noWarnings: true,
+    addHeader: 'User-Agent:Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+  };
+
+  if (youtubeCookiePath && existsSync(youtubeCookiePath)) {
+    flags.cookies = youtubeCookiePath;
+  } else if (youtubeCookiesBrowser) {
+    flags.cookiesFromBrowser = youtubeCookiesBrowser;
+  }
+
+  return flags as Parameters<typeof youtubeDl>[1];
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,41 +46,36 @@ export async function POST(req: NextRequest) {
     const filePath = join(tmpDir, fileName);
     console.log(`[Download] Target filePath: ${filePath}`);
 
-    progressManager.update(jobId, { 
-      step: 'Uploading', 
-      status: 'loading', 
-      message: 'Downloading video from YouTube...' 
+    progressManager.update(jobId, {
+      step: 'Uploading',
+      status: 'loading',
+      message: 'Downloading video from YouTube...',
     });
 
-    try {
-      console.log('[Download] Running yt-dlp...');
-      const flags = {
-        output: filePath,
-        // Best quality mp4, capped at 1080p to keep file sizes manageable
-        format: 'bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/bestvideo[ext=mp4]+bestaudio/best[ext=mp4]/best',
-        noCheckCertificate: true,
-        noWarnings: true,
-        // Realistic mobile user-agent — helps avoid simple bot checks
-        addHeader: 'User-Agent:Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-      };
-      const output = await youtubeDl(url, flags as Parameters<typeof youtubeDl>[1]);
+    async function runYoutubeDownload(flags: Parameters<typeof youtubeDl>[1]) {
+      console.log('[Download] Running yt-dlp with flags:', flags);
+      const output = await youtubeDl(url, flags);
       console.log(`[Download] yt-dlp stdout: ${JSON.stringify(output)}`);
+    }
+
+    try {
+      await runYoutubeDownload(buildYoutubeFlags(filePath, 'bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/bestvideo[ext=mp4]+bestaudio/best[ext=mp4]/best'));
     } catch (dlErr: unknown) {
       const msg = dlErr instanceof Error ? dlErr.message : String(dlErr);
       console.error('[Download] yt-dlp error:', dlErr);
 
-      // Retry without extractor args fallback
-      console.log('[Download] Retrying download without extractor_args...');
+      const botBlockError = /Sign in to confirm you(’|')re not a bot|Sign in to confirm you're not a bot/.test(msg);
+      const cookiesEnabled = youtubeCookiePath || youtubeCookiesBrowser;
+
+      if (botBlockError && !cookiesEnabled) {
+        return NextResponse.json({
+          error: 'YouTube blocked the download as a bot. Provide YTDLP_COOKIES_PATH or YTDLP_COOKIES_BROWSER in environment variables to retry with browser cookies.',
+        }, { status: 500 });
+      }
+
       try {
-        const retryFlags = {
-          output: filePath,
-          format: 'best[ext=mp4]/best',
-          noCheckCertificate: true,
-          noWarnings: true,
-          addHeader: 'User-Agent:Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-        };
-        const retryOutput = await youtubeDl(url, retryFlags as Parameters<typeof youtubeDl>[1]);
-        console.log(`[Download] Retry succeeded: ${JSON.stringify(retryOutput)}`);
+        console.log('[Download] Retrying with gentler flags and cookie support if available...');
+        await runYoutubeDownload(buildYoutubeFlags(filePath, 'best[ext=mp4]/best'));
       } catch (retryErr: unknown) {
         const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
         console.error('[Download] Retry also failed:', retryErr);
