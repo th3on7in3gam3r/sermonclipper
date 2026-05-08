@@ -12,16 +12,19 @@ import * as dns from 'dns';
 
 // ── Configuration ────────────────────────────────────────────────────────────
 try {
-  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+  dns.setServers(['1.1.1.1', '1.0.0.1', '8.8.8.8']);
 } catch (e) {
   console.warn('[Engine] DNS redundancy active.');
 }
 
+// Ultra-aggressive mirror list (Tier 1 Bypassers)
 const MIRRORS = [
-  { name: 'Invidious (Global)', type: 'invidious', url: 'https://invidious.projectsegfau.lt' },
-  { name: 'Piped (Global)', type: 'piped', url: 'https://pipedapi.kavin.rocks' },
-  { name: 'Invidious (Secondary)', type: 'invidious', url: 'https://yewtu.be' },
-  { name: 'Piped (Secondary)', type: 'piped', url: 'https://pipedapi.lunar.icu' },
+  { name: 'Clipper Mirror A (High-Rep)', type: 'invidious', url: 'https://invidious.projectsegfau.lt' },
+  { name: 'Clipper Mirror B (Global)', type: 'piped', url: 'https://pipedapi.kavin.rocks' },
+  { name: 'Clipper Mirror C (Asia)', type: 'invidious', url: 'https://iv.melmac.space' },
+  { name: 'Clipper Mirror D (Europe)', type: 'piped', url: 'https://pipedapi.lunar.icu' },
+  { name: 'Clipper Mirror E (Legacy)', type: 'invidious', url: 'https://yewtu.be' },
+  { name: 'Clipper Mirror F (Stable)', type: 'invidious', url: 'https://invidious.tiekoetter.com' },
 ];
 
 const BOT_BLOCK_REGEX = /Sign in to confirm|confirm you.{0,10}re not a bot|bot detection|age-restricted|403|Forbidden|blocked/i;
@@ -47,18 +50,23 @@ async function resolveMirror(videoId: string, mirror: any): Promise<string | nul
   try {
     if (mirror.type === 'invidious') {
       const res = await fetch(`${mirror.url}/api/v1/videos/${videoId}?fields=formatStreams`, {
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(12000),
       });
       if (!res.ok) return null;
       const data = await res.json();
-      return data.formatStreams?.find((s: any) => s.type?.includes('mp4'))?.url || null;
+      // Prefer highest quality MP4
+      const stream = data.formatStreams?.find((s: any) => s.quality === 'hd720' && s.type?.includes('mp4'))
+                  || data.formatStreams?.find((s: any) => s.type?.includes('mp4'));
+      return stream?.url || null;
     } else {
       const res = await fetch(`${mirror.url}/streams/${videoId}`, {
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(12000),
       });
       if (!res.ok) return null;
       const data = await res.json();
-      return data.videoStreams?.find((s: any) => s.format === 'VIDEO_STREAM_TYPE_MP4')?.url || null;
+      const stream = data.videoStreams?.find((s: any) => s.format === 'VIDEO_STREAM_TYPE_MP4' && s.quality === '720p')
+                  || data.videoStreams?.find((s: any) => s.format === 'VIDEO_STREAM_TYPE_MP4');
+      return stream?.url || null;
     }
   } catch { return null; }
 }
@@ -72,16 +80,12 @@ async function runYtDlp(url: string, filePath: string, client: string, jobId: st
     '--force-ipv4',
     '--geo-bypass',
     '--no-check-certificate',
-    '--user-agent', CHROME_UA
+    '--user-agent', CHROME_UA,
+    '--referer', 'https://www.youtube.com/'
   ];
   
-  if (client !== 'web') {
-    args.push('--extractor-args', `youtube:player_client=${client}`);
-  }
-  
-  if (cookiePath && existsSync(cookiePath)) {
-    args.push('--cookies', cookiePath);
-  }
+  if (client !== 'web') args.push('--extractor-args', `youtube:player_client=${client}`);
+  if (cookiePath && existsSync(cookiePath)) args.push('--cookies', cookiePath);
 
   return new Promise((resolve, reject) => {
     const child = spawn('yt-dlp', args);
@@ -117,49 +121,48 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   const filePath = join(TMP_DIR, `${uuidv4()}.mp4`);
   let cookiePath: string | undefined;
   
-  // Hardened Auth Check
+  // Auth Check
   const rawCookies = process.env.YTDLP_COOKIES_CONTENT || process.env.YTDLP_COOKIES;
   if (rawCookies && rawCookies.length > 50) {
     cookiePath = join(TMP_DIR, `ck_${jobId}.txt`);
-    const sanitized = sanitizeCookies(rawCookies);
-    writeFileSync(cookiePath, sanitized);
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: ACTIVE - Cookies found (${sanitized.length} bytes)` });
-  } else {
-    const reason = !rawCookies ? 'Missing Environment Variable' : 'Cookies Invalid/Too Short';
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: WARNING - ${reason}` });
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Action Required: Add Netscape Cookies to Koyeb dashboard.' });
+    writeFileSync(cookiePath, sanitizeCookies(rawCookies));
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: Active Stage Ready (${rawCookies.length} bytes)` });
   }
 
   let success = false;
   let lastRawError = '';
 
-  // 1. Extended Mirror Waterfall
+  // 1. GHOST MIRRORS (The Nuclear Option)
   const vid = extractVideoId(url);
   if (vid) {
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Ghost Mirror: Scanning for clean IPs...' });
     for (const m of MIRRORS) {
-      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Mirror: Tunneling via ${m.name}...` });
+      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Tunneling: ${m.name}...` });
       const streamUrl = await resolveMirror(vid, m);
       if (streamUrl) {
         try {
-          const res = await fetch(streamUrl, { signal: AbortSignal.timeout(60000) });
+          const res = await fetch(streamUrl, { 
+            headers: { 'User-Agent': CHROME_UA, 'Referer': m.url },
+            signal: AbortSignal.timeout(90000) 
+          });
           if (res.ok && res.body) {
             await pipeline(Readable.fromWeb(res.body as any), createWriteStream(filePath));
             success = true;
-            progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Engine: Download complete via ${m.name}` });
+            progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Ghost Mirror: Connection Established!' });
             break;
           }
-        } catch (e) { console.warn(`[Engine] Mirror ${m.name} failed.`); }
+        } catch (e) { console.warn(`[Engine] Mirror ${m.name} rejected.`); }
       }
     }
   }
 
-  // 2. Impersonation Waterfall
+  // 2. Protocol Waterfall (Fallback)
   if (!success) {
     const stages = [
-      { id: 'web', label: 'Chrome (Auth)', auth: true },
-      { id: 'android', label: 'Android' },
-      { id: 'ios', label: 'iOS Mobile' },
-      { id: 'mweb', label: 'Mobile Safari' },
+      { id: 'android', label: 'Android Protocol' },
+      { id: 'ios', label: 'iOS Protocol' },
+      { id: 'web', label: 'Chrome (Authenticated)', auth: true },
+      { id: 'tv_embedded', label: 'TV Protocol' },
     ];
     for (const s of stages) {
       progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Protocol: Trying ${s.label}...` });
@@ -176,16 +179,16 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
 
   if (!success) {
     const isBot = BOT_BLOCK_REGEX.test(lastRawError);
-    const msg = isBot ? `Bot Detection: YouTube is blocking the server. Please update cookies.` : `Critical Error: ${lastRawError}`;
+    const msg = isBot ? `Neural Block: YouTube demanded authentication that mirrors couldn't bypass.` : `Engine Error: ${lastRawError}`;
     progressManager.update(jobId, { step: 'Uploading', status: 'error', message: msg });
     return;
   }
 
   // 3. Finalize
   try {
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Syncing: Media Kit assembly...' });
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Syncing: Final Suite Assembly...' });
     const r2Url = await uploadStreamToR2(`sermons/${jobId}.mp4`, createReadStream(filePath), 'video/mp4');
-    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'Ready', r2Url, finalPath: r2Url });
+    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'Success', r2Url, finalPath: r2Url });
     if (existsSync(filePath)) unlinkSync(filePath);
     if (cookiePath && existsSync(cookiePath)) unlinkSync(cookiePath);
   } catch (e: any) {
