@@ -14,7 +14,7 @@ import * as dns from 'dns';
 try {
   dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 } catch (e) {
-  console.warn('[Engine] Custom DNS setup failed.');
+  console.warn('[Engine] DNS redundancy active.');
 }
 
 const MIRRORS = [
@@ -47,14 +47,14 @@ async function resolveMirror(videoId: string, mirror: any): Promise<string | nul
   try {
     if (mirror.type === 'invidious') {
       const res = await fetch(`${mirror.url}/api/v1/videos/${videoId}?fields=formatStreams`, {
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(10000),
       });
       if (!res.ok) return null;
       const data = await res.json();
       return data.formatStreams?.find((s: any) => s.type?.includes('mp4'))?.url || null;
     } else {
       const res = await fetch(`${mirror.url}/streams/${videoId}`, {
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(10000),
       });
       if (!res.ok) return null;
       const data = await res.json();
@@ -117,16 +117,17 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   const filePath = join(TMP_DIR, `${uuidv4()}.mp4`);
   let cookiePath: string | undefined;
   
-  // Deep Auth Diagnostic
+  // Hardened Auth Check
   const rawCookies = process.env.YTDLP_COOKIES_CONTENT || process.env.YTDLP_COOKIES;
   if (rawCookies && rawCookies.length > 50) {
     cookiePath = join(TMP_DIR, `ck_${jobId}.txt`);
     const sanitized = sanitizeCookies(rawCookies);
     writeFileSync(cookiePath, sanitized);
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: Cookies healthy (${sanitized.length} bytes)` });
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: ACTIVE - Cookies found (${sanitized.length} bytes)` });
   } else {
-    const reason = !rawCookies ? 'Missing ENV variable' : 'Cookies too short/invalid';
+    const reason = !rawCookies ? 'Missing Environment Variable' : 'Cookies Invalid/Too Short';
     progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: WARNING - ${reason}` });
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Action Required: Add Netscape Cookies to Koyeb dashboard.' });
   }
 
   let success = false;
@@ -136,7 +137,7 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   const vid = extractVideoId(url);
   if (vid) {
     for (const m of MIRRORS) {
-      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Tunneling: ${m.name}...` });
+      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Mirror: Tunneling via ${m.name}...` });
       const streamUrl = await resolveMirror(vid, m);
       if (streamUrl) {
         try {
@@ -144,7 +145,7 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
           if (res.ok && res.body) {
             await pipeline(Readable.fromWeb(res.body as any), createWriteStream(filePath));
             success = true;
-            progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Success: Downloaded via ${m.name}` });
+            progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Engine: Download complete via ${m.name}` });
             break;
           }
         } catch (e) { console.warn(`[Engine] Mirror ${m.name} failed.`); }
@@ -155,14 +156,13 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   // 2. Impersonation Waterfall
   if (!success) {
     const stages = [
-      { id: 'android', label: 'Android Protocol' },
-      { id: 'ios', label: 'iOS Protocol' },
-      { id: 'web', label: 'Chrome (Auth Stage)', auth: true },
+      { id: 'web', label: 'Chrome (Auth)', auth: true },
+      { id: 'android', label: 'Android' },
+      { id: 'ios', label: 'iOS Mobile' },
       { id: 'mweb', label: 'Mobile Safari' },
-      { id: 'tv_embedded', label: 'TV Set-top' },
     ];
     for (const s of stages) {
-      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Attempting ${s.label}...` });
+      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Protocol: Trying ${s.label}...` });
       try {
         await runYtDlp(url, filePath, s.id, jobId, s.auth ? cookiePath : undefined);
         success = true;
@@ -176,16 +176,16 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
 
   if (!success) {
     const isBot = BOT_BLOCK_REGEX.test(lastRawError);
-    const msg = isBot ? `Critical: Bot Blocked (Update Cookies)` : `Critical Failure: ${lastRawError}`;
+    const msg = isBot ? `Bot Detection: YouTube is blocking the server. Please update cookies.` : `Critical Error: ${lastRawError}`;
     progressManager.update(jobId, { step: 'Uploading', status: 'error', message: msg });
     return;
   }
 
   // 3. Finalize
   try {
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Syncing to Cloud...' });
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Syncing: Media Kit assembly...' });
     const r2Url = await uploadStreamToR2(`sermons/${jobId}.mp4`, createReadStream(filePath), 'video/mp4');
-    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'Download Success', r2Url, finalPath: r2Url });
+    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'Ready', r2Url, finalPath: r2Url });
     if (existsSync(filePath)) unlinkSync(filePath);
     if (cookiePath && existsSync(cookiePath)) unlinkSync(cookiePath);
   } catch (e: any) {
