@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# YouTube cookies — contains session credentials, never commit
+youtube_cookies.txt

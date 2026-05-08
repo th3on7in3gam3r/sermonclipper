@@ -35,6 +35,9 @@ RUN npm run build
 # Remove dev dependencies to reduce image size
 RUN npm prune --production
 
+# Set environment variables
+ENV YTDLP_COOKIES_PATH=/app/youtube_cookies.txt
+
 # Expose the port the app runs on
 EXPOSE 3000
 
