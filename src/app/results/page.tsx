@@ -50,7 +50,7 @@ function ResultsContent() {
         <div className="clip-card">
           <div className="clip-preview">
             {videoUrl ? (
-              <video style={{ width: '100%', height: '100%', objectCover: 'cover' }} src={videoUrl} controls></video>
+              <video style={{ width: '100%', height: '100%', objectFit: 'cover' }} src={videoUrl} controls></video>
             ) : (
               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.1 }}>
                 <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em' }}>Feed Loading...</p>
