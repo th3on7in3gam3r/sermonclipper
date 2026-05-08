@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Job ID required' }, { status: 400 });
     }
 
-    const clipsDir = join(process.cwd(), 'tmp', 'clips', jobId);
-    const zipPath = join(process.cwd(), 'tmp', `Vesper_Media_Kit_${jobId}.zip`);
+    const clipsDir = join('/tmp', 'clips', jobId);
+    const zipPath = join('/tmp', `Vesper_Media_Kit_${jobId}.zip`);
 
     if (!existsSync(clipsDir)) {
       return NextResponse.json({ error: 'Media kit not found' }, { status: 404 });

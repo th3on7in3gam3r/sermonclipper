@@ -9,6 +9,7 @@ import ffmpegPath from 'ffmpeg-static';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { uploadBufferToR2 } from '@/lib/r2';
+import { TMP_DIR } from '@/lib/paths';
 
 const execAsync = promisify(exec);
 
@@ -108,7 +109,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Source video has no video stream' }, { status: 400 });
     }
 
-    const clipsDir = join(process.cwd(), 'tmp', 'clips', jobId);
+    const clipsDir = join(TMP_DIR, 'clips', jobId);
     await mkdir(clipsDir, { recursive: true });
 
     progressManager.update(jobId, { 

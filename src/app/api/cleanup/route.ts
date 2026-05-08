@@ -5,13 +5,11 @@ import { existsSync } from 'fs';
 
 export async function POST() {
   try {
-    const tmpDir = join(process.cwd(), 'tmp');
+    const clipsDir = join('/tmp', 'clips');
     
-    if (existsSync(tmpDir)) {
-      // Remove the directory and all its contents
-      await rm(tmpDir, { recursive: true, force: true });
-      // Re-create the empty tmp directory
-      await mkdir(tmpDir, { recursive: true });
+    if (existsSync(clipsDir)) {
+      await rm(clipsDir, { recursive: true, force: true });
+      await mkdir(clipsDir, { recursive: true });
       
       return NextResponse.json({ 
         success: true, 

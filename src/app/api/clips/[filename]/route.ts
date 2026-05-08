@@ -5,7 +5,7 @@ import { existsSync, createReadStream } from 'fs';
 
 // Helper to find file in jobId subdirectories
 async function findClipPath(filename: string) {
-  const clipsBase = join(process.cwd(), 'tmp', 'clips');
+  const clipsBase = join('/tmp', 'clips');
   if (!existsSync(clipsBase)) return null;
   
   const jobDirs = await readdir(clipsBase);

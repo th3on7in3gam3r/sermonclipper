@@ -6,7 +6,7 @@ import { existsSync } from 'fs';
 // Helper to find file in jobId subdirectories
 async function findThumbnailPath(filename: string) {
   const thumbName = filename.replace('.mp4', '.jpg');
-  const clipsBase = join(process.cwd(), 'tmp', 'clips');
+  const clipsBase = join('/tmp', 'clips');
   if (!existsSync(clipsBase)) return null;
   
   const jobDirs = await readdir(clipsBase);

@@ -8,25 +8,10 @@ import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 import { progressManager } from '@/lib/progress';
 import { uploadStreamToR2 } from '@/lib/r2';
+import { TMP_DIR } from '@/lib/paths';
 
 const binPath = join(process.cwd(), 'node_modules', 'yt-dlp-exec', 'bin', 'yt-dlp');
 const youtubeDl = create(binPath);
-
-// Provision cookies from YTDLP_COOKIES_CONTENT env var (for Koyeb — no file mounts)
-let youtubeCookiePath = process.env.YTDLP_COOKIES_PATH;
-const youtubeCookiesContent = process.env.YTDLP_COOKIES_CONTENT;
-
-if (youtubeCookiesContent && !youtubeCookiePath) {
-  const provPath = join(process.cwd(), 'tmp', 'youtube_cookies_provisioned.txt');
-  try {
-    mkdirSync(join(process.cwd(), 'tmp'), { recursive: true });
-    writeFileSync(provPath, youtubeCookiesContent);
-    youtubeCookiePath = provPath;
-    console.log('[Download] Provisioned cookies from YTDLP_COOKIES_CONTENT');
-  } catch (err) {
-    console.error('[Download] Failed to provision cookies:', err);
-  }
-}
 
 const youtubeCookiesBrowser = process.env.YTDLP_COOKIES_BROWSER;
 
@@ -63,12 +48,8 @@ async function resolveStreamViaInvidious(videoId: string): Promise<string | null
       );
       if (!res.ok) continue;
 
-      // Guard against HTML error pages returned by unhealthy instances
       const contentType = res.headers.get('content-type') ?? '';
-      if (!contentType.includes('application/json')) {
-        console.warn(`[Download] Invidious ${instance} returned non-JSON: ${contentType}`);
-        continue;
-      }
+      if (!contentType.includes('application/json')) continue;
 
       const data = await res.json() as { formatStreams?: InvidiousStream[] };
       const QUALITY_ORDER = ['hd1080', 'hd720', 'large', 'medium', 'small', 'tiny'];
@@ -116,8 +97,8 @@ function applyPlayerClient(flags: Record<string, unknown>, playerClient: string)
   return { ...flags, extractorArgs: `youtube:player_client=${playerClient}` };
 }
 
-function applyCookies(flags: Record<string, unknown>): Record<string, unknown> {
-  if (youtubeCookiePath && existsSync(youtubeCookiePath)) return { ...flags, cookies: youtubeCookiePath };
+function applyCookies(flags: Record<string, unknown>, cookiePath?: string): Record<string, unknown> {
+  if (cookiePath && existsSync(cookiePath)) return { ...flags, cookies: cookiePath };
   if (youtubeCookiesBrowser) return { ...flags, cookiesFromBrowser: youtubeCookiesBrowser };
   return flags;
 }
@@ -129,12 +110,24 @@ async function runYtDlp(url: string, flags: Record<string, unknown>): Promise<vo
 }
 
 // ── Background download job ───────────────────────────────────────────────────
-// Runs the full download pipeline and updates progress. Called without await so
-// the HTTP response can be returned immediately (avoids 504 gateway timeouts on
-// platforms like Koyeb that have short request timeouts).
 async function runDownloadJob(url: string, jobId: string): Promise<void> {
-  const tmpDir = join(process.cwd(), 'tmp');
-  await mkdir(tmpDir, { recursive: true });
+  // Use system absolute /tmp directory (writable on almost all cloud platforms)
+  const tmpDir = '/tmp';
+  
+  // Provision cookies from YTDLP_COOKIES_CONTENT if available
+  let cookiePath = process.env.YTDLP_COOKIES_PATH;
+  const cookieContent = process.env.YTDLP_COOKIES_CONTENT;
+
+  if (cookieContent && !cookiePath) {
+    const provPath = join(tmpDir, `youtube_cookies_${jobId}.txt`);
+    try {
+      writeFileSync(provPath, cookieContent);
+      cookiePath = provPath;
+      console.log(`[Download] Provisioned cookies to ${provPath}`);
+    } catch (err) {
+      console.error('[Download] Failed to write cookies to /tmp:', err);
+    }
+  }
 
   const fileName = `${uuidv4()}.mp4`;
   const filePath = join(tmpDir, fileName);
@@ -145,7 +138,7 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   let succeeded = false;
   let lastError = '';
 
-  // Stage 0: Invidious — resolves a direct stream URL, bypasses YouTube entirely
+  // Stage 0: Invidious
   const videoId = extractVideoId(url);
   if (videoId) {
     try {
@@ -154,20 +147,19 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
         console.log('[Download] Stage 0 (Invidious): downloading...');
         await downloadDirectStream(streamUrl, filePath);
         succeeded = true;
-        console.log('[Download] Stage 0 (Invidious): succeeded.');
       }
     } catch (err) {
       console.warn('[Download] Stage 0 (Invidious) failed:', err);
     }
   }
 
-  // Stages 1-4: yt-dlp waterfall with different player clients
+  // Stages 1-4: yt-dlp waterfall
   if (!succeeded) {
     const stages: Array<{ label: string; flags: Record<string, unknown> }> = [
       { label: 'ios player',      flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_BEST), 'ios') },
       { label: 'mweb player',     flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'mweb') },
       { label: 'tv_embedded',     flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'tv_embedded') },
-      { label: 'cookies+web',     flags: applyCookies(applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'web')) },
+      { label: 'cookies+web',     flags: applyCookies(applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'web'), cookiePath) },
     ];
 
     for (const stage of stages) {
@@ -175,12 +167,11 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
         console.log(`[Download] Trying stage: ${stage.label}`);
         await runYtDlp(url, stage.flags);
         succeeded = true;
-        console.log(`[Download] Stage succeeded: ${stage.label}`);
         break;
       } catch (err: unknown) {
         lastError = err instanceof Error ? err.message : String(err);
         console.warn(`[Download] Stage "${stage.label}" failed:`, lastError.slice(0, 200));
-        if (/Video unavailable|Private video|removed by the uploader/i.test(lastError)) {
+        if (/Video unavailable|Private video/i.test(lastError)) {
           progressManager.update(jobId, { step: 'Uploading', status: 'error', message: `Video unavailable or private.` });
           return;
         }
@@ -189,9 +180,7 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   }
 
   if (!succeeded) {
-    const hint = BOT_BLOCK_REGEX.test(lastError)
-      ? ' Set YTDLP_COOKIES_CONTENT env var with your YouTube cookies.'
-      : '';
+    const hint = BOT_BLOCK_REGEX.test(lastError) ? ' Check your YouTube cookies in Koyeb env vars.' : '';
     progressManager.update(jobId, {
       step: 'Uploading',
       status: 'error',
@@ -200,15 +189,14 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
     return;
   }
 
-  // Find the downloaded file (yt-dlp may have changed the extension)
+  // Find the file
   let finalPath = filePath;
   if (!existsSync(filePath)) {
     const files = await readdir(tmpDir);
     const baseName = fileName.replace('.mp4', '');
     const found = files.find(f => f.startsWith(baseName));
-    if (found) {
-      finalPath = join(tmpDir, found);
-    } else {
+    if (found) finalPath = join(tmpDir, found);
+    else {
       progressManager.update(jobId, { step: 'Uploading', status: 'error', message: 'Downloaded file not found on disk.' });
       return;
     }
@@ -224,7 +212,7 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
     const remoteName = basename(finalPath);
     r2Key = `downloads/${jobId}/${remoteName}`;
     r2Url = await uploadStreamToR2(r2Key, stream, 'video/mp4');
-    console.log('[Download] Uploaded to R2 via stream:', r2Key);
+    console.log('[Download] Uploaded to R2:', r2Key);
   } catch (r2Err: unknown) {
     console.warn('[Download] R2 upload skipped:', r2Err instanceof Error ? r2Err.message : r2Err);
   }
@@ -243,27 +231,18 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
 export async function POST(req: NextRequest) {
   try {
     const { url, jobId = uuidv4() } = await req.json();
-    console.log(`[Download] Received request — jobId=${jobId} url=${url}`);
+    console.log(`[Download] Received jobId=${jobId} url=${url}`);
 
-    if (!url) {
-      return NextResponse.json({ error: 'No URL provided' }, { status: 400 });
-    }
+    if (!url) return NextResponse.json({ error: 'No URL provided' }, { status: 400 });
 
-    // Set initial progress state immediately
-    progressManager.update(jobId, {
-      step: 'Uploading',
-      status: 'loading',
-      message: 'Starting YouTube download...',
-    });
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Starting YouTube download...' });
 
-    // Fire the download in the background — do NOT await.
-    // This returns the response immediately, preventing 504 gateway timeouts.
+    // Fire in background
     runDownloadJob(url, jobId).catch(err => {
-      console.error('[Download] Unhandled background job error:', err);
+      console.error('[Download] Unhandled job error:', err);
       progressManager.update(jobId, { step: 'Uploading', status: 'error', message: String(err) });
     });
 
-    // Return jobId immediately — client polls /api/progress for status
     return NextResponse.json({ success: true, jobId });
   } catch (error: unknown) {
     console.error('[Download] Critical error:', error);

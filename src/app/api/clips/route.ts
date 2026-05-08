@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
     }
 
-    const clipsDir = join(process.cwd(), 'tmp', 'clips', jobId);
+    const clipsDir = join('/tmp', 'clips', jobId);
     
     try {
       const metadataPath = join(clipsDir, 'metadata.json');

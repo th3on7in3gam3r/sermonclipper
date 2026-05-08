@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    const tmpDir = join(process.cwd(), 'tmp');
+    const tmpDir = '/tmp';
     await mkdir(tmpDir, { recursive: true });
 
     const fileName = `${uuidv4()}-${file.name}`;
