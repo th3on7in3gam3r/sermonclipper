@@ -1,4 +1,5 @@
 import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
 import { Readable } from 'stream';
 
 const accountId = process.env.CF_ACCOUNT_ID;
@@ -51,18 +52,26 @@ export async function uploadBufferToR2(key: string, buffer: Uint8Array, contentT
   return getR2ObjectUrl(key);
 }
 
+
+
 export async function uploadStreamToR2(key: string, stream: Readable, contentType = 'application/octet-stream') {
   const client = getR2Client();
   if (!client) throw new Error('Missing Cloudflare R2 credentials');
 
-  const command = new PutObjectCommand({
-    Bucket: bucket,
-    Key: key,
-    Body: stream,
-    ContentType: contentType,
+  const parallelUploads3 = new Upload({
+    client,
+    params: {
+      Bucket: bucket,
+      Key: key,
+      Body: stream,
+      ContentType: contentType,
+    },
+    // Keep part size small to save memory on Koyeb
+    partSize: 5 * 1024 * 1024, // 5MB
+    queueSize: 4, // concurrent parts
   });
 
-  await client.send(command);
+  await parallelUploads3.done();
   return getR2ObjectUrl(key);
 }
 

@@ -31,27 +31,19 @@ function ResultsContent() {
   }
 
   const [clips, setClips] = useState<ClipData[]>([]);
-  const [sermonImages, setSermonImages] = useState<Record<string, unknown>[]>([]);
-  const [quotesAndVerses, setQuotesAndVerses] = useState<Record<string, unknown>[]>([]);
-  const [devotional, setDevotional] = useState<Record<string, unknown>[]>([]);
-  const [sermonData, setSermonData] = useState<{
-    summaries?: Record<string, unknown>;
-    main_theme?: string;
-    tone?: string;
-  }>({});
-
+  const [sermonImages, setSermonImages] = useState<any[]>([]);
+  const [quotesAndVerses, setQuotesAndVerses] = useState<any[]>([]);
+  const [devotional, setDevotional] = useState<any[]>([]);
+  const [sermonData, setSermonData] = useState<any>({});
   const [activeTab, setActiveTab] = useState<'overview' | 'videos' | 'sermon_imgs' | 'quote_imgs' | 'devotional'>('overview');
   const [summaryTab, setSummaryTab] = useState<'one' | 'bullets' | 'detailed'>('one');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [videoError, setVideoError] = useState('');
 
   useEffect(() => {
     if (!jobId) {
-      Promise.resolve().then(() => {
-        setError('No Job ID found.');
-        setLoading(false);
-      });
+      setError('Neural Job ID not found.');
+      setLoading(false);
       return;
     }
 
@@ -62,38 +54,22 @@ function ResultsContent() {
 
         if (data.success) {
           const mergedClips = (data.clips || []).map((clip: ClipData) => {
-            const captionsObj = (data.social_captions || []).find((c: Record<string, unknown>) => c.clip_number === clip.clip_number);
+            const captionsObj = (data.social_captions || []).find((c: any) => c.clip_number === clip.clip_number);
             return {
               ...clip,
               suggested_captions: captionsObj ? captionsObj.captions : (clip.suggested_captions || [])
             };
           });
           setClips(mergedClips);
-
-          const sermonImagePrompts = data.sermon_images || [];
-          const quotePrompts = data.quotes_and_verses || [];
-
-          setSermonImages(mergedClips.map((clip: ClipData, index: number) => {
-            const prompt = sermonImagePrompts[index] ||
-              `Create an attention-grabbing social media graphic for the sermon clip titled "${clip.title}" with a premium cinematic look.`;
-            return { title: clip.title, description: (prompt as string).split(' - ')[0] || clip.title, full_image_prompt: prompt };
-          }));
-
-          setQuotesAndVerses(mergedClips.map((clip: ClipData, index: number) => {
-            const item = quotePrompts[index] as string | undefined;
-            const quoteMatch = item?.match(/Typography card: '([^']+)'/);
-            const quote = quoteMatch ? quoteMatch[1] : item || clip.main_quote || clip.title;
-            const prompt = item || `Typography card: '${quote}' - a premium scripture design using branding colors, modern fonts, and a minimal layout.`;
-            return { type: 'scripture', text: quote, reference: clip.title, full_image_prompt: prompt };
-          }));
-
+          setSermonImages(data.sermon_images || []);
+          setQuotesAndVerses(data.quotes_and_verses || []);
           setDevotional(data.five_day_devotional || []);
           setSermonData({ summaries: data.summaries, main_theme: data.main_theme, tone: data.tone });
         } else {
-          setError(data.error || 'Failed to load assets.');
+          setError(data.error || 'The engine failed to assemble the media kit.');
         }
-      } catch {
-        setError('An error occurred loading your media kit.');
+      } catch (err) {
+        setError('Connection interrupted during suite assembly.');
       } finally {
         setLoading(false);
       }
@@ -102,194 +78,151 @@ function ResultsContent() {
     fetchData();
   }, [jobId]);
 
-  const handleExportAll = () => {
-    if (!jobId) return;
-    window.location.href = `/api/export?jobId=${jobId}`;
-  };
-
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'videos', label: 'Clips' },
     { id: 'sermon_imgs', label: 'Art' },
     { id: 'quote_imgs', label: 'Quotes' },
-    { id: 'devotional', label: 'Devotional' },
+    { id: 'devotional', label: 'Growth' },
   ] as const;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#fdfcf8] flex flex-col items-center justify-center p-6 text-center">
-        <div className="relative mb-8">
-          <div className="w-16 h-16 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 animate-fade">
+        <div className="relative">
+          <div className="w-20 h-20 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary/10 rounded-full animate-pulse" />
+          </div>
         </div>
-        <h2 className="text-2xl font-black tracking-tighter text-stone-800 mb-1">
-          <span className="text-stone-400">VES</span><span className="gradient-text">PER</span>
-        </h2>
-        <p className="text-sm text-indigo-500 font-medium animate-pulse">Assembling your media suite…</p>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black tracking-tighter text-white uppercase">Assembling Suite</h2>
+          <p className="text-[10px] font-bold text-primary uppercase tracking-[0.4em] animate-pulse">Establishing Secure Stream…</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#fdfcf8] flex flex-col items-center justify-center p-6 text-center">
-        <p className="text-red-500 font-semibold">{error}</p>
-        <button onClick={() => router.push('/')} className="mt-4 text-sm text-indigo-600 underline">Go back home</button>
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-6">
+        <div className="p-6 glass border-red-500/20 max-w-md">
+          <p className="text-red-400 font-bold mb-4">{error}</p>
+          <button onClick={() => router.push('/')} className="btn-primary !py-2.5 !text-xs">
+            Return to Dashboard
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#fdfcf8] font-sans">
-      {/* Subtle top gradient */}
-      <div className="fixed inset-x-0 top-0 h-64 bg-gradient-to-b from-indigo-50/50 to-transparent pointer-events-none z-0" />
+    <main className="min-h-screen p-6 sm:p-12 lg:p-24 space-y-16 animate-fade">
+      {/* Background Decor */}
+      <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[150px] rounded-full pointer-events-none -z-10" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent/5 blur-[150px] rounded-full pointer-events-none -z-10" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-
-        {/* Header */}
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-stone-200">
-          <div className="flex items-center gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-xs font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
-                  Live Kit
-                </span>
-              </div>
-              <h1 className="text-3xl font-black tracking-tighter text-stone-800">
-                <span className="text-stone-400">VES</span><span className="gradient-text">PER</span>
-              </h1>
-            </div>
+      {/* Header */}
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-12 border-b border-white/5">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live Media Kit
+            </span>
+            <span className="text-white/20 text-[10px] font-bold uppercase tracking-widest">Job: {jobId?.slice(0, 8)}</span>
           </div>
+          <h1 className="text-6xl sm:text-7xl font-black tracking-tighter leading-none text-white">
+            Sermon<span className="gradient-text">Clipper</span>
+          </h1>
+        </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={handleExportAll}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all shadow-sm shadow-emerald-200"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Export All
-            </button>
-            <button
-              onClick={() => router.push('/')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 hover:border-stone-300 text-stone-600 rounded-xl text-sm font-semibold transition-all"
-            >
-              New Sermon
-            </button>
-          </div>
-        </header>
+        <div className="flex gap-4">
+          <button onClick={() => router.push('/')} className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all border border-white/5">
+            New Generation
+          </button>
+          <button onClick={() => window.print()} className="btn-primary !py-3 !px-8 !text-[10px]">
+            Export Media Guide
+          </button>
+        </div>
+      </header>
 
-        {/* Tab nav */}
-        <nav className="flex gap-1 p-1 bg-stone-100 rounded-xl w-fit">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                activeTab === tab.id
-                  ? 'bg-white text-indigo-600 shadow-sm border border-stone-200'
-                  : 'text-stone-500 hover:text-stone-700'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+      {/* Navigation */}
+      <nav className="flex flex-wrap gap-2 p-1.5 bg-white/5 rounded-2xl border border-white/5 w-fit">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${
+              activeTab === tab.id
+                ? 'bg-primary text-white shadow-xl'
+                : 'text-white/40 hover:text-white/60'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
-        {/* Content */}
-        <section className="animate-fade-in min-h-[500px]">
-          {activeTab === 'overview' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-5">
-                <div className="relative rounded-2xl overflow-hidden bg-stone-900 aspect-video lg:aspect-auto lg:h-[460px] border border-stone-200 shadow-sm">
-                  {clips.length > 0 ? (
-                    <>
-                      {videoError && (
-                        <div className="absolute inset-0 bg-red-900/90 flex flex-col items-center justify-center z-20 p-6 text-center">
-                          <p className="text-red-300 font-semibold mb-2">⚠ Video Playback Error</p>
-                          <p className="text-red-400 text-xs font-mono break-words">{videoError}</p>
-                        </div>
-                      )}
-                      <video
-                        src={clips[0].url}
-                        poster={clips[0].thumbnailUrl}
-                        controls
-                        preload="metadata"
-                        playsInline
-                        onError={(e) => {
-                          const err = e.currentTarget.error;
-                          setVideoError(`Code ${err?.code}: ${err?.message || 'Unknown error'}`);
-                        }}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-4 left-4 px-3 py-1 bg-indigo-600 text-white text-xs font-semibold rounded-full shadow">
-                        Headline Clip
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <p className="text-stone-500 text-sm font-medium">Processing media…</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="card p-6">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-2">Main Theme</p>
-                  <p className="text-stone-700 leading-relaxed italic text-sm">
-                    &quot;{sermonData.main_theme || 'Analyzing sermon theme…'}&quot;
-                  </p>
+      {/* Content Engine */}
+      <section className="min-h-[600px] animate-fade">
+        {activeTab === 'overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="lg:col-span-2 space-y-8">
+              <div className="glass-card !p-0 aspect-video lg:h-[540px] overflow-hidden border-primary/20 shadow-2xl">
+                {clips.length > 0 ? (
+                  <video
+                    src={clips[0].url}
+                    poster={clips[0].thumbnailUrl}
+                    controls
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-black/40">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/20 animate-pulse">Initializing Stream…</span>
+                  </div>
+                )}
+                <div className="absolute top-6 left-6 px-4 py-1.5 bg-primary/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-2xl">
+                  Featured Clip
                 </div>
               </div>
 
-              <div className="lg:col-span-1">
-                <SermonBrief
-                  summaries={sermonData.summaries}
-                  main_theme={sermonData.main_theme}
-                  tone={sermonData.tone}
-                  summaryTab={summaryTab}
-                  setSummaryTab={setSummaryTab}
-                />
+              <div className="glass-card bg-primary/5 border-primary/10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-3">Neural Core Theme</p>
+                <p className="text-white/70 leading-relaxed italic text-xl font-medium tracking-tight">
+                  &quot;{sermonData.main_theme || 'Extracting core theme…'}&quot;
+                </p>
               </div>
             </div>
-          )}
 
-          {activeTab === 'videos' && (
-            <div className="space-y-5">
-              <div>
-                <h2 className="text-2xl font-black text-stone-800 tracking-tight">Your Clips</h2>
-                <p className="text-sm text-stone-500 mt-1">Preview, review, and download every generated sermon clip.</p>
-              </div>
-              <ClipGrid clips={clips} />
+            <div className="lg:col-span-1 h-full">
+              <SermonBrief
+                summaries={sermonData.summaries}
+                main_theme={sermonData.main_theme}
+                tone={sermonData.tone}
+                summaryTab={summaryTab}
+                setSummaryTab={setSummaryTab}
+              />
             </div>
-          )}
+          </div>
+        )}
 
-          {activeTab === 'sermon_imgs' && (
-            <SermonArtGallery assets={(sermonImages as unknown) as Parameters<typeof SermonArtGallery>[0]['assets']} />
-          )}
-          {activeTab === 'quote_imgs' && (
-            <QuoteVerseGallery assets={(quotesAndVerses as unknown) as Parameters<typeof QuoteVerseGallery>[0]['assets']} />
-          )}
-          {activeTab === 'devotional' && (
-            <DevotionalTimeline devotional={(devotional as unknown) as Parameters<typeof DevotionalTimeline>[0]['devotional']} />
-          )}
-        </section>
+        {activeTab === 'videos' && <ClipGrid clips={clips} />}
+        {activeTab === 'sermon_imgs' && <SermonArtGallery assets={sermonImages} />}
+        {activeTab === 'quote_imgs' && <QuoteVerseGallery assets={quotesAndVerses} />}
+        {activeTab === 'devotional' && <DevotionalTimeline devotional={devotional} />}
+      </section>
 
-        <footer className="pt-10 border-t border-stone-100 text-center">
-          <p className="text-stone-300 text-xs font-medium tracking-widest uppercase">Vesper · Media Engine</p>
-        </footer>
-      </div>
+      <footer className="pt-24 border-t border-white/5 text-center">
+        <p className="text-white/10 text-[10px] font-bold tracking-[0.5em] uppercase">Built for Jerless Mahabir · SermonClipper Engine 2.0</p>
+      </footer>
     </main>
   );
 }
 
 export default function Results() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#fdfcf8] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin" /></div>}>
       <ResultsContent />
     </Suspense>
   );

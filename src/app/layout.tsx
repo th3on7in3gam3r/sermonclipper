@@ -15,8 +15,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Sermon Media Kit - AI Powered Social Content",
-  description: "Transform your sermons into viral social media clips and professional graphics with AI.",
+  title: "SermonClipper 2.0 - Cinematic Sermon Media Kits",
+  description: "Transform your sermons into high-impact social media clips and professional art with the power of AI.",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
-      <body className="bg-[#fdfcf8] text-stone-900 antialiased font-sans overflow-x-hidden">
+      <body className="antialiased">
         {children}
       </body>
     </html>

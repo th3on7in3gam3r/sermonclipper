@@ -16,36 +16,36 @@ export default function SermonBrief({ summaries, main_theme, tone, summaryTab, s
   if (!main_theme && !summaries) return null;
 
   const tabs = [
-    { id: 'one' as const, label: 'Hook' },
+    { id: 'one' as const, label: 'Core Hook' },
     { id: 'bullets' as const, label: 'Takeaways' },
     { id: 'detailed' as const, label: 'Summary' },
   ];
 
   return (
-    <div className="card p-6 h-full flex flex-col gap-5">
+    <div className="glass-card h-full flex flex-col gap-6">
       {/* Header */}
-      <div className="space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-widest text-stone-400">Sermon Brief</p>
-        <h3 className="text-lg font-black text-stone-800 leading-tight tracking-tight">
+      <div className="space-y-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">Sermon Brief</p>
+        <h3 className="text-2xl font-extrabold text-white leading-tight tracking-tighter">
           {main_theme || 'Sermon Insight'}
         </h3>
         {tone && (
-          <span className="inline-block px-2.5 py-1 bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-semibold rounded-full">
+          <span className="inline-block px-3 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full">
             {tone}
           </span>
         )}
       </div>
 
       {/* Tab nav */}
-      <div className="flex gap-1 p-1 bg-stone-100 rounded-lg">
+      <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/5">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setSummaryTab(tab.id)}
-            className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
               summaryTab === tab.id
-                ? 'bg-white text-indigo-600 shadow-sm border border-stone-200'
-                : 'text-stone-500 hover:text-stone-700'
+                ? 'bg-primary text-white shadow-lg'
+                : 'text-white/40 hover:text-white/60'
             }`}
           >
             {tab.label}
@@ -54,25 +54,25 @@ export default function SermonBrief({ summaries, main_theme, tone, summaryTab, s
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-[160px]">
-        <div key={summaryTab} className="animate-fade-in-up">
+      <div className="flex-1 min-h-[200px] overflow-y-auto pr-2 scrollbar-hide">
+        <div key={summaryTab} className="animate-fade">
           {summaryTab === 'one' && (
-            <p className="text-stone-600 text-sm leading-relaxed italic border-l-2 border-indigo-200 pl-4">
+            <p className="text-white/60 text-base leading-relaxed italic border-l-4 border-primary pl-6">
               &quot;{summaries?.one_minute_summary || 'Summary loading…'}&quot;
             </p>
           )}
           {summaryTab === 'bullets' && (
-            <ul className="space-y-3">
+            <ul className="space-y-5">
               {(summaries?.bullet_points || []).slice(0, 5).map((point, i) => (
-                <li key={i} className="flex gap-3 text-stone-600 text-sm">
-                  <span className="text-indigo-400 font-bold shrink-0 mt-0.5">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="leading-relaxed">{point}</span>
+                <li key={i} className="flex gap-4 text-white/70 text-sm">
+                  <span className="text-primary font-black shrink-0 mt-0.5">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="leading-relaxed font-medium">{point}</span>
                 </li>
               ))}
             </ul>
           )}
           {summaryTab === 'detailed' && (
-            <p className="text-stone-600 text-sm leading-relaxed">
+            <p className="text-white/60 text-sm leading-relaxed font-medium">
               {summaries?.detailed_summary || 'Detailed summary loading…'}
             </p>
           )}
