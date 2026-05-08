@@ -12,29 +12,45 @@ const youtubeDl = create(binPath);
 const youtubeCookiePath = process.env.YTDLP_COOKIES_PATH;
 const youtubeCookiesBrowser = process.env.YTDLP_COOKIES_BROWSER;
 
-function buildYoutubeFlags(filePath: string, format: string) {
-  const flags: Record<string, unknown> = {
+// Matches all known YouTube bot/sign-in block messages
+const BOT_BLOCK_REGEX =
+  /Sign in to confirm|confirm you.{0,10}re not a bot|bot detection|This video is not available|members-only|age-restricted/i;
+
+function buildBaseFlags(filePath: string, format: string): Record<string, unknown> {
+  return {
     output: filePath,
     format,
     noCheckCertificate: true,
     noWarnings: true,
-    addHeader: 'User-Agent:Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+    // Randomise sleep between requests to mimic organic browsing
+    sleepRequests: 1,
   };
+}
 
-  if (youtubeCookiePath) {
-    if (existsSync(youtubeCookiePath)) {
-      flags.cookies = youtubeCookiePath;
-    } else {
-      console.warn(`[Download] YTDLP_COOKIES_PATH is set but file does not exist: ${youtubeCookiePath}`);
-      if (youtubeCookiesBrowser) {
-        flags.cookiesFromBrowser = youtubeCookiesBrowser;
-      }
-    }
-  } else if (youtubeCookiesBrowser) {
-    flags.cookiesFromBrowser = youtubeCookiesBrowser;
+function applyPlayerClient(
+  flags: Record<string, unknown>,
+  playerClient: string,
+): Record<string, unknown> {
+  return {
+    ...flags,
+    extractorArgs: `youtube:player_client=${playerClient}`,
+  };
+}
+
+function applyCookies(flags: Record<string, unknown>): Record<string, unknown> {
+  if (youtubeCookiePath && existsSync(youtubeCookiePath)) {
+    return { ...flags, cookies: youtubeCookiePath };
   }
+  if (youtubeCookiesBrowser) {
+    return { ...flags, cookiesFromBrowser: youtubeCookiesBrowser };
+  }
+  return flags;
+}
 
-  return flags as Parameters<typeof youtubeDl>[1];
+async function runYoutubeDownload(url: string, flags: Record<string, unknown>): Promise<void> {
+  console.log('[Download] Running yt-dlp with flags:', JSON.stringify(flags));
+  const output = await youtubeDl(url, flags as Parameters<typeof youtubeDl>[1]);
+  console.log(`[Download] yt-dlp output: ${JSON.stringify(output)}`);
 }
 
 export async function POST(req: NextRequest) {
@@ -59,53 +75,89 @@ export async function POST(req: NextRequest) {
       message: 'Downloading video from YouTube...',
     });
 
-    async function runYoutubeDownload(flags: Parameters<typeof youtubeDl>[1]) {
-      console.log('[Download] Running yt-dlp with flags:', flags);
-      const output = await youtubeDl(url, flags);
-      console.log(`[Download] yt-dlp stdout: ${JSON.stringify(output)}`);
-    }
+    const FORMAT_BEST = 'bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/bestvideo[ext=mp4]+bestaudio/best[ext=mp4]/best';
+    const FORMAT_FALLBACK = 'best[ext=mp4]/best';
 
-    try {
-      await runYoutubeDownload(buildYoutubeFlags(filePath, 'bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/bestvideo[ext=mp4]+bestaudio/best[ext=mp4]/best'));
-    } catch (dlErr: unknown) {
-      const msg = dlErr instanceof Error ? dlErr.message : String(dlErr);
-      console.error('[Download] yt-dlp error:', dlErr);
+    /**
+     * Multi-stage download waterfall — each stage uses a different YouTube
+     * player client to avoid bot-detection without requiring cookies:
+     *
+     *  Stage 1: web_creator  — avoids age/bot checks on the web API path
+     *  Stage 2: ios          — mobile API path, rarely blocked
+     *  Stage 3: tv_embedded  — TV embed path, last cookie-free option
+     *  Stage 4: cookies      — use browser/file cookies if env vars set
+     */
+    const stages: Array<{ label: string; flags: Record<string, unknown> }> = [
+      {
+        label: 'web_creator player',
+        flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_BEST), 'web_creator'),
+      },
+      {
+        label: 'ios player',
+        flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_BEST), 'ios'),
+      },
+      {
+        label: 'tv_embedded player',
+        flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'tv_embedded'),
+      },
+      {
+        label: 'cookies fallback',
+        flags: applyCookies(applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'web')),
+      },
+    ];
 
-      const botBlockError = /Sign in to confirm you(’|')re not a bot|Sign in to confirm you're not a bot/.test(msg);
-      const cookiesEnabled = youtubeCookiePath || youtubeCookiesBrowser;
+    let lastError: string = '';
+    let succeeded = false;
 
-      if (botBlockError && !cookiesEnabled) {
-        return NextResponse.json({
-          error: 'YouTube blocked the download as a bot. Provide YTDLP_COOKIES_PATH or YTDLP_COOKIES_BROWSER in environment variables to retry with browser cookies.',
-        }, { status: 500 });
-      }
-
+    for (const stage of stages) {
       try {
-        console.log('[Download] Retrying with gentler flags and cookie support if available...');
-        await runYoutubeDownload(buildYoutubeFlags(filePath, 'best[ext=mp4]/best'));
-      } catch (retryErr: unknown) {
-        const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
-        console.error('[Download] Retry also failed:', retryErr);
-        return NextResponse.json({ error: `YouTube download failed: ${retryMsg}` }, { status: 500 });
+        console.log(`[Download] Trying stage: ${stage.label}`);
+        await runYoutubeDownload(url, stage.flags);
+        console.log(`[Download] Stage succeeded: ${stage.label}`);
+        succeeded = true;
+        break;
+      } catch (stageErr: unknown) {
+        lastError = stageErr instanceof Error ? stageErr.message : String(stageErr);
+        console.warn(`[Download] Stage "${stage.label}" failed: ${lastError}`);
+
+        // If this is a non-recoverable error (e.g. private/deleted video), stop early
+        if (/Video unavailable|Private video|removed by the uploader/i.test(lastError)) {
+          return NextResponse.json(
+            { error: `This video is unavailable or private: ${lastError}` },
+            { status: 422 },
+          );
+        }
       }
     }
 
-    // Verify file exists or find it if extension changed
+    if (!succeeded) {
+      const isBotBlock = BOT_BLOCK_REGEX.test(lastError);
+      const hint = isBotBlock
+        ? ' Set YTDLP_COOKIES_PATH or YTDLP_COOKIES_BROWSER env vars to use browser cookies.'
+        : '';
+      return NextResponse.json(
+        { error: `YouTube download failed after all retry attempts: ${lastError}${hint}` },
+        { status: 500 },
+      );
+    }
+
+    // Verify file exists or find it if yt-dlp changed the extension
     let finalPath = filePath;
     if (!existsSync(filePath)) {
       console.log(`[Download] File not found at ${filePath}. Scanning directory...`);
       const files = await readdir(tmpDir);
       const baseName = fileName.replace('.mp4', '');
       const foundFile = files.find(f => f.startsWith(baseName));
-      
+
       if (foundFile) {
         finalPath = join(tmpDir, foundFile);
         console.log(`[Download] Found file with different extension: ${finalPath}`);
       } else {
-        console.error(`[Download] Error: No file matching ${baseName} found in ${tmpDir}. Files: ${files.join(', ')}`);
-        return NextResponse.json({ 
-          error: `Video file was not found after download.` 
-        }, { status: 500 });
+        console.error(`[Download] No file matching ${baseName} in ${tmpDir}. Files: ${files.join(', ')}`);
+        return NextResponse.json(
+          { error: 'Video file was not found after download.' },
+          { status: 500 },
+        );
       }
     }
 
@@ -121,19 +173,19 @@ export async function POST(req: NextRequest) {
       r2Url = await uploadBufferToR2(r2Key, videoBuffer, 'video/mp4');
       console.log('[Download] Saved downloaded video to R2:', r2Key);
     } catch (r2Err: unknown) {
-      const msg = r2Err instanceof Error ? r2Err.message : String(r2Err);
-      console.warn('[Download] R2 upload skipped:', msg);
+      const r2Msg = r2Err instanceof Error ? r2Err.message : String(r2Err);
+      console.warn('[Download] R2 upload skipped:', r2Msg);
     }
 
-    progressManager.update(jobId, { 
-      step: 'Uploading', 
-      status: 'completed', 
-      message: 'YouTube download complete' 
+    progressManager.update(jobId, {
+      step: 'Uploading',
+      status: 'completed',
+      message: 'YouTube download complete',
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      filePath: finalPath, 
+    return NextResponse.json({
+      success: true,
+      filePath: finalPath,
       jobId,
       r2Key,
       r2Url,
