@@ -90,8 +90,6 @@ async function downloadDirectStream(streamUrl: string, filePath: string): Promis
 
 const binPath = 'yt-dlp';
 
-const binPath = 'yt-dlp';
-
 // ── Shell Execution Helper ───────────────────────────────────────────────────
 import { spawn } from 'child_process';
 
