@@ -88,34 +88,34 @@ async function downloadDirectStream(streamUrl: string, filePath: string): Promis
   );
 }
 
-// ── yt-dlp helpers ────────────────────────────────────────────────────────────
-function buildBaseFlags(filePath: string, format: string): Record<string, unknown> {
-  return { 
-    output: filePath, 
-    format, 
-    noCheckCertificate: true, 
-    noWarnings: true,
-    // Cloud stability flags
-    forceIpv4: true,
-    // Use a very robust User-Agent
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0',
-  };
-}
+const binPath = 'yt-dlp';
 
-function applyPlayerClient(flags: Record<string, unknown>, playerClient: string): Record<string, unknown> {
-  return { ...flags, extractorArgs: `youtube:player_client=${playerClient}` };
-}
+// ── Shell Execution Helper ───────────────────────────────────────────────────
+import { exec } from 'child_process';
+import { promisify } from 'util';
+const execAsync = promisify(exec);
 
-function applyCookies(flags: Record<string, unknown>, cookiePath?: string): Record<string, unknown> {
-  if (cookiePath && existsSync(cookiePath)) return { ...flags, cookies: cookiePath };
-  if (youtubeCookiesBrowser) return { ...flags, cookiesFromBrowser: youtubeCookiesBrowser };
-  return flags;
-}
+async function runYtDlp(url: string, filePath: string, client: string, cookiePath?: string): Promise<void> {
+  // Build the command manually for maximum control over quoting
+  let cmd = `yt-dlp "${url}" --output "${filePath}" --format "best[ext=mp4]/best" --no-check-certificate --no-warnings --force-ipv4`;
+  
+  // Use a modern browser User-Agent
+  cmd += ` --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0"`;
+  
+  // Apply player client
+  if (client !== 'web') {
+    cmd += ` --extractor-args "youtube:player_client=${client}"`;
+  }
+  
+  // Apply cookies if available
+  if (cookiePath && existsSync(cookiePath)) {
+    cmd += ` --cookies "${cookiePath}"`;
+  }
 
-async function runYtDlp(url: string, flags: Record<string, unknown>): Promise<void> {
-  console.log('[Download] yt-dlp flags:', JSON.stringify(flags));
-  const output = await youtubeDl(url, flags as Parameters<typeof youtubeDl>[1]);
-  console.log('[Download] yt-dlp output:', JSON.stringify(output));
+  console.log(`[Download] Executing: ${cmd}`);
+  const { stdout, stderr } = await execAsync(cmd);
+  if (stdout) console.log(`[Download] stdout: ${stdout.slice(0, 500)}`);
+  if (stderr) console.warn(`[Download] stderr: ${stderr.slice(0, 500)}`);
 }
 
 // ── Background download job ───────────────────────────────────────────────────
@@ -124,8 +124,8 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   const tmpDir = '/tmp';
   
   // Provision cookies from YTDLP_COOKIES_CONTENT if available
-  let cookiePath = process.env.YTDLP_COOKIES_PATH;
-  const cookieContent = process.env.YTDLP_COOKIES_CONTENT;
+  let cookiePath: string | undefined = undefined;
+  const cookieContent = process.env.YTDLP_COOKIES_CONTENT || process.env.YTDLP_COOKIES || process.env.YTDLP_COOKIES_PATH;
 
   if (cookieContent && !cookiePath) {
     const provPath = join(tmpDir, `youtube_cookies_${jobId}.txt`);
@@ -182,18 +182,18 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
 
   // Stages 1-4: yt-dlp waterfall
   if (!succeeded) {
-    const stages: Array<{ label: string; flags: Record<string, unknown> }> = [
-      { label: 'android player',  flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'android') },
-      { label: 'ios player',      flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_BEST), 'ios') },
-      { label: 'mweb player',     flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'mweb') },
-      { label: 'tv_embedded',     flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'tv_embedded') },
-      { label: 'cookies+web',     flags: applyCookies(applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'web'), cookiePath) },
+    const stages = [
+      { label: 'android player', client: 'android' },
+      { label: 'ios player',     client: 'ios' },
+      { label: 'tv_embedded',    client: 'tv_embedded' },
+      { label: 'cookies+web',    client: 'web', useCookies: true },
     ];
 
     for (const stage of stages) {
       try {
         console.log(`[Download] Trying stage: ${stage.label}`);
-        await runYtDlp(url, stage.flags);
+        const activeCookiePath = stage.useCookies ? cookiePath : undefined;
+        await runYtDlp(url, filePath, stage.client, activeCookiePath);
         succeeded = true;
         break;
       } catch (err: unknown) {
