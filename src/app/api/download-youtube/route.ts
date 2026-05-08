@@ -22,10 +22,10 @@ const MIRRORS = [
   { name: 'Piped (Global)', type: 'piped', url: 'https://pipedapi.kavin.rocks' },
   { name: 'Invidious (Secondary)', type: 'invidious', url: 'https://yewtu.be' },
   { name: 'Piped (Secondary)', type: 'piped', url: 'https://pipedapi.lunar.icu' },
-  { name: 'Invidious (Tertiary)', type: 'invidious', url: 'https://iv.melmac.space' },
 ];
 
 const BOT_BLOCK_REGEX = /Sign in to confirm|confirm you.{0,10}re not a bot|bot detection|age-restricted|403|Forbidden|blocked/i;
+const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function extractVideoId(url: string): string | null {
@@ -34,7 +34,7 @@ function extractVideoId(url: string): string | null {
 }
 
 function sanitizeCookies(content: string): string {
-  // Fixes common cookie export issues (spaces to tabs, ensuring 7 columns)
+  if (!content) return '';
   return content.split('\n').map(line => {
     if (line.startsWith('#') || !line.trim()) return line;
     const parts = line.split(/\s+/).filter(Boolean);
@@ -47,14 +47,14 @@ async function resolveMirror(videoId: string, mirror: any): Promise<string | nul
   try {
     if (mirror.type === 'invidious') {
       const res = await fetch(`${mirror.url}/api/v1/videos/${videoId}?fields=formatStreams`, {
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(8000),
       });
       if (!res.ok) return null;
       const data = await res.json();
       return data.formatStreams?.find((s: any) => s.type?.includes('mp4'))?.url || null;
     } else {
       const res = await fetch(`${mirror.url}/streams/${videoId}`, {
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(8000),
       });
       if (!res.ok) return null;
       const data = await res.json();
@@ -71,7 +71,8 @@ async function runYtDlp(url: string, filePath: string, client: string, jobId: st
     '--no-warnings', 
     '--force-ipv4',
     '--geo-bypass',
-    '--no-check-certificate'
+    '--no-check-certificate',
+    '--user-agent', CHROME_UA
   ];
   
   if (client !== 'web') {
@@ -107,10 +108,7 @@ async function runYtDlp(url: string, filePath: string, client: string, jobId: st
       }
     });
     
-    setTimeout(() => { 
-      child.kill(); 
-      reject(new Error('Process Timeout')); 
-    }, 300000);
+    setTimeout(() => { child.kill(); reject(new Error('Process Timeout')); }, 300000);
   });
 }
 
@@ -119,12 +117,16 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   const filePath = join(TMP_DIR, `${uuidv4()}.mp4`);
   let cookiePath: string | undefined;
   
-  // Cookie Setup
+  // Deep Auth Diagnostic
   const rawCookies = process.env.YTDLP_COOKIES_CONTENT || process.env.YTDLP_COOKIES;
-  if (rawCookies) {
+  if (rawCookies && rawCookies.length > 50) {
     cookiePath = join(TMP_DIR, `ck_${jobId}.txt`);
-    writeFileSync(cookiePath, sanitizeCookies(rawCookies));
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: Cookies detected (${rawCookies.length} bytes)` });
+    const sanitized = sanitizeCookies(rawCookies);
+    writeFileSync(cookiePath, sanitized);
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: Cookies healthy (${sanitized.length} bytes)` });
+  } else {
+    const reason = !rawCookies ? 'Missing ENV variable' : 'Cookies too short/invalid';
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: WARNING - ${reason}` });
   }
 
   let success = false;
@@ -134,7 +136,7 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   const vid = extractVideoId(url);
   if (vid) {
     for (const m of MIRRORS) {
-      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Mirror: Trying ${m.name}...` });
+      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Tunneling: ${m.name}...` });
       const streamUrl = await resolveMirror(vid, m);
       if (streamUrl) {
         try {
@@ -142,6 +144,7 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
           if (res.ok && res.body) {
             await pipeline(Readable.fromWeb(res.body as any), createWriteStream(filePath));
             success = true;
+            progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Success: Downloaded via ${m.name}` });
             break;
           }
         } catch (e) { console.warn(`[Engine] Mirror ${m.name} failed.`); }
@@ -154,9 +157,9 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
     const stages = [
       { id: 'android', label: 'Android Protocol' },
       { id: 'ios', label: 'iOS Protocol' },
+      { id: 'web', label: 'Chrome (Auth Stage)', auth: true },
       { id: 'mweb', label: 'Mobile Safari' },
       { id: 'tv_embedded', label: 'TV Set-top' },
-      { id: 'web', label: 'Chrome (Authenticated)', auth: true },
     ];
     for (const s of stages) {
       progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Attempting ${s.label}...` });
@@ -173,27 +176,27 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
 
   if (!success) {
     const isBot = BOT_BLOCK_REGEX.test(lastRawError);
-    const msg = isBot ? `Bot Detection: ${lastRawError.slice(0, 150)}` : `Failure: ${lastRawError}`;
+    const msg = isBot ? `Critical: Bot Blocked (Update Cookies)` : `Critical Failure: ${lastRawError}`;
     progressManager.update(jobId, { step: 'Uploading', status: 'error', message: msg });
     return;
   }
 
   // 3. Finalize
   try {
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Finalizing Cloud Sync...' });
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Syncing to Cloud...' });
     const r2Url = await uploadStreamToR2(`sermons/${jobId}.mp4`, createReadStream(filePath), 'video/mp4');
-    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'Ready', r2Url, finalPath: r2Url });
+    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'Download Success', r2Url, finalPath: r2Url });
     if (existsSync(filePath)) unlinkSync(filePath);
     if (cookiePath && existsSync(cookiePath)) unlinkSync(cookiePath);
   } catch (e: any) {
-    progressManager.update(jobId, { step: 'Uploading', status: 'error', message: 'Sync Error' });
+    progressManager.update(jobId, { step: 'Uploading', status: 'error', message: 'Cloud Sync Failed.' });
   }
 }
 
 export async function POST(req: NextRequest) {
   const { url, jobId } = await req.json();
   if (!url || !jobId) return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
-  progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Initializing...' });
+  progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Waking Neural Engine...' });
   runDownloadJob(url, jobId).catch(() => {});
   return NextResponse.json({ success: true });
 }
