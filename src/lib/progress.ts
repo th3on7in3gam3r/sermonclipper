@@ -1,9 +1,12 @@
-type ProgressUpdate = {
+export interface ProgressUpdate {
   step: string;
   status: 'pending' | 'loading' | 'completed' | 'error';
   message?: string;
   progress?: number;
-};
+  filePath?: string;
+  r2Key?: string;
+  r2Url?: string;
+}
 
 class ProgressManager {
   private static instance: ProgressManager;

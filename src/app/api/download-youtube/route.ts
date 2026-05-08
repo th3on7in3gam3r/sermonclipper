@@ -6,9 +6,9 @@ import { mkdir, readdir, readFile } from 'fs/promises';
 import { existsSync, createWriteStream, writeFileSync, mkdirSync, createReadStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
-import { progressManager } from '../../../lib/progress';
-import { uploadStreamToR2 } from '../../../lib/r2';
-import { TMP_DIR } from '../../../lib/paths';
+import { progressManager, ProgressUpdate } from '../../../../lib/progress';
+import { uploadStreamToR2 } from '../../../../lib/r2';
+import { TMP_DIR } from '../../../../lib/paths';
 
 const binPath = join(process.cwd(), 'node_modules', 'yt-dlp-exec', 'bin', 'yt-dlp');
 const youtubeDl = create(binPath);
