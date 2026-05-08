@@ -137,12 +137,27 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   if (cookieContent && !cookiePath) {
     const provPath = join(tmpDir, `youtube_cookies_${jobId}.txt`);
     try {
-      writeFileSync(provPath, cookieContent);
+      // Sanitize cookies: convert space-separated rows to tab-separated Netscape format
+      const sanitized = cookieContent.split('\n').map(line => {
+        if (line.startsWith('#') || !line.trim()) return line;
+        // If the line has spaces but no tabs, it's likely a malformed copy-paste
+        if (line.includes(' ') && !line.includes('\t')) {
+          // Attempt to split by space/multiple spaces and join with tabs
+          // Netscape format expects exactly 7 columns
+          const parts = line.split(/\s+/).filter(Boolean);
+          if (parts.length >= 7) {
+            // Join first 6 columns, then the rest is the value (which might contain spaces)
+            const first6 = parts.slice(0, 6);
+            const value = parts.slice(6).join(' ');
+            return [...first6, value].join('\t');
+          }
+        }
+        return line;
+      }).join('\n');
+
+      writeFileSync(provPath, sanitized);
       cookiePath = provPath;
-      console.log(`[Download] Provisioned cookies to ${provPath} (Length: ${cookieContent.length})`);
-      if (cookieContent.length < 50) {
-        console.warn('[Download] WARNING: YTDLP_COOKIES_CONTENT seems too short. Check your env var.');
-      }
+      console.log(`[Download] Provisioned and SANITIZED cookies to ${provPath} (Length: ${sanitized.length})`);
     } catch (err) {
       console.error('[Download] Failed to write cookies to /tmp:', err);
     }
