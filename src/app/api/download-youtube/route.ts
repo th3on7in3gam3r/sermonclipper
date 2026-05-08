@@ -90,32 +90,55 @@ async function downloadDirectStream(streamUrl: string, filePath: string): Promis
 
 const binPath = 'yt-dlp';
 
+const binPath = 'yt-dlp';
+
 // ── Shell Execution Helper ───────────────────────────────────────────────────
-import { exec } from 'child_process';
-import { promisify } from 'util';
-const execAsync = promisify(exec);
+import { spawn } from 'child_process';
 
 async function runYtDlp(url: string, filePath: string, client: string, cookiePath?: string): Promise<void> {
-  // Build the command manually for maximum control over quoting
-  let cmd = `yt-dlp "${url}" --output "${filePath}" --format "best[ext=mp4]/best" --no-check-certificate --no-warnings --force-ipv4`;
-  
-  // Use a modern browser User-Agent
-  cmd += ` --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0"`;
-  
-  // Apply player client
+  const args = [
+    url,
+    '--output', filePath,
+    '--format', 'best[ext=mp4]/best',
+    '--no-check-certificate',
+    '--no-warnings',
+    '--force-ipv4',
+    '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0',
+  ];
+
   if (client !== 'web') {
-    cmd += ` --extractor-args "youtube:player_client=${client}"`;
-  }
-  
-  // Apply cookies if available
-  if (cookiePath && existsSync(cookiePath)) {
-    cmd += ` --cookies "${cookiePath}"`;
+    args.push('--extractor-args', `youtube:player_client=${client}`);
   }
 
-  console.log(`[Download] Executing: ${cmd}`);
-  const { stdout, stderr } = await execAsync(cmd);
-  if (stdout) console.log(`[Download] stdout: ${stdout.slice(0, 500)}`);
-  if (stderr) console.warn(`[Download] stderr: ${stderr.slice(0, 500)}`);
+  if (cookiePath && existsSync(cookiePath)) {
+    args.push('--cookies', cookiePath);
+  }
+
+  console.log(`[Download] Spawning: yt-dlp ${args.join(' ')}`);
+
+  return new Promise((resolve, reject) => {
+    const child = spawn('yt-dlp', args);
+    let stderr = '';
+    let stdout = '';
+
+    child.stdout.on('data', (data) => { stdout += data.toString(); });
+    child.stderr.on('data', (data) => { stderr += data.toString(); });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        const errorMsg = stderr || stdout || `Process exited with code ${code}`;
+        console.error(`[Download] yt-dlp failed: ${errorMsg}`);
+        reject(new Error(errorMsg));
+      }
+    });
+
+    child.on('error', (err) => {
+      console.error(`[Download] Spawn error: ${err.message}`);
+      reject(err);
+    });
+  });
 }
 
 // ── Background download job ───────────────────────────────────────────────────
