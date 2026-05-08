@@ -3,11 +3,11 @@ import { create } from 'yt-dlp-exec';
 import { v4 as uuidv4 } from 'uuid';
 import { join, basename } from 'path';
 import { mkdir, readdir, readFile } from 'fs/promises';
-import { existsSync, createWriteStream, writeFileSync, mkdirSync } from 'fs';
+import { existsSync, createWriteStream, writeFileSync, mkdirSync, createReadStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 import { progressManager } from '@/lib/progress';
-import { uploadBufferToR2 } from '@/lib/r2';
+import { uploadStreamToR2 } from '@/lib/r2';
 
 const binPath = join(process.cwd(), 'node_modules', 'yt-dlp-exec', 'bin', 'yt-dlp');
 const youtubeDl = create(binPath);
@@ -220,11 +220,11 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   let r2Url: string | undefined;
 
   try {
-    const videoBuffer = await readFile(finalPath);
+    const stream = createReadStream(finalPath);
     const remoteName = basename(finalPath);
     r2Key = `downloads/${jobId}/${remoteName}`;
-    r2Url = await uploadBufferToR2(r2Key, videoBuffer, 'video/mp4');
-    console.log('[Download] Uploaded to R2:', r2Key);
+    r2Url = await uploadStreamToR2(r2Key, stream, 'video/mp4');
+    console.log('[Download] Uploaded to R2 via stream:', r2Key);
   } catch (r2Err: unknown) {
     console.warn('[Download] R2 upload skipped:', r2Err instanceof Error ? r2Err.message : r2Err);
   }
@@ -233,7 +233,6 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
     step: 'Uploading',
     status: 'completed',
     message: 'YouTube download complete',
-    // @ts-expect-error — extra fields passed through for client to read
     filePath: finalPath,
     r2Key,
     r2Url,

@@ -35,16 +35,31 @@ export function getR2ObjectUrl(key: string) {
   return `${endpoint}/${bucket}/${encodeURIComponent(key)}`;
 }
 
+import { Readable } from 'stream';
+
 export async function uploadBufferToR2(key: string, buffer: Uint8Array, contentType = 'application/octet-stream') {
   const client = getR2Client();
-  if (!client) {
-    throw new Error('Missing Cloudflare R2 credentials');
-  }
+  if (!client) throw new Error('Missing Cloudflare R2 credentials');
 
   const command = new PutObjectCommand({
     Bucket: bucket,
     Key: key,
     Body: buffer,
+    ContentType: contentType,
+  });
+
+  await client.send(command);
+  return getR2ObjectUrl(key);
+}
+
+export async function uploadStreamToR2(key: string, stream: Readable, contentType = 'application/octet-stream') {
+  const client = getR2Client();
+  if (!client) throw new Error('Missing Cloudflare R2 credentials');
+
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: stream,
     ContentType: contentType,
   });
 
