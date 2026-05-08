@@ -33,6 +33,16 @@ function extractVideoId(url: string): string | null {
   return m?.[1] ?? null;
 }
 
+function sanitizeCookies(content: string): string {
+  // Fixes common cookie export issues (spaces to tabs, ensuring 7 columns)
+  return content.split('\n').map(line => {
+    if (line.startsWith('#') || !line.trim()) return line;
+    const parts = line.split(/\s+/).filter(Boolean);
+    if (parts.length >= 7) return parts.slice(0, 7).join('\t');
+    return line;
+  }).join('\n');
+}
+
 async function resolveMirror(videoId: string, mirror: any): Promise<string | null> {
   try {
     if (mirror.type === 'invidious') {
@@ -99,7 +109,7 @@ async function runYtDlp(url: string, filePath: string, client: string, jobId: st
     
     setTimeout(() => { 
       child.kill(); 
-      reject(new Error('Operation timed out after 5 minutes. Video may be too long for this protocol.')); 
+      reject(new Error('Process Timeout')); 
     }, 300000);
   });
 }
@@ -113,7 +123,8 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   const rawCookies = process.env.YTDLP_COOKIES_CONTENT || process.env.YTDLP_COOKIES;
   if (rawCookies) {
     cookiePath = join(TMP_DIR, `ck_${jobId}.txt`);
-    writeFileSync(cookiePath, rawCookies);
+    writeFileSync(cookiePath, sanitizeCookies(rawCookies));
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: Cookies detected (${rawCookies.length} bytes)` });
   }
 
   let success = false;
@@ -123,7 +134,7 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   const vid = extractVideoId(url);
   if (vid) {
     for (const m of MIRRORS) {
-      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Tunneling via ${m.name}...` });
+      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Mirror: Trying ${m.name}...` });
       const streamUrl = await resolveMirror(vid, m);
       if (streamUrl) {
         try {
@@ -133,9 +144,7 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
             success = true;
             break;
           }
-        } catch (e) { 
-          console.warn(`[Engine] Mirror ${m.name} failed.`); 
-        }
+        } catch (e) { console.warn(`[Engine] Mirror ${m.name} failed.`); }
       }
     }
   }
@@ -143,52 +152,48 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   // 2. Impersonation Waterfall
   if (!success) {
     const stages = [
-      { id: 'android', label: 'Android Emulator' },
-      { id: 'ios', label: 'iOS Mobile' },
+      { id: 'android', label: 'Android Protocol' },
+      { id: 'ios', label: 'iOS Protocol' },
       { id: 'mweb', label: 'Mobile Safari' },
       { id: 'tv_embedded', label: 'TV Set-top' },
       { id: 'web', label: 'Chrome (Authenticated)', auth: true },
     ];
     for (const s of stages) {
-      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Impersonating ${s.label}...` });
+      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Attempting ${s.label}...` });
       try {
         await runYtDlp(url, filePath, s.id, jobId, s.auth ? cookiePath : undefined);
         success = true;
         break;
       } catch (e: any) {
         lastRawError = e.message;
-        console.warn(`[Engine] Stage ${s.id} failed: ${lastRawError}`);
+        console.warn(`[Engine] Stage ${s.id} failed.`);
       }
     }
   }
 
   if (!success) {
     const isBot = BOT_BLOCK_REGEX.test(lastRawError);
-    const msg = isBot ? `Bot Detection: ${lastRawError.slice(0, 150)}` : `Critical Failure: ${lastRawError}`;
+    const msg = isBot ? `Bot Detection: ${lastRawError.slice(0, 150)}` : `Failure: ${lastRawError}`;
     progressManager.update(jobId, { step: 'Uploading', status: 'error', message: msg });
     return;
   }
 
   // 3. Finalize
   try {
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Finalizing Cloud Upload...' });
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Finalizing Cloud Sync...' });
     const r2Url = await uploadStreamToR2(`sermons/${jobId}.mp4`, createReadStream(filePath), 'video/mp4');
-    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'System Green', r2Url, finalPath: r2Url });
+    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'Ready', r2Url, finalPath: r2Url });
     if (existsSync(filePath)) unlinkSync(filePath);
     if (cookiePath && existsSync(cookiePath)) unlinkSync(cookiePath);
   } catch (e: any) {
-    progressManager.update(jobId, { step: 'Uploading', status: 'error', message: `Cloud Sync Error: ${e.message}` });
+    progressManager.update(jobId, { step: 'Uploading', status: 'error', message: 'Sync Error' });
   }
 }
 
 export async function POST(req: NextRequest) {
   const { url, jobId } = await req.json();
   if (!url || !jobId) return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
-  
-  progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Waking Neural Engine...' });
-  runDownloadJob(url, jobId).catch(e => {
-    progressManager.update(jobId, { step: 'Uploading', status: 'error', message: `Fatal: ${e.message}` });
-  });
-  
+  progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Initializing...' });
+  runDownloadJob(url, jobId).catch(() => {});
   return NextResponse.json({ success: true });
 }
