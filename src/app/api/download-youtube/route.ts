@@ -12,18 +12,20 @@ import * as dns from 'dns';
 
 // ── Configuration ────────────────────────────────────────────────────────────
 try {
-  dns.setServers(['8.8.8.8', '8.8.4.4']);
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 } catch (e) {
-  console.warn('[Engine] Custom DNS setup skipped.');
+  console.warn('[Engine] Custom DNS setup failed.');
 }
 
 const MIRRORS = [
-  { name: 'Invidious (Alt)', type: 'invidious', url: 'https://invidious.projectsegfau.lt' },
-  { name: 'Piped (Alt)', type: 'piped', url: 'https://pipedapi.kavin.rocks' },
+  { name: 'Invidious (Global)', type: 'invidious', url: 'https://invidious.projectsegfau.lt' },
+  { name: 'Piped (Global)', type: 'piped', url: 'https://pipedapi.kavin.rocks' },
   { name: 'Invidious (Secondary)', type: 'invidious', url: 'https://yewtu.be' },
+  { name: 'Piped (Secondary)', type: 'piped', url: 'https://pipedapi.lunar.icu' },
+  { name: 'Invidious (Tertiary)', type: 'invidious', url: 'https://iv.melmac.space' },
 ];
 
-const BOT_BLOCK_REGEX = /Sign in to confirm|confirm you.{0,10}re not a bot|bot detection|age-restricted|403|Forbidden/i;
+const BOT_BLOCK_REGEX = /Sign in to confirm|confirm you.{0,10}re not a bot|bot detection|age-restricted|403|Forbidden|blocked/i;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function extractVideoId(url: string): string | null {
@@ -35,14 +37,16 @@ async function resolveMirror(videoId: string, mirror: any): Promise<string | nul
   try {
     if (mirror.type === 'invidious') {
       const res = await fetch(`${mirror.url}/api/v1/videos/${videoId}?fields=formatStreams`, {
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(6000),
       });
+      if (!res.ok) return null;
       const data = await res.json();
       return data.formatStreams?.find((s: any) => s.type?.includes('mp4'))?.url || null;
     } else {
       const res = await fetch(`${mirror.url}/streams/${videoId}`, {
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(6000),
       });
+      if (!res.ok) return null;
       const data = await res.json();
       return data.videoStreams?.find((s: any) => s.format === 'VIDEO_STREAM_TYPE_MP4')?.url || null;
     }
@@ -50,27 +54,53 @@ async function resolveMirror(videoId: string, mirror: any): Promise<string | nul
 }
 
 async function runYtDlp(url: string, filePath: string, client: string, jobId: string, cookiePath?: string): Promise<void> {
-  const args = [url, '--output', filePath, '--format', 'best[ext=mp4]/best', '--no-warnings', '--force-ipv4'];
-  if (client !== 'web') args.push('--extractor-args', `youtube:player_client=${client}`);
-  if (cookiePath && existsSync(cookiePath)) args.push('--cookies', cookiePath);
+  const args = [
+    url, 
+    '--output', filePath, 
+    '--format', 'best[ext=mp4]/best', 
+    '--no-warnings', 
+    '--force-ipv4',
+    '--geo-bypass',
+    '--no-check-certificate'
+  ];
+  
+  if (client !== 'web') {
+    args.push('--extractor-args', `youtube:player_client=${client}`);
+  }
+  
+  if (cookiePath && existsSync(cookiePath)) {
+    args.push('--cookies', cookiePath);
+  }
 
   return new Promise((resolve, reject) => {
     const child = spawn('yt-dlp', args);
+    let fullStderr = '';
     
     child.stderr.on('data', (d) => { 
       const raw = d.toString().trim();
       if (raw) {
-        // Stream raw error to UI if it looks important
+        fullStderr += raw + '\n';
         progressManager.update(jobId, { 
           step: 'Uploading', 
           status: 'loading', 
-          message: `[Raw] ${raw.split('\n')[0].slice(0, 80)}` 
+          message: `[Raw] ${raw.split('\n')[0].slice(0, 100)}` 
         });
       }
     });
 
-    child.on('close', (code) => code === 0 ? resolve() : reject(new Error(`Exit Code ${code}`)));
-    setTimeout(() => { child.kill(); reject(new Error('Process timed out')); }, 300000);
+    child.on('close', (code) => {
+      if (code === 0) resolve();
+      else {
+        const lines = fullStderr.split('\n').filter(l => l.trim());
+        const lastError = lines[lines.length - 1] || `Exit Code ${code}`;
+        reject(new Error(lastError));
+      }
+    });
+    
+    setTimeout(() => { 
+      child.kill(); 
+      reject(new Error('Operation timed out after 5 minutes. Video may be too long for this protocol.')); 
+    }, 300000);
   });
 }
 
@@ -84,19 +114,16 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   if (rawCookies) {
     cookiePath = join(TMP_DIR, `ck_${jobId}.txt`);
     writeFileSync(cookiePath, rawCookies);
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: Cookie provided (${rawCookies.length} bytes)` });
-  } else {
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Auth: No cookies in ENV' });
   }
 
   let success = false;
   let lastRawError = '';
 
-  // 1. Mirror Waterfall
+  // 1. Extended Mirror Waterfall
   const vid = extractVideoId(url);
   if (vid) {
     for (const m of MIRRORS) {
-      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Mirror: Trying ${m.name}...` });
+      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Tunneling via ${m.name}...` });
       const streamUrl = await resolveMirror(vid, m);
       if (streamUrl) {
         try {
@@ -106,63 +133,62 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
             success = true;
             break;
           }
-        } catch (e) { console.warn(`[Engine] Mirror ${m.name} failed.`); }
+        } catch (e) { 
+          console.warn(`[Engine] Mirror ${m.name} failed.`); 
+        }
       }
     }
   }
 
-  // 2. yt-dlp Waterfall
+  // 2. Impersonation Waterfall
   if (!success) {
     const stages = [
-      { id: 'android', label: 'Android Protocol' },
-      { id: 'ios', label: 'iOS Protocol' },
-      { id: 'tv_embedded', label: 'TV Protocol' },
-      { id: 'web', label: 'Web (Auth)', auth: true },
+      { id: 'android', label: 'Android Emulator' },
+      { id: 'ios', label: 'iOS Mobile' },
+      { id: 'mweb', label: 'Mobile Safari' },
+      { id: 'tv_embedded', label: 'TV Set-top' },
+      { id: 'web', label: 'Chrome (Authenticated)', auth: true },
     ];
     for (const s of stages) {
-      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Attempting ${s.label}...` });
+      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Impersonating ${s.label}...` });
       try {
         await runYtDlp(url, filePath, s.id, jobId, s.auth ? cookiePath : undefined);
         success = true;
         break;
       } catch (e: any) {
         lastRawError = e.message;
-        console.warn(`[Engine] Stage ${s.id} failed.`);
+        console.warn(`[Engine] Stage ${s.id} failed: ${lastRawError}`);
       }
     }
   }
 
   if (!success) {
-    progressManager.update(jobId, { 
-      step: 'Uploading', 
-      status: 'error', 
-      message: `Critical Failure: ${lastRawError}` 
-    });
+    const isBot = BOT_BLOCK_REGEX.test(lastRawError);
+    const msg = isBot ? `Bot Detection: ${lastRawError.slice(0, 150)}` : `Critical Failure: ${lastRawError}`;
+    progressManager.update(jobId, { step: 'Uploading', status: 'error', message: msg });
     return;
   }
 
   // 3. Finalize
   try {
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Syncing to Cloud Storage...' });
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Finalizing Cloud Upload...' });
     const r2Url = await uploadStreamToR2(`sermons/${jobId}.mp4`, createReadStream(filePath), 'video/mp4');
-    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'Download Success', r2Url, finalPath: r2Url });
+    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'System Green', r2Url, finalPath: r2Url });
     if (existsSync(filePath)) unlinkSync(filePath);
     if (cookiePath && existsSync(cookiePath)) unlinkSync(cookiePath);
   } catch (e: any) {
-    progressManager.update(jobId, { step: 'Uploading', status: 'error', message: 'Cloud Sync Failed.' });
+    progressManager.update(jobId, { step: 'Uploading', status: 'error', message: `Cloud Sync Error: ${e.message}` });
   }
 }
 
 export async function POST(req: NextRequest) {
   const { url, jobId } = await req.json();
-  progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Initializing Neural Engine...' });
+  if (!url || !jobId) return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+  
+  progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Waking Neural Engine...' });
   runDownloadJob(url, jobId).catch(e => {
-    console.error('[Engine] Job crashed:', e);
-    progressManager.update(jobId, { 
-      step: 'Uploading', 
-      status: 'error', 
-      message: `Critical Engine Crash: ${e.message || 'Unknown Failure'}. The server might be out of memory or blocked by YouTube.` 
-    });
+    progressManager.update(jobId, { step: 'Uploading', status: 'error', message: `Fatal: ${e.message}` });
   });
+  
   return NextResponse.json({ success: true });
 }

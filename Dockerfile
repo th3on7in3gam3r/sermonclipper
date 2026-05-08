@@ -1,8 +1,7 @@
-# Use the official Node.js 20 runtime as the base image
+# Use Node 20 on Alpine for a small, fast image
 FROM node:20-alpine
 
-# Install system dependencies needed for ffmpeg, python, and build tools
-# Simplified for better compatibility
+# Install system dependencies including FFmpeg and Python
 RUN apk add --no-cache \
     ffmpeg \
     python3 \
@@ -16,18 +15,16 @@ RUN apk add --no-cache \
     libffi-dev \
     openssl-dev \
     && ln -sf python3 /usr/bin/python \
-    && python3 -m pip install --no-cache-dir yt-dlp --break-system-packages
+    && python3 -m pip install --no-cache-dir --upgrade yt-dlp --break-system-packages
 
-# Set the working directory in the container
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
+# Copy package files and install dependencies
 COPY package*.json ./
-
-# Install all dependencies (including dev dependencies for build)
 RUN npm ci
 
-# Copy the rest of the application code
+# Copy the rest of the application
 COPY . .
 
 # Build the Next.js application
@@ -36,11 +33,12 @@ RUN npm run build
 # Remove dev dependencies to reduce image size
 RUN npm prune --production
 
-# Set environment variables
-ENV YTDLP_COOKIES_PATH=/app/youtube_cookies.txt
-
 # Expose the port the app runs on
-EXPOSE 3000
+EXPOSE 8000
+
+# Set environment variables
+ENV PORT=8000
+ENV NODE_ENV=production
 
 # Start the application
 CMD ["npm", "start"]
