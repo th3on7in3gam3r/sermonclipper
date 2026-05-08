@@ -111,7 +111,26 @@ export default function Home() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
-        filePath = data.filePath;
+        
+        // The download is now backgrounded. We must wait for it to complete.
+        filePath = await new Promise<string>((resolve, reject) => {
+          const es = new EventSource(`/api/progress?id=${newJobId}`);
+          es.onmessage = (event) => {
+            const progress = JSON.parse(event.data);
+            if (progress.status === 'completed' && progress.step.toLowerCase() === 'uploading') {
+              es.close();
+              if (progress.filePath) resolve(progress.filePath);
+              else reject(new Error('Download completed but no file path was provided.'));
+            } else if (progress.status === 'error') {
+              es.close();
+              reject(new Error(progress.message || 'Download failed in background.'));
+            }
+          };
+          es.onerror = () => {
+            es.close();
+            reject(new Error('Progress connection lost during download.'));
+          };
+        });
       }
 
       if (transcript && transcript.trim()) {
