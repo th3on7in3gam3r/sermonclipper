@@ -34,19 +34,13 @@ export async function POST(req: NextRequest) {
 
     try {
       console.log('[Download] Running yt-dlp...');
-      // Cast to unknown first to pass flags not in the outdated YtFlags type definition
-      type ExtendedFlags = Parameters<typeof youtubeDl>[1] & {
-        extractor_args?: string;
-      };
-      const flags: ExtendedFlags = {
+      const flags = {
         output: filePath,
         // Best quality mp4, capped at 1080p to keep file sizes manageable
         format: 'bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/bestvideo[ext=mp4]+bestaudio/best[ext=mp4]/best',
         noCheckCertificate: true,
         noWarnings: true,
-        // iOS client bypasses YouTube bot-detection without needing cookies
-        extractor_args: 'youtube:player_client=ios',
-        // Realistic mobile user-agent — googlebot actively triggers bot checks
+        // Realistic mobile user-agent — helps avoid simple bot checks
         addHeader: 'User-Agent:Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
       };
       const output = await youtubeDl(url, flags as Parameters<typeof youtubeDl>[1]);
@@ -55,16 +49,15 @@ export async function POST(req: NextRequest) {
       const msg = dlErr instanceof Error ? dlErr.message : String(dlErr);
       console.error('[Download] yt-dlp error:', dlErr);
 
-      // Retry with web_creator client as fallback
-      console.log('[Download] Retrying with web_creator client...');
+      // Retry without extractor args fallback
+      console.log('[Download] Retrying download without extractor_args...');
       try {
-        type ExtendedFlags = Parameters<typeof youtubeDl>[1] & { extractor_args?: string };
-        const retryFlags: ExtendedFlags = {
+        const retryFlags = {
           output: filePath,
           format: 'best[ext=mp4]/best',
           noCheckCertificate: true,
           noWarnings: true,
-          extractor_args: 'youtube:player_client=web_creator',
+          addHeader: 'User-Agent:Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
         };
         const retryOutput = await youtubeDl(url, retryFlags as Parameters<typeof youtubeDl>[1]);
         console.log(`[Download] Retry succeeded: ${JSON.stringify(retryOutput)}`);
