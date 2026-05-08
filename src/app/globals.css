@@ -41,7 +41,11 @@ h1, h2, h3, h4, .font-heading {
 }
 
 .glass-card {
-  @apply glass p-8 shadow-2xl;
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  @apply p-8 shadow-2xl;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease;
 }
 
@@ -61,7 +65,8 @@ h1, h2, h3, h4, .font-heading {
 }
 
 .btn-primary {
-  @apply gradient-bg px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2;
+  background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%);
+  @apply px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2;
 }
 
 .input-glass {
@@ -90,7 +95,8 @@ h1, h2, h3, h4, .font-heading {
 }
 
 .pulse-inner {
-  @apply h-full gradient-bg;
+  @apply h-full;
+  background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%);
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
