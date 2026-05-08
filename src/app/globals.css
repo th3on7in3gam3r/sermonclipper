@@ -25,17 +25,19 @@ body {
   color: var(--foreground);
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, .font-heading {
   font-family: 'Outfit', sans-serif;
 }
 
-/* ── Premium Utilities ──────────────────────────────────────────────────────── */
+/* ── Premium Design System (Pure CSS to avoid @apply conflicts) ───────────── */
 
 .glass {
   background: var(--surface);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   border-radius: 1.5rem;
 }
@@ -43,9 +45,11 @@ h1, h2, h3, h4, .font-heading {
 .glass-card {
   background: var(--surface);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   border-radius: 1.5rem;
-  @apply p-8 shadow-2xl;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease;
 }
 
@@ -60,17 +64,47 @@ h1, h2, h3, h4, .font-heading {
   -webkit-text-fill-color: transparent;
 }
 
-.gradient-bg {
-  background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%);
-}
-
 .btn-primary {
   background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%);
-  @apply px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+  transition: all 0.2s ease;
+  display: flex;
+  items-center: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: scale(0.95);
 }
 
 .input-glass {
-  @apply bg-white/5 border border-white/10 rounded-xl px-6 py-4 outline-none focus:border-primary/50 transition-all w-full text-lg;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  color: white;
+  outline: none;
+  width: 100%;
+  font-size: 1.125rem;
+  transition: all 0.2s ease;
+}
+
+.input-glass:focus {
+  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* ── Animations ─────────────────────────────────────────────────────────── */
@@ -84,24 +118,32 @@ h1, h2, h3, h4, .font-heading {
   animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
-
 /* ── Progress Pulse ─────────────────────────────────────────────────────── */
 
 .pulse-bar {
-  @apply h-2 w-full bg-white/5 rounded-full overflow-hidden;
+  height: 0.5rem;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
 }
 
 .pulse-inner {
-  @apply h-full;
+  height: 100%;
   background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%);
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .pulse-glow {
-  @apply absolute top-0 left-0 h-full w-20 bg-white/30 blur-md;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 5rem;
+  background: rgba(255, 255, 255, 0.3);
+  filter: blur(8px);
   animation: pulseMove 2s infinite linear;
 }
 
