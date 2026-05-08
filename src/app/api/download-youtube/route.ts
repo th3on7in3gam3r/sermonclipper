@@ -25,13 +25,21 @@ const youtubeCookiesBrowser = process.env.YTDLP_COOKIES_BROWSER;
 const BOT_BLOCK_REGEX =
   /Sign in to confirm|confirm you.{0,10}re not a bot|bot detection|age-restricted/i;
 
-// ── Invidious resolver ────────────────────────────────────────────────────────
 const INVIDIOUS_INSTANCES = [
   'https://invidious.projectsegfau.lt',
   'https://invidious.perennialte.ch',
   'https://iv.melmac.space',
   'https://invidious.snopyta.org',
   'https://yewtu.be',
+  'https://invidious.nerdvpn.de',
+  'https://invidious.tiekoetter.com',
+  'https://invidious.v0l.me',
+];
+
+const PIPED_INSTANCES = [
+  'https://pipedapi.kavin.rocks',
+  'https://pipedapi.lunar.icu',
+  'https://pipedapi.privacy.com.de',
 ];
 
 interface InvidiousStream {
@@ -80,6 +88,27 @@ async function resolveStreamViaInvidious(videoId: string): Promise<string | null
   return null;
 }
 
+async function resolveStreamViaPiped(videoId: string): Promise<string | null> {
+  for (const instance of PIPED_INSTANCES) {
+    try {
+      const res = await fetch(`${instance}/streams/${videoId}`, {
+        signal: AbortSignal.timeout(6000),
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      // Piped returns a list of streams, we want the best video+audio mp4 or combined
+      const stream = data.videoStreams?.find((s: any) => s.format === 'VIDEO_STREAM_TYPE_MP4' && s.videoOnly === false) 
+                  || data.videoStreams?.[0];
+      if (stream?.url) {
+        console.log(`[Download] Found Piped stream from ${instance}`);
+        return stream.url;
+      }
+    } catch (e) {
+      console.warn(`[Download] Piped instance ${instance} failed:`, e);
+    }
+  }
+  return null;
+}
 async function downloadDirectStream(streamUrl: string, filePath: string): Promise<void> {
   const res = await fetch(streamUrl, {
     headers: {
@@ -194,18 +223,25 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   let succeeded = false;
   let lastError = '';
 
-  // Stage 0: Invidious
+  // Stage 0: Invidious/Piped Waterfall
   const videoId = extractVideoId(url);
   if (videoId) {
     try {
+      console.log(`[Download] Stage 0: Attempting Invidious for ${videoId}`);
       const streamUrl = await resolveStreamViaInvidious(videoId);
       if (streamUrl) {
-        console.log('[Download] Stage 0 (Invidious): downloading...');
         await downloadDirectStream(streamUrl, filePath);
         succeeded = true;
+      } else {
+        console.log(`[Download] Stage 0: Invidious failed, attempting Piped for ${videoId}`);
+        const pipedUrl = await resolveStreamViaPiped(videoId);
+        if (pipedUrl) {
+          await downloadDirectStream(pipedUrl, filePath);
+          succeeded = true;
+        }
       }
     } catch (err) {
-      console.warn('[Download] Stage 0 (Invidious) failed:', err);
+      console.warn('[Download] Stage 0 (Invidious/Piped) failed:', err);
     }
   }
 
