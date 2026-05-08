@@ -17,12 +17,12 @@ try {
   console.warn('[Engine] DNS redundancy active.');
 }
 
+// Elite Tunneling Network
 const MIRRORS = [
+  { name: 'Cobalt Ghost (Elite)', type: 'cobalt', url: 'https://cobalt.tools/api/json' },
   { name: 'Clipper Global A', type: 'invidious', url: 'https://invidious.projectsegfau.lt' },
   { name: 'Clipper Global B', type: 'piped', url: 'https://pipedapi.kavin.rocks' },
   { name: 'Clipper Global C', type: 'invidious', url: 'https://iv.melmac.space' },
-  { name: 'Clipper Global D', type: 'piped', url: 'https://pipedapi.lunar.icu' },
-  { name: 'Clipper Global E', type: 'invidious', url: 'https://yewtu.be' },
 ];
 
 const BOT_BLOCK_REGEX = /Sign in to confirm|confirm you.{0,10}re not a bot|bot detection|age-restricted|403|Forbidden|blocked|unavailable/i;
@@ -44,42 +44,36 @@ function sanitizeCookies(content: string): string {
   }).join('\n');
 }
 
-async function resolveMirror(videoId: string, mirror: any): Promise<string | null> {
+async function resolveMirror(videoId: string, mirror: any, fullUrl: string): Promise<string | null> {
   try {
-    if (mirror.type === 'invidious') {
-      const res = await fetch(`${mirror.url}/api/v1/videos/${videoId}?fields=formatStreams`, {
-        signal: AbortSignal.timeout(12000),
+    if (mirror.type === 'cobalt') {
+      const res = await fetch(mirror.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ url: fullUrl, videoQuality: '720' }),
+        signal: AbortSignal.timeout(15000),
       });
       if (!res.ok) return null;
       const data = await res.json();
-      const stream = data.formatStreams?.find((s: any) => s.quality === 'hd720' && s.type?.includes('mp4'))
-                  || data.formatStreams?.find((s: any) => s.type?.includes('mp4'));
-      return stream?.url || null;
+      return data.url || null;
+    } else if (mirror.type === 'invidious') {
+      const res = await fetch(`${mirror.url}/api/v1/videos/${videoId}?fields=formatStreams`, {
+        signal: AbortSignal.timeout(12000),
+      });
+      const data = await res.json();
+      return data.formatStreams?.find((s: any) => s.type?.includes('mp4'))?.url || null;
     } else {
       const res = await fetch(`${mirror.url}/streams/${videoId}`, {
         signal: AbortSignal.timeout(12000),
       });
-      if (!res.ok) return null;
       const data = await res.json();
-      const stream = data.videoStreams?.find((s: any) => s.format === 'VIDEO_STREAM_TYPE_MP4' && s.quality === '720p')
-                  || data.videoStreams?.find((s: any) => s.format === 'VIDEO_STREAM_TYPE_MP4');
-      return stream?.url || null;
+      return data.videoStreams?.find((s: any) => s.format === 'VIDEO_STREAM_TYPE_MP4')?.url || null;
     }
   } catch { return null; }
 }
 
 async function runYtDlp(url: string, filePath: string, client: string, jobId: string, cookiePath?: string): Promise<void> {
-  const args = [
-    url, 
-    '--output', filePath, 
-    '--format', 'best[ext=mp4]/best', 
-    '--no-warnings', 
-    '--force-ipv4',
-    '--geo-bypass',
-    '--no-check-certificate',
-    '--user-agent', CHROME_UA
-  ];
-  
+  const args = [url, '--output', filePath, '--format', 'best[ext=mp4]/best', '--no-warnings', '--force-ipv4', '--geo-bypass', '--user-agent', CHROME_UA];
   if (client !== 'web') args.push('--extractor-args', `youtube:player_client=${client}`);
   if (cookiePath && existsSync(cookiePath)) args.push('--cookies', cookiePath);
 
@@ -93,13 +87,7 @@ async function runYtDlp(url: string, filePath: string, client: string, jobId: st
         progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `[Raw] ${raw.split('\n')[0].slice(0, 80)}` });
       }
     });
-    child.on('close', (code) => {
-      if (code === 0) resolve();
-      else {
-        const lines = fullStderr.split('\n').filter(l => l.trim());
-        reject(new Error(lines[lines.length - 1] || `Exit Code ${code}`));
-      }
-    });
+    child.on('close', (code) => code === 0 ? resolve() : reject(new Error(fullStderr)));
     setTimeout(() => { child.kill(); reject(new Error('Process Timeout')); }, 300000);
   });
 }
@@ -118,33 +106,33 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   let success = false;
   let lastRawError = '';
 
-  // 1. Ghost Mirror Tunnel
+  // 1. GHOST TUNNELING (Cobalt + Elite Mirrors)
   const vid = extractVideoId(url);
   if (vid) {
     for (const m of MIRRORS) {
-      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Tunneling via ${m.name}...` });
-      const streamUrl = await resolveMirror(vid, m);
+      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Neural Tunnel: Trying ${m.name}...` });
+      const streamUrl = await resolveMirror(vid, m, url);
       if (streamUrl) {
         try {
-          const res = await fetch(streamUrl, { signal: AbortSignal.timeout(60000) });
+          const res = await fetch(streamUrl, { signal: AbortSignal.timeout(90000) });
           if (res.ok && res.body) {
             await pipeline(Readable.fromWeb(res.body as any), createWriteStream(filePath));
             success = true;
+            progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Tunnel Established: Using ${m.name}` });
             break;
           }
-        } catch (e) { console.warn(`[Engine] Mirror ${m.name} failed.`); }
+        } catch (e) { console.warn(`[Engine] Tunnel ${m.name} rejected.`); }
       }
     }
   }
 
-  // 2. Protocol Waterfall
+  // 2. Protocol Waterfall (Fallback)
   if (!success) {
     const stages = [
       { id: 'web', label: 'Chrome (Auth)', auth: true },
+      { id: 'tv_embedded', label: 'TV App' },
       { id: 'android', label: 'Android' },
-      { id: 'ios', label: 'iOS Mobile' },
-      { id: 'tv_embedded', label: 'TV Set-top' },
-      { id: 'mweb', label: 'Mobile Safari' },
+      { id: 'ios', label: 'iOS' },
     ];
     for (const s of stages) {
       progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Protocol: Trying ${s.label}...` });
@@ -161,7 +149,7 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
 
   if (!success) {
     const isBot = BOT_BLOCK_REGEX.test(lastRawError);
-    const msg = isBot ? `Neural Block: YouTube is demanding authentication mirrors couldn't bypass.` : `Critical Error: ${lastRawError}`;
+    const msg = isBot ? `Neural Block: YouTube is demanding authentication mirrors couldn't bypass.` : `Critical Error: Download failed.`;
     progressManager.update(jobId, { step: 'Uploading', status: 'error', message: msg });
     return;
   }
