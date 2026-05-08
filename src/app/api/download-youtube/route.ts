@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { join } from 'path';
-import { existsSync, createWriteStream, writeFileSync, readFileSync, unlinkSync } from 'fs';
+import { existsSync, createWriteStream, createReadStream, writeFileSync, readFileSync, unlinkSync } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 import { progressManager } from '../../../lib/progress';

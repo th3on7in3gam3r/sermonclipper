@@ -32,7 +32,7 @@ h1, h2, h3, h4, .font-heading {
   font-family: 'Outfit', sans-serif;
 }
 
-/* ── Premium Design System (Pure CSS to avoid @apply conflicts) ───────────── */
+/* ── Premium Design System (Standard CSS) ─────────────────────────────────── */
 
 .glass {
   background: var(--surface);
@@ -74,11 +74,12 @@ h1, h2, h3, h4, .font-heading {
   box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
   transition: all 0.2s ease;
   display: flex;
-  items-center: center;
+  align-items: center;
   justify-content: center;
   gap: 0.5rem;
   border: none;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .btn-primary:hover {
