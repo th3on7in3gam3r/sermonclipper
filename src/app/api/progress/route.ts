@@ -19,7 +19,16 @@ export async function GET(req: NextRequest) {
 
       progressManager.subscribe(id, sendUpdate);
 
+      const heartbeat = setInterval(() => {
+        try {
+          controller.enqueue(encoder.encode(': heartbeat\n\n'));
+        } catch (err) {
+          clearInterval(heartbeat);
+        }
+      }, 15000);
+
       req.signal.addEventListener('abort', () => {
+        clearInterval(heartbeat);
         progressManager.unsubscribe(id);
         controller.close();
       });
