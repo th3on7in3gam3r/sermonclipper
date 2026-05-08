@@ -3,7 +3,7 @@ import { create } from 'yt-dlp-exec';
 import { v4 as uuidv4 } from 'uuid';
 import { join, basename } from 'path';
 import { mkdir, readdir, readFile } from 'fs/promises';
-import { existsSync, createWriteStream } from 'fs';
+import { existsSync, createWriteStream, writeFileSync, mkdirSync } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 import { progressManager } from '@/lib/progress';
@@ -11,7 +11,25 @@ import { uploadBufferToR2 } from '@/lib/r2';
 
 const binPath = join(process.cwd(), 'node_modules', 'yt-dlp-exec', 'bin', 'yt-dlp');
 const youtubeDl = create(binPath);
-const youtubeCookiePath = process.env.YTDLP_COOKIES_PATH;
+
+// Provision cookies from environment variable if provided (useful for Koyeb/Railway)
+let youtubeCookiePath = process.env.YTDLP_COOKIES_PATH;
+const youtubeCookiesContent = process.env.YTDLP_COOKIES_CONTENT;
+
+if (youtubeCookiesContent && !youtubeCookiePath) {
+  const provPath = join(process.cwd(), 'tmp', 'youtube_cookies_provisioned.txt');
+  try {
+    if (!existsSync(join(process.cwd(), 'tmp'))) {
+      mkdirSync(join(process.cwd(), 'tmp'), { recursive: true });
+    }
+    writeFileSync(provPath, youtubeCookiesContent);
+    youtubeCookiePath = provPath;
+    console.log('[Download] Provisioned cookies from YTDLP_COOKIES_CONTENT');
+  } catch (err) {
+    console.error('[Download] Failed to provision cookies:', err);
+  }
+}
+
 const youtubeCookiesBrowser = process.env.YTDLP_COOKIES_BROWSER;
 
 const BOT_BLOCK_REGEX =
