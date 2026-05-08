@@ -6,11 +6,11 @@ import { v4 as uuidv4 } from 'uuid';
 import ProcessingView from '@/components/home/ProcessingView';
 
 const STEPS = [
-  { id: 'uploading', label: 'Resolving' },
-  { id: 'transcribing', label: 'Transcribing' },
-  { id: 'analyzing', label: 'Analyzing' },
-  { id: 'cutting', label: 'Polishing' },
-  { id: 'ready', label: 'Complete' },
+  { id: 'uploading', label: 'Engine' },
+  { id: 'transcribing', label: 'Neural' },
+  { id: 'analyzing', label: 'Insight' },
+  { id: 'cutting', label: 'Media' },
+  { id: 'ready', label: 'Done' },
 ];
 
 export default function Home() {
@@ -28,13 +28,6 @@ export default function Home() {
     if (saved) setRecentWork(JSON.parse(saved));
   }, []);
 
-  const saveToHistory = (id: string, title: string) => {
-    const newItem = { id, title, date: new Date().toISOString() };
-    const updated = [newItem, ...recentWork.slice(0, 5)];
-    setRecentWork(updated);
-    localStorage.setItem('sermonclipper_history', JSON.stringify(updated));
-  };
-
   useEffect(() => {
     if (jobId && isProcessing) {
       const eventSource = new EventSource(`/api/progress?id=${jobId}`);
@@ -46,12 +39,16 @@ export default function Home() {
         
         if (data.status === 'completed' && data.step.toLowerCase() === 'cutting') {
           setCurrentStepIndex(4);
-          saveToHistory(jobId, url || 'Sermon Suite');
-          setTimeout(() => router.push(`/results?jobId=${jobId}`), 1500);
+          const title = url.split('v=')[1]?.slice(0, 8) || 'Sermon Suite';
+          const newItem = { id: jobId, title, date: new Date().toISOString() };
+          const updated = [newItem, ...recentWork.slice(0, 4)];
+          setRecentWork(updated);
+          localStorage.setItem('sermonclipper_history', JSON.stringify(updated));
+          setTimeout(() => router.push(`/results?jobId=${jobId}`), 1000);
         }
         
         if (data.status === 'error') {
-          setError(data.message || 'The engine encountered a roadblock.');
+          setError(data.message || 'Engine failure.');
           setIsProcessing(false);
           eventSource.close();
         }
@@ -62,7 +59,7 @@ export default function Home() {
   }, [jobId, isProcessing, url, recentWork, router]);
 
   const handleGenerate = async () => {
-    if (!url) return setError('Please provide a YouTube URL.');
+    if (!url) return setError('URL required.');
     setError('');
     setIsProcessing(true);
     const newJobId = uuidv4();
@@ -70,91 +67,68 @@ export default function Home() {
     setCurrentStepIndex(0);
 
     try {
-      const res = await fetch('/api/download-youtube', {
+      await fetch('/api/download-youtube', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, jobId: newJobId }),
       });
-      if (!res.ok) throw new Error('Download stage failed to initialize.');
     } catch (err: any) {
-      setError(err.message);
+      setError('Engine initialization failed.');
       setIsProcessing(false);
     }
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8">
-      {/* Refined Background */}
-      <div className="fixed inset-0 bg-[#0A0A0A] -z-20" />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.05),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(217,70,239,0.03),transparent_40%)] -z-10" />
-
-      <div className="w-full max-w-3xl space-y-10">
+    <main className="min-h-screen bg-[#0A0A0A] text-white selection:bg-primary/30 flex flex-col items-center justify-center p-6 sm:p-12">
+      <div className="w-full max-w-xl space-y-8">
         {!isProcessing ? (
-          <div className="space-y-12 animate-fade">
-            {/* Minimalist Hero */}
-            <div className="text-center space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">SermonClipper 2.0</span>
-              </div>
-              <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight leading-[1.1] text-white">
-                Transform Sermons <br />
-                <span className="gradient-text">Into Impact.</span>
+          <div className="space-y-10 animate-fade">
+            {/* Ultra-Compact Header */}
+            <div className="text-center space-y-2">
+              <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">
+                Sermon<span className="gradient-text">Clipper</span> <span className="text-[10px] opacity-20 ml-1">2.0</span>
               </h1>
-              <p className="text-base text-white/30 max-w-xl mx-auto font-medium leading-relaxed">
-                Paste a YouTube URL and let our neural engine generate high-end clips and social content in minutes.
-              </p>
+              <p className="text-xs font-bold uppercase tracking-[0.4em] text-white/20">Impact Neural Engine</p>
             </div>
 
-            {/* Refined Input Area */}
-            <div className="space-y-4">
-              <div className="glass-card !p-1.5 flex flex-col sm:flex-row gap-2 shadow-2xl">
+            {/* Tight Input Box */}
+            <div className="space-y-3">
+              <div className="glass border-white/5 p-1 flex gap-1">
                 <input
                   type="text"
-                  placeholder="Paste YouTube link here..."
+                  placeholder="Paste YouTube Link"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="flex-1 bg-transparent px-5 py-4 text-white placeholder:text-white/10 outline-none font-medium"
+                  className="flex-1 bg-transparent px-4 py-3 text-sm outline-none placeholder:text-white/10"
                 />
                 <button
                   onClick={handleGenerate}
-                  className="btn-primary !px-8 !py-4 shadow-indigo-500/20"
+                  className="bg-primary hover:bg-primary-hover px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
                 >
-                  Generate
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
+                  Process
                 </button>
               </div>
 
               {error && (
-                <div className="p-4 glass !border-red-500/20 text-red-400 text-xs font-bold flex items-center gap-3 animate-fade justify-center">
-                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  {error}
+                <div className="text-[10px] font-bold text-red-500 uppercase tracking-widest text-center animate-fade">
+                  Error: {error}
                 </div>
               )}
             </div>
 
-            {/* Minimalist History */}
+            {/* Minimal Project List */}
             {recentWork.length > 0 && (
-              <div className="pt-8 border-t border-white/5 space-y-4">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20 text-center">Recent Projects</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-3 pt-6 border-t border-white/5">
+                <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white/10 text-center">Recent Projects</p>
+                <div className="grid grid-cols-1 gap-2">
                   {recentWork.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => router.push(`/results?jobId=${item.id}`)}
-                      className="glass !p-4 text-left hover:bg-white/5 transition-all group flex items-center justify-between border-white/5"
+                      className="glass !p-3 flex items-center justify-between group hover:border-primary/20 transition-all border-white/5"
                     >
-                      <div className="truncate pr-4">
-                        <div className="text-xs font-bold truncate text-white/60 group-hover:text-primary transition-colors">{item.title}</div>
-                        <div className="text-[9px] text-white/20 font-bold uppercase tracking-tighter mt-1">{new Date(item.date).toLocaleDateString()}</div>
-                      </div>
-                      <svg className="w-3 h-3 text-white/10 group-hover:text-primary transition-all transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                      </svg>
+                      <span className="text-[11px] font-bold text-white/40 group-hover:text-white/80 truncate pr-4">{item.title}</span>
+                      <span className="text-[9px] font-black text-white/10 uppercase tracking-widest">{new Date(item.date).toLocaleDateString()}</span>
                     </button>
                   ))}
                 </div>
@@ -162,16 +136,18 @@ export default function Home() {
             )}
           </div>
         ) : (
-          <ProcessingView
-            steps={STEPS}
-            currentStepIndex={currentStepIndex}
-            statusMessage={statusMessage}
-          />
+          <div className="max-w-md mx-auto w-full">
+            <ProcessingView
+              steps={STEPS}
+              currentStepIndex={currentStepIndex}
+              statusMessage={statusMessage}
+            />
+          </div>
         )}
       </div>
 
-      <footer className="mt-auto py-8">
-        <p className="text-[9px] font-black tracking-[0.4em] text-white/5 uppercase">Jerless Mahabir Edition</p>
+      <footer className="fixed bottom-6 w-full text-center">
+        <p className="text-[8px] font-black tracking-[0.8em] text-white/5 uppercase select-none">Jerless Mahabir Edition</p>
       </footer>
     </main>
   );
