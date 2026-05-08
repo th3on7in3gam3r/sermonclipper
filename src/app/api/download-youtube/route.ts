@@ -21,8 +21,15 @@ function buildYoutubeFlags(filePath: string, format: string) {
     addHeader: 'User-Agent:Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
   };
 
-  if (youtubeCookiePath && existsSync(youtubeCookiePath)) {
-    flags.cookies = youtubeCookiePath;
+  if (youtubeCookiePath) {
+    if (existsSync(youtubeCookiePath)) {
+      flags.cookies = youtubeCookiePath;
+    } else {
+      console.warn(`[Download] YTDLP_COOKIES_PATH is set but file does not exist: ${youtubeCookiePath}`);
+      if (youtubeCookiesBrowser) {
+        flags.cookiesFromBrowser = youtubeCookiesBrowser;
+      }
+    }
   } else if (youtubeCookiesBrowser) {
     flags.cookiesFromBrowser = youtubeCookiesBrowser;
   }

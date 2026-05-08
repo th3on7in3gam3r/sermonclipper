@@ -40,7 +40,21 @@ Before running the application, ensure you have the following installed:
    ```env
    OPENAI_API_KEY=your_openai_api_key
    ANTHROPIC_API_KEY=your_anthropic_api_key
+   GEMINI_API_KEY=your_gemini_api_key
    ```
+
+   If you want to download YouTube videos reliably when YouTube detects bot-like traffic, also add one of these:
+   ```env
+   YTDLP_COOKIES_PATH=/path/to/youtube_cookies.txt
+   # or
+   YTDLP_COOKIES_BROWSER=chrome
+   ```
+
+   - `YTDLP_COOKIES_PATH` uses a cookies file exported from Chrome/Firefox.
+   - `YTDLP_COOKIES_BROWSER` uses yt-dlp’s browser cookie extraction when available on the host.
+
+   If neither value is set, some YouTube downloads may fail with a bot-block error.
+
 
 4. **Run the development server:**
    ```bash
