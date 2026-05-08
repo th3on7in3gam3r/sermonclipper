@@ -156,6 +156,13 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
 export async function POST(req: NextRequest) {
   const { url, jobId } = await req.json();
   progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Initializing Neural Engine...' });
-  runDownloadJob(url, jobId).catch(() => {});
+  runDownloadJob(url, jobId).catch(e => {
+    console.error('[Engine] Job crashed:', e);
+    progressManager.update(jobId, { 
+      step: 'Uploading', 
+      status: 'error', 
+      message: `Critical Engine Crash: ${e.message || 'Unknown Failure'}. The server might be out of memory or blocked by YouTube.` 
+    });
+  });
   return NextResponse.json({ success: true });
 }

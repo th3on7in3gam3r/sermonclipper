@@ -31,25 +31,51 @@ export default function Home() {
   useEffect(() => {
     if (jobId && isProcessing) {
       const eventSource = new EventSource(`/api/progress?id=${jobId}`);
+      
+      const timeoutId = setTimeout(() => {
+        if (currentStepIndex === -1) {
+          setError('Handshake Timeout. Engine is not responding.');
+          setIsProcessing(false);
+          eventSource.close();
+        }
+      }, 15000);
+
       eventSource.onmessage = (event) => {
+        clearTimeout(timeoutId);
         const data = JSON.parse(event.data);
         const stepIndex = STEPS.findIndex(s => s.id === data.step.toLowerCase());
         if (stepIndex !== -1) setCurrentStepIndex(stepIndex);
         setStatusMessage(data.message || '');
+        
         if (data.status === 'completed' && data.step.toLowerCase() === 'cutting') {
           setCurrentStepIndex(4);
+          const title = url.split('v=')[1]?.slice(0, 8) || 'Sermon Suite';
+          const newItem = { id: jobId, title, date: new Date().toISOString() };
+          const updated = [newItem, ...recentWork.slice(0, 4)];
+          setRecentWork(updated);
+          localStorage.setItem('sermonclipper_history', JSON.stringify(updated));
           setTimeout(() => router.push(`/results?jobId=${jobId}`), 1000);
         }
+        
         if (data.status === 'error') {
           setError(data.message || 'Engine failure.');
           setIsProcessing(false);
           eventSource.close();
         }
       };
-      eventSource.onerror = () => eventSource.close();
-      return () => eventSource.close();
+      
+      eventSource.onerror = () => {
+        setError('Lost connection to Neural Engine. (Server might be rebooting or timing out)');
+        setIsProcessing(false);
+        eventSource.close();
+      };
+      
+      return () => {
+        clearTimeout(timeoutId);
+        eventSource.close();
+      };
     }
-  }, [jobId, isProcessing, router]);
+  }, [jobId, isProcessing, url, recentWork, router]);
 
   const handleGenerate = async () => {
     if (!url) return setError('URL required.');
@@ -58,14 +84,16 @@ export default function Home() {
     const newJobId = uuidv4();
     setJobId(newJobId);
     setCurrentStepIndex(0);
+
     try {
-      await fetch('/api/download-youtube', {
+      const res = await fetch('/api/download-youtube', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, jobId: newJobId }),
       });
+      if (!res.ok) throw new Error('API Rejection');
     } catch (err: any) {
-      setError('Initialization failed.');
+      setError('Engine initialization failed.');
       setIsProcessing(false);
     }
   };
@@ -75,15 +103,13 @@ export default function Home() {
       <div className="w-full max-w-xl animate-fade">
         {!isProcessing ? (
           <div className="compact-stack">
-            {/* Header */}
             <div className="text-center" style={{ marginBottom: '1rem' }}>
               <h1 className="text-3xl font-black tracking-tighter uppercase leading-tight mb-2">
-                Sermon<span className="gradient-text">Clipper</span> <span className="text-[10px] opacity-20">2.0</span>
+                Sermon<span className="gradient-text">Clipper</span> <span className="text-[10px] opacity-20">2.3</span>
               </h1>
               <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/20">Impact Neural Engine</p>
             </div>
 
-            {/* Input */}
             <div className="compact-stack-small">
               <div className="glass flex items-center">
                 <input
@@ -102,7 +128,6 @@ export default function Home() {
               )}
             </div>
 
-            {/* History */}
             {recentWork.length > 0 && (
               <div className="compact-stack-small pt-8 border-t border-white/5">
                 <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white/10 text-center mb-2">Recent Projects</p>
@@ -130,7 +155,7 @@ export default function Home() {
       </div>
 
       <footer className="fixed bottom-6 w-full text-center">
-        <p className="text-[8px] font-black tracking-[0.8em] text-white/5 uppercase">Jerless Mahabir Edition</p>
+        <p className="text-[8px] font-black tracking-[0.8em] text-white/5 uppercase">Professional Edition</p>
       </footer>
     </main>
   );

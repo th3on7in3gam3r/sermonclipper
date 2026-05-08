@@ -214,7 +214,7 @@ function ResultsContent() {
       </section>
 
       <footer className="pt-24 border-t border-white/5 text-center">
-        <p className="text-white/10 text-[10px] font-bold tracking-[0.5em] uppercase">Built for Jerless Mahabir · SermonClipper Engine 2.0</p>
+        <p className="text-white/10 text-[10px] font-bold tracking-[0.5em] uppercase">Professional Edition · SermonClipper Engine 2.3</p>
       </footer>
     </main>
   );

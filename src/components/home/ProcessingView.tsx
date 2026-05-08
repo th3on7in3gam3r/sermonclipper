@@ -15,9 +15,8 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
   useEffect(() => {
     if (statusMessage) {
       setLogs(prev => {
-        // Only add if different from last log or if it's a raw engine log
         if (prev[prev.length - 1] === statusMessage && !statusMessage.startsWith('[Raw]')) return prev;
-        return [...prev, statusMessage].slice(-8);
+        return [...prev, statusMessage].slice(-10);
       });
     }
   }, [statusMessage]);
@@ -33,7 +32,6 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
   return (
     <div className="animate-fade" style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}>
       <div className="compact-stack">
-        {/* Header Section */}
         <div className="text-center">
           <h2 className="text-xl font-bold tracking-tight text-white mb-1">
             {statusMessage.startsWith('[Raw]') ? 'Deep Diagnostics Running...' : (statusMessage || 'Initializing...')}
@@ -49,7 +47,6 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
           </div>
         </div>
 
-        {/* Diagnostic Console */}
         <div className="console-box" style={{ minHeight: '180px', display: 'flex', flexDirection: 'column' }}>
           <div className="flex items-center justify-between" style={{ marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
             <div className="flex items-center gap-2">
@@ -85,7 +82,7 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
         </div>
 
         <p className="text-[8px] text-white/10 text-center uppercase tracking-widest">
-          Engine version 2.2 · Distributed Processing Active
+          Engine version 2.3 · Professional Edition
         </p>
       </div>
     </div>
