@@ -4,12 +4,12 @@ import { resolve, join } from 'path';
 import { mkdir, writeFile, stat, readFile } from 'fs/promises';
 import { existsSync, renameSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import { progressManager } from '../../../../lib/progress';
+import { progressManager } from '../../../lib/progress';
 import ffmpegPath from 'ffmpeg-static';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { uploadBufferToR2 } from '../../../../lib/r2';
-import { TMP_DIR } from '../../../../lib/paths';
+import { uploadBufferToR2 } from '../../../lib/r2';
+import { TMP_DIR } from '../../../lib/paths';
 
 const execAsync = promisify(exec);
 

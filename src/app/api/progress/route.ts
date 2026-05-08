@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { progressManager } from '../../../../lib/progress';
+import { progressManager } from '../../../lib/progress';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);

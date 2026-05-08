@@ -4,7 +4,7 @@ export const bodyParser = {
 
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { progressManager } from '@/lib/progress';
+import { progressManager } from '../../../lib/progress';
 
 function getOpenAIClient() {
   return new OpenAI({
