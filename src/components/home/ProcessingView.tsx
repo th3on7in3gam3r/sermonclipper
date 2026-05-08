@@ -15,9 +15,9 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
   useEffect(() => {
     if (statusMessage) {
       setLogs(prev => {
-        // Prevent duplicate consecutive logs unless they are raw engine output
-        if (prev[prev.length - 1] === statusMessage && !statusMessage.startsWith('[Raw]')) return prev;
-        return [...prev, statusMessage].slice(-20);
+        const last = prev[prev.length - 1];
+        if (last === statusMessage && !statusMessage.startsWith('[Raw]')) return prev;
+        return [...prev, statusMessage].slice(-12);
       });
     }
   }, [statusMessage]);
@@ -31,73 +31,83 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
   const progressPercent = Math.min(100, Math.max(5, ((currentStepIndex + 1) / steps.length) * 100));
 
   return (
-    <div className="animate-fade w-full max-w-xl mx-auto space-y-8">
-      {/* Platinum Header */}
-      <div className="space-y-4">
-        <div className="flex items-end justify-between border-b border-white/5 pb-4">
-          <div className="space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Neural Stream Active</p>
-            <h2 className="text-2xl font-bold tracking-tight text-white leading-none">
-              {statusMessage.startsWith('[Raw]') ? 'Deep Resolution...' : (statusMessage || 'Initializing...')}
-            </h2>
+    <div className="animate-fade w-full max-w-xl mx-auto flex flex-col items-center">
+      <div className="w-full space-y-12">
+        {/* Titan Header - Matches Home Page Aesthetics */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Neural Stream Active</span>
           </div>
-          <div className="text-right">
-            <span className="text-3xl font-black text-white/5">{Math.round(progressPercent)}%</span>
-          </div>
+          <h1 className="text-4xl font-black tracking-tighter uppercase leading-none text-white">
+            Processing <span className="gradient-text">Suite</span>
+          </h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/20">Establishing Media Connection</p>
         </div>
-        
-        <div className="h-1 w-full bg-white/[0.03] rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-primary transition-all duration-1000 ease-in-out" 
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-      </div>
 
-      {/* Zero-Overlap Console */}
-      <div className="glass-card !p-0 overflow-hidden border-white/5 shadow-2xl bg-[#0d0d0d]">
-        <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-          <div className="flex items-center gap-2">
-            <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
-            <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Diagnostic Telemetry</span>
+        {/* Progress System */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-end">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+              Step: {steps[currentStepIndex]?.label || 'Initialization'}
+            </span>
+            <span className="text-2xl font-black text-white/5 tracking-tighter">{Math.round(progressPercent)}%</span>
           </div>
-          <span className="text-[8px] font-black text-white/10 uppercase tracking-widest">SermonClipper 2.5</span>
+          <div className="pulse-bar-container">
+            <div className="pulse-bar-fill" style={{ width: `${progressPercent}%` }} />
+          </div>
         </div>
-        
-        <div 
-          ref={scrollRef}
-          className="p-5 h-72 overflow-y-auto font-mono scrollbar-hide space-y-2.5"
-        >
-          {logs.map((log, i) => {
-            const isRaw = log.startsWith('[Raw]');
-            const isError = log.toLowerCase().includes('error') || log.toLowerCase().includes('failed') || log.toLowerCase().includes('bot');
-            const isWarning = log.toLowerCase().includes('warning') || log.toLowerCase().includes('missing');
-            
-            const cleanLog = log.replace('[Raw]', '').trim();
-            
-            let textColor = 'text-white/20';
-            if (i === logs.length - 1) textColor = 'text-primary';
-            if (isRaw) textColor = 'text-amber-500/80';
-            if (isWarning) textColor = 'text-amber-400 font-bold';
-            if (isError) textColor = 'text-red-400 font-bold';
 
-            return (
-              <div key={i} className={`text-[11px] flex items-start gap-3 transition-all duration-300 ${textColor}`}>
-                <span className="opacity-30 shrink-0 select-none">[{i+1}]</span>
-                <span className="break-words leading-relaxed">{cleanLog}</span>
+        {/* High-End Diagnostic Feed */}
+        <div className="glass-card !p-0 border-white/5 overflow-hidden shadow-2xl bg-[#0d0d0d]">
+          <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500/30" />
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500/30" />
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/30" />
               </div>
-            );
-          })}
-          {logs.length === 0 && (
-            <div className="h-full flex items-center justify-center">
-              <p className="text-[10px] text-white/5 uppercase tracking-[0.5em] animate-pulse">Establishing Handshake</p>
+              <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] ml-2">Diagnostic Console</span>
             </div>
-          )}
-        </div>
-      </div>
+            <div className="text-[8px] font-black text-white/10 uppercase tracking-widest">v2.6 Secure</div>
+          </div>
+          
+          <div 
+            ref={scrollRef}
+            className="p-6 h-60 overflow-y-auto font-mono scrollbar-hide space-y-3"
+          >
+            {logs.map((log, i) => {
+              const isRaw = log.startsWith('[Raw]');
+              const isError = /error|failed|blocked|demanded/i.test(log);
+              const isWarning = /warning|trying|attempting/i.test(log);
+              
+              const cleanLog = log.replace('[Raw]', '').trim();
+              
+              let textColor = 'text-white/20';
+              if (i === logs.length - 1) textColor = 'text-primary';
+              if (isRaw) textColor = 'text-amber-500/60';
+              if (isWarning) textColor = 'text-amber-400/80';
+              if (isError) textColor = 'text-red-400 font-bold';
 
-      <div className="text-center">
-        <p className="text-[9px] font-bold text-white/5 uppercase tracking-[0.6em]">Professional Suite · Ironclad Build</p>
+              return (
+                <div key={i} className={`text-[11px] flex items-start gap-3 transition-all duration-300 ${textColor}`}>
+                  <span className="opacity-10 shrink-0 select-none">[{i+1}]</span>
+                  <span className="break-words leading-relaxed">{cleanLog}</span>
+                </div>
+              );
+            })}
+            {logs.length === 0 && (
+              <div className="h-full flex items-center justify-center">
+                <p className="text-[9px] text-white/5 uppercase tracking-[0.5em] animate-pulse">Awaiting Neural Link</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Minimal Footer */}
+        <div className="pt-8 text-center">
+          <p className="text-[8px] font-black tracking-[0.6em] text-white/5 uppercase select-none">Professional Media Suite · Ironclad Build</p>
+        </div>
       </div>
     </div>
   );

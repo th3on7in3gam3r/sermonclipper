@@ -17,17 +17,15 @@ try {
   console.warn('[Engine] DNS redundancy active.');
 }
 
-// Ultra-aggressive mirror list (Tier 1 Bypassers)
 const MIRRORS = [
-  { name: 'Clipper Mirror A (High-Rep)', type: 'invidious', url: 'https://invidious.projectsegfau.lt' },
-  { name: 'Clipper Mirror B (Global)', type: 'piped', url: 'https://pipedapi.kavin.rocks' },
-  { name: 'Clipper Mirror C (Asia)', type: 'invidious', url: 'https://iv.melmac.space' },
-  { name: 'Clipper Mirror D (Europe)', type: 'piped', url: 'https://pipedapi.lunar.icu' },
-  { name: 'Clipper Mirror E (Legacy)', type: 'invidious', url: 'https://yewtu.be' },
-  { name: 'Clipper Mirror F (Stable)', type: 'invidious', url: 'https://invidious.tiekoetter.com' },
+  { name: 'Clipper Global A', type: 'invidious', url: 'https://invidious.projectsegfau.lt' },
+  { name: 'Clipper Global B', type: 'piped', url: 'https://pipedapi.kavin.rocks' },
+  { name: 'Clipper Global C', type: 'invidious', url: 'https://iv.melmac.space' },
+  { name: 'Clipper Global D', type: 'piped', url: 'https://pipedapi.lunar.icu' },
+  { name: 'Clipper Global E', type: 'invidious', url: 'https://yewtu.be' },
 ];
 
-const BOT_BLOCK_REGEX = /Sign in to confirm|confirm you.{0,10}re not a bot|bot detection|age-restricted|403|Forbidden|blocked/i;
+const BOT_BLOCK_REGEX = /Sign in to confirm|confirm you.{0,10}re not a bot|bot detection|age-restricted|403|Forbidden|blocked|unavailable/i;
 const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -54,7 +52,6 @@ async function resolveMirror(videoId: string, mirror: any): Promise<string | nul
       });
       if (!res.ok) return null;
       const data = await res.json();
-      // Prefer highest quality MP4
       const stream = data.formatStreams?.find((s: any) => s.quality === 'hd720' && s.type?.includes('mp4'))
                   || data.formatStreams?.find((s: any) => s.type?.includes('mp4'));
       return stream?.url || null;
@@ -80,8 +77,7 @@ async function runYtDlp(url: string, filePath: string, client: string, jobId: st
     '--force-ipv4',
     '--geo-bypass',
     '--no-check-certificate',
-    '--user-agent', CHROME_UA,
-    '--referer', 'https://www.youtube.com/'
+    '--user-agent', CHROME_UA
   ];
   
   if (client !== 'web') args.push('--extractor-args', `youtube:player_client=${client}`);
@@ -90,28 +86,20 @@ async function runYtDlp(url: string, filePath: string, client: string, jobId: st
   return new Promise((resolve, reject) => {
     const child = spawn('yt-dlp', args);
     let fullStderr = '';
-    
     child.stderr.on('data', (d) => { 
       const raw = d.toString().trim();
       if (raw) {
         fullStderr += raw + '\n';
-        progressManager.update(jobId, { 
-          step: 'Uploading', 
-          status: 'loading', 
-          message: `[Raw] ${raw.split('\n')[0].slice(0, 100)}` 
-        });
+        progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `[Raw] ${raw.split('\n')[0].slice(0, 80)}` });
       }
     });
-
     child.on('close', (code) => {
       if (code === 0) resolve();
       else {
         const lines = fullStderr.split('\n').filter(l => l.trim());
-        const lastError = lines[lines.length - 1] || `Exit Code ${code}`;
-        reject(new Error(lastError));
+        reject(new Error(lines[lines.length - 1] || `Exit Code ${code}`));
       }
     });
-    
     setTimeout(() => { child.kill(); reject(new Error('Process Timeout')); }, 300000);
   });
 }
@@ -121,48 +109,42 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   const filePath = join(TMP_DIR, `${uuidv4()}.mp4`);
   let cookiePath: string | undefined;
   
-  // Auth Check
   const rawCookies = process.env.YTDLP_COOKIES_CONTENT || process.env.YTDLP_COOKIES;
   if (rawCookies && rawCookies.length > 50) {
     cookiePath = join(TMP_DIR, `ck_${jobId}.txt`);
     writeFileSync(cookiePath, sanitizeCookies(rawCookies));
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Auth: Active Stage Ready (${rawCookies.length} bytes)` });
   }
 
   let success = false;
   let lastRawError = '';
 
-  // 1. GHOST MIRRORS (The Nuclear Option)
+  // 1. Ghost Mirror Tunnel
   const vid = extractVideoId(url);
   if (vid) {
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Ghost Mirror: Scanning for clean IPs...' });
     for (const m of MIRRORS) {
-      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Tunneling: ${m.name}...` });
+      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Tunneling via ${m.name}...` });
       const streamUrl = await resolveMirror(vid, m);
       if (streamUrl) {
         try {
-          const res = await fetch(streamUrl, { 
-            headers: { 'User-Agent': CHROME_UA, 'Referer': m.url },
-            signal: AbortSignal.timeout(90000) 
-          });
+          const res = await fetch(streamUrl, { signal: AbortSignal.timeout(60000) });
           if (res.ok && res.body) {
             await pipeline(Readable.fromWeb(res.body as any), createWriteStream(filePath));
             success = true;
-            progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Ghost Mirror: Connection Established!' });
             break;
           }
-        } catch (e) { console.warn(`[Engine] Mirror ${m.name} rejected.`); }
+        } catch (e) { console.warn(`[Engine] Mirror ${m.name} failed.`); }
       }
     }
   }
 
-  // 2. Protocol Waterfall (Fallback)
+  // 2. Protocol Waterfall
   if (!success) {
     const stages = [
-      { id: 'android', label: 'Android Protocol' },
-      { id: 'ios', label: 'iOS Protocol' },
-      { id: 'web', label: 'Chrome (Authenticated)', auth: true },
-      { id: 'tv_embedded', label: 'TV Protocol' },
+      { id: 'web', label: 'Chrome (Auth)', auth: true },
+      { id: 'android', label: 'Android' },
+      { id: 'ios', label: 'iOS Mobile' },
+      { id: 'tv_embedded', label: 'TV Set-top' },
+      { id: 'mweb', label: 'Mobile Safari' },
     ];
     for (const s of stages) {
       progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: `Protocol: Trying ${s.label}...` });
@@ -179,16 +161,16 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
 
   if (!success) {
     const isBot = BOT_BLOCK_REGEX.test(lastRawError);
-    const msg = isBot ? `Neural Block: YouTube demanded authentication that mirrors couldn't bypass.` : `Engine Error: ${lastRawError}`;
+    const msg = isBot ? `Neural Block: YouTube is demanding authentication mirrors couldn't bypass.` : `Critical Error: ${lastRawError}`;
     progressManager.update(jobId, { step: 'Uploading', status: 'error', message: msg });
     return;
   }
 
   // 3. Finalize
   try {
-    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Syncing: Final Suite Assembly...' });
+    progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Syncing: Media Kit assembly...' });
     const r2Url = await uploadStreamToR2(`sermons/${jobId}.mp4`, createReadStream(filePath), 'video/mp4');
-    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'Success', r2Url, finalPath: r2Url });
+    progressManager.update(jobId, { step: 'Uploading', status: 'completed', message: 'Ready', r2Url, finalPath: r2Url });
     if (existsSync(filePath)) unlinkSync(filePath);
     if (cookiePath && existsSync(cookiePath)) unlinkSync(cookiePath);
   } catch (e: any) {
