@@ -32,14 +32,15 @@ h1, h2, h3, h4, .font-heading {
   font-family: 'Outfit', sans-serif;
 }
 
-/* ── Premium Design System (Standard CSS) ─────────────────────────────────── */
+/* ── Standard CSS Design System (Bypassing Tailwind Compiler Issues) ──────── */
 
 .glass {
   background: var(--surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
-  border-radius: 1.5rem;
+  border-radius: 1rem;
+  padding: 0.25rem;
 }
 
 .glass-card {
@@ -47,15 +48,9 @@ h1, h2, h3, h4, .font-heading {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
-  border-radius: 1.5rem;
-  padding: 2rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease;
-}
-
-.glass-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(99, 102, 241, 0.3);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
 .gradient-text {
@@ -66,12 +61,13 @@ h1, h2, h3, h4, .font-heading {
 
 .btn-primary {
   background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%);
-  padding: 1rem 2rem;
+  padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
-  font-weight: 700;
-  font-size: 1.125rem;
+  font-weight: 800;
+  font-size: 0.75rem;
   color: white;
-  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
@@ -79,7 +75,6 @@ h1, h2, h3, h4, .font-heading {
   gap: 0.5rem;
   border: none;
   cursor: pointer;
-  text-decoration: none;
 }
 
 .btn-primary:hover {
@@ -87,68 +82,61 @@ h1, h2, h3, h4, .font-heading {
   transform: translateY(-1px);
 }
 
-.btn-primary:active {
-  transform: scale(0.95);
-}
-
 .input-glass {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
-  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1rem;
   color: white;
   outline: none;
   width: 100%;
-  font-size: 1.125rem;
-  transition: all 0.2s ease;
+  font-size: 0.875rem;
 }
 
-.input-glass:focus {
-  border-color: rgba(99, 102, 241, 0.5);
-  background: rgba(255, 255, 255, 0.08);
+.compact-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.compact-stack-small {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Progress Pulse ─────────────────────────────────────────────────────── */
+
+.pulse-bar-container {
+  height: 4px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pulse-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 1s ease-in-out;
+}
+
+/* ── Console ────────────────────────────────────────────────────────────── */
+
+.console-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  font-family: monospace;
 }
 
 /* ── Animations ─────────────────────────────────────────────────────────── */
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade {
-  animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-/* ── Progress Pulse ─────────────────────────────────────────────────────── */
-
-.pulse-bar {
-  height: 0.5rem;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 9999px;
-  overflow: hidden;
-  position: relative;
-}
-
-.pulse-inner {
-  height: 100%;
-  background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%);
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.pulse-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 5rem;
-  background: rgba(255, 255, 255, 0.3);
-  filter: blur(8px);
-  animation: pulseMove 2s infinite linear;
-}
-
-@keyframes pulseMove {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(1000%); }
+  animation: fadeIn 0.5s ease-out forwards;
 }

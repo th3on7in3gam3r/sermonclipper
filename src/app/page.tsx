@@ -36,17 +36,10 @@ export default function Home() {
         const stepIndex = STEPS.findIndex(s => s.id === data.step.toLowerCase());
         if (stepIndex !== -1) setCurrentStepIndex(stepIndex);
         setStatusMessage(data.message || '');
-        
         if (data.status === 'completed' && data.step.toLowerCase() === 'cutting') {
           setCurrentStepIndex(4);
-          const title = url.split('v=')[1]?.slice(0, 8) || 'Sermon Suite';
-          const newItem = { id: jobId, title, date: new Date().toISOString() };
-          const updated = [newItem, ...recentWork.slice(0, 4)];
-          setRecentWork(updated);
-          localStorage.setItem('sermonclipper_history', JSON.stringify(updated));
           setTimeout(() => router.push(`/results?jobId=${jobId}`), 1000);
         }
-        
         if (data.status === 'error') {
           setError(data.message || 'Engine failure.');
           setIsProcessing(false);
@@ -56,7 +49,7 @@ export default function Home() {
       eventSource.onerror = () => eventSource.close();
       return () => eventSource.close();
     }
-  }, [jobId, isProcessing, url, recentWork, router]);
+  }, [jobId, isProcessing, router]);
 
   const handleGenerate = async () => {
     if (!url) return setError('URL required.');
@@ -65,7 +58,6 @@ export default function Home() {
     const newJobId = uuidv4();
     setJobId(newJobId);
     setCurrentStepIndex(0);
-
     try {
       await fetch('/api/download-youtube', {
         method: 'POST',
@@ -73,81 +65,72 @@ export default function Home() {
         body: JSON.stringify({ url, jobId: newJobId }),
       });
     } catch (err: any) {
-      setError('Engine initialization failed.');
+      setError('Initialization failed.');
       setIsProcessing(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#0A0A0A] text-white selection:bg-primary/30 flex flex-col items-center justify-center p-6 sm:p-12">
-      <div className="w-full max-w-xl space-y-8">
+    <main className="min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-xl animate-fade">
         {!isProcessing ? (
-          <div className="space-y-10 animate-fade">
-            {/* Ultra-Compact Header */}
-            <div className="text-center space-y-2">
-              <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">
-                Sermon<span className="gradient-text">Clipper</span> <span className="text-[10px] opacity-20 ml-1">2.0</span>
+          <div className="compact-stack">
+            {/* Header */}
+            <div className="text-center" style={{ marginBottom: '1rem' }}>
+              <h1 className="text-3xl font-black tracking-tighter uppercase leading-tight mb-2">
+                Sermon<span className="gradient-text">Clipper</span> <span className="text-[10px] opacity-20">2.0</span>
               </h1>
-              <p className="text-xs font-bold uppercase tracking-[0.4em] text-white/20">Impact Neural Engine</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/20">Impact Neural Engine</p>
             </div>
 
-            {/* Tight Input Box */}
-            <div className="space-y-3">
-              <div className="glass border-white/5 p-1 flex gap-1">
+            {/* Input */}
+            <div className="compact-stack-small">
+              <div className="glass flex items-center">
                 <input
                   type="text"
                   placeholder="Paste YouTube Link"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="flex-1 bg-transparent px-4 py-3 text-sm outline-none placeholder:text-white/10"
+                  className="input-glass"
                 />
-                <button
-                  onClick={handleGenerate}
-                  className="bg-primary hover:bg-primary-hover px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
-                >
+                <button onClick={handleGenerate} className="btn-primary" style={{ margin: '0.25rem' }}>
                   Process
                 </button>
               </div>
-
               {error && (
-                <div className="text-[10px] font-bold text-red-500 uppercase tracking-widest text-center animate-fade">
-                  Error: {error}
-                </div>
+                <p className="text-[9px] font-black text-red-500 uppercase tracking-widest text-center">{error}</p>
               )}
             </div>
 
-            {/* Minimal Project List */}
+            {/* History */}
             {recentWork.length > 0 && (
-              <div className="space-y-3 pt-6 border-t border-white/5">
-                <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white/10 text-center">Recent Projects</p>
-                <div className="grid grid-cols-1 gap-2">
-                  {recentWork.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => router.push(`/results?jobId=${item.id}`)}
-                      className="glass !p-3 flex items-center justify-between group hover:border-primary/20 transition-all border-white/5"
-                    >
-                      <span className="text-[11px] font-bold text-white/40 group-hover:text-white/80 truncate pr-4">{item.title}</span>
-                      <span className="text-[9px] font-black text-white/10 uppercase tracking-widest">{new Date(item.date).toLocaleDateString()}</span>
-                    </button>
-                  ))}
-                </div>
+              <div className="compact-stack-small pt-8 border-t border-white/5">
+                <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white/10 text-center mb-2">Recent Projects</p>
+                {recentWork.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => router.push(`/results?jobId=${item.id}`)}
+                    className="glass flex items-center justify-between p-3 hover:bg-white/5 transition-all"
+                    style={{ padding: '0.75rem 1rem' }}
+                  >
+                    <span className="text-[11px] font-bold text-white/40 truncate">{item.title}</span>
+                    <span className="text-[9px] font-black text-white/10 uppercase">{new Date(item.date).toLocaleDateString()}</span>
+                  </button>
+                ))}
               </div>
             )}
           </div>
         ) : (
-          <div className="max-w-md mx-auto w-full">
-            <ProcessingView
-              steps={STEPS}
-              currentStepIndex={currentStepIndex}
-              statusMessage={statusMessage}
-            />
-          </div>
+          <ProcessingView
+            steps={STEPS}
+            currentStepIndex={currentStepIndex}
+            statusMessage={statusMessage}
+          />
         )}
       </div>
 
       <footer className="fixed bottom-6 w-full text-center">
-        <p className="text-[8px] font-black tracking-[0.8em] text-white/5 uppercase select-none">Jerless Mahabir Edition</p>
+        <p className="text-[8px] font-black tracking-[0.8em] text-white/5 uppercase">Jerless Mahabir Edition</p>
       </footer>
     </main>
   );
