@@ -96,16 +96,10 @@ function buildBaseFlags(filePath: string, format: string): Record<string, unknow
     format, 
     noCheckCertificate: true, 
     noWarnings: true,
-    // Impersonate a real browser to bypass bot detection
-    impersonate: 'chrome',
-    addHeader: [
-      'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-      'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-      'Accept-Language: en-US,en;q=0.9',
-      'Sec-Ch-Ua: "Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-      'Sec-Ch-Ua-Mobile: ?0',
-      'Sec-Ch-Ua-Platform: "Windows"',
-    ]
+    // Cloud stability flags
+    forceIpv4: true,
+    // Use a very robust User-Agent
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
   };
 }
 
@@ -190,6 +184,7 @@ async function runDownloadJob(url: string, jobId: string): Promise<void> {
   // Stages 1-4: yt-dlp waterfall
   if (!succeeded) {
     const stages: Array<{ label: string; flags: Record<string, unknown> }> = [
+      { label: 'android player',  flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'android') },
       { label: 'ios player',      flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_BEST), 'ios') },
       { label: 'mweb player',     flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'mweb') },
       { label: 'tv_embedded',     flags: applyPlayerClient(buildBaseFlags(filePath, FORMAT_FALLBACK), 'tv_embedded') },
