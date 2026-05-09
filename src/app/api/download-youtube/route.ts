@@ -10,6 +10,7 @@ import { TMP_DIR } from '../../../lib/paths';
 import { exec as ytdlpExec } from 'youtube-dl-exec';
 import OpenAI from 'openai';
 import * as dns from 'dns';
+import { auth } from '@clerk/nextjs/server';
 
 // ── Configuration ────────────────────────────────────────────────────────────
 try {
@@ -193,6 +194,11 @@ async function runSermonPipeline(url: string, jobId: string): Promise<void> {
 }
 
 export async function POST(req: NextRequest) {
+  const { userId } = auth();
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized. Please sign in to use SermonClipper.' }, { status: 401 });
+  }
+
   const { url, jobId } = await req.json();
   if (!url || !jobId) return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
   
