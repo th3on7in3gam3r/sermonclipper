@@ -194,7 +194,7 @@ async function runSermonPipeline(url: string, jobId: string): Promise<void> {
 }
 
 export async function POST(req: NextRequest) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized. Please sign in to use SermonClipper.' }, { status: 401 });
   }
