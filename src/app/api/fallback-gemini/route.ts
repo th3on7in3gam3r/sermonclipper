@@ -1,3 +1,4 @@
+// src/app/api/fallback-gemini/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { progressManager } from '../../../lib/progress';
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'loading', 
-      message: 'Gemini AI analyzing sermon...' 
+      message: 'Gemini AI is watching the sermon...' 
     });
 
     const model = genAI.getGenerativeModel({ 
@@ -29,9 +30,11 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    const prompt = `Analyze this sermon video and return ONLY valid JSON.
+    const prompt = `You are a professional sermon clip editor.
 
-URL: ${url}
+YouTube URL: ${url}
+
+Return ONLY valid JSON with this structure:
 
 {
   "success": true,
@@ -41,15 +44,15 @@ URL: ${url}
     {
       "start": 120,
       "end": 190,
-      "hook_title": "Catchy title",
+      "hook_title": "Catchy title here",
       "main_quote": "Exact powerful quote",
-      "suggested_captions": ["Line 1", "Line 2"]
+      "suggested_captions": ["Caption line 1", "Line 2"]
     }
   ],
-  "summary": "Short summary"
+  "summary": "Short summary of the sermon"
 }
 
-Return 6-10 strong clips.`;
+Generate 6-10 strong clips.`;
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();
@@ -59,7 +62,7 @@ Return 6-10 strong clips.`;
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
     } catch (e) {
-      console.error("JSON Parse Failed:", e);
+      console.error("JSON parse failed");
       parsed = { success: true, sermon_title: "Sermon Highlights", clips: [] };
     }
 
@@ -87,21 +90,4 @@ Return 6-10 strong clips.`;
       message: error.message 
     });
   }
-}
-
-// Add a simple GET for polling compatibility
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const jobId = searchParams.get('jobId');
-  if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
-  
-  const update = progressManager.get(jobId);
-  if (update?.analysis) {
-    return NextResponse.json({
-      success: true,
-      ...update.analysis
-    });
-  }
-  
-  return NextResponse.json({ success: false, status: 'pending' });
 }
