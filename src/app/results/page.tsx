@@ -18,36 +18,40 @@ function ResultsContent() {
   const jobId = searchParams.get('jobId');
   const [analysis, setAnalysis] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!jobId) return;
 
-    // Initial check for existing results
-    const checkProgress = async () => {
+    const fetchResults = async () => {
       try {
-        const res = await fetch(`/api/progress?jobId=${jobId}`);
-        const data = await res.json();
-        if (data?.analysis) {
+        // Step 1: Try progress endpoint (wrapped in analysis)
+        let res = await fetch(`/api/progress?jobId=${jobId}`);
+        let data = await res.json();
+
+        if (data?.analysis?.clips?.length > 0) {
           setAnalysis(data.analysis);
+          setLoading(false);
+          return;
+        }
+
+        // Step 2: Direct fallback to Gemini result endpoint
+        res = await fetch(`/api/fallback-gemini?jobId=${jobId}`);
+        data = await res.json();
+
+        if (data?.clips?.length > 0 || data?.success) {
+          setAnalysis(data.analysis || data); // Handle both wrapped and unwrapped
+          setLoading(false);
         }
       } catch (e) {
-        console.error('Failed to fetch analysis:', e);
+        console.error('Failed to fetch results:', e);
       }
     };
 
-    checkProgress();
+    fetchResults();
     
     // Poll for analysis if not yet available
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/progress?jobId=${jobId}`);
-        const data = await res.json();
-        if (data?.analysis) {
-          setAnalysis(data.analysis);
-          clearInterval(interval);
-        }
-      } catch (e) {}
-    }, 3000);
+    const interval = setInterval(fetchResults, 4000);
 
     return () => clearInterval(interval);
   }, [jobId]);
@@ -110,65 +114,57 @@ function ResultsContent() {
         </div>
 
         {/* Real Dynamic Clips from Gemini */}
-        {analysis?.clips?.map((clip: Clip, i: number) => (
-          <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.1}s` }}>
-            <div className="clip-preview vertical" style={{ background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {/* If we have the master video, we can link directly to the start time */}
-              {videoUrl ? (
-                <video 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                  src={`${videoUrl}#t=${clip.start}`} 
-                  controls 
-                />
-              ) : (
-                <div style={{ textAlign: 'center', padding: '40px' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '16px' }}>🎬</div>
-                  <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#8B5CF6' }}>
-                    Clip {i + 1}
-                  </p>
-                  <p style={{ fontSize: '12px', color: '#555', marginTop: '12px' }}>
-                    {Math.floor(clip.start / 60)}:{(clip.start % 60).toString().padStart(2, '0')} - {Math.floor(clip.end / 60)}:{(clip.end % 60).toString().padStart(2, '0')}
-                  </p>
+        {analysis?.clips && analysis.clips.length > 0 ? (
+          analysis.clips.map((clip: Clip, i: number) => (
+            <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.1}s` }}>
+              <div className="clip-preview vertical" style={{ background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {videoUrl ? (
+                  <video 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    src={`${videoUrl}#t=${clip.start}`} 
+                    controls 
+                  />
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '40px' }}>
+                    <div style={{ fontSize: '32px', marginBottom: '16px' }}>🎬</div>
+                    <p style={{ fontSize: '12px', color: '#8B5CF6' }}>
+                      {Math.floor(clip.start / 60)}:{(clip.start % 60).toString().padStart(2, '0')} - {Math.floor(clip.end / 60)}:{(clip.end % 60).toString().padStart(2, '0')}
+                    </p>
+                  </div>
+                )}
+                <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(139, 92, 246, 0.9)', padding: '4px 10px', borderRadius: '100px', fontSize: '8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  Viral Hook
                 </div>
-              )}
-              <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(139, 92, 246, 0.9)', padding: '4px 10px', borderRadius: '100px', fontSize: '8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                Viral Hook
+              </div>
+              <div className="clip-info" style={{ minHeight: '180px' }}>
+                <h4 style={{ fontWeight: 900, fontSize: '16px', color: '#8B5CF6', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>{clip.hook_title}</h4>
+                <p style={{ color: '#eee', fontSize: '13px', lineHeight: 1.5, fontStyle: 'italic', marginBottom: '16px' }}>"{clip.main_quote}"</p>
+                
+                {clip.why_it_works && (
+                  <div style={{ fontSize: '10px', color: '#F4B942', borderTop: '1px solid #222', paddingTop: '12px' }}>
+                    {clip.why_it_works}
+                  </div>
+                )}
+              </div>
+              <div style={{ padding: '0 24px 24px' }}>
+                <button className="platinum-btn" style={{ width: '100%', fontSize: '10px' }}>
+                  Download Reel + Captions
+                </button>
               </div>
             </div>
-            <div className="clip-info" style={{ minHeight: '180px' }}>
-              <h4 style={{ fontWeight: 900, fontSize: '16px', color: '#8B5CF6', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>{clip.hook_title}</h4>
-              <p style={{ color: '#eee', fontSize: '13px', lineHeight: 1.5, fontStyle: 'italic', marginBottom: '16px' }}>"{clip.main_quote}"</p>
-              
-              {clip.why_it_works && (
-                <div style={{ fontSize: '10px', color: '#555', borderTop: '1px solid #222', paddingTop: '12px' }}>
-                  <span style={{ fontWeight: 900, color: '#F4B942', marginRight: '6px' }}>STRATEGY:</span>
-                  {clip.why_it_works}
+          ))
+        ) : (
+          // Loading placeholders
+          [1, 2, 3].map((i) => (
+            <div key={i} className="clip-card" style={{ opacity: 0.5 }}>
+              <div className="clip-preview vertical" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                  <p style={{ fontSize: '11px', color: '#666', fontWeight: 900, letterSpacing: '0.2em' }}>HARVESTING CLIP {i}...</p>
                 </div>
-              )}
-            </div>
-            <div style={{ padding: '0 24px 24px' }}>
-              <button className="platinum-btn" style={{ width: '100%', fontSize: '10px' }}>
-                Download Reel + Captions
-              </button>
-            </div>
-          </div>
-        ))}
-
-        {/* Fallback if no clips yet */}
-        {!analysis && [1, 2].map((i) => (
-          <div key={i} className="clip-card" style={{ opacity: 0.4 }}>
-            <div className="clip-preview vertical" style={{ background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎬</div>
-                <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.3 }}>Harvesting {i}...</p>
               </div>
             </div>
-            <div className="clip-info">
-              <div style={{ height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', marginBottom: '12px' }} />
-              <div style={{ height: '14px', width: '60%', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }} />
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {analysis?.key_verses && (
@@ -185,7 +181,7 @@ function ResultsContent() {
       )}
 
       <p style={{ textAlign: 'center', color: '#333', marginTop: '96px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>
-        Professional Suite · Ironclad Build 2.10
+        Professional Suite · Ironclad Build 2.11
       </p>
     </div>
   );

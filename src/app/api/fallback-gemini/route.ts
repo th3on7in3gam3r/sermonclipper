@@ -58,11 +58,11 @@ export async function POST(req: NextRequest) {
       Generate 8 to 12 high-quality clips. Focus on the strongest moments.`;
 
     const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const response = await result.response;
+    const text = response.text();
 
     let parsed;
     try {
-      // Clean possible markdown or extra text
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
     } catch (e) {
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       parsed = { success: true, sermon_title: "Sermon Highlights", clips: [], main_theme: "Analysis Pending" };
     }
 
-    // CRITICAL: Store the analysis in the progress manager so the frontend can see it
+    // Update the progress manager
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'completed', 
@@ -78,7 +78,12 @@ export async function POST(req: NextRequest) {
       analysis: parsed
     });
 
-    return NextResponse.json(parsed);
+    // Return consistently for double compatibility
+    return NextResponse.json({
+      success: true,
+      ...parsed,
+      analysis: parsed
+    });
 
   } catch (error: any) {
     console.error("🔥 GEMINI FALLBACK ERROR:", error);
@@ -98,4 +103,21 @@ export async function POST(req: NextRequest) {
       clips: []
     }, { status: 500 });
   }
+}
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const jobId = searchParams.get('jobId');
+  if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
+  
+  const update = progressManager.get(jobId);
+  if (update?.analysis) {
+    return NextResponse.json({
+      success: true,
+      ...update.analysis,
+      analysis: update.analysis
+    });
+  }
+  
+  return NextResponse.json({ success: false, message: 'Analysis not found' }, { status: 404 });
 }
