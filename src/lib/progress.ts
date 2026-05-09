@@ -7,6 +7,7 @@ export interface ProgressUpdate {
   r2Key?: string;
   r2Url?: string;
   finalPath?: string;
+  analysis?: any; // Stores Gemini results
 }
 
 class ProgressManager {
@@ -32,12 +33,15 @@ class ProgressManager {
   }
 
   public update(id: string, update: ProgressUpdate) {
-    // Store the latest update for polling
-    this.updates.set(id, update);
+    // Merge existing analysis if only partial update provided
+    const existing = this.updates.get(id);
+    const merged = { ...existing, ...update };
+    
+    this.updates.set(id, merged);
     
     const callback = this.clients.get(id);
     if (callback) {
-      callback(update);
+      callback(merged);
     }
   }
 

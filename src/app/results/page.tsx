@@ -1,19 +1,62 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+
+interface Clip {
+  start: number;
+  end: number;
+  hook_title: string;
+  main_quote: string;
+  why_it_works?: string;
+  suggested_captions?: string[];
+}
 
 function ResultsContent() {
   const searchParams = useSearchParams();
   const videoUrl = searchParams.get('videoUrl');
+  const jobId = searchParams.get('jobId');
+  const [analysis, setAnalysis] = useState<any>(null);
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    if (!jobId) return;
+
+    // Initial check for existing results
+    const checkProgress = async () => {
+      try {
+        const res = await fetch(`/api/progress?jobId=${jobId}`);
+        const data = await res.json();
+        if (data?.analysis) {
+          setAnalysis(data.analysis);
+        }
+      } catch (e) {
+        console.error('Failed to fetch analysis:', e);
+      }
+    };
+
+    checkProgress();
+    
+    // Poll for analysis if not yet available
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/progress?jobId=${jobId}`);
+        const data = await res.json();
+        if (data?.analysis) {
+          setAnalysis(data.analysis);
+          clearInterval(interval);
+        }
+      } catch (e) {}
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [jobId]);
+
   const handleCopy = () => {
-    if (videoUrl) {
-      navigator.clipboard.writeText(videoUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -21,9 +64,11 @@ function ResultsContent() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '64px', borderBottom: '1px solid #222228', paddingBottom: '32px' }}>
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: '48px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', lineHeight: 1 }}>
-            Sermon <span style={{ color: '#8B5CF6' }}>Results</span>
+            {analysis?.sermon_title || 'Sermon'} <span style={{ color: '#8B5CF6' }}>Results</span>
           </h1>
-          <p style={{ color: '#A1A1AA', fontSize: '18px', fontWeight: 300, marginTop: '8px' }}>Neural harvesting complete. Clips are ready for social.</p>
+          <p style={{ color: '#A1A1AA', fontSize: '18px', fontWeight: 300, marginTop: '8px' }}>
+            {analysis?.main_theme || 'Neural harvesting complete. Clips are ready for social.'}
+          </p>
         </div>
         <div style={{ display: 'flex', gap: '16px' }}>
           <button 
@@ -60,12 +105,57 @@ function ResultsContent() {
           </div>
           <div className="clip-info">
             <h3 style={{ fontWeight: 900, fontSize: '18px', marginBottom: '8px', letterSpacing: '-0.01em' }}>Master Sermon Session</h3>
-            <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.6 }}>High-resolution session capture. Perfect for full-length archiving.</p>
+            <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.6 }}>{analysis?.summary || 'High-resolution session capture. Perfect for full-length archiving.'}</p>
           </div>
         </div>
 
-        {/* Social Clip Placeholders */}
-        {[1, 2].map((i) => (
+        {/* Real Dynamic Clips from Gemini */}
+        {analysis?.clips?.map((clip: Clip, i: number) => (
+          <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.1}s` }}>
+            <div className="clip-preview vertical" style={{ background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {/* If we have the master video, we can link directly to the start time */}
+              {videoUrl ? (
+                <video 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  src={`${videoUrl}#t=${clip.start}`} 
+                  controls 
+                />
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '16px' }}>🎬</div>
+                  <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#8B5CF6' }}>
+                    Clip {i + 1}
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#555', marginTop: '12px' }}>
+                    {Math.floor(clip.start / 60)}:{(clip.start % 60).toString().padStart(2, '0')} - {Math.floor(clip.end / 60)}:{(clip.end % 60).toString().padStart(2, '0')}
+                  </p>
+                </div>
+              )}
+              <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(139, 92, 246, 0.9)', padding: '4px 10px', borderRadius: '100px', fontSize: '8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                Viral Hook
+              </div>
+            </div>
+            <div className="clip-info" style={{ minHeight: '180px' }}>
+              <h4 style={{ fontWeight: 900, fontSize: '16px', color: '#8B5CF6', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>{clip.hook_title}</h4>
+              <p style={{ color: '#eee', fontSize: '13px', lineHeight: 1.5, fontStyle: 'italic', marginBottom: '16px' }}>"{clip.main_quote}"</p>
+              
+              {clip.why_it_works && (
+                <div style={{ fontSize: '10px', color: '#555', borderTop: '1px solid #222', paddingTop: '12px' }}>
+                  <span style={{ fontWeight: 900, color: '#F4B942', marginRight: '6px' }}>STRATEGY:</span>
+                  {clip.why_it_works}
+                </div>
+              )}
+            </div>
+            <div style={{ padding: '0 24px 24px' }}>
+              <button className="platinum-btn" style={{ width: '100%', fontSize: '10px' }}>
+                Download Reel + Captions
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {/* Fallback if no clips yet */}
+        {!analysis && [1, 2].map((i) => (
           <div key={i} className="clip-card" style={{ opacity: 0.4 }}>
             <div className="clip-preview vertical" style={{ background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ textAlign: 'center' }}>
@@ -81,8 +171,21 @@ function ResultsContent() {
         ))}
       </div>
 
+      {analysis?.key_verses && (
+        <div style={{ marginTop: '96px', padding: '48px', background: 'rgba(139, 92, 246, 0.03)', borderRadius: '32px', border: '1px solid rgba(139, 92, 246, 0.1)' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '24px', color: '#F4B942' }}>Scriptural Anchors</h2>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            {analysis.key_verses.map((verse: string, i: number) => (
+              <span key={i} style={{ padding: '8px 20px', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.2)', borderRadius: '100px', fontSize: '12px', fontWeight: 600 }}>
+                {verse}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       <p style={{ textAlign: 'center', color: '#333', marginTop: '96px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>
-        Professional Suite · Ironclad Build 2.8
+        Professional Suite · Ironclad Build 2.10
       </p>
     </div>
   );
@@ -92,12 +195,7 @@ export default function Results() {
   return (
     <main style={{ minHeight: '100vh', padding: '64px 20px', display: 'flex', justifyContent: 'center' }}>
       <div className="spiritual-rays" />
-      <Suspense fallback={
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '50vh', gap: '24px' }}>
-          <div style={{ width: '48px', height: '48px', border: '4px solid #8B5CF6', borderTopColor: 'transparent', borderRadius: '100px', animation: 'spin 1s linear infinite' }} />
-          <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5em', color: '#555' }}>Synchronizing Neural Dashboard...</p>
-        </div>
-      }>
+      <Suspense fallback={null}>
         <ResultsContent />
       </Suspense>
     </main>

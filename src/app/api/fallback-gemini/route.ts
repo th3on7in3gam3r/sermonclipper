@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(req: NextRequest) {
   let currentJobId = '';
-  
+
   try {
     const { url, jobId } = await req.json();
     currentJobId = jobId;
@@ -15,69 +15,67 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY is not configured in environment.');
-    }
-
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'loading', 
-      message: 'Neural Engine: Harvesting viral spiritual moments...' 
+      message: 'Analyzing sermon with Gemini AI...' 
     });
 
     const model = genAI.getGenerativeModel({ 
       model: "gemini-1.5-pro",
       generationConfig: { 
-        temperature: 0.7,
+        temperature: 0.5,
         responseMimeType: "application/json"
       }
     });
 
     const prompt = `
-      You are a professional church media strategist and short-form video editor.
-
-      Analyze this full sermon video from YouTube and extract the most impactful moments.
+      You are an expert sermon clip editor for social media.
 
       YouTube URL: ${url}
 
-      Return only valid JSON using this exact structure:
+      Carefully watch the full sermon and return ONLY valid JSON (no explanations, no markdown, no extra text).
 
+      Use this exact structure:
       {
         "success": true,
-        "sermon_title": "Short, powerful title suggestion",
-        "main_theme": "One sentence main message",
+        "sermon_title": "Short powerful title",
+        "main_theme": "One sentence theme",
         "clips": [
           {
-            "start": 245,
-            "end": 298,
-            "hook_title": "Very catchy, curiosity-driven title",
-            "main_quote": "The exact most powerful spoken words",
-            "why_it_works": "Why this will engage people on social media",
-            "suggested_captions": ["Bold line 1", "Line 2 that appears next", "Final line"]
+            "start": 123,
+            "end": 180,
+            "hook_title": "Catchy clickable title",
+            "main_quote": "Exact powerful quote",
+            "why_it_works": "Why this clip is good",
+            "suggested_captions": ["Line 1", "Line 2", "Line 3"]
           }
         ],
-        "summary": "Powerful 2-3 sentence summary of the whole sermon",
-        "key_verses": ["John 3:16", "Matthew 6:33"]
+        "summary": "Short powerful summary",
+        "key_verses": ["John 3:16", "Genesis 1:1"]
       }
 
-      Rules:
-      - Return 8–12 high-quality clips
-      - Prioritize emotional, biblical, practical, or memorable moments
-      - Make hook titles highly clickable
-      - Timestamps must be accurate in seconds from the start of the video
-      - Focus on content that works well as vertical Reels / Shorts
-    `;
+      Generate 8 to 12 high-quality clips. Focus on the strongest moments.`;
 
     const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
-    const parsed = JSON.parse(text);
+    const text = result.response.text();
 
+    let parsed;
+    try {
+      // Clean possible markdown or extra text
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+    } catch (e) {
+      console.error("JSON Parse Failed, raw text:", text);
+      parsed = { success: true, sermon_title: "Sermon Highlights", clips: [], main_theme: "Analysis Pending" };
+    }
+
+    // CRITICAL: Store the analysis in the progress manager so the frontend can see it
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'completed', 
-      message: '✅ Gemini Analysis Successful' 
+      message: `✅ Generated ${parsed.clips?.length || 0} clips`,
+      analysis: parsed
     });
 
     return NextResponse.json(parsed);
@@ -89,13 +87,15 @@ export async function POST(req: NextRequest) {
       progressManager.update(currentJobId, { 
         step: 'Analysis', 
         status: 'error', 
-        message: `Gemini Analysis Failed: ${error.message}` 
+        message: `Gemini failed: ${error.message}` 
       });
     }
 
     return NextResponse.json({ 
+      success: false,
       error: "Gemini analysis failed", 
-      message: error.message 
+      message: error.message,
+      clips: []
     }, { status: 500 });
   }
 }
