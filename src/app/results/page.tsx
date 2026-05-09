@@ -19,6 +19,19 @@ function ResultsContent() {
 
   const videoId = videoUrl ? getYouTubeId(videoUrl) : null;
 
+  // Robust time parser to handle cases where AI returns 'MM:SS' instead of raw seconds
+  const parseTime = (timeVal: any): number => {
+    if (typeof timeVal === 'number') return Math.floor(timeVal);
+    if (!timeVal) return 0;
+    const str = String(timeVal);
+    if (str.includes(':')) {
+      const parts = str.split(':').map(Number);
+      if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
+      if (parts.length === 2) return parts[0]*60 + parts[1];
+    }
+    return Math.floor(Number(str)) || 0;
+  };
+
   useEffect(() => {
     if (!jobId) return;
 
@@ -101,7 +114,7 @@ function ResultsContent() {
                 {videoId ? (
                   <iframe
                     style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', top: 0, left: 0 }}
-                    src={`https://www.youtube.com/embed/${videoId}?start=${Math.floor(clip.start)}&end=${Math.floor(clip.end)}`}
+                    src={`https://www.youtube.com/embed/${videoId}?start=${parseTime(clip.start)}&end=${parseTime(clip.end)}`}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   ></iframe>
