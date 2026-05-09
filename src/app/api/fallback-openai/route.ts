@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { progressManager } from '../../../lib/progress';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-});
-
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const jobId = searchParams.get('jobId');
@@ -30,8 +26,10 @@ export async function POST(req: NextRequest) {
     const { url, jobId: incomingJobId } = await req.json();
     jobId = incomingJobId || '';
 
-    if (!url) return NextResponse.json({ error: 'No URL' }, { status: 400 });
-    if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not set in Settings');
+    if (!url) return NextResponse.json({ error: 'No URL provided' }, { status: 400 });
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY is not configured in environment variables');
+    }
 
     // Token Shield: Check for cached analysis to save tokens
     const cached = progressManager.get(jobId);
@@ -45,6 +43,11 @@ export async function POST(req: NextRequest) {
       message: 'GPT-4o analyzing sermon...' 
     });
 
+    // Lazy initialize inside the request (fixes Next.js build error)
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       temperature: 0.5,
@@ -56,7 +59,7 @@ export async function POST(req: NextRequest) {
         },
         {
           role: "user",
-          content: `Analyze this sermon video and return ONLY valid JSON.
+          content: `Analyze this sermon video. Return ONLY valid JSON.
 
 YouTube URL: ${url}
 
