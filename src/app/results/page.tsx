@@ -10,6 +10,42 @@ function ResultsContent() {
   const jobId = searchParams.get('jobId');
   const [analysis, setAnalysis] = useState<any>(null);
   const [rendering, setRendering] = useState<{ [key: number]: { status: string, url?: string } }>({});
+  
+  // Carousel State
+  const [carouselLoading, setCarouselLoading] = useState(false);
+  const [carouselData, setCarouselData] = useState<any>(null);
+  const [showCarouselModal, setShowCarouselModal] = useState(false);
+
+  const handleGenerateCarousel = async () => {
+    if (carouselData) {
+      setShowCarouselModal(true);
+      return;
+    }
+    
+    setCarouselLoading(true);
+    const loadToast = toast.loading('Generating AI Social Carousel...');
+    
+    try {
+      const res = await fetch('/api/social-carousel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId })
+      });
+      const data = await res.json();
+      
+      if (data.slides) {
+        setCarouselData(data);
+        setShowCarouselModal(true);
+        toast.success('Carousel Generated!', { id: loadToast });
+      } else {
+        toast.error('Failed to generate carousel.', { id: loadToast });
+      }
+    } catch (e) {
+      toast.error('Network error.', { id: loadToast });
+    } finally {
+      setCarouselLoading(false);
+    }
+  };
 
   // Helper to extract YouTube Video ID
   const getYouTubeId = (url: string) => {
@@ -259,11 +295,49 @@ function ResultsContent() {
             <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
               Each time you create a clip, Sermon Shots automatically generates three AI-powered captions with relevant hashtags. It's now easier than ever to share your content.
             </p>
-            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>View Carousel</button>
+            <button onClick={handleGenerateCarousel} disabled={carouselLoading} className="platinum-btn" style={{ width: '100%', fontSize: '12px', opacity: carouselLoading ? 0.7 : 1, cursor: carouselLoading ? 'wait' : 'pointer' }}>
+              {carouselLoading ? 'Generating...' : 'View Carousel'}
+            </button>
           </div>
 
         </div>
       </div>
+
+      {showCarouselModal && carouselData && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+          <div className="animate-up" style={{ background: '#111', border: '1px solid #333', borderRadius: '24px', padding: '48px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <h2 style={{ fontSize: '32px', fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>Instagram <span style={{ color: '#8B5CF6' }}>Carousel</span></h2>
+              <button onClick={() => setShowCarouselModal(false)} style={{ background: 'none', border: 'none', color: '#A1A1AA', fontSize: '24px', cursor: 'pointer' }}>✕</button>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+              {carouselData.slides.map((slide: any) => (
+                <div key={slide.slide_number} style={{ background: '#1A1A1A', padding: '24px', borderRadius: '16px', border: '1px solid #222' }}>
+                  <div style={{ fontSize: '12px', color: '#8B5CF6', fontWeight: 700, marginBottom: '8px' }}>SLIDE {slide.slide_number}</div>
+                  <h4 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '12px' }}>{slide.heading}</h4>
+                  <p style={{ fontSize: '14px', color: '#A1A1AA', lineHeight: 1.5 }}>{slide.content}</p>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ background: 'rgba(139, 92, 246, 0.05)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '12px', color: '#8B5CF6' }}>Post Caption</h4>
+              <p style={{ fontSize: '14px', color: '#fff', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{carouselData.post_caption}</p>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(carouselData.post_caption);
+                  toast.success('Caption copied!');
+                }}
+                className="platinum-btn" style={{ marginTop: '16px', fontSize: '12px' }}
+              >
+                Copy Caption
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
