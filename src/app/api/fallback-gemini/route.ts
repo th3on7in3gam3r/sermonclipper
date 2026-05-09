@@ -39,45 +39,57 @@ export async function POST(req: NextRequest) {
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'loading', 
-      message: 'Gemini AI analyzing sermon...' 
+      message: 'Analyzing sermon with Gemini...' 
     });
 
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-pro-latest",        // ← Fixed Model Name
-      generationConfig: { 
-        temperature: 0.5,
-        responseMimeType: "application/json"
-      }
-    });
+    // NEURAL WATERFALL: Try multiple models in order of availability/speed
+    const models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.5-pro-latest"];
+    let result = null;
+    let lastError = "";
 
-    const prompt = `You are a professional sermon clip editor.
+    for (const modelName of models) {
+      try {
+        console.log(`[Neural] Attempting ${modelName}...`);
+        const model = genAI.getGenerativeModel({ 
+          model: modelName,
+          generationConfig: { temperature: 0.5, responseMimeType: "application/json" }
+        });
 
-      YouTube URL: ${url}
+        const prompt = `Analyze this sermon video. Return ONLY valid JSON.
 
-      Return ONLY valid JSON:
+          URL: ${url}
 
-      {
-        "success": true,
-        "sermon_title": "Short powerful title",
-        "main_theme": "One sentence theme",
-        "clips": [
           {
-            "start": 120,
-            "end": 190,
-            "hook_title": "Catchy title",
-            "main_quote": "Exact powerful quote",
-            "suggested_captions": ["Line 1", "Line 2"]
+            "success": true,
+            "sermon_title": "Short title",
+            "main_theme": "One sentence theme",
+            "clips": [
+              {
+                "start": 120,
+                "end": 190,
+                "hook_title": "Catchy title",
+                "main_quote": "Exact powerful quote",
+                "suggested_captions": ["Line 1", "Line 2"]
+              }
+            ],
+            "summary": "Short powerful summary"
           }
-        ],
-        "summary": "Short powerful summary"
+
+          Generate 6-10 good clips.`;
+
+        result = await model.generateContent(prompt);
+        console.log(`[Neural] ${modelName} success!`);
+        break; 
+      } catch (e: any) {
+        console.warn(`[Neural] ${modelName} failed: ${e.message}`);
+        lastError = e.message;
       }
+    }
 
-      Generate 6-10 strong clips.`;
+    if (!result) throw new Error(`All Gemini models failed. Last error: ${lastError}`);
 
-    const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-
     let parsed;
     try {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -101,14 +113,20 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error("Gemini Error:", error);
+    console.error("🔥 GEMINI WATERFALL ERROR:", error);
+    
     if (jobId) {
       progressManager.update(jobId, { 
         step: 'Analysis', 
         status: 'error', 
-        message: error.message 
+        message: `Neural failure: ${error.message}` 
       });
     }
-    return NextResponse.json({ success: false, clips: [], message: error.message });
+
+    return NextResponse.json({ 
+      success: false, 
+      clips: [], 
+      message: error.message 
+    }, { status: 500 });
   }
 }
