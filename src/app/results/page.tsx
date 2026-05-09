@@ -37,8 +37,8 @@ function ResultsContent() {
           return;
         }
 
-        // 2. Call Gemini with POST (Correct method to trigger/check)
-        res = await fetch(`/api/fallback-gemini`, {
+        // 2. Call Claude 3.5 Sonnet (NEW)
+        res = await fetch(`/api/fallback-claude`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -48,12 +48,12 @@ function ResultsContent() {
         });
 
         if (!res.ok) {
-          console.error(`Gemini route returned ${res.status}`);
+          console.error(`Claude route returned ${res.status}`);
           return;
         }
 
         data = await res.json();
-        console.log("📡 Raw Gemini data received:", data);
+        console.log("📡 Raw Claude data received:", data);
 
         if (data?.clips?.length > 0 || data?.success) {
           setAnalysis(data.analysis || data);
@@ -129,7 +129,7 @@ function ResultsContent() {
           </div>
         </div>
 
-        {/* Real Dynamic Clips from Gemini */}
+        {/* Real Dynamic Clips from Claude */}
         {analysis?.clips && analysis.clips.length > 0 ? (
           analysis.clips.map((clip: Clip, i: number) => (
             <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.1}s` }}>
@@ -158,6 +158,12 @@ function ResultsContent() {
               <div className="clip-info" style={{ minHeight: '180px' }}>
                 <h4 style={{ fontWeight: 900, fontSize: '16px', color: '#8B5CF6', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>{clip.hook_title}</h4>
                 <p style={{ color: '#eee', fontSize: '13px', lineHeight: 1.5, fontStyle: 'italic', marginBottom: '16px' }}>"{clip.main_quote}"</p>
+                
+                {clip.why_it_works && (
+                  <div style={{ fontSize: '10px', color: '#F4B942', borderTop: '1px solid #222', paddingTop: '12px' }}>
+                    {clip.why_it_works}
+                  </div>
+                )}
               </div>
               <div style={{ padding: '0 24px 24px' }}>
                 <button className="platinum-btn" style={{ width: '100%', fontSize: '10px' }}>
@@ -194,7 +200,7 @@ function ResultsContent() {
       )}
 
       <p style={{ textAlign: 'center', color: '#333', marginTop: '96px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>
-        Professional Suite · Ironclad Build 2.13
+        Professional Suite · Ironclad Build 2.15 (Claude)
       </p>
     </div>
   );
