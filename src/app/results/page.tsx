@@ -110,7 +110,7 @@ function ResultsContent() {
         {analysis?.clips && analysis.clips.length > 0 ? (
           analysis.clips.map((clip: any, i: number) => (
             <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.1}s` }}>
-              <div className="clip-preview vertical" style={{ background: '#000', position: 'relative' }}>
+              <div className="clip-preview" style={{ background: '#000', position: 'relative' }}>
                 {videoId ? (
                   <iframe
                     style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', top: 0, left: 0 }}
@@ -140,7 +140,7 @@ function ResultsContent() {
         ) : (
           [1, 2, 3].map(i => (
             <div key={i} className="clip-card" style={{ opacity: 0.5 }}>
-              <div className="clip-preview vertical" style={{ background: 'rgba(255,255,255,0.03)' }}>
+              <div className="clip-preview" style={{ background: 'rgba(255,255,255,0.03)' }}>
                 <div style={{ textAlign: 'center', padding: '80px 20px' }}>
                   <p style={{ fontSize: '11px', color: '#666' }}>LOADING CLIP {i}...</p>
                 </div>
@@ -148,6 +148,19 @@ function ResultsContent() {
             </div>
           ))
         )}
+      </div>
+
+      {/* Sermon Transcription Section */}
+      <div className="animate-up" style={{ marginTop: '64px', padding: '64px 48px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '32px', border: '1px solid rgba(139, 92, 246, 0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+        <h2 style={{ fontSize: '36px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', color: '#fff', marginBottom: '16px' }}>
+          Sermon <span style={{ color: '#8B5CF6' }}>Transcription</span>
+        </h2>
+        <p style={{ color: '#A1A1AA', fontSize: '18px', maxWidth: '600px', lineHeight: 1.6, marginBottom: '32px' }}>
+          Get a full transcription of your church service with nearly 99% accuracy. Upload your sermon and receive a precise text version in minutes.
+        </p>
+        <button className="platinum-btn" style={{ padding: '16px 48px', fontSize: '14px' }}>
+          Generate Transcription
+        </button>
       </div>
     </div>
   );
