@@ -1,11 +1,9 @@
-// src/app/api/fallback-gemini/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { progressManager } from '../../../lib/progress';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-// Safety Fix: Explicitly handle GET to prevent 405s during polling
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const jobId = searchParams.get('jobId');
@@ -30,24 +28,22 @@ export async function POST(req: NextRequest) {
     const { url, jobId: incomingJobId } = await req.json();
     jobId = incomingJobId || '';
 
-    if (!url) {
-      return NextResponse.json({ error: 'No URL provided' }, { status: 400 });
-    }
+    if (!url) return NextResponse.json({ error: 'No URL' }, { status: 400 });
 
-    // Check if we already have an analysis for this job to save tokens
-    const existing = progressManager.get(jobId);
-    if (existing?.analysis) {
-      return NextResponse.json(existing.analysis);
+    // Check for cached analysis to save tokens
+    const cached = progressManager.get(jobId);
+    if (cached?.analysis) {
+      return NextResponse.json(cached.analysis);
     }
 
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'loading', 
-      message: 'Gemini AI is watching the sermon...' 
+      message: 'Gemini AI analyzing sermon...' 
     });
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-pro",
+      model: "gemini-1.5-pro-latest",        // ← Fixed Model Name
       generationConfig: { 
         temperature: 0.5,
         responseMimeType: "application/json"
@@ -56,37 +52,38 @@ export async function POST(req: NextRequest) {
 
     const prompt = `You are a professional sermon clip editor.
 
-YouTube URL: ${url}
+      YouTube URL: ${url}
 
-Return ONLY valid JSON with this structure:
+      Return ONLY valid JSON:
 
-{
-  "success": true,
-  "sermon_title": "Short powerful title",
-  "main_theme": "One sentence theme",
-  "clips": [
-    {
-      "start": 120,
-      "end": 190,
-      "hook_title": "Catchy title here",
-      "main_quote": "Exact powerful quote",
-      "suggested_captions": ["Caption line 1", "Line 2"]
-    }
-  ],
-  "summary": "Short summary of the sermon"
-}
+      {
+        "success": true,
+        "sermon_title": "Short powerful title",
+        "main_theme": "One sentence theme",
+        "clips": [
+          {
+            "start": 120,
+            "end": 190,
+            "hook_title": "Catchy title",
+            "main_quote": "Exact powerful quote",
+            "suggested_captions": ["Line 1", "Line 2"]
+          }
+        ],
+        "summary": "Short powerful summary"
+      }
 
-Generate 6-10 strong clips.`;
+      Generate 6-10 strong clips.`;
 
     const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const response = await result.response;
+    const text = response.text();
 
     let parsed;
     try {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
     } catch (e) {
-      console.error("JSON parse failed");
+      console.error("JSON Parse Failed:", e);
       parsed = { success: true, sermon_title: "Sermon Highlights", clips: [] };
     }
 
@@ -97,7 +94,11 @@ Generate 6-10 strong clips.`;
       analysis: parsed
     });
 
-    return NextResponse.json(parsed);
+    return NextResponse.json({
+      success: true,
+      ...parsed,
+      analysis: parsed
+    });
 
   } catch (error: any) {
     console.error("Gemini Error:", error);
@@ -108,10 +109,6 @@ Generate 6-10 strong clips.`;
         message: error.message 
       });
     }
-    return NextResponse.json({ 
-      success: false, 
-      clips: [], 
-      message: error.message 
-    });
+    return NextResponse.json({ success: false, clips: [], message: error.message });
   }
 }
