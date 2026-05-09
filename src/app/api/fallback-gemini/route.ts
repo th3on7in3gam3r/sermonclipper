@@ -28,68 +28,61 @@ export async function POST(req: NextRequest) {
     const { url, jobId: incomingJobId } = await req.json();
     jobId = incomingJobId || '';
 
-    if (!url) return NextResponse.json({ error: 'No URL' }, { status: 400 });
+    if (!url) return NextResponse.json({ error: 'No URL provided' }, { status: 400 });
+
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured in Koyeb Settings');
+    }
 
     // Check for cached analysis to save tokens
     const cached = progressManager.get(jobId);
     if (cached?.analysis) {
-      return NextResponse.json(cached.analysis);
+      return NextResponse.json({ success: true, ...cached.analysis, analysis: cached.analysis });
     }
 
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'loading', 
-      message: 'Analyzing sermon with Gemini...' 
+      message: 'Gemini AI analyzing sermon...' 
     });
 
-    // NEURAL WATERFALL: Try multiple models in order of availability/speed
-    const models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.5-pro-latest"];
-    let result = null;
-    let lastError = "";
-
-    for (const modelName of models) {
-      try {
-        console.log(`[Neural] Attempting ${modelName}...`);
-        const model = genAI.getGenerativeModel({ 
-          model: modelName,
-          generationConfig: { temperature: 0.5, responseMimeType: "application/json" }
-        });
-
-        const prompt = `Analyze this sermon video. Return ONLY valid JSON.
-
-          URL: ${url}
-
-          {
-            "success": true,
-            "sermon_title": "Short title",
-            "main_theme": "One sentence theme",
-            "clips": [
-              {
-                "start": 120,
-                "end": 190,
-                "hook_title": "Catchy title",
-                "main_quote": "Exact powerful quote",
-                "suggested_captions": ["Line 1", "Line 2"]
-              }
-            ],
-            "summary": "Short powerful summary"
-          }
-
-          Generate 6-10 good clips.`;
-
-        result = await model.generateContent(prompt);
-        console.log(`[Neural] ${modelName} success!`);
-        break; 
-      } catch (e: any) {
-        console.warn(`[Neural] ${modelName} failed: ${e.message}`);
-        lastError = e.message;
+    // Using the most reliable and available model
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      generationConfig: { 
+        temperature: 0.5,
+        responseMimeType: "application/json"
       }
-    }
+    });
 
-    if (!result) throw new Error(`All Gemini models failed. Last error: ${lastError}`);
+    const prompt = `You are a professional sermon clip editor.
 
+      YouTube URL: ${url}
+
+      Return ONLY valid JSON:
+
+      {
+        "success": true,
+        "sermon_title": "Short powerful title",
+        "main_theme": "One sentence theme",
+        "clips": [
+          {
+            "start": 120,
+            "end": 190,
+            "hook_title": "Catchy title here",
+            "main_quote": "Exact powerful quote",
+            "suggested_captions": ["Line 1", "Line 2", "Line 3"]
+          }
+        ],
+        "summary": "Short powerful summary"
+      }
+
+      Generate 6-10 strong clips. Focus on emotional and biblical moments.`;
+
+    const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
+
     let parsed;
     try {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -113,13 +106,13 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error("🔥 GEMINI WATERFALL ERROR:", error);
+    console.error("🔥 GEMINI ERROR:", error);
     
     if (jobId) {
       progressManager.update(jobId, { 
         step: 'Analysis', 
         status: 'error', 
-        message: `Neural failure: ${error.message}` 
+        message: error.message 
       });
     }
 
