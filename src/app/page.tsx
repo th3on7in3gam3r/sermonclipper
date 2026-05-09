@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import ProcessingView from '@/components/home/ProcessingView';
 import { useRouter } from 'next/navigation';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
+import toast from 'react-hot-toast';
 
 export default function Home() {
   const [url, setUrl] = useState('');
@@ -18,13 +20,21 @@ export default function Home() {
     setIsProcessing(true);
 
     try {
-      await fetch('/api/download-youtube', {
+      const res = await fetch('/api/download-youtube', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, jobId: newJobId }),
       });
+      
+      if (res.status === 401) {
+        toast.error('Sign in required to harvest sermons.');
+        setIsProcessing(false);
+        return;
+      }
     } catch (error) {
       console.error('Failed to start job:', error);
+      toast.error('Connection failed.');
+      setIsProcessing(false);
     }
   };
 
@@ -69,17 +79,29 @@ export default function Home() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', display: 'flex' }}>
+    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div className="spiritual-rays" />
       
-      <div className="dashboard-container animate-up">
+      {/* Top Navigation */}
+      <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 10 }}>
+        <SignedOut>
+          <SignInButton mode="modal">
+            <button className="platinum-btn" style={{ padding: '12px 32px', fontSize: '12px' }}>Sign In</button>
+          </SignInButton>
+        </SignedOut>
+        <SignedIn>
+          <UserButton afterSignOutUrl="/" />
+        </SignedIn>
+      </div>
+
+      <div className="dashboard-container animate-up" style={{ marginTop: 'auto', marginBottom: 'auto' }}>
         {/* Logo Section */}
         <div style={{ textAlign: 'center' }}>
           <h1 className="hero-logo">
-            SERMON<span>CLIPPER</span>
+            VES<span>PER</span>
           </h1>
           <p className="hero-tagline">
-            Turn long sermons into powerful short-form content
+            Transform long sermons into cinematic short-form media
           </p>
         </div>
 
@@ -119,7 +141,7 @@ export default function Home() {
         </div>
 
         <p style={{ textAlign: 'center', color: '#555', marginTop: '40px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>
-          Built for churches • Private & Secure
+          Built for Kingdom Impact • Secure & Cinematic
         </p>
       </div>
     </main>
