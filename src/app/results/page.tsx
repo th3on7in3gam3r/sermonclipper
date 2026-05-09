@@ -10,6 +10,15 @@ function ResultsContent() {
   const [analysis, setAnalysis] = useState<any>(null);
   const [copied, setCopied] = useState(false);
 
+  // Helper to extract YouTube Video ID
+  const getYouTubeId = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const videoId = videoUrl ? getYouTubeId(videoUrl) : null;
+
   useEffect(() => {
     if (!jobId) return;
 
@@ -18,7 +27,6 @@ function ResultsContent() {
         const res = await fetch(`/api/progress?jobId=${jobId}`);
         const data = await res.json();
 
-        // Handle both possible data structures
         if (data?.analysis) {
           setAnalysis(data.analysis);
         } else if (data?.clips) {
@@ -66,8 +74,17 @@ function ResultsContent() {
       <div className="dashboard-grid">
         {/* Master Sermon */}
         <div className="clip-card">
-          <div className="clip-preview">
-            {videoUrl && <video src={videoUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+          <div className="clip-preview" style={{ background: '#000' }}>
+            {videoId ? (
+              <iframe
+                style={{ width: '100%', height: '100%', border: 'none' }}
+                src={`https://www.youtube.com/embed/${videoId}`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            ) : videoUrl && (
+              <video src={videoUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            )}
             <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(0,0,0,0.7)', padding: '4px 12px', borderRadius: '999px', fontSize: '10px' }}>FULL SESSION</div>
           </div>
           <div className="clip-info">
@@ -80,8 +97,15 @@ function ResultsContent() {
         {analysis?.clips && analysis.clips.length > 0 ? (
           analysis.clips.map((clip: any, i: number) => (
             <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.1}s` }}>
-              <div className="clip-preview vertical" style={{ background: '#000' }}>
-                {videoUrl && (
+              <div className="clip-preview vertical" style={{ background: '#000', position: 'relative' }}>
+                {videoId ? (
+                  <iframe
+                    style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', top: 0, left: 0 }}
+                    src={`https://www.youtube.com/embed/${videoId}?start=${Math.floor(clip.start)}&end=${Math.floor(clip.end)}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                ) : videoUrl && (
                   <video 
                     src={`${videoUrl}#t=${clip.start}`} 
                     controls 
