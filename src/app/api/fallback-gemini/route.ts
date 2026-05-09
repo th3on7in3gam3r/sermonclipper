@@ -70,7 +70,6 @@ export async function POST(req: NextRequest) {
       parsed = { success: true, sermon_title: "Sermon Highlights", clips: [], main_theme: "Analysis Pending" };
     }
 
-    // Update the progress manager
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'completed', 
@@ -78,7 +77,6 @@ export async function POST(req: NextRequest) {
       analysis: parsed
     });
 
-    // Return consistently for double compatibility
     return NextResponse.json({
       success: true,
       ...parsed,
@@ -105,12 +103,15 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// Polling-friendly retrieval
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const jobId = searchParams.get('jobId');
   if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
   
   const update = progressManager.get(jobId);
+  
+  // Return 200 even if not found to keep the console clean during polling
   if (update?.analysis) {
     return NextResponse.json({
       success: true,
@@ -119,5 +120,9 @@ export async function GET(req: NextRequest) {
     });
   }
   
-  return NextResponse.json({ success: false, message: 'Analysis not found' }, { status: 404 });
+  return NextResponse.json({ 
+    success: false, 
+    status: 'pending',
+    message: 'Neural analysis still in progress...' 
+  });
 }
