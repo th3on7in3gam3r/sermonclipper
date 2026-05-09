@@ -19,7 +19,7 @@ import { dark } from '@clerk/themes';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
-  title: "SermonClipper 2.0 - Cinematic Sermon Media Kits",
+  title: "Vesper - Cinematic Sermon Media Kits",
   description: "Transform your sermons into high-impact social media clips and professional art with the power of AI.",
 };
 
