@@ -203,6 +203,15 @@ function ResultsContent() {
             <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Design Thumbnail</button>
           </div>
 
+          {/* 5-Day Devotional */}
+          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>5-Day Devotional</h3>
+            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
+              Transform each sermon into a 5-day devotional series. Each day includes a short read, a thought-provoking question, a verse from the sermon, and an inspiring quote.
+            </p>
+            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Create Devotional</button>
+          </div>
+
           {/* Social Carousel */}
           <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Social Carousel</h3>
