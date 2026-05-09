@@ -150,17 +150,69 @@ function ResultsContent() {
         )}
       </div>
 
-      {/* Sermon Transcription Section */}
-      <div className="animate-up" style={{ marginTop: '64px', padding: '64px 48px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '32px', border: '1px solid rgba(139, 92, 246, 0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '36px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', color: '#fff', marginBottom: '16px' }}>
-          Sermon <span style={{ color: '#8B5CF6' }}>Transcription</span>
+      {/* Premium Features Grid */}
+      <div className="animate-up" style={{ marginTop: '96px', marginBottom: '64px' }}>
+        <h2 style={{ fontSize: '36px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', textAlign: 'center', marginBottom: '48px' }}>
+          Unlock <span style={{ color: '#8B5CF6' }}>Pro Tools</span>
         </h2>
-        <p style={{ color: '#A1A1AA', fontSize: '18px', maxWidth: '600px', lineHeight: 1.6, marginBottom: '32px' }}>
-          Get a full transcription of your church service with nearly 99% accuracy. Upload your sermon and receive a precise text version in minutes.
-        </p>
-        <button className="platinum-btn" style={{ padding: '16px 48px', fontSize: '14px' }}>
-          Generate Transcription
-        </button>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+          
+          {/* Quotes and Verses */}
+          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Quotes and Verses</h3>
+            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
+              Quickly extract 20 engaging and inspiring quotes from your sermon, perfect for sharing on your church's social media accounts. Plus, grab every Bible verse reference from the sermon.
+            </p>
+            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Extract Quotes</button>
+          </div>
+
+          {/* Sermon Summaries */}
+          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Sermon Summaries</h3>
+            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
+              Turn your sermon into various summaries, including short, long, YouTube, and social media versions. Perfect for sharing anywhere.
+            </p>
+            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Generate Summaries</button>
+          </div>
+
+          {/* Sermon Transcription */}
+          <div style={{ padding: '32px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '24px', border: '1px solid rgba(139, 92, 246, 0.2)', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Sermon Transcription</h3>
+            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
+              Get a full transcription of your church service with nearly 99% accuracy. Upload your sermon and receive a precise text version in minutes.
+            </p>
+            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Generate Transcription</button>
+          </div>
+
+          {/* Quote Images */}
+          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Quote Images</h3>
+            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
+              Create a social media image with a speaker’s photo and engaging quote from the sermon.
+            </p>
+            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Create Image</button>
+          </div>
+
+          {/* Thumbnail Images */}
+          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Thumbnail Images</h3>
+            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
+              Design an eye-catching thumbnail for YouTube videos or sermon clips.
+            </p>
+            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Design Thumbnail</button>
+          </div>
+
+          {/* Social Carousel */}
+          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Social Carousel</h3>
+            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
+              Each time you create a clip, Sermon Shots automatically generates three AI-powered captions with relevant hashtags. It's now easier than ever to share your content.
+            </p>
+            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>View Carousel</button>
+          </div>
+
+        </div>
       </div>
     </div>
   );
