@@ -132,7 +132,7 @@ function ResultsContent() {
           </div>
         </div>
 
-        {/* Dynamic Clips from OpenAI */}
+        {/* Dynamic Clips */}
         {analysis?.clips && analysis.clips.length > 0 ? (
           analysis.clips.map((clip: Clip, i: number) => (
             <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.1}s` }}>
@@ -146,14 +146,20 @@ function ResultsContent() {
                 ) : (
                   <div style={{ textAlign: 'center', padding: '60px 20px' }}>
                     <p style={{ fontSize: '12px', color: '#8B5CF6' }}>
-                      {Math.floor(clip.start / 60)}:{(clip.start % 60).toString().padStart(2, '0')} - {Math.floor(clip.end / 60)}:{(clip.end % 60).toString().padStart(2, '0')}
+                      {Math.floor(clip.start / 60)}:{(clip.start % 60).toString().padStart(2, '0')} 
+                      - 
+                      {Math.floor(clip.end / 60)}:{(clip.end % 60).toString().padStart(2, '0')}
                     </p>
                   </div>
                 )}
               </div>
               <div className="clip-info" style={{ minHeight: '180px' }}>
-                <h4 style={{ fontWeight: 900, fontSize: '16px', color: '#8B5CF6' }}>{clip.hook_title}</h4>
-                <p style={{ color: '#eee', fontSize: '13px', fontStyle: 'italic' }}>"{clip.main_quote}"</p>
+                <h4 style={{ fontWeight: 900, fontSize: '16px', color: '#8B5CF6', marginBottom: '8px' }}>
+                  {clip.hook_title}
+                </h4>
+                <p style={{ color: '#eee', fontSize: '13px', lineHeight: 1.5, fontStyle: 'italic' }}>
+                  "{clip.main_quote}"
+                </p>
               </div>
               <div style={{ padding: '0 24px 24px' }}>
                 <button className="platinum-btn" style={{ width: '100%', fontSize: '11px' }}>
@@ -163,8 +169,8 @@ function ResultsContent() {
             </div>
           ))
         ) : (
-          // Loading placeholders
-          [1, 2, 3].map((i) => (
+          // Loading state
+          [1,2,3].map(i => (
             <div key={i} className="clip-card" style={{ opacity: 0.5 }}>
               <div className="clip-preview vertical" style={{ background: 'rgba(255,255,255,0.03)' }}>
                 <div style={{ textAlign: 'center', padding: '60px 20px' }}>
