@@ -5,8 +5,12 @@ import { progressManager } from '../../../lib/progress';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(req: NextRequest) {
+  let currentJobId = '';
+  
   try {
     const { url, jobId } = await req.json();
+    currentJobId = jobId;
+
     if (!url || !jobId) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
     }
@@ -52,8 +56,6 @@ export async function POST(req: NextRequest) {
       }
     `;
 
-    // Note: In 1.5 Pro, providing the URL in the prompt is often enough for the model 
-    // to access its internal YouTube indexing if the video is public.
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
@@ -70,11 +72,14 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error("🔥 GEMINI FALLBACK ERROR:", error);
-    progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'error', 
-      message: `Gemini Fallback Failed: ${error.message}` 
-    });
+    
+    if (currentJobId) {
+      progressManager.update(currentJobId, { 
+        step: 'Analysis', 
+        status: 'error', 
+        message: `Gemini Fallback Failed: ${error.message}` 
+      });
+    }
 
     return NextResponse.json({ 
       error: "Gemini fallback failed", 
