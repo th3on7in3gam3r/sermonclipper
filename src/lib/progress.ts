@@ -12,6 +12,7 @@ export interface ProgressUpdate {
 class ProgressManager {
   private static instance: ProgressManager;
   private clients: Map<string, (data: ProgressUpdate) => void> = new Map();
+  private updates: Map<string, ProgressUpdate> = new Map();
 
   private constructor() {}
 
@@ -31,10 +32,17 @@ class ProgressManager {
   }
 
   public update(id: string, update: ProgressUpdate) {
+    // Store the latest update for polling
+    this.updates.set(id, update);
+    
     const callback = this.clients.get(id);
     if (callback) {
       callback(update);
     }
+  }
+
+  public get(id: string): ProgressUpdate | undefined {
+    return this.updates.get(id);
   }
 }
 
