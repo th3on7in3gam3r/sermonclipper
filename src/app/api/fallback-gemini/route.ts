@@ -28,56 +28,40 @@ export async function POST(req: NextRequest) {
     const { url, jobId: incomingJobId } = await req.json();
     jobId = incomingJobId || '';
 
-    if (!url) return NextResponse.json({ error: 'No URL provided' }, { status: 400 });
-
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY is not configured in Koyeb Settings');
-    }
-
-    // Check for cached analysis to save tokens
-    const cached = progressManager.get(jobId);
-    if (cached?.analysis) {
-      return NextResponse.json({ success: true, ...cached.analysis, analysis: cached.analysis });
-    }
+    if (!url) return NextResponse.json({ error: 'No URL' }, { status: 400 });
+    if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not set in Settings');
 
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'loading', 
-      message: 'Gemini AI analyzing sermon...' 
+      message: 'Gemini analyzing sermon...' 
     });
 
-    // Using the most reliable and available model
+    // Most reliable and lightweight model call
     const model = genAI.getGenerativeModel({ 
       model: "gemini-1.5-flash",
-      generationConfig: { 
-        temperature: 0.5,
-        responseMimeType: "application/json"
-      }
     });
 
-    const prompt = `You are a professional sermon clip editor.
+    const prompt = `YouTube sermon URL: ${url}
 
-      YouTube URL: ${url}
-
-      Return ONLY valid JSON:
-
+      Return only valid JSON:
       {
         "success": true,
-        "sermon_title": "Short powerful title",
+        "sermon_title": "Short title",
         "main_theme": "One sentence theme",
         "clips": [
           {
             "start": 120,
             "end": 190,
-            "hook_title": "Catchy title here",
-            "main_quote": "Exact powerful quote",
-            "suggested_captions": ["Line 1", "Line 2", "Line 3"]
+            "hook_title": "Catchy title",
+            "main_quote": "Powerful quote",
+            "suggested_captions": ["Line 1", "Line 2"]
           }
         ],
-        "summary": "Short powerful summary"
+        "summary": "Short summary"
       }
 
-      Generate 6-10 strong clips. Focus on emotional and biblical moments.`;
+      Return 6-10 clips.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
@@ -85,11 +69,10 @@ export async function POST(req: NextRequest) {
 
     let parsed;
     try {
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
-    } catch (e) {
-      console.error("JSON Parse Failed:", e);
-      parsed = { success: true, sermon_title: "Sermon Highlights", clips: [] };
+      const match = text.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(match ? match[0] : text);
+    } catch {
+      parsed = { success: true, sermon_title: "Sermon", clips: [] };
     }
 
     progressManager.update(jobId, { 
@@ -106,8 +89,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error("🔥 GEMINI ERROR:", error);
-    
+    console.error("Gemini Error:", error);
     if (jobId) {
       progressManager.update(jobId, { 
         step: 'Analysis', 
@@ -115,11 +97,6 @@ export async function POST(req: NextRequest) {
         message: error.message 
       });
     }
-
-    return NextResponse.json({ 
-      success: false, 
-      clips: [], 
-      message: error.message 
-    }, { status: 500 });
+    return NextResponse.json({ success: false, clips: [], message: error.message });
   }
 }
