@@ -8,7 +8,7 @@ import { progressManager } from '../../../lib/progress';
 import { uploadStreamToR2 } from '../../../lib/r2';
 import { TMP_DIR } from '../../../lib/paths';
 import { exec as ytdlpExec } from 'youtube-dl-exec';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 import * as dns from 'dns';
 
 // ── Configuration ────────────────────────────────────────────────────────────
@@ -48,40 +48,75 @@ async function resolveMirror(videoId: string, mirror: any, fullUrl: string): Pro
   } catch { return null; }
 }
 
-// ── Gemini Strategy ──────────────────────────────────────────────────────────
-async function runGeminiPrimary(url: string, jobId: string) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('Missing GEMINI_API_KEY in Settings');
+// ── OpenAI Strategy ──────────────────────────────────────────────────────────
+async function runOpenAIPrimary(url: string, jobId: string) {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('Missing OPENAI_API_KEY in Settings');
+  }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-pro",
-    generationConfig: { temperature: 0.7, responseMimeType: "application/json" }
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
   });
 
-  const prompt = `Analyze this sermon: ${url}. Return JSON with sermon_title, main_theme, summary, key_verses, and clips (start, end, hook_title, main_quote, why_it_works, suggested_captions). Return 8-12 clips.`;
-  const result = await model.generateContent(prompt);
-  return JSON.parse(result.response.text());
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o",
+    temperature: 0.5,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: "You are an expert sermon clip editor for social media."
+      },
+      {
+        role: "user",
+        content: `Analyze this sermon video. Return ONLY valid JSON.
+
+YouTube URL: ${url}
+
+{
+  "success": true,
+  "sermon_title": "Short powerful title",
+  "main_theme": "One sentence theme",
+  "clips": [
+    {
+      "start": 245,
+      "end": 298,
+      "hook_title": "Catchy title",
+      "main_quote": "Exact powerful quote",
+      "suggested_captions": ["Line 1", "Line 2", "Line 3"]
+    }
+  ],
+  "summary": "Powerful 2-3 sentence summary"
+}
+
+Generate 8-12 high-quality clips.`
+      }
+    ]
+  });
+
+  const text = completion.choices[0]?.message?.content || '{}';
+  return JSON.parse(text);
 }
 
 // ── Main Job ─────────────────────────────────────────────────────────────────
 async function runSermonPipeline(url: string, jobId: string): Promise<void> {
   const filePath = join(TMP_DIR, `${jobId}.mp4`);
   
-  // 1. PRIMARY: GEMINI BRAIN (Instant Analysis)
+  // 1. PRIMARY: NEURAL BRAIN (Instant Analysis)
   progressManager.update(jobId, { step: 'Analysis', status: 'loading', message: 'Neural Engine: Harvesting viral spiritual moments...' });
   try {
-    const analysis = await runGeminiPrimary(url, jobId);
+    const analysis = await runOpenAIPrimary(url, jobId);
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'completed', 
-      message: '✅ Gemini Analysis Successful',
-      finalPath: url // Temporary until download finishes
+      message: `✅ GPT-4o generated ${analysis?.clips?.length || 0} clips`,
+      finalPath: url, // Temporary until download finishes
+      analysis: analysis
     });
     // We keep going in the background to get the actual MP4
   } catch (e: any) {
-    console.error('[Engine] Gemini Primary Failed:', e.message);
-    progressManager.update(jobId, { step: 'Analysis', status: 'error', message: `Gemini Analysis Failed: ${e.message}` });
+    console.error('[Engine] Neural Primary Failed:', e.message);
+    progressManager.update(jobId, { step: 'Analysis', status: 'error', message: `Neural Analysis Failed: ${e.message}` });
   }
 
   // 2. SECONDARY: BINARY HARVEST (MP4 Download)
@@ -143,11 +178,11 @@ async function runSermonPipeline(url: string, jobId: string): Promise<void> {
       });
       if (existsSync(filePath)) unlinkSync(filePath);
     } catch (e: any) {
-      // If upload fails, we still have the Gemini analysis from before
+      // If upload fails, we still have the OpenAI analysis from before
       progressManager.update(jobId, { step: 'Downloading', status: 'completed', message: 'Analysis Ready (Download Sync Pending)', finalPath: url });
     }
   } else {
-    // If download completely fails, we still consider the job 'completed' if Gemini worked
+    // If download completely fails, we still consider the job 'completed' if OpenAI worked
     progressManager.update(jobId, { 
       step: 'Downloading', 
       status: 'completed', 

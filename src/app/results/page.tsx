@@ -15,46 +15,25 @@ function ResultsContent() {
 
     const fetchResults = async () => {
       try {
-        // 1. Check progress first
-        let res = await fetch(`/api/progress?jobId=${jobId}`);
-        let data = await res.json();
-        
-        console.log("📡 Raw Progress data received:", data);
+        const res = await fetch(`/api/progress?jobId=${jobId}`);
+        const data = await res.json();
 
-        if (data?.analysis) {
-          setAnalysis(data.analysis);
-          return;
-        } else if (data?.clips) {
-          setAnalysis(data);
-          return;
-        }
-
-        // 2. Call OpenAI fallback to trigger analysis if not ready
-        res = await fetch(`/api/fallback-openai`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: videoUrl, jobId })
-        });
-
-        if (!res.ok) return;
-
-        data = await res.json();
-        console.log("📡 Raw OpenAI data received:", data);
-
+        // Handle both possible data structures
         if (data?.analysis) {
           setAnalysis(data.analysis);
         } else if (data?.clips) {
           setAnalysis(data);
         }
       } catch (e) {
-        console.error(e);
+        console.error('Failed to fetch results:', e);
       }
     };
 
     fetchResults();
-    const interval = setInterval(fetchResults, 3000);
+    const interval = setInterval(fetchResults, 2000); // Poll faster
+
     return () => clearInterval(interval);
-  }, [jobId, videoUrl]);
+  }, [jobId]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -89,9 +68,7 @@ function ResultsContent() {
         <div className="clip-card">
           <div className="clip-preview">
             {videoUrl && <video src={videoUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-            <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(0,0,0,0.7)', padding: '4px 12px', borderRadius: '999px', fontSize: '10px' }}>
-              FULL SESSION
-            </div>
+            <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(0,0,0,0.7)', padding: '4px 12px', borderRadius: '999px', fontSize: '10px' }}>FULL SESSION</div>
           </div>
           <div className="clip-info">
             <h3>Master Sermon Session</h3>
@@ -99,29 +76,42 @@ function ResultsContent() {
           </div>
         </div>
 
-        {/* Generated Clips */}
-        {analysis?.clips?.map((clip: any, i: number) => (
-          <div key={i} className="clip-card">
-            <div className="clip-preview vertical">
-              {videoUrl && (
-                <video 
-                  src={`${videoUrl}#t=${clip.start}`} 
-                  controls 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              )}
+        {/* Real Clips */}
+        {analysis?.clips && analysis.clips.length > 0 ? (
+          analysis.clips.map((clip: any, i: number) => (
+            <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.08}s` }}>
+              <div className="clip-preview vertical" style={{ background: '#000' }}>
+                {videoUrl && (
+                  <video 
+                    src={`${videoUrl}#t=${clip.start}`} 
+                    controls 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                )}
+              </div>
+              <div className="clip-info">
+                <h4 style={{ color: '#8B5CF6', marginBottom: '8px' }}>{clip.hook_title}</h4>
+                <p style={{ fontStyle: 'italic', color: '#ddd' }}>"{clip.main_quote}"</p>
+              </div>
+              <div style={{ padding: '0 24px 24px' }}>
+                <button className="platinum-btn" style={{ width: '100%' }}>
+                  Download Reel + Captions
+                </button>
+              </div>
             </div>
-            <div className="clip-info">
-              <h4 style={{ color: '#8B5CF6' }}>{clip.hook_title}</h4>
-              <p style={{ fontStyle: 'italic' }}>"{clip.main_quote}"</p>
+          ))
+        ) : (
+          // Loading placeholders
+          [1,2,3].map(i => (
+            <div key={i} className="clip-card" style={{ opacity: 0.4 }}>
+              <div className="clip-preview vertical" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+                  <p style={{ fontSize: '11px', color: '#666' }}>LOADING CLIP {i}...</p>
+                </div>
+              </div>
             </div>
-            <div style={{ padding: '0 24px 24px' }}>
-              <button className="platinum-btn" style={{ width: '100%' }}>
-                Download Reel + Captions
-              </button>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
