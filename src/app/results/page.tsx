@@ -9,6 +9,7 @@ function ResultsContent() {
   const jobId = searchParams.get('jobId');
   const [analysis, setAnalysis] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [rendering, setRendering] = useState<{ [key: number]: { status: string, url?: string } }>({});
 
   // Helper to extract YouTube Video ID
   const getYouTubeId = (url: string) => {
@@ -30,6 +31,28 @@ function ResultsContent() {
       if (parts.length === 2) return parts[0]*60 + parts[1];
     }
     return Math.floor(Number(str)) || 0;
+  };
+
+  const handleRender = async (clip: any, index: number) => {
+    setRendering(prev => ({ ...prev, [index]: { status: 'loading' } }));
+    try {
+      const res = await fetch('/api/render-clip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId, clip, index })
+      });
+      const data = await res.json();
+      
+      if (data.downloadUrl) {
+        setRendering(prev => ({ ...prev, [index]: { status: 'complete', url: data.downloadUrl } }));
+      } else {
+        console.error('Render failed:', data.error);
+        setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
+      }
+    } catch (e) {
+      console.error('Network error during render:', e);
+      setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
+    }
   };
 
   useEffect(() => {
@@ -131,9 +154,23 @@ function ResultsContent() {
                 <p style={{ fontStyle: 'italic', color: '#ddd' }}>"{clip.main_quote}"</p>
               </div>
               <div style={{ padding: '0 24px 24px' }}>
-                <button className="platinum-btn" style={{ width: '100%' }}>
-                  Download Reel + Captions
-                </button>
+                {rendering[i]?.status === 'loading' ? (
+                  <button className="platinum-btn" style={{ width: '100%', opacity: 0.7, cursor: 'wait' }} disabled>
+                    Rendering Reel... (~30s)
+                  </button>
+                ) : rendering[i]?.status === 'complete' ? (
+                  <a href={rendering[i].url} download target="_blank" className="platinum-btn" style={{ display: 'block', width: '100%', textAlign: 'center', background: '#10B981', color: '#fff', textDecoration: 'none' }}>
+                    Download MP4 Reel
+                  </a>
+                ) : rendering[i]?.status === 'error' ? (
+                  <button onClick={() => handleRender(clip, i)} className="platinum-btn" style={{ width: '100%', background: 'rgba(239, 68, 68, 0.2)' }}>
+                    Render Failed (Retry)
+                  </button>
+                ) : (
+                  <button onClick={() => handleRender(clip, i)} className="platinum-btn" style={{ width: '100%' }}>
+                    Download Reel + Captions
+                  </button>
+                )}
               </div>
             </div>
           ))
