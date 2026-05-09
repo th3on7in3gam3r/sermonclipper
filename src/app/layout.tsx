@@ -14,6 +14,8 @@ const outfit = Outfit({
   display: 'swap',
 });
 
+import { Toaster } from 'react-hot-toast';
+
 export const metadata: Metadata = {
   title: "SermonClipper 2.0 - Cinematic Sermon Media Kits",
   description: "Transform your sermons into high-impact social media clips and professional art with the power of AI.",
@@ -27,6 +29,26 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
       <body className="antialiased">
+        <Toaster 
+          position="bottom-center"
+          toastOptions={{
+            style: {
+              background: '#1A1A1A',
+              color: '#fff',
+              border: '1px solid #333',
+              borderRadius: '99px',
+              padding: '12px 24px',
+              fontSize: '14px',
+              fontWeight: 500,
+            },
+            success: {
+              iconTheme: {
+                primary: '#8B5CF6',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
         {children}
       </body>
     </html>

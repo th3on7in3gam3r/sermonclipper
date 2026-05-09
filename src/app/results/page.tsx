@@ -2,13 +2,13 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
+import toast from 'react-hot-toast';
 
 function ResultsContent() {
   const searchParams = useSearchParams();
   const videoUrl = searchParams.get('videoUrl');
   const jobId = searchParams.get('jobId');
   const [analysis, setAnalysis] = useState<any>(null);
-  const [copied, setCopied] = useState(false);
   const [rendering, setRendering] = useState<{ [key: number]: { status: string, url?: string } }>({});
 
   // Helper to extract YouTube Video ID
@@ -35,6 +35,8 @@ function ResultsContent() {
 
   const handleRender = async (clip: any, index: number) => {
     setRendering(prev => ({ ...prev, [index]: { status: 'loading' } }));
+    const renderToastId = toast.loading('Sending clip to FFmpeg Render Engine...');
+    
     try {
       const res = await fetch('/api/render-clip', {
         method: 'POST',
@@ -45,13 +47,16 @@ function ResultsContent() {
       
       if (data.downloadUrl) {
         setRendering(prev => ({ ...prev, [index]: { status: 'complete', url: data.downloadUrl } }));
+        toast.success('Reel successfully rendered!', { id: renderToastId });
       } else {
         console.error('Render failed:', data.error);
         setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
+        toast.error('Failed to render reel. Please try again.', { id: renderToastId });
       }
     } catch (e) {
       console.error('Network error during render:', e);
       setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
+      toast.error('Network error during rendering.', { id: renderToastId });
     }
   };
 
@@ -81,8 +86,7 @@ function ResultsContent() {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    toast.success('Session link copied to clipboard!');
   };
 
   return (
@@ -99,7 +103,7 @@ function ResultsContent() {
 
         <div style={{ display: 'flex', gap: '16px' }}>
           <button onClick={handleCopy} className="platinum-btn" style={{ flex: 1 }}>
-            {copied ? '✓ Copied' : 'COPY SESSION LINK'}
+            COPY SESSION LINK
           </button>
           <a href={videoUrl || '#'} download className="platinum-btn" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}>
             DOWNLOAD MASTER
