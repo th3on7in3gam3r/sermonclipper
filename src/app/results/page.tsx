@@ -25,9 +25,11 @@ function ResultsContent() {
 
     const fetchResults = async () => {
       try {
-        // Step 1: Try progress endpoint (wrapped in analysis)
+        // Step 1: Try progress endpoint
         let res = await fetch(`/api/progress?jobId=${jobId}`);
         let data = await res.json();
+        
+        console.log("📡 Raw Progress data received:", data);
 
         if (data?.analysis?.clips?.length > 0) {
           setAnalysis(data.analysis);
@@ -38,9 +40,11 @@ function ResultsContent() {
         // Step 2: Direct fallback to Gemini result endpoint
         res = await fetch(`/api/fallback-gemini?jobId=${jobId}`);
         data = await res.json();
+        
+        console.log("📡 Raw Gemini data received:", data);
 
         if (data?.clips?.length > 0 || data?.success) {
-          setAnalysis(data.analysis || data); // Handle both wrapped and unwrapped
+          setAnalysis(data.analysis || data);
           setLoading(false);
         }
       } catch (e) {
@@ -127,7 +131,10 @@ function ResultsContent() {
                 ) : (
                   <div style={{ textAlign: 'center', padding: '40px' }}>
                     <div style={{ fontSize: '32px', marginBottom: '16px' }}>🎬</div>
-                    <p style={{ fontSize: '12px', color: '#8B5CF6' }}>
+                    <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#8B5CF6' }}>
+                      Clip {i + 1}
+                    </p>
+                    <p style={{ fontSize: '12px', color: '#555', marginTop: '12px' }}>
                       {Math.floor(clip.start / 60)}:{(clip.start % 60).toString().padStart(2, '0')} - {Math.floor(clip.end / 60)}:{(clip.end % 60).toString().padStart(2, '0')}
                     </p>
                   </div>
@@ -181,7 +188,7 @@ function ResultsContent() {
       )}
 
       <p style={{ textAlign: 'center', color: '#333', marginTop: '96px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>
-        Professional Suite · Ironclad Build 2.11
+        Professional Suite · Ironclad Build 2.12
       </p>
     </div>
   );

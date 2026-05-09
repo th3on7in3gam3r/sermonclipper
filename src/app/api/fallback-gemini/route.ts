@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'loading', 
-      message: 'Analyzing sermon with Gemini AI...' 
+      message: 'Gemini is analyzing the sermon...' 
     });
 
     const model = genAI.getGenerativeModel({ 
@@ -29,33 +29,28 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    const prompt = `
-      You are an expert sermon clip editor for social media.
+    const prompt = `Analyze this sermon video and return ONLY valid JSON.
 
       YouTube URL: ${url}
 
-      Carefully watch the full sermon and return ONLY valid JSON (no explanations, no markdown, no extra text).
-
-      Use this exact structure:
       {
         "success": true,
-        "sermon_title": "Short powerful title",
+        "sermon_title": "Short title",
         "main_theme": "One sentence theme",
         "clips": [
           {
-            "start": 123,
+            "start": 120,
             "end": 180,
-            "hook_title": "Catchy clickable title",
-            "main_quote": "Exact powerful quote",
-            "why_it_works": "Why this clip is good",
-            "suggested_captions": ["Line 1", "Line 2", "Line 3"]
+            "hook_title": "Catchy title",
+            "main_quote": "Exact quote",
+            "suggested_captions": ["Line 1", "Line 2"]
           }
         ],
         "summary": "Short powerful summary",
-        "key_verses": ["John 3:16", "Genesis 1:1"]
+        "key_verses": ["John 3:16"]
       }
 
-      Generate 8 to 12 high-quality clips. Focus on the strongest moments.`;
+      Return 6-10 high-quality clips. Focus on the strongest moments.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
@@ -70,8 +65,9 @@ export async function POST(req: NextRequest) {
       parsed = { success: true, sermon_title: "Sermon Highlights", clips: [], main_theme: "Analysis Pending" };
     }
 
+    // CRITICAL: Store the analysis in the progress manager
     progressManager.update(jobId, { 
-      step: 'Analysis', 
+      step: 'Complete', 
       status: 'completed', 
       message: `✅ Generated ${parsed.clips?.length || 0} clips`,
       analysis: parsed
@@ -88,7 +84,7 @@ export async function POST(req: NextRequest) {
     
     if (currentJobId) {
       progressManager.update(currentJobId, { 
-        step: 'Analysis', 
+        step: 'Error', 
         status: 'error', 
         message: `Gemini failed: ${error.message}` 
       });
@@ -103,7 +99,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Polling-friendly retrieval
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const jobId = searchParams.get('jobId');
@@ -111,7 +106,6 @@ export async function GET(req: NextRequest) {
   
   const update = progressManager.get(jobId);
   
-  // Return 200 even if not found to keep the console clean during polling
   if (update?.analysis) {
     return NextResponse.json({
       success: true,
