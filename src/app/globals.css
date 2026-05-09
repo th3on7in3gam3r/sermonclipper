@@ -46,85 +46,89 @@ body {
   justify-content: center;
 }
 
-.dashboard-container {
-  width: 100%;
-  max-width: 600px;
-  margin: auto;
-  padding: 40px 20px;
-  text-align: center;
-}
-
-/* Typography */
-.hero-logo {
-  font-size: 64px;
-  font-weight: 900;
-  letter-spacing: -0.05em;
-  text-transform: uppercase;
-  line-height: 1;
-  margin-bottom: 8px;
-}
-
-.hero-logo span {
-  color: var(--primary);
-}
-
-.hero-tagline {
-  font-size: 18px;
-  color: var(--text-muted);
-  font-weight: 300;
-  letter-spacing: 0.05em;
-  margin-bottom: 48px;
-}
-
-/* Components */
-.platinum-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
+/* Glassmorphism System */
+.glass-panel {
+  background: rgba(13, 13, 18, 0.7);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 32px;
-  padding: 40px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
 
-.input-group {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 32px;
-}
-
-.platinum-input {
-  flex: 1;
-  background: var(--input-bg);
-  border: 1px solid #333;
+.glass-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 18px 24px;
+  padding: 20px 24px;
   color: white;
   font-size: 16px;
   outline: none;
-  transition: border-color 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.platinum-input:focus {
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.06);
   border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
 }
 
-.platinum-btn {
-  background: linear-gradient(to right, var(--primary), var(--primary-hover));
+/* Cinematic Background */
+.vesper-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-image: 
+    linear-gradient(to bottom, rgba(10, 10, 15, 0.4), #0A0A0F),
+    url('/Users/yahweh/.gemini/antigravity/brain/2d1d4e4f-fceb-43fa-8d50-d670dc3b5f71/vesper_cinematic_hero_1778370875185.png');
+  background-size: cover;
+  background-position: center;
+  filter: contrast(1.1) brightness(0.8);
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer-btn {
+  background: linear-gradient(90deg, #8B5CF6, #D8B4FE, #8B5CF6);
+  background-size: 200% auto;
+  animation: shimmer 4s linear infinite;
   color: white;
-  font-weight: 700;
-  padding: 0 32px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
   border-radius: 16px;
   border: none;
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 13px;
-  transition: transform 0.2s, filter 0.2s;
-  white-space: nowrap;
+  transition: all 0.3s;
 }
 
-.platinum-btn:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
+.shimmer-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+}
+
+.hero-logo {
+  font-size: 84px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  line-height: 0.9;
+  margin-bottom: 16px;
+  background: linear-gradient(to bottom, #fff, #888);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-logo span {
+  background: linear-gradient(to bottom, #8B5CF6, #D8B4FE);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .divider {
@@ -132,18 +136,18 @@ body {
   align-items: center;
   margin: 32px 0;
   gap: 20px;
-  color: #333;
+  color: rgba(255, 255, 255, 0.2);
   text-transform: uppercase;
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.4em;
 }
 
 .divider::before, .divider::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: #222;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .drop-zone {
