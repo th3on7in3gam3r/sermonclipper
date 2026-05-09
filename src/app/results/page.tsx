@@ -30,7 +30,7 @@ function ResultsContent() {
     };
 
     fetchResults();
-    const interval = setInterval(fetchResults, 2000); // Poll faster
+    const interval = setInterval(fetchResults, 2000);
 
     return () => clearInterval(interval);
   }, [jobId]);
@@ -72,14 +72,14 @@ function ResultsContent() {
           </div>
           <div className="clip-info">
             <h3>Master Sermon Session</h3>
-            <p>{analysis?.summary}</p>
+            <p>{analysis?.summary || 'High-resolution session capture.'}</p>
           </div>
         </div>
 
-        {/* Real Clips */}
+        {/* Generated Clips */}
         {analysis?.clips && analysis.clips.length > 0 ? (
           analysis.clips.map((clip: any, i: number) => (
-            <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.08}s` }}>
+            <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.1}s` }}>
               <div className="clip-preview vertical" style={{ background: '#000' }}>
                 {videoUrl && (
                   <video 
@@ -101,9 +101,8 @@ function ResultsContent() {
             </div>
           ))
         ) : (
-          // Loading placeholders
-          [1,2,3].map(i => (
-            <div key={i} className="clip-card" style={{ opacity: 0.4 }}>
+          [1, 2, 3].map(i => (
+            <div key={i} className="clip-card" style={{ opacity: 0.5 }}>
               <div className="clip-preview vertical" style={{ background: 'rgba(255,255,255,0.03)' }}>
                 <div style={{ textAlign: 'center', padding: '80px 20px' }}>
                   <p style={{ fontSize: '11px', color: '#666' }}>LOADING CLIP {i}...</p>
