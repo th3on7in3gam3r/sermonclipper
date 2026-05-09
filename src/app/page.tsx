@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import ProcessingView from '@/components/home/ProcessingView';
 import { useRouter } from 'next/navigation';
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
+import { Show, SignInButton, UserButton } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
 
 export default function Home() {
@@ -84,14 +84,14 @@ export default function Home() {
       
       {/* Top Navigation */}
       <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 10 }}>
-        <SignedOut>
+        <Show when="signed-out">
           <SignInButton mode="modal">
             <button className="platinum-btn" style={{ padding: '12px 32px', fontSize: '12px' }}>Sign In</button>
           </SignInButton>
-        </SignedOut>
-        <SignedIn>
-          <UserButton afterSignOutUrl="/" />
-        </SignedIn>
+        </Show>
+        <Show when="signed-in">
+          <UserButton />
+        </Show>
       </div>
 
       <div className="dashboard-container animate-up" style={{ marginTop: 'auto', marginBottom: 'auto' }}>
