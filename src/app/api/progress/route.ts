@@ -4,20 +4,24 @@ import { progressManager } from '../../../lib/progress';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   
-  // Accept both 'id' and 'jobId' for maximum compatibility
+  // Support both frontend versions (jobId and id)
   const id = searchParams.get('jobId') || searchParams.get('id');
 
   if (!id) {
     return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
   }
 
-  const update = progressManager.get(id);
+  // Safe dynamic check for different method names
+  const manager = progressManager as any;
+  const progress = manager.get ? manager.get(id) : (manager.getProgress ? manager.getProgress(id) : null);
 
-  // Return the progress data as a standard JSON object
-  return NextResponse.json(update || { 
-    id, 
-    step: 'Initializing', 
-    status: 'loading', 
-    message: 'Preparing neural stream...' 
-  });
+  if (!progress) {
+    return NextResponse.json({ 
+      step: 'Waiting', 
+      status: 'loading', 
+      message: 'Neural Stream initializing...' 
+    });
+  }
+
+  return NextResponse.json(progress);
 }
