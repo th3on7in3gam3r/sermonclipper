@@ -34,35 +34,38 @@ export async function POST(req: NextRequest) {
     });
 
     const prompt = `
-      You are a professional church media editor specializing in turning sermons into viral short-form content.
+      You are a professional church media strategist and short-form video editor.
 
-      Analyze the full sermon video from this YouTube URL:
-      ${url}
+      Analyze this full sermon video from YouTube and extract the most impactful moments.
 
-      Return ONLY valid JSON with this exact structure:
+      YouTube URL: ${url}
+
+      Return only valid JSON using this exact structure:
+
       {
         "success": true,
-        "sermon_title": "Suggested short title",
-        "main_theme": "One sentence theme",
+        "sermon_title": "Short, powerful title suggestion",
+        "main_theme": "One sentence main message",
         "clips": [
           {
-            "start": 123,
-            "end": 178,
+            "start": 245,
+            "end": 298,
             "hook_title": "Very catchy, curiosity-driven title",
-            "main_quote": "The most powerful exact quote from the sermon",
-            "why_it_works": "Brief reason why this clip will perform well",
-            "suggested_captions": ["Bold line 1", "Line 2", "Line 3"]
+            "main_quote": "The exact most powerful spoken words",
+            "why_it_works": "Why this will engage people on social media",
+            "suggested_captions": ["Bold line 1", "Line 2 that appears next", "Final line"]
           }
         ],
-        "summary": "Powerful 2-3 sentence summary",
-        "key_verses": ["John 3:16", "Psalm 23:1"]
+        "summary": "Powerful 2-3 sentence summary of the whole sermon",
+        "key_verses": ["John 3:16", "Matthew 6:33"]
       }
 
       Rules:
-      - Prioritize emotionally strong, biblically rich, or practically useful moments.
-      - Aim for 6–10 high-quality clips.
-      - Timestamps must be accurate in seconds.
-      - Make hook titles highly clickable for social media.
+      - Return 8–12 high-quality clips
+      - Prioritize emotional, biblical, practical, or memorable moments
+      - Make hook titles highly clickable
+      - Timestamps must be accurate in seconds from the start of the video
+      - Focus on content that works well as vertical Reels / Shorts
     `;
 
     const result = await model.generateContent(prompt);
@@ -74,7 +77,7 @@ export async function POST(req: NextRequest) {
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'completed', 
-      message: 'Gemini Analysis Successful' 
+      message: '✅ Gemini Analysis Successful' 
     });
 
     return NextResponse.json(parsed);
@@ -86,12 +89,12 @@ export async function POST(req: NextRequest) {
       progressManager.update(currentJobId, { 
         step: 'Analysis', 
         status: 'error', 
-        message: `Gemini Fallback Failed: ${error.message}` 
+        message: `Gemini Analysis Failed: ${error.message}` 
       });
     }
 
     return NextResponse.json({ 
-      error: "Gemini fallback failed", 
+      error: "Gemini analysis failed", 
       message: error.message 
     }, { status: 500 });
   }
