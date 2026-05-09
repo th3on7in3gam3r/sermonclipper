@@ -5,20 +5,20 @@ import { progressManager } from '../../../lib/progress';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(req: NextRequest) {
-  let currentJobId = '';
+  let jobId = '';
 
   try {
-    const { url, jobId } = await req.json();
-    currentJobId = jobId;
+    const { url, jobId: incomingJobId } = await req.json();
+    jobId = incomingJobId || '';
 
-    if (!url || !jobId) {
-      return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+    if (!url) {
+      return NextResponse.json({ error: 'No URL provided' }, { status: 400 });
     }
 
     progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'loading', 
-      message: 'Gemini is analyzing the sermon...' 
+      message: 'Gemini AI analyzing sermon...' 
     });
 
     const model = genAI.getGenerativeModel({ 
@@ -31,92 +31,77 @@ export async function POST(req: NextRequest) {
 
     const prompt = `Analyze this sermon video and return ONLY valid JSON.
 
-      YouTube URL: ${url}
+URL: ${url}
 
-      {
-        "success": true,
-        "sermon_title": "Short title",
-        "main_theme": "One sentence theme",
-        "clips": [
-          {
-            "start": 120,
-            "end": 180,
-            "hook_title": "Catchy title",
-            "main_quote": "Exact quote",
-            "suggested_captions": ["Line 1", "Line 2"]
-          }
-        ],
-        "summary": "Short powerful summary",
-        "key_verses": ["John 3:16"]
-      }
+{
+  "success": true,
+  "sermon_title": "Short powerful title",
+  "main_theme": "One sentence theme",
+  "clips": [
+    {
+      "start": 120,
+      "end": 190,
+      "hook_title": "Catchy title",
+      "main_quote": "Exact powerful quote",
+      "suggested_captions": ["Line 1", "Line 2"]
+    }
+  ],
+  "summary": "Short summary"
+}
 
-      Return 6-10 high-quality clips. Focus on the strongest moments.`;
+Return 6-10 strong clips.`;
 
     const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const text = result.response.text();
 
     let parsed;
     try {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
     } catch (e) {
-      console.error("JSON Parse Failed, raw text:", text);
-      parsed = { success: true, sermon_title: "Sermon Highlights", clips: [], main_theme: "Analysis Pending" };
+      console.error("JSON Parse Failed:", e);
+      parsed = { success: true, sermon_title: "Sermon Highlights", clips: [] };
     }
 
-    // CRITICAL: Store the analysis in the progress manager
     progressManager.update(jobId, { 
-      step: 'Complete', 
+      step: 'Analysis', 
       status: 'completed', 
       message: `✅ Generated ${parsed.clips?.length || 0} clips`,
       analysis: parsed
     });
 
-    return NextResponse.json({
-      success: true,
-      ...parsed,
-      analysis: parsed
-    });
+    return NextResponse.json(parsed);
 
   } catch (error: any) {
-    console.error("🔥 GEMINI FALLBACK ERROR:", error);
-    
-    if (currentJobId) {
-      progressManager.update(currentJobId, { 
-        step: 'Error', 
+    console.error("Gemini Error:", error);
+    if (jobId) {
+      progressManager.update(jobId, { 
+        step: 'Analysis', 
         status: 'error', 
-        message: `Gemini failed: ${error.message}` 
+        message: error.message 
       });
     }
-
     return NextResponse.json({ 
-      success: false,
-      error: "Gemini analysis failed", 
-      message: error.message,
-      clips: []
-    }, { status: 500 });
+      success: false, 
+      clips: [], 
+      message: error.message 
+    });
   }
 }
 
+// Add a simple GET for polling compatibility
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const jobId = searchParams.get('jobId');
   if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
   
   const update = progressManager.get(jobId);
-  
   if (update?.analysis) {
     return NextResponse.json({
       success: true,
-      ...update.analysis,
-      analysis: update.analysis
+      ...update.analysis
     });
   }
   
-  return NextResponse.json({ 
-    success: false, 
-    status: 'pending',
-    message: 'Neural analysis still in progress...' 
-  });
+  return NextResponse.json({ success: false, status: 'pending' });
 }
