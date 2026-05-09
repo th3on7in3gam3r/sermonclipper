@@ -5,6 +5,24 @@ import { progressManager } from '../../../lib/progress';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
+// Safety Fix: Explicitly handle GET to prevent 405s during polling
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const jobId = searchParams.get('jobId');
+  if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
+  
+  const update = progressManager.get(jobId);
+  if (update?.analysis) {
+    return NextResponse.json({
+      success: true,
+      ...update.analysis,
+      analysis: update.analysis
+    });
+  }
+  
+  return NextResponse.json({ success: false, status: 'pending' });
+}
+
 export async function POST(req: NextRequest) {
   let jobId = '';
 
@@ -14,6 +32,12 @@ export async function POST(req: NextRequest) {
 
     if (!url) {
       return NextResponse.json({ error: 'No URL provided' }, { status: 400 });
+    }
+
+    // Check if we already have an analysis for this job to save tokens
+    const existing = progressManager.get(jobId);
+    if (existing?.analysis) {
+      return NextResponse.json(existing.analysis);
     }
 
     progressManager.update(jobId, { 

@@ -25,7 +25,7 @@ function ResultsContent() {
 
     const fetchResults = async () => {
       try {
-        // Step 1: Try progress endpoint
+        // 1. Check progress first
         let res = await fetch(`/api/progress?jobId=${jobId}`);
         let data = await res.json();
         
@@ -37,10 +37,22 @@ function ResultsContent() {
           return;
         }
 
-        // Step 2: Direct fallback to Gemini result endpoint
-        res = await fetch(`/api/fallback-gemini?jobId=${jobId}`);
+        // 2. Call Gemini with POST (Correct method to trigger/check)
+        res = await fetch(`/api/fallback-gemini`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            url: videoUrl, 
+            jobId 
+          })
+        });
+
+        if (!res.ok) {
+          console.error(`Gemini route returned ${res.status}`);
+          return;
+        }
+
         data = await res.json();
-        
         console.log("📡 Raw Gemini data received:", data);
 
         if (data?.clips?.length > 0 || data?.success) {
@@ -54,11 +66,11 @@ function ResultsContent() {
 
     fetchResults();
     
-    // Poll for analysis if not yet available
+    // Poll every 4 seconds
     const interval = setInterval(fetchResults, 4000);
 
     return () => clearInterval(interval);
-  }, [jobId]);
+  }, [jobId, videoUrl]);
 
   const handleCopy = () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
@@ -146,12 +158,6 @@ function ResultsContent() {
               <div className="clip-info" style={{ minHeight: '180px' }}>
                 <h4 style={{ fontWeight: 900, fontSize: '16px', color: '#8B5CF6', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>{clip.hook_title}</h4>
                 <p style={{ color: '#eee', fontSize: '13px', lineHeight: 1.5, fontStyle: 'italic', marginBottom: '16px' }}>"{clip.main_quote}"</p>
-                
-                {clip.why_it_works && (
-                  <div style={{ fontSize: '10px', color: '#F4B942', borderTop: '1px solid #222', paddingTop: '12px' }}>
-                    {clip.why_it_works}
-                  </div>
-                )}
               </div>
               <div style={{ padding: '0 24px 24px' }}>
                 <button className="platinum-btn" style={{ width: '100%', fontSize: '10px' }}>
@@ -188,7 +194,7 @@ function ResultsContent() {
       )}
 
       <p style={{ textAlign: 'center', color: '#333', marginTop: '96px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>
-        Professional Suite · Ironclad Build 2.12
+        Professional Suite · Ironclad Build 2.13
       </p>
     </div>
   );
