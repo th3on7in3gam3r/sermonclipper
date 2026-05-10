@@ -79,85 +79,79 @@ export default function Home() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', background: '#0A0A0F' }}>
       <div className="vesper-bg" />
       
       {/* Top Navigation */}
-      <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 10, display: 'flex', gap: '12px', alignItems: 'center' }}>
+      <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 10, display: 'flex', gap: '16px', alignItems: 'center' }}>
         <Show when="signed-out">
           <SignInButton mode="modal">
-            <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '10px 24px', borderRadius: '12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Sign In</button>
+            <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', padding: '10px 24px', borderRadius: '12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s' }}>Sign In</button>
           </SignInButton>
           <SignUpButton mode="modal">
-            <button className="platinum-btn" style={{ padding: '12px 24px', fontSize: '12px' }}>Get Started</button>
+            <button className="shimmer-btn" style={{ padding: '12px 28px', fontSize: '12px', height: 'auto' }}>Get Started</button>
           </SignUpButton>
         </Show>
         <Show when="signed-in">
-          <div style={{ background: 'rgba(255,255,255,0.1)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center' }}>
             <UserButton />
           </div>
         </Show>
       </div>
 
-      <div style={{ margin: 'auto', width: '100%', maxWidth: '800px', padding: '0 20px', textAlign: 'center' }}>
+      <div style={{ margin: 'auto', width: '100%', maxWidth: '900px', padding: '0 20px', textAlign: 'center' }}>
         <div className="animate-up">
           {/* Logo Section */}
-          <div style={{ marginBottom: '64px' }}>
-            <h1 className="hero-logo">
+          <div style={{ marginBottom: '80px' }}>
+            <h1 className="hero-logo" style={{ fontSize: '100px', marginBottom: '24px' }}>
               VES<span>PER</span>
             </h1>
-            <p style={{ color: '#A1A1AA', fontSize: '20px', fontWeight: 300, letterSpacing: '0.1em', maxWidth: '600px', margin: '0 auto' }}>
-              Transform long sermons into high-impact, cinematic media kits with the power of AI.
+            <p style={{ color: '#A1A1AA', fontSize: '24px', fontWeight: 300, letterSpacing: '0.05em', maxWidth: '700px', margin: '0 auto', lineHeight: 1.4 }}>
+              Transform your ministry's long-form sermons into <span style={{ color: '#fff', fontWeight: 500 }}>cinematic short-form media</span> that reaches the next generation.
             </p>
           </div>
 
-          {/* Input Card */}
-          <div className="glass-panel" style={{ padding: '48px' }}>
+          {/* Input Area */}
+          <div className="glass-panel" style={{ padding: '64px', background: 'rgba(15, 15, 20, 0.4)' }}>
             <div style={{ textAlign: 'left' }}>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em', color: '#8B5CF6', marginBottom: '16px' }}>
-                Paste YouTube Sermon URL
+              <label style={{ display: 'block', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5em', color: '#8B5CF6', marginBottom: '20px' }}>
+                Paste YouTube Sermon Link
               </label>
-              <div className="input-group" style={{ display: 'flex', gap: '16px' }}>
+              <div style={{ display: 'flex', gap: '16px' }}>
                 <input 
                   type="text" 
                   placeholder="https://www.youtube.com/watch?v=..."
                   className="glass-input"
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, height: '72px', fontSize: '18px' }}
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                 />
                 <button 
                   onClick={handleProcess}
                   className="shimmer-btn"
-                  style={{ padding: '0 40px', height: '64px' }}
+                  style={{ padding: '0 48px', height: '72px', fontSize: '14px' }}
                 >
-                  Harvest Moments
+                  Process Sermon
                 </button>
               </div>
             </div>
 
-            <div className="divider">or drag and drop</div>
+            <div className="divider" style={{ margin: '48px 0' }}>or drag and drop video</div>
 
-            {/* Upload Zone */}
-            <div className="drop-zone" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
-              <div className="drop-icon" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8B5CF6' }}>📤</div>
-              <p style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px', letterSpacing: '-0.02em' }}>Upload Sermon Binary</p>
-              <p style={{ color: '#555', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em' }}>
-                MP4, MOV, WAV • Up to 2GB Supported
+            {/* Simple Upload Text */}
+            <div style={{ cursor: 'pointer', padding: '24px', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)', transition: 'all 0.3s' }}>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: '#666' }}>
+                <span style={{ color: '#8B5CF6' }}>Upload MP4 or MOV</span> (Max 2GB)
               </p>
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '48px', marginTop: '64px', opacity: 0.5 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-              <span style={{ color: '#8B5CF6' }}>●</span> Neural Clipping
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-              <span style={{ color: '#8B5CF6' }}>●</span> Cinematic Cropping
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-              <span style={{ color: '#8B5CF6' }}>●</span> Dynamic Captions
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '64px', marginTop: '80px', opacity: 0.3 }}>
+            {['Neural Clipping', 'Cinematic 9:16', 'Dynamic Captions'].map((text, i) => (
+              <div key={i} style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em' }}>
+                {text}
+              </div>
+            ))}
           </div>
         </div>
       </div>
