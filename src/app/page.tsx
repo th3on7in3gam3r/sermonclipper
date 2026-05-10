@@ -95,14 +95,9 @@ export default function Home() {
               <UserButton />
             </div>
           ) : (
-            <>
-              <SignInButton mode="modal">
-                <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '12px 28px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}>Sign In</button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button className="shimmer-btn" style={{ padding: '14px 36px', fontSize: '13px', height: 'auto', borderRadius: '14px' }}>Get Started</button>
-              </SignUpButton>
-            </>
+            <SignInButton mode="modal">
+              <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', padding: '12px 32px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}>Sign In</button>
+            </SignInButton>
           )}
         </div>
       </header>
