@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
+import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
 
 function ResultsContent() {
@@ -10,6 +11,7 @@ function ResultsContent() {
   const jobId = searchParams.get('jobId');
   const [analysis, setAnalysis] = useState<any>(null);
   const [rendering, setRendering] = useState<{ [key: number]: { status: string, url?: string } }>({});
+  const { isLoaded, userId } = useAuth();
   
   // Carousel State
   const [carouselLoading, setCarouselLoading] = useState(false);
@@ -127,6 +129,28 @@ function ResultsContent() {
 
   return (
     <div className="animate-up" style={{ width: '100%', maxWidth: '1200px', padding: '0 20px' }}>
+      {/* Top Navigation */}
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '40px', display: 'flex', justifyContent: 'flex-end', zIndex: 100 }}>
+        {isLoaded && (
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            {!userId ? (
+              <>
+                <SignInButton mode="modal">
+                  <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '12px 28px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>Sign In</button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="shimmer-btn" style={{ padding: '12px 32px', fontSize: '13px', height: '48px', borderRadius: '14px' }}>Get Started</button>
+                </SignUpButton>
+              </>
+            ) : (
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', backdropFilter: 'blur(10px)' }}>
+                <UserButton />
+              </div>
+            )}
+          </div>
+        )}
+      </header>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '64px', borderBottom: '1px solid #222228', paddingBottom: '32px' }}>
         <div>
           <h1 style={{ fontSize: '48px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em' }}>

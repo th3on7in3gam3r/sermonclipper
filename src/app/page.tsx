@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import ProcessingView from '@/components/home/ProcessingView';
 import { useRouter } from 'next/navigation';
-import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
 
 export default function Home() {
@@ -12,6 +12,7 @@ export default function Home() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [status, setStatus] = useState<any>(null);
   const router = useRouter();
+  const { isLoaded, userId } = useAuth();
 
   const handleProcess = async () => {
     if (!url) return;
@@ -84,21 +85,24 @@ export default function Home() {
       
       {/* Top Navigation */}
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '40px', display: 'flex', justifyContent: 'flex-end', zIndex: 100 }}>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-          <Show when="signed-out">
-            <SignInButton mode="modal">
-              <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '12px 28px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>Sign In</button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="shimmer-btn" style={{ padding: '12px 32px', fontSize: '13px', height: '48px', borderRadius: '14px' }}>Get Started</button>
-            </SignUpButton>
-          </Show>
-          <Show when="signed-in">
-            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', backdropFilter: 'blur(10px)' }}>
-              <UserButton />
-            </div>
-          </Show>
-        </div>
+        {isLoaded && (
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            {!userId ? (
+              <>
+                <SignInButton mode="modal">
+                  <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '12px 28px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>Sign In</button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="shimmer-btn" style={{ padding: '12px 32px', fontSize: '13px', height: '48px', borderRadius: '14px' }}>Get Started</button>
+                </SignUpButton>
+              </>
+            ) : (
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', backdropFilter: 'blur(10px)' }}>
+                <UserButton />
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
       <div style={{ margin: 'auto', width: '100%', maxWidth: '900px', padding: '0 20px', textAlign: 'center' }}>
