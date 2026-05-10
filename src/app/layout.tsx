@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider 
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_Y3J1Y2lhbC1tYWNhdy0xLmNsZXJrLmFjY291bnRzLmRldiQ"}
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_live_Y2xlcmsudmVzcGVyLmJpYmxlZnVubGFuZC5jb20k"}
       appearance={{ baseTheme: dark }}
     >
       <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
