@@ -80,20 +80,24 @@ export default function Home() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', background: '#0A0A0F' }}>
+    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
       <div className="vesper-bg" />
       
-      {/* Top Navigation */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '40px', display: 'flex', justifyContent: 'flex-end', zIndex: 100 }}>
+      {/* Global Navigation Header */}
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 60px', zIndex: 1000, background: 'transparent' }}>
+        <div style={{ fontSize: '14px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff', opacity: 0.8 }}>
+          VESPER
+        </div>
+
         {isLoaded && (
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
             {!userId ? (
               <>
                 <SignInButton mode="modal">
-                  <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '12px 28px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>Sign In</button>
+                  <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '12px 28px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}>Sign In</button>
                 </SignInButton>
                 <SignUpButton mode="modal">
-                  <button className="shimmer-btn" style={{ padding: '12px 32px', fontSize: '13px', height: '48px', borderRadius: '14px' }}>Get Started</button>
+                  <button className="shimmer-btn" style={{ padding: '14px 36px', fontSize: '13px', height: 'auto', borderRadius: '14px' }}>Get Started</button>
                 </SignUpButton>
               </>
             ) : (
@@ -105,7 +109,7 @@ export default function Home() {
         )}
       </header>
 
-      <div style={{ margin: 'auto', width: '100%', maxWidth: '900px', padding: '0 20px', textAlign: 'center' }}>
+      <div style={{ margin: 'auto', width: '100%', maxWidth: '900px', padding: '120px 20px 60px', textAlign: 'center' }}>
         <div className="animate-up">
           {/* Logo Section */}
           <div style={{ marginBottom: '80px' }}>
