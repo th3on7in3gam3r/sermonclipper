@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 function ResultsContent() {
@@ -129,29 +130,31 @@ function ResultsContent() {
 
   return (
     <div className="animate-up" style={{ width: '100%', maxWidth: '1200px', padding: '0 20px' }}>
-      {/* Top Navigation */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '40px', display: 'flex', justifyContent: 'flex-end', zIndex: 100 }}>
-        {isLoaded && (
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            {!userId ? (
-              <>
-                <SignInButton mode="modal">
-                  <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '12px 28px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>Sign In</button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button className="shimmer-btn" style={{ padding: '12px 32px', fontSize: '13px', height: '48px', borderRadius: '14px' }}>Get Started</button>
-                </SignUpButton>
-              </>
-            ) : (
+      {/* Global Navigation Header */}
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 60px', zIndex: 1000, background: 'transparent' }}>
+        <Link href="/" style={{ textDecoration: 'none' }}>
+          <div style={{ fontSize: '14px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff', opacity: 0.8 }}>
+            VESPER
+          </div>
+        </Link>
+
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+          {isLoaded && userId ? (
+            <>
+              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA', marginRight: '8px' }}>Dashboard</Link>
               <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', backdropFilter: 'blur(10px)' }}>
                 <UserButton />
               </div>
-            )}
-          </div>
-        )}
+            </>
+          ) : (
+            <SignInButton mode="modal">
+              <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', padding: '12px 32px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>Sign In</button>
+            </SignInButton>
+          )}
+        </div>
       </header>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '64px', borderBottom: '1px solid #222228', paddingBottom: '32px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '64px', borderBottom: '1px solid #222228', paddingBottom: '32px', marginTop: '120px' }}>
         <div>
           <h1 style={{ fontSize: '48px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em' }}>
             {analysis?.sermon_title || 'SERMON'} <span style={{ color: '#8B5CF6' }}>RESULTS</span>

@@ -100,7 +100,7 @@ Generate 8-12 high-quality clips.`
 }
 
 // ── Main Job ─────────────────────────────────────────────────────────────────
-async function runSermonPipeline(url: string, jobId: string): Promise<void> {
+async function runSermonPipeline(url: string, jobId: string, userId: string): Promise<void> {
   const filePath = join(TMP_DIR, `${jobId}.mp4`);
   
   // 1. PRIMARY: NEURAL BRAIN (Instant Analysis)
@@ -191,6 +191,34 @@ async function runSermonPipeline(url: string, jobId: string): Promise<void> {
       finalPath: url 
     });
   }
+
+  // 4. Persistence (SAVE TO MONGODB)
+  try {
+    const finalUpdate = progressManager.get(jobId);
+    if (finalUpdate?.analysis) {
+      const connectDB = (await import('../../../lib/mongodb')).default;
+      const Sermon = (await import('../../../models/Sermon')).default;
+      
+      await connectDB();
+      await Sermon.findOneAndUpdate(
+        { jobId },
+        {
+          userId,
+          jobId,
+          title: finalUpdate.analysis.sermon_title || 'Untitled Sermon',
+          mainTheme: finalUpdate.analysis.main_theme || '',
+          videoUrl: url,
+          finalPath: finalUpdate.finalPath,
+          analysis: finalUpdate.analysis,
+          createdAt: new Date()
+        },
+        { upsert: true }
+      );
+      console.log(`[Database] Sermon saved successfully for user ${userId}`);
+    }
+  } catch (dbErr) {
+    console.error('[Database] Persistence Failed:', dbErr);
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -203,7 +231,7 @@ export async function POST(req: NextRequest) {
   if (!url || !jobId) return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
   
   // Kick off the background pipeline
-  runSermonPipeline(url, jobId).catch(e => {
+  runSermonPipeline(url, jobId, userId).catch(e => {
     console.error('[Engine] Pipeline Error:', e);
     progressManager.update(jobId, { step: 'Analysis', status: 'error', message: 'Critical System Failure' });
   });

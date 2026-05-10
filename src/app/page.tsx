@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import ProcessingView from '@/components/home/ProcessingView';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
 
@@ -91,9 +92,12 @@ export default function Home() {
 
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           {isLoaded && userId ? (
-            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', backdropFilter: 'blur(10px)' }}>
-              <UserButton />
-            </div>
+            <>
+              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA', marginRight: '8px', transition: 'color 0.3s' }}>Dashboard</Link>
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', backdropFilter: 'blur(10px)' }}>
+                <UserButton />
+              </div>
+            </>
           ) : (
             <SignInButton mode="modal">
               <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', padding: '12px 32px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}>Sign In</button>
