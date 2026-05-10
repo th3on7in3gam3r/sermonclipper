@@ -29,7 +29,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider appearance={{ baseTheme: dark }}>
+    <ClerkProvider 
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      appearance={{ baseTheme: dark }}
+    >
       <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
         <body className="antialiased">
           <Toaster 

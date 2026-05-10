@@ -89,24 +89,22 @@ export default function Home() {
           VESPER
         </div>
 
-        {isLoaded && (
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-            {!userId ? (
-              <>
-                <SignInButton mode="modal">
-                  <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '12px 28px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}>Sign In</button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button className="shimmer-btn" style={{ padding: '14px 36px', fontSize: '13px', height: 'auto', borderRadius: '14px' }}>Get Started</button>
-                </SignUpButton>
-              </>
-            ) : (
-              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', backdropFilter: 'blur(10px)' }}>
-                <UserButton />
-              </div>
-            )}
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+          {isLoaded && userId ? (
+            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', backdropFilter: 'blur(10px)' }}>
+              <UserButton />
+            </div>
+          ) : (
+            <>
+              <SignInButton mode="modal">
+                <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '12px 28px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}>Sign In</button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="shimmer-btn" style={{ padding: '14px 36px', fontSize: '13px', height: 'auto', borderRadius: '14px' }}>Get Started</button>
+              </SignUpButton>
+            </>
+          )}
+        </div>
       </header>
 
       <div style={{ margin: 'auto', width: '100%', maxWidth: '900px', padding: '120px 20px 60px', textAlign: 'center' }}>
