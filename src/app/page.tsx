@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import ProcessingView from '@/components/home/ProcessingView';
 import { useRouter } from 'next/navigation';
-import { Show, SignInButton, UserButton } from '@clerk/nextjs';
+import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
 
 export default function Home() {
@@ -83,14 +83,17 @@ export default function Home() {
       <div className="vesper-bg" />
       
       {/* Top Navigation */}
-      <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 10 }}>
+      <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 10, display: 'flex', gap: '12px', alignItems: 'center' }}>
         <Show when="signed-out">
           <SignInButton mode="modal">
-            <button className="platinum-btn" style={{ padding: '12px 32px', fontSize: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>Sign In</button>
+            <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '10px 24px', borderRadius: '12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Sign In</button>
           </SignInButton>
+          <SignUpButton mode="modal">
+            <button className="platinum-btn" style={{ padding: '12px 24px', fontSize: '12px' }}>Get Started</button>
+          </SignUpButton>
         </Show>
         <Show when="signed-in">
-          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '8px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center' }}>
+          <div style={{ background: 'rgba(255,255,255,0.1)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center' }}>
             <UserButton />
           </div>
         </Show>
