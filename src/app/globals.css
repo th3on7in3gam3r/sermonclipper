@@ -120,12 +120,14 @@ body {
   margin-bottom: 16px;
   background: linear-gradient(to bottom, #fff, #888);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .hero-logo span {
   background: linear-gradient(to bottom, #8B5CF6, #D8B4FE);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
