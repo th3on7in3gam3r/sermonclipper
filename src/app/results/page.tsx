@@ -131,22 +131,22 @@ function ResultsContent() {
   return (
     <div className="animate-up" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
       {/* Cinematic Navigation */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.5)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.8)', backdropFilter: 'blur(30px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>
+          <div style={{ fontSize: '15px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>
             VESPER
           </div>
         </Link>
 
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
           {isLoaded && userId ? (
             <>
-              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA' }}>Archive</Link>
+              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '12px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>ARCHIVE</Link>
               <UserButton />
             </>
           ) : (
             <SignInButton mode="modal">
-              <button className="shimmer-btn" style={{ padding: '10px 24px', fontSize: '12px' }}>Sign In</button>
+              <button className="shimmer-btn" style={{ padding: '10px 24px', fontSize: '11px' }}>SIGN IN</button>
             </SignInButton>
           )}
         </div>
