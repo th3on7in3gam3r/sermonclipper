@@ -1,0 +1,22 @@
+{
+  "name": "Vesper | Cinematic Kingdom Media",
+  "short_name": "Vesper",
+  "description": "Neural-powered sermon harvesting and social media kit generation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0F",
+  "theme_color": "#8B5CF6",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/vesper-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

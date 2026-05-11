@@ -25,6 +25,9 @@ export const metadata: Metadata = {
     icon: '/favicon.png',
     apple: '/vesper-logo.png',
   },
+  manifest: '/manifest.json',
+  themeColor: '#8B5CF6',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
 };
 
 export default function RootLayout({
