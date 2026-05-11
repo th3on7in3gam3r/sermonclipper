@@ -5,8 +5,19 @@ import { useState, useEffect, Suspense } from 'react';
 import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+// Google Fonts loaded via <link> in layout — preloaded here for instant availability
+const GOOGLE_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap';
 
 function ResultsContent() {
+  // Inject Google Fonts once on mount so Outfit & Playfair Display render correctly
+  useEffect(() => {
+    if (document.getElementById('vesper-gfonts')) return;
+    const link = document.createElement('link');
+    link.id = 'vesper-gfonts';
+    link.rel = 'stylesheet';
+    link.href = GOOGLE_FONTS_URL;
+    document.head.appendChild(link);
+  }, []);
   const searchParams = useSearchParams();
   const videoUrl = searchParams.get('videoUrl');
   const jobId = searchParams.get('jobId');
@@ -173,9 +184,11 @@ function ResultsContent() {
   };
 
   const PLATFORMS = [
-    { id: 'instagram', label: 'Instagram', icon: '📸', prefix: '✨ ' },
-    { id: 'tiktok', label: 'TikTok', icon: '🎵', prefix: '' },
-    { id: 'youtube', label: 'YouTube Shorts', icon: '▶️', prefix: '' },
+    { id: 'instagram', label: 'Instagram', icon: '📸', prefix: '✨ ', format: 'Feed / Reels', limit: 2200 },
+    { id: 'tiktok', label: 'TikTok', icon: '🎵', prefix: '', format: 'Short-form Video', limit: 2200 },
+    { id: 'youtube', label: 'YouTube Shorts', icon: '▶️', prefix: '', format: 'Shorts / Description', limit: 500 },
+    { id: 'x', label: 'X / Twitter', icon: '🐦', prefix: '', format: 'Post', limit: 280 },
+    { id: 'facebook', label: 'Facebook', icon: '📘', prefix: '', format: 'Post / Reel', limit: 63206 },
   ];
 
   const buildYouTubeDescription = () => {
@@ -842,50 +855,78 @@ function ResultsContent() {
               </div>
             </div>
 
-            {/* PANEL 3: RIGHT SIDEBAR (Clip Meta & Export) */}
-            <div style={{ width: '300px', flexShrink: 0, background: '#0A0A0F', borderLeft: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', padding: '24px' }}>
-              <div style={{ marginBottom: '32px' }}>
-                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '8px' }}>CLIP METADATA</div>
-                <h3 style={{ fontSize: '18px', fontWeight: 900, lineHeight: 1.2, marginBottom: '16px' }}>{selectedClip.hook_title}</h3>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <div className="glass-panel" style={{ padding: '12px', background: 'rgba(255,255,255,0.02)' }}>
-                    <div style={{ fontSize: '9px', color: '#52525B', marginBottom: '4px' }}>START</div>
-                    <div style={{ fontSize: '12px', fontWeight: 800 }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')}</div>
+            {/* PANEL 3: RIGHT SIDEBAR — Social Kit & Export */}
+            <div style={{ width: '320px', flexShrink: 0, background: '#0A0A0F', borderLeft: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+              {/* Clip Metadata Strip */}
+              <div style={{ padding: '20px 24px 0', flexShrink: 0 }}>
+                <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.25em', marginBottom: '6px' }}>CLIP METADATA</div>
+                <h3 style={{ fontSize: '15px', fontWeight: 900, lineHeight: 1.3, marginBottom: '14px', color: '#fff' }}>{selectedClip.hook_title}</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+                  <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ fontSize: '9px', color: '#52525B', marginBottom: '4px', letterSpacing: '0.1em' }}>START</div>
+                    <div style={{ fontSize: '13px', fontWeight: 900, fontFamily: 'monospace', color: '#C4B5FD' }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')}</div>
                   </div>
-                  <div className="glass-panel" style={{ padding: '12px', background: 'rgba(255,255,255,0.02)' }}>
-                    <div style={{ fontSize: '9px', color: '#52525B', marginBottom: '4px' }}>DURATION</div>
-                    <div style={{ fontSize: '12px', fontWeight: 800 }}>{trimEnd - trimStart}s</div>
+                  <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ fontSize: '9px', color: '#52525B', marginBottom: '4px', letterSpacing: '0.1em' }}>DURATION</div>
+                    <div style={{ fontSize: '13px', fontWeight: 900, fontFamily: 'monospace', color: '#C4B5FD' }}>{trimEnd - trimStart}s</div>
                   </div>
                 </div>
+                <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', marginBottom: '20px' }} />
+                <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.25em', marginBottom: '14px' }}>SOCIAL KIT</div>
               </div>
 
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '12px' }}>SOCIAL KIT</div>
+              {/* Platform Cards — Scrollable */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {PLATFORMS.map((p, pi) => {
-                   const caption = selectedClip.suggested_captions?.[pi] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote || '';
-                   return (
-                     <button key={p.id} onClick={() => { navigator.clipboard.writeText(`${p.prefix}${caption}`); toast.success(`${p.label} caption copied!`); }} style={{ 
-                       width: '100%', marginBottom: '8px', padding: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', 
-                       borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', transition: 'all 0.2s' 
-                     }}>
-                       <span style={{ fontSize: '16px' }}>{p.icon}</span>
-                       <div style={{ textAlign: 'left' }}>
-                         <div style={{ fontSize: '10px', fontWeight: 800 }}>{p.label}</div>
-                         <div style={{ fontSize: '9px', color: '#52525B' }}>Copy Optimized Caption</div>
-                       </div>
-                     </button>
-                   );
+                  const caption = selectedClip.suggested_captions?.[pi] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote || '';
+                  const fullText = `${p.prefix}${caption}`;
+                  const charCount = fullText.length;
+                  const overLimit = p.limit ? charCount > p.limit : false;
+                  return (
+                    <div key={p.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', overflow: 'hidden' }}>
+                      {/* Platform header */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '18px' }}>{p.icon}</span>
+                          <div>
+                            <div style={{ fontSize: '11px', fontWeight: 900, color: '#fff' }}>{p.label}</div>
+                            <div style={{ fontSize: '9px', color: '#52525B' }}>{p.format}</div>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '10px', fontWeight: 700, color: overLimit ? '#F87171' : '#52525B', fontFamily: 'monospace' }}>
+                          {charCount}{p.limit ? `/${p.limit}` : ''}
+                        </div>
+                      </div>
+                      {/* Caption preview */}
+                      <div style={{ padding: '12px 14px 8px', fontSize: '11px', color: '#A1A1AA', lineHeight: 1.6, maxHeight: '80px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as const }}>
+                        {fullText || <span style={{ color: '#3F3F46', fontStyle: 'italic' }}>No caption available</span>}
+                      </div>
+                      {/* Copy button */}
+                      <div style={{ padding: '8px 14px 12px' }}>
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(fullText); toast.success(`${p.label} caption copied!`); }}
+                          style={{ width: '100%', padding: '8px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', color: '#C4B5FD', fontSize: '10px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.08em', transition: 'all 0.2s' }}
+                        >
+                          COPY TO CLIPBOARD
+                        </button>
+                      </div>
+                    </div>
+                  );
                 })}
               </div>
 
-              <div style={{ marginTop: 'auto' }}>
-                <div style={{ padding: '20px', borderRadius: '16px', background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.2)', marginBottom: '16px' }}>
-                  <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em', marginBottom: '4px' }}>ACTIVE PROFILE</div>
-                  <div style={{ fontSize: '12px', fontWeight: 700 }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</div>
-                  <div style={{ fontSize: '10px', color: '#52525B' }}>{FILTERS.find(f => f.id === selectedFilter)?.name} Atmos</div>
+              {/* Export Footer */}
+              <div style={{ padding: '16px 24px 24px', flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ padding: '12px 14px', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.12)', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.12em', marginBottom: '6px' }}>ACTIVE PROFILE</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+                    <b style={{ color: '#C4B5FD' }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b>
+                    {' · '}<b style={{ color: '#C4B5FD' }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>
+                    {' · '}<b style={{ color: '#C4B5FD' }}>{FONTS.find(f => f.id === selectedFont)?.name}</b>
+                  </div>
                 </div>
-                <button onClick={() => startExport(selectedClip)} className="shimmer-btn" style={{ width: '100%', padding: '18px', fontSize: '12px' }}>
+                <button onClick={() => startExport(selectedClip)} className="shimmer-btn" style={{ width: '100%', padding: '16px', fontSize: '12px' }}>
                   CONFIRM & EXPORT
                 </button>
               </div>
