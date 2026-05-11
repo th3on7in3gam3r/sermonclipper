@@ -74,7 +74,7 @@ function ResultsContent() {
 
   const handleRender = async (clip: any, index: number) => {
     setRendering(prev => ({ ...prev, [index]: { status: 'loading' } }));
-    const renderToastId = toast.loading('Sending clip to FFmpeg Render Engine...');
+    const renderToastId = toast.loading('Sending mission to Shotstack Cloud...');
     
     try {
       const res = await fetch('/api/render-clip', {
@@ -84,18 +84,37 @@ function ResultsContent() {
       });
       const data = await res.json();
       
-      if (data.downloadUrl) {
-        setRendering(prev => ({ ...prev, [index]: { status: 'complete', url: data.downloadUrl } }));
-        toast.success('Reel successfully rendered!', { id: renderToastId });
+      if (data.shotstackId) {
+        toast.loading('Neural rendering in progress...', { id: renderToastId });
+        pollStatus(data.shotstackId, index, renderToastId);
       } else {
-        console.error('Render failed:', data.error);
         setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
-        toast.error('Failed to render reel. Please try again.', { id: renderToastId });
+        toast.error('Shotstack failed to queue render.', { id: renderToastId });
       }
     } catch (e) {
-      console.error('Network error during render:', e);
       setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
       toast.error('Network error during rendering.', { id: renderToastId });
+    }
+  };
+
+  const pollStatus = async (id: string, index: number, toastId: string) => {
+    try {
+      const res = await fetch(`/api/render-status?id=${id}`);
+      const data = await res.json();
+
+      if (data.status === 'done') {
+        setRendering(prev => ({ ...prev, [index]: { status: 'complete', url: data.url } }));
+        toast.success('Reel successfully rendered!', { id: toastId });
+      } else if (data.status === 'failed') {
+        setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
+        toast.error('Cloud render failed.', { id: toastId });
+      } else {
+        // Still processing, poll again in 3 seconds
+        setTimeout(() => pollStatus(id, index, toastId), 3000);
+      }
+    } catch (e) {
+      setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
+      toast.error('Polling lost connection.', { id: toastId });
     }
   };
 
