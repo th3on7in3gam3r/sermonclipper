@@ -131,6 +131,7 @@ function ResultsContent() {
       }
     } catch (e) {
       setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
+    }
   };
 
   const handleCustomize = (clip: any, index: number) => {
