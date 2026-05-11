@@ -10,12 +10,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    if (!process.env.MONGODB_URI) {
+      console.warn('[Dashboard API] MONGODB_URI missing. Returning empty archive.');
+      return NextResponse.json([]);
+    }
+
     await connectDB();
     const sermons = await Sermon.find({ userId }).sort({ createdAt: -1 });
 
     return NextResponse.json(sermons);
   } catch (error) {
-    console.error('[Dashboard API] Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('[Dashboard API] Critical Error:', error);
+    // Return empty array instead of 500 to keep UI alive
+    return NextResponse.json([], { status: 200 });
   }
 }
