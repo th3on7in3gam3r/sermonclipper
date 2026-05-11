@@ -119,15 +119,58 @@ function ResultsContent() {
   // YouTube description modal
   const [showYTDesc, setShowYTDesc] = useState(false);
 
-  // Thumbnail generation state per clip
+  // Core Asset State
   const [thumbnails, setThumbnails] = useState<{ [key: number]: { status: string; url?: string } }>({});
-
   const ANIMATIONS = [
     { id: 'fade', name: 'Fade', desc: 'Smooth dissolve in/out' },
     { id: 'slideUp', name: 'Slide Up', desc: 'Text rises from below' },
     { id: 'zoom', name: 'Zoom', desc: 'Scale in from center' },
     { id: 'carve', name: 'Carve', desc: 'Wipe reveal left to right' },
   ];
+
+  // Thumbnail Studio state
+  const [activeThumbnailClip, setActiveThumbnailClip] = useState<any>(null);
+  const [thumbPrompt, setThumbPrompt] = useState('');
+  const [thumbStyle, setThumbStyle] = useState('cinematic');
+  const [isGeneratingThumb, setIsGeneratingThumb] = useState(false);
+
+  const THUMB_STYLES = [
+    { id: 'cinematic', name: 'Cinematic', icon: '🎬', prompt: 'cinematic lighting, dramatic shadows, epic atmosphere, professional photography' },
+    { id: 'bold', name: 'Bold Impact', icon: '⚡', prompt: 'bright vibrant colors, high contrast, massive bold typography, energetic feel' },
+    { id: 'minimal', name: 'Minimalist', icon: '⚪', prompt: 'clean white space, soft lighting, modern minimalist design, light and airy' }
+  ];
+
+  const handleGenerateThumbnail = async () => {
+    if (!activeThumbnailClip) return;
+    
+    setIsGeneratingThumb(true);
+    const i = activeThumbnailClip.index;
+    setThumbnails(prev => ({ ...prev, [i]: { status: 'loading' } }));
+    
+    const stylePrompt = THUMB_STYLES.find(s => s.id === thumbStyle)?.prompt || '';
+    const fullPrompt = `YouTube thumbnail, 16:9 aspect ratio, ${stylePrompt}, text overlay saying "${thumbPrompt || activeThumbnailClip.hook_title}", church/faith theme, professional quality, no watermarks`;
+    
+    try {
+      const res = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: fullPrompt }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setThumbnails(prev => ({ ...prev, [i]: { status: 'done', url: data.imageUrl } }));
+        toast.success('Thumbnail generated!');
+      } else {
+        setThumbnails(prev => ({ ...prev, [i]: { status: 'error' } }));
+        toast.error('Thumbnail generation failed.');
+      }
+    } catch {
+      setThumbnails(prev => ({ ...prev, [i]: { status: 'error' } }));
+      toast.error('Network error.');
+    } finally {
+      setIsGeneratingThumb(false);
+    }
+  };
 
   const PLATFORMS = [
     { id: 'instagram', label: 'Instagram', icon: '📸', prefix: '✨ ' },
@@ -410,27 +453,25 @@ function ResultsContent() {
                   )}
                 </div>
 
-                {/* Thumbnail Generator */}
-                {thumbnails[i]?.status === 'loading' ? (
-                  <div style={{ marginBottom: '12px', padding: '10px', background: 'rgba(139,92,246,0.05)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '14px', height: '14px', border: '2px solid rgba(139,92,246,0.3)', borderTopColor: '#8B5CF6', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
-                    <span style={{ fontSize: '10px', color: '#8B5CF6', fontWeight: 800, letterSpacing: '0.1em' }}>GENERATING THUMBNAIL…</span>
-                  </div>
-                ) : thumbnails[i]?.status === 'done' && thumbnails[i]?.url ? (
-                  <a href={thumbnails[i].url} target="_blank" rel="noreferrer" style={{ display: 'block', marginBottom: '12px', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                {/* Thumbnail Preview / Studio Trigger */}
+                {thumbnails[i]?.status === 'done' && thumbnails[i]?.url ? (
+                  <div 
+                    onClick={() => { setActiveThumbnailClip({ ...clip, index: i }); setThumbPrompt(clip.hook_title); }}
+                    style={{ cursor: 'pointer', marginBottom: '12px', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}
+                  >
                     <img 
                       src={`/api/proxy-image?url=${encodeURIComponent(thumbnails[i].url)}`} 
                       alt="Neural Thumbnail" 
                       loading="lazy"
                       style={{ width: '100%', height: '80px', objectFit: 'cover', display: 'block' }} 
                     />
-                  </a>
+                  </div>
                 ) : (
                   <button
-                    onClick={() => handleGenerateThumbnail(clip, i)}
+                    onClick={() => { setActiveThumbnailClip({ ...clip, index: i }); setThumbPrompt(clip.hook_title); }}
                     style={{ width: '100%', marginBottom: '12px', padding: '10px', background: 'rgba(244,185,66,0.05)', border: '1px solid rgba(244,185,66,0.15)', borderRadius: '10px', color: '#F4B942', fontSize: '10px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.08em' }}
                   >
-                    🖼 GENERATE THUMBNAIL
+                    🖼 OPEN THUMBNAIL STUDIO
                   </button>
                 )}
 
@@ -874,10 +915,124 @@ function ResultsContent() {
 
           </div>
         </div>
+      {/* Thumbnail Studio Drawer — Side Slide-in */}
+      {activeThumbnailClip && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 20000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', display: 'flex', justifyContent: 'flex-end', animation: 'fadeIn 0.3s ease' }}>
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{ 
+              width: 'min(800px, 90vw)', 
+              height: '100%', 
+              background: '#0A0A0F', 
+              borderLeft: '1px solid rgba(255,255,255,0.06)', 
+              display: 'flex', 
+              flexDirection: 'column',
+              animation: 'slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+              boxShadow: '-40px 0 100px rgba(0,0,0,0.8)'
+            }}
+          >
+            {/* Header */}
+            <div style={{ padding: '24px 32px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#F4B942', letterSpacing: '0.2em', marginBottom: '4px' }}>NEURAL ASSET GENERATOR</div>
+                <h2 style={{ fontSize: '20px', fontWeight: 900 }}>THUMBNAIL STUDIO</h2>
+              </div>
+              <button onClick={() => setActiveThumbnailClip(null)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '8px 20px', borderRadius: '99px', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>✕ CLOSE STUDIO</button>
+            </div>
+
+            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              {/* Left: Preview Panel */}
+              <div style={{ flex: 1.2, background: '#050508', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ width: '100%', aspectRatio: '16/9', background: '#000', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', position: 'relative', boxShadow: '0 40px 100px rgba(0,0,0,0.8)' }}>
+                   {isGeneratingThumb ? (
+                     <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)' }}>
+                        <div style={{ width: '40px', height: '40px', border: '3px solid rgba(244,185,66,0.2)', borderTopColor: '#F4B942', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' }} />
+                        <div style={{ fontSize: '11px', fontWeight: 900, color: '#F4B942', letterSpacing: '0.2em' }}>RENDERING CINEMATIC ASSET...</div>
+                     </div>
+                   ) : thumbnails[activeThumbnailClip.index]?.url ? (
+                     <img 
+                        src={`/api/proxy-image?url=${encodeURIComponent(thumbnails[activeThumbnailClip.index].url)}`} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        alt="Neural Preview"
+                     />
+                   ) : (
+                     <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
+                        <div style={{ fontSize: '48px', marginBottom: '10px' }}>🖼</div>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#A1A1AA' }}>AWAITING NEURAL RENDER</div>
+                     </div>
+                   )}
+                </div>
+                {thumbnails[activeThumbnailClip.index]?.status === 'done' && (
+                  <button onClick={handleGenerateThumbnail} style={{ marginTop: '24px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', padding: '10px 24px', borderRadius: '99px', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>
+                    🔄 REGENERATE THUMBNAIL
+                  </button>
+                )}
+              </div>
+
+              {/* Right: Controls Panel */}
+              <div style={{ flex: 1, padding: '40px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+                <div style={{ marginBottom: '32px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 900, color: '#52525B', letterSpacing: '0.1em', display: 'block', marginBottom: '12px' }}>TEXT OVERLAY (HOOK TITLE)</label>
+                  <textarea 
+                    value={thumbPrompt}
+                    onChange={(e) => setThumbPrompt(e.target.value)}
+                    placeholder="Enter the main hook for your thumbnail..."
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px', color: '#fff', fontSize: '14px', lineHeight: 1.5, minHeight: '100px', resize: 'none', fontFamily: 'inherit' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '40px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 900, color: '#52525B', letterSpacing: '0.1em', display: 'block', marginBottom: '16px' }}>CINEMATIC STYLE</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                    {THUMB_STYLES.map(s => (
+                      <div 
+                        key={s.id} 
+                        onClick={() => setThumbStyle(s.id)}
+                        style={{ 
+                          padding: '16px', borderRadius: '14px', cursor: 'pointer', transition: 'all 0.2s',
+                          background: thumbStyle === s.id ? 'rgba(244,185,66,0.08)' : 'rgba(255,255,255,0.02)',
+                          border: thumbStyle === s.id ? '1px solid #F4B942' : '1px solid rgba(255,255,255,0.05)',
+                          display: 'flex', alignItems: 'center', gap: '14px'
+                        }}
+                      >
+                        <div style={{ fontSize: '20px' }}>{s.icon}</div>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 900, color: thumbStyle === s.id ? '#F4B942' : '#fff' }}>{s.name}</div>
+                          <div style={{ fontSize: '10px', color: '#52525B' }}>Preset neural instructions</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 'auto' }}>
+                   {thumbnails[activeThumbnailClip.index]?.status === 'done' ? (
+                     <a 
+                       href={thumbnails[activeThumbnailClip.index].url} 
+                       download 
+                       target="_blank"
+                       className="shimmer-btn" 
+                       style={{ width: '100%', padding: '20px', fontSize: '12px', textAlign: 'center', textDecoration: 'none', display: 'block', background: 'linear-gradient(90deg, #F59E0B, #FBBF24)' }}
+                     >
+                       DOWNLOAD 16:9 ASSET
+                     </a>
+                   ) : (
+                     <button 
+                       onClick={handleGenerateThumbnail}
+                       disabled={isGeneratingThumb}
+                       className="shimmer-btn" 
+                       style={{ width: '100%', padding: '20px', fontSize: '12px', opacity: isGeneratingThumb ? 0.5 : 1 }}
+                     >
+                       {isGeneratingThumb ? 'RENDERING...' : 'START NEURAL RENDER'}
+                     </button>
+                   )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
-  );
-}
 
 function ToolCard({ title, desc, onClick, loading }: { title: string; desc: string; onClick?: () => void; loading?: boolean }) {
   return (
