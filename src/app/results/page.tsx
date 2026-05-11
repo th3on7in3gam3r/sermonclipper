@@ -329,23 +329,44 @@ function ResultsContent() {
 
       {/* Vesper Studio Overlay */}
       {selectedClip && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 5000, background: '#0A0A0F', display: 'flex', animation: 'fade-in 0.3s ease' }}>
-          {/* Left Sidebar: Tools */}
-          <div style={{ width: '320px', background: 'rgba(255,255,255,0.02)', borderRight: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.2em', color: '#8B5CF6' }}>STUDIO</div>
-              <button onClick={() => setSelectedClip(null)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '24px' }}>×</button>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#000', display: 'flex', animation: 'fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+          {/* Neural Background Gradients */}
+          <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)', zIndex: 0 }} />
+          <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)', zIndex: 0 }} />
+
+          {/* Left Sidebar: Cinematic Tools */}
+          <div style={{ 
+            width: '380px', 
+            background: 'rgba(10, 10, 15, 0.8)', 
+            backdropFilter: 'blur(32px)', 
+            borderRight: '1px solid rgba(255,255,255,0.08)', 
+            display: 'flex', 
+            flexDirection: 'column',
+            position: 'relative',
+            zIndex: 10
+          }}>
+            <div style={{ padding: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8B5CF6', boxShadow: '0 0 10px #8B5CF6' }} />
+                <div style={{ fontSize: '12px', fontWeight: 900, letterSpacing: '0.3em', color: '#fff', fontFamily: 'var(--font-outfit)' }}>STUDIO</div>
+              </div>
+              <button 
+                onClick={() => setSelectedClip(null)} 
+                className="glass-panel"
+                style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', transition: 'all 0.2s' }}
+              >✕</button>
             </div>
 
-            <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ display: 'flex', padding: '0 20px', marginBottom: '20px' }}>
               {['templates', 'filters', 'fonts'].map(tab => (
                 <button 
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   style={{ 
-                    flex: 1, padding: '12px', background: 'none', border: 'none', 
-                    color: activeTab === tab ? '#fff' : '#A1A1AA', fontSize: '10px', 
-                    fontWeight: 700, cursor: 'pointer', borderBottom: activeTab === tab ? '2px solid #8B5CF6' : 'none' 
+                    flex: 1, padding: '14px', background: 'none', border: 'none', 
+                    color: activeTab === tab ? '#fff' : '#52525B', fontSize: '11px', 
+                    fontWeight: 800, cursor: 'pointer', borderBottom: activeTab === tab ? '2px solid #8B5CF6' : '2px solid transparent',
+                    transition: 'all 0.3s', fontFamily: 'var(--font-outfit)', letterSpacing: '0.05em'
                   }}
                 >
                   {tab.toUpperCase()}
@@ -353,57 +374,126 @@ function ResultsContent() {
               ))}
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
-              {activeTab === 'templates' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {TEMPLATES.map(t => (
-                    <div key={t.id} style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', cursor: 'pointer' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>{t.name}</div>
-                      <div style={{ fontSize: '10px', color: '#A1A1AA' }}>{t.desc}</div>
-                    </div>
-                  ))}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {activeTab === 'templates' && TEMPLATES.map(t => (
+                <div 
+                  key={t.id} 
+                  className="glass-card" 
+                  style={{ 
+                    padding: '20px', 
+                    background: 'rgba(255,255,255,0.03)', 
+                    border: '1px solid rgba(255,255,255,0.08)', 
+                    borderRadius: '16px', 
+                    cursor: 'pointer',
+                    transition: 'all 0.3s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(139, 92, 246, 0.05)';
+                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                  }}
+                >
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '6px', fontFamily: 'var(--font-outfit)' }}>{t.name}</div>
+                  <div style={{ fontSize: '11px', color: '#71717A', lineHeight: 1.5 }}>{t.desc}</div>
                 </div>
-              )}
+              ))}
+
               {activeTab === 'filters' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   {FILTERS.map(f => (
-                    <div key={f.id} style={{ aspectRatio: '1', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#fff', cursor: 'pointer' }}>
-                      {f.name}
+                    <div 
+                      key={f.id} 
+                      className="glass-card"
+                      style={{ 
+                        aspectRatio: '1', 
+                        background: 'rgba(255,255,255,0.03)', 
+                        border: '1px solid rgba(255,255,255,0.08)', 
+                        borderRadius: '16px', 
+                        display: 'flex', 
+                        flexDirection: 'column',
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: '8px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.borderColor = '#8B5CF6'}
+                      onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+                    >
+                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(45deg, #8B5CF6, #D946EF)', opacity: 0.5 }} />
+                      <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff' }}>{f.name}</div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            <div style={{ padding: '24px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ padding: '32px', background: 'rgba(0,0,0,0.4)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#52525B', letterSpacing: '0.1em', marginBottom: '8px' }}>NEURAL SEED</div>
+                <div style={{ fontSize: '12px', color: '#fff', opacity: 0.6, fontStyle: 'italic' }}>Shotstack V2.1 Encryption Active</div>
+              </div>
               <button 
                 onClick={() => startExport(selectedClip)}
                 className="shimmer-btn" 
-                style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '12px' }}
+                style={{ width: '100%', padding: '20px', borderRadius: '16px', fontSize: '13px', fontWeight: 800, letterSpacing: '0.05em' }}
               >
-                EXPORT REEL
+                EXPORT FOR SOCIAL
               </button>
             </div>
           </div>
 
-          {/* Center: Video Preview */}
-          <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', overflow: 'hidden' }}>
+          {/* Center: Cinematic Video Preview */}
+          <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050508', overflow: 'hidden' }}>
             <div style={{ 
-              width: '100%', maxWidth: '360px', aspectRatio: '9/16', 
-              background: '#111', borderRadius: '24px', overflow: 'hidden', 
-              boxShadow: '0 0 100px rgba(139, 92, 246, 0.15)', position: 'relative' 
+              width: '100%', 
+              maxWidth: '380px', 
+              aspectRatio: '9/16', 
+              background: '#000', 
+              borderRadius: '40px', 
+              overflow: 'hidden', 
+              boxShadow: '0 0 200px rgba(139, 92, 246, 0.15), 0 0 50px rgba(0,0,0,0.5)', 
+              position: 'relative',
+              border: '12px solid rgba(255,255,255,0.04)',
+              animation: 'slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
             }}>
+              {/* Cinematic Lens Flare Overlay */}
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100px', background: 'linear-gradient(to bottom, rgba(139, 92, 246, 0.1), transparent)', zIndex: 5, pointerEvents: 'none' }} />
+
               <iframe
-                src={`https://www.youtube.com/embed/${videoId}?start=${parseTime(selectedClip.start)}&end=${parseTime(selectedClip.end)}&autoplay=1&controls=0&modestbranding=1&rel=0`}
-                style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) scale(1.6)' }}
+                src={`https://www.youtube.com/embed/${videoId}?start=${parseTime(selectedClip.start)}&end=${parseTime(selectedClip.end)}&autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3`}
+                style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) scale(1.8)' }}
                 allow="autoplay; encrypted-media"
               />
-              {/* Fake Subtitle Preview */}
-              <div style={{ position: 'absolute', bottom: '15%', left: 0, right: 0, padding: '0 20px', textAlign: 'center', zIndex: 10 }}>
-                <div style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', padding: '12px', borderRadius: '8px', color: '#FFFF00', fontSize: '18px', fontWeight: 900, textTransform: 'uppercase' }}>
-                  {selectedClip.suggested_captions?.[0] || "Neural Caption Preview"}
+
+              {/* Dynamic Captions Preview Overlay */}
+              <div style={{ position: 'absolute', bottom: '15%', left: 0, right: 0, padding: '0 40px', textAlign: 'center', zIndex: 10 }}>
+                <div style={{ 
+                  background: 'rgba(0,0,0,0.6)', 
+                  backdropFilter: 'blur(20px)', 
+                  padding: '20px', 
+                  borderRadius: '20px', 
+                  color: '#FFFF00', 
+                  fontSize: '22px', 
+                  fontWeight: 900, 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '0.02em', 
+                  boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  fontFamily: 'var(--font-outfit)'
+                }}>
+                  {selectedClip.suggested_captions?.[0] || "Neural Word Preview"}
                 </div>
               </div>
+            </div>
+
+            {/* Scale/Format Controls Placeholder */}
+            <div style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '12px' }}>
+              <div className="glass-panel" style={{ padding: '8px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 800, color: '#A1A1AA' }}>9:16 VERTICAL</div>
+              <div className="glass-panel" style={{ padding: '8px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 800, color: '#A1A1AA' }}>1080p EXPORT</div>
             </div>
           </div>
         </div>
