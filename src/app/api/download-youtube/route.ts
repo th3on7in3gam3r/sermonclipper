@@ -277,13 +277,26 @@ export async function POST(req: NextRequest) {
     });
 
     // 5. Kick off download as a "Best Effort" background task
-    // It might finish, it might not, but the analysis is SAFE in the DB now.
-    runSermonPipeline(url, jobId, userId).catch(e => console.error('[Engine] BG Pipeline:', e));
+    runSermonPipeline(url, jobId, userId).catch(e => {
+      console.error('[Engine] BG Pipeline Error:', e);
+    });
     
     return NextResponse.json({ success: true, jobId });
   } catch (e: any) {
+    const errorMsg = e.message || 'Unknown Neural Error';
     console.error('[Engine] Synchronous Failure:', e);
-    await progressManager.update(jobId, { step: 'Analysis', status: 'error', message: `Neural Analysis Failed: ${e.message}` });
-    return NextResponse.json({ error: 'Neural Engine Timeout' }, { status: 500 });
+    
+    // Log the EXACT error to the progress manager so the user sees it in the log
+    await progressManager.update(jobId, { 
+      step: 'Analysis', 
+      status: 'error', 
+      message: `[Neural Error] ${errorMsg}` 
+    });
+
+    return NextResponse.json({ 
+      error: 'Neural Engine Failure', 
+      details: errorMsg,
+      code: e.code || '500' 
+    }, { status: 500 });
   }
 }

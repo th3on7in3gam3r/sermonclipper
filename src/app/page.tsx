@@ -28,14 +28,15 @@ export default function Home() {
         body: JSON.stringify({ url, jobId: newJobId }),
       });
       
-      if (res.status === 401) {
-        toast.error('Sign in required to harvest sermons.');
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast.error(`Neural Engine Error: ${errorData.details || 'Unknown system failure'}`);
         setIsProcessing(false);
         return;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to start job:', error);
-      toast.error('Connection failed.');
+      toast.error(`Connection failed: ${error.message}`);
       setIsProcessing(false);
     }
   };
