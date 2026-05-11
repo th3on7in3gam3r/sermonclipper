@@ -11,10 +11,6 @@ const JobProgressSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
-// Update timestamp on every save
-JobProgressSchema.pre('save', function(next) {
-  this.updatedAt = new Date();
-  next();
-});
+// updatedAt is managed manually in the progress manager
 
 export default mongoose.models.JobProgress || mongoose.model('JobProgress', JobProgressSchema);

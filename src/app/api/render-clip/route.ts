@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing jobId or clip data' }, { status: 400 });
     }
 
-    const state = progressManager.get(jobId);
+    const state = await progressManager.get(jobId);
     if (!state || !state.finalPath) {
       return NextResponse.json({ error: 'Master video not ready. Please wait.' }, { status: 404 });
     }

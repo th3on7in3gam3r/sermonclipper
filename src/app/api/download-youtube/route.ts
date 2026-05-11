@@ -155,8 +155,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
         status: 'completed', 
         message: 'Master Download Complete', 
         finalPath: r2Url,
-        analysis: analysisResult,
-        status: 'completed' // Mark job as done
+        analysis: analysisResult
       });
       if (existsSync(filePath)) unlinkSync(filePath);
     } catch (e: any) {
@@ -165,8 +164,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
         status: 'completed', 
         message: 'Analysis Ready (Download Sync Pending)', 
         finalPath: url,
-        analysis: analysisResult,
-        status: 'completed'
+        analysis: analysisResult
       });
     }
   } else {
@@ -175,8 +173,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
       status: 'completed', 
       message: 'Processing Ready (Using Cloud Streaming)', 
       finalPath: url,
-      analysis: analysisResult,
-      status: 'completed'
+      analysis: analysisResult
     });
   }
 

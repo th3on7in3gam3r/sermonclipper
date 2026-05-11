@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const jobId = searchParams.get('jobId');
   if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
   
-  const update = progressManager.get(jobId);
+  const update = await progressManager.get(jobId);
   if (update?.analysis) {
     return NextResponse.json({
       success: true,

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
     }
 
-    const state = progressManager.get(jobId);
+    const state = await progressManager.get(jobId);
     if (!state || !state.analysis) {
       return NextResponse.json({ error: 'Sermon analysis not found.' }, { status: 404 });
     }
