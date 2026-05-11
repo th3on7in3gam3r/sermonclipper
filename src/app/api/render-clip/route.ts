@@ -4,15 +4,13 @@ import { progressManager } from '../../../lib/progress';
 const SHOTSTACK_SANDBOX_KEY = process.env.SHOTSTACK_SANDBOX_KEY;
 const SHOTSTACK_PRODUCTION_KEY = process.env.SHOTSTACK_PRODUCTION_KEY;
 
-// Smart Switch: Use production if sandbox is missing, or vice versa
 const SHOTSTACK_API_KEY = SHOTSTACK_PRODUCTION_KEY || SHOTSTACK_SANDBOX_KEY;
 const IS_PRODUCTION = !!SHOTSTACK_PRODUCTION_KEY && !SHOTSTACK_SANDBOX_KEY;
-const SHOTSTACK_URL = IS_PRODUCTION 
-  ? 'https://api.shotstack.io/edit/v1/render' 
+const SHOTSTACK_URL = IS_PRODUCTION
+  ? 'https://api.shotstack.io/edit/v1/render'
   : 'https://api.shotstack.io/edit/stage/render';
 
-// Robust time parser for MM:SS or raw seconds
-const parseTime = (timeVal: any): number => {
+const parseTime = (timeVal: unknown): number => {
   if (typeof timeVal === 'number') return timeVal;
   if (!timeVal) return 0;
   const str = String(timeVal);
@@ -24,10 +22,46 @@ const parseTime = (timeVal: any): number => {
   return parseFloat(str) || 0;
 };
 
+// Map template id → caption color
+const TEMPLATE_COLORS: Record<string, string> = {
+  minimal: '#FFFFFF',
+  cinematic: '#FFFF00',
+  modern: '#C4B5FD',
+  fire: '#FCD34D',
+};
+
+// Map font id → Shotstack font family
+const FONT_FAMILIES: Record<string, string> = {
+  outfit: 'Montserrat',
+  impact: 'Anton',
+  georgia: 'Merriweather',
+  mono: 'Source Code Pro',
+  serif: 'Playfair Display',
+};
+
+// Map animation id → Shotstack transition
+const ANIMATION_MAP: Record<string, string> = {
+  fade: 'fade',
+  slideUp: 'slideUp',
+  zoom: 'zoom',
+  carve: 'carve',
+};
+
+// Map filter id → Shotstack effect (lut / color correction)
+// Shotstack doesn't have a direct CSS filter, so we use color correction clips
+const FILTER_EFFECTS: Record<string, Record<string, number> | null> = {
+  none: null,
+  vintage: { brightness: -0.05, contrast: 0.15, saturation: -0.3 },
+  cold: { saturation: -0.6, brightness: 0.1 },
+  warm: { saturation: 0.4, brightness: 0.05 },
+  noir: { saturation: -1, contrast: 0.3 },
+  glory: { brightness: 0.15, saturation: 0.3 },
+};
+
 export async function POST(req: NextRequest) {
   try {
-    const { jobId, clip, index } = await req.json();
-    
+    const { jobId, clip, index, template, filter, font, animation } = await req.json();
+
     if (!jobId || !clip) {
       return NextResponse.json({ error: 'Missing jobId or clip data' }, { status: 400 });
     }
@@ -40,88 +74,90 @@ export async function POST(req: NextRequest) {
     const videoUrl = state.finalPath;
     const start = parseTime(clip.start);
     const end = parseTime(clip.end);
-    const duration = Math.max(end - start, 1); // Ensure at least 1s duration
+    const duration = Math.max(end - start, 1);
 
-    // Shotstack JSON Payload
+    const captionColor = TEMPLATE_COLORS[template] || '#FFFFFF';
+    const fontFamily = FONT_FAMILIES[font] || 'Montserrat';
+    const transitionIn = ANIMATION_MAP[animation] || 'fade';
+    const colorEffect = FILTER_EFFECTS[filter] || null;
+
+    const captions = clip.suggested_captions || [];
+    const captionDuration = captions.length > 0 ? duration / captions.length : duration;
+
+    // Build caption clips
+    const captionClips = captions.map((text: string, i: number) => ({
+      asset: {
+        type: 'text',
+        text: text.toUpperCase(),
+        font: {
+          family: fontFamily,
+          size: 52,
+          weight: 'black',
+          color: captionColor,
+        },
+        alignment: { horizontal: 'center', vertical: 'bottom' },
+        offset: { y: 0.15 },
+        width: 0.85,
+      },
+      start: i * captionDuration,
+      length: captionDuration,
+      transition: { in: transitionIn, out: 'fade' },
+    }));
+
+    // Build video clip with optional color correction
+    const videoClip: Record<string, unknown> = {
+      asset: { type: 'video', src: videoUrl, trim: start },
+      start: 0,
+      length: duration,
+      fit: 'cover',
+      scale: 1,
+    };
+
+    if (colorEffect) {
+      videoClip.effect = colorEffect;
+    }
+
     const shotstackEdit = {
       timeline: {
         tracks: [
-          {
-            clips: [
-              {
-                asset: {
-                  type: 'video',
-                  src: videoUrl,
-                  trim: start
-                },
-                start: 0,
-                length: duration,
-                fit: 'cover',
-                scale: 1
-              }
-            ]
-          },
-          {
-            clips: (clip.suggested_captions || []).map((text: string, i: number) => ({
-              asset: {
-                type: 'text',
-                text: text.toUpperCase(),
-                font: {
-                  family: 'Montserrat',
-                  size: 48,
-                  weight: 'black',
-                  color: '#FFFF00'
-                },
-                alignment: {
-                  horizontal: 'center',
-                  vertical: 'center'
-                },
-                offset: {
-                  y: -0.2
-                }
-              },
-              start: i * (duration / (clip.suggested_captions.length || 1)),
-              length: duration / (clip.suggested_captions.length || 1),
-              transition: {
-                in: 'fade'
-              }
-            }))
-          }
-        ]
+          { clips: [videoClip] },
+          ...(captionClips.length > 0 ? [{ clips: captionClips }] : []),
+        ],
       },
       output: {
         format: 'mp4',
         resolution: 'hd',
-        aspectRatio: '9:16'
-      }
+        aspectRatio: '9:16',
+      },
     };
 
-    console.log('[Shotstack] Sending Render Request...');
+    console.log(`[Shotstack] Render: template=${template}, filter=${filter}, font=${font}, animation=${animation}, duration=${duration}s`);
+
     const response = await fetch(SHOTSTACK_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': SHOTSTACK_API_KEY || ''
+        'x-api-key': SHOTSTACK_API_KEY || '',
       },
-      body: JSON.stringify(shotstackEdit)
+      body: JSON.stringify(shotstackEdit),
     });
 
     const data = await response.json();
 
     if (data.success) {
       console.log('[Shotstack] Render queued:', data.response.id);
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         shotstackId: data.response.id,
-        status: 'queued'
+        status: 'queued',
       });
     } else {
       console.error('[Shotstack] API Error:', data.message);
       return NextResponse.json({ error: data.message || 'Shotstack failed' }, { status: 500 });
     }
-
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Render pipeline failed';
     console.error('[Render Engine] Critical Failure:', e);
-    return NextResponse.json({ error: e.message || 'Render pipeline failed' }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

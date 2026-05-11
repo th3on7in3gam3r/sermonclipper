@@ -278,6 +278,11 @@ body {
   animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* --- Phase 4: Mobile Optimization --- */
 @media (max-width: 768px) {
   .hero-logo {

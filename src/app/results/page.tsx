@@ -103,9 +103,84 @@ function ResultsContent() {
 
   const [selectedFont, setSelectedFont] = useState('outfit');
 
+  // Caption dropdown state per clip
+  const [openCaptionIdx, setOpenCaptionIdx] = useState<number | null>(null);
+
+  // Render progress per clip (0-100)
+  const [renderProgress, setRenderProgress] = useState<{ [key: number]: number }>({});
+
+  // Timestamp scrubber state in Studio
+  const [trimStart, setTrimStart] = useState(0);
+  const [trimEnd, setTrimEnd] = useState(0);
+
+  // Caption animation style
+  const [selectedAnimation, setSelectedAnimation] = useState('fade');
+
+  // YouTube description modal
+  const [showYTDesc, setShowYTDesc] = useState(false);
+
+  // Thumbnail generation state per clip
+  const [thumbnails, setThumbnails] = useState<{ [key: number]: { status: string; url?: string } }>({});
+
+  const ANIMATIONS = [
+    { id: 'fade', name: 'Fade', desc: 'Smooth dissolve in/out' },
+    { id: 'slideUp', name: 'Slide Up', desc: 'Text rises from below' },
+    { id: 'zoom', name: 'Zoom', desc: 'Scale in from center' },
+    { id: 'carve', name: 'Carve', desc: 'Wipe reveal left to right' },
+  ];
+
+  const PLATFORMS = [
+    { id: 'instagram', label: 'Instagram', icon: '📸', prefix: '✨ ' },
+    { id: 'tiktok', label: 'TikTok', icon: '🎵', prefix: '' },
+    { id: 'youtube', label: 'YouTube Shorts', icon: '▶️', prefix: '' },
+  ];
+
+  const buildYouTubeDescription = () => {
+    if (!analysis) return '';
+    const lines: string[] = [];
+    lines.push(analysis.sermon_title || 'Sermon');
+    lines.push('');
+    lines.push(analysis.summary || analysis.main_theme || '');
+    lines.push('');
+    lines.push('⏱ TIMESTAMPS');
+    (analysis.clips || []).forEach((clip: any, i: number) => {
+      const t = parseTime(clip.start);
+      const mm = String(Math.floor(t / 60)).padStart(2, '0');
+      const ss = String(t % 60).padStart(2, '0');
+      lines.push(`${mm}:${ss} — ${clip.hook_title || `Clip ${i + 1}`}`);
+    });
+    lines.push('');
+    lines.push('#sermon #church #faith #christianity #worship #bible #jesus #ministry #gospel #holyspirit');
+    return lines.join('\n');
+  };
+
+  const handleGenerateThumbnail = async (clip: any, i: number) => {
+    setThumbnails(prev => ({ ...prev, [i]: { status: 'loading' } }));
+    const prompt = `YouTube thumbnail, 16:9 aspect ratio, bold cinematic design, text overlay saying "${clip.hook_title || clip.main_quote}", dramatic lighting, church/faith theme, high contrast, professional photography style, no watermarks`;
+    try {
+      const res = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setThumbnails(prev => ({ ...prev, [i]: { status: 'done', url: data.imageUrl } }));
+        toast.success('Thumbnail generated!');
+      } else {
+        setThumbnails(prev => ({ ...prev, [i]: { status: 'error' } }));
+        toast.error('Thumbnail generation failed.');
+      }
+    } catch {
+      setThumbnails(prev => ({ ...prev, [i]: { status: 'error' } }));
+      toast.error('Network error.');
+    }
+  };
+
   const startExport = async (clip: any) => {
     const index = clip.index;
     setRendering(prev => ({ ...prev, [index]: { status: 'loading' } }));
+    setRenderProgress(prev => ({ ...prev, [index]: 0 }));
     const renderToastId = toast.loading('Synchronizing with Shotstack Cloud...');
     
     try {
@@ -114,11 +189,12 @@ function ResultsContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           jobId, 
-          clip, 
+          clip: { ...clip, start: trimStart || clip.start, end: trimEnd || clip.end },
           index,
           template: selectedTemplate,
           filter: selectedFilter,
           font: selectedFont,
+          animation: selectedAnimation,
         })
       });
       const data = await res.json();
@@ -141,10 +217,15 @@ function ResultsContent() {
       const res = await fetch(`/api/render-status?id=${id}`);
       const data = await res.json();
 
+      if (data.percent) {
+        setRenderProgress(prev => ({ ...prev, [index]: Math.round(data.percent) }));
+      }
+
       if (data.status === 'done') {
         setRendering(prev => ({ ...prev, [index]: { status: 'complete', url: data.url } }));
+        setRenderProgress(prev => ({ ...prev, [index]: 100 }));
         toast.success('Reel successfully rendered!', { id: toastId });
-        setSelectedClip(null); // Close studio on success
+        setSelectedClip(null);
       } else if (data.status === 'failed') {
         setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
         toast.error('Cloud render failed.', { id: toastId });
@@ -157,6 +238,10 @@ function ResultsContent() {
   };
 
   const handleCustomize = (clip: any, index: number) => {
+    const s = parseTime(clip.start);
+    const e = parseTime(clip.end);
+    setTrimStart(s);
+    setTrimEnd(e);
     setSelectedClip({ ...clip, index });
   };
 
@@ -289,6 +374,76 @@ function ResultsContent() {
                 <p style={{ fontStyle: 'italic', color: '#fff', fontSize: '15px', lineHeight: 1.5 }}>"{clip.main_quote}"</p>
               </div>
               <div style={{ padding: '0 24px 24px' }}>
+
+                {/* Caption Dropdown */}
+                <div style={{ marginBottom: '12px', position: 'relative' }}>
+                  <button
+                    onClick={() => setOpenCaptionIdx(openCaptionIdx === i ? null : i)}
+                    style={{ width: '100%', padding: '10px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', color: '#A1A1AA', fontSize: '10px', fontWeight: 800, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', letterSpacing: '0.08em' }}
+                  >
+                    <span>COPY CAPTION</span>
+                    <span style={{ opacity: 0.5 }}>{openCaptionIdx === i ? '▲' : '▼'}</span>
+                  </button>
+                  {openCaptionIdx === i && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#111114', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden', marginTop: '4px', boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
+                      {PLATFORMS.map((p, pi) => {
+                        const caption = clip.suggested_captions?.[pi] || clip.suggested_captions?.[0] || clip.main_quote || '';
+                        const text = `${p.prefix}${caption}`;
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => {
+                              navigator.clipboard.writeText(text);
+                              toast.success(`${p.label} caption copied!`);
+                              setOpenCaptionIdx(null);
+                            }}
+                            style={{ width: '100%', padding: '12px 16px', background: 'none', border: 'none', borderBottom: pi < PLATFORMS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', color: '#fff', fontSize: '11px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left' }}
+                          >
+                            <span style={{ fontSize: '14px' }}>{p.icon}</span>
+                            <div>
+                              <div style={{ fontSize: '10px', color: '#8B5CF6', fontWeight: 900, letterSpacing: '0.1em', marginBottom: '2px' }}>{p.label}</div>
+                              <div style={{ color: '#A1A1AA', fontSize: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{text.slice(0, 60)}…</div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Thumbnail Generator */}
+                {thumbnails[i]?.status === 'loading' ? (
+                  <div style={{ marginBottom: '12px', padding: '10px', background: 'rgba(139,92,246,0.05)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '14px', height: '14px', border: '2px solid rgba(139,92,246,0.3)', borderTopColor: '#8B5CF6', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+                    <span style={{ fontSize: '10px', color: '#8B5CF6', fontWeight: 800, letterSpacing: '0.1em' }}>GENERATING THUMBNAIL…</span>
+                  </div>
+                ) : thumbnails[i]?.status === 'done' && thumbnails[i]?.url ? (
+                  <a href={thumbnails[i].url} target="_blank" rel="noreferrer" style={{ display: 'block', marginBottom: '12px', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <img src={thumbnails[i].url} alt="Thumbnail" style={{ width: '100%', height: '80px', objectFit: 'cover', display: 'block' }} />
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => handleGenerateThumbnail(clip, i)}
+                    style={{ width: '100%', marginBottom: '12px', padding: '10px', background: 'rgba(244,185,66,0.05)', border: '1px solid rgba(244,185,66,0.15)', borderRadius: '10px', color: '#F4B942', fontSize: '10px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.08em' }}
+                  >
+                    🖼 GENERATE THUMBNAIL
+                  </button>
+                )}
+
+                {/* Render progress bar */}
+                {rendering[i]?.status === 'loading' && (
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em' }}>RENDERING</span>
+                      <span style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6' }}>{renderProgress[i] || 0}%</span>
+                    </div>
+                    <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '99px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${renderProgress[i] || 0}%`, background: 'linear-gradient(90deg, #8B5CF6, #D8B4FE)', borderRadius: '99px', transition: 'width 0.5s ease' }} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Main action button */}
                 {rendering[i]?.status === 'loading' ? (
                   <button className="shimmer-btn" style={{ width: '100%', opacity: 0.7, cursor: 'wait', padding: '14px' }} disabled>
                     RENDERING...
@@ -326,12 +481,13 @@ function ResultsContent() {
             loading={carouselLoading}
           />
           <ToolCard 
-            title="Sermon Summaries" 
-            desc="Long-form breakdowns and YouTube descriptions ready to post." 
+            title="YouTube Description" 
+            desc="Auto-assembled description with timestamps, summary, and hashtags — ready to paste." 
+            onClick={() => setShowYTDesc(true)}
           />
           <ToolCard 
             title="Quote Vault" 
-            desc="A collection of the most impactful 20 quotes for daily sharing." 
+            desc="A collection of the most impactful quotes for daily sharing." 
           />
         </div>
       </div>
@@ -347,6 +503,38 @@ function ResultsContent() {
 
       {showCarouselModal && carouselData && (
         <CarouselModal data={carouselData} onClose={() => setShowCarouselModal(false)} />
+      )}
+
+      {/* YouTube Description Modal */}
+      {showYTDesc && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div className="glass-panel animate-up" style={{ width: '100%', maxWidth: '680px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', border: '1px solid rgba(139,92,246,0.25)', overflow: 'hidden' }}>
+            <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <div>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '6px' }}>EXPORT TOOL</div>
+                <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.02em' }}>YouTube Description</h2>
+              </div>
+              <button onClick={() => setShowYTDesc(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
+              <pre style={{ fontFamily: 'inherit', fontSize: '14px', color: '#D4D4D8', lineHeight: 1.8, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {buildYouTubeDescription()}
+              </pre>
+            </div>
+            <div style={{ padding: '20px 32px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(buildYouTubeDescription());
+                  toast.success('YouTube description copied!');
+                }}
+                className="shimmer-btn"
+                style={{ width: '100%', padding: '16px', fontSize: '12px' }}
+              >
+                COPY TO CLIPBOARD
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Vesper Studio Overlay */}
@@ -374,16 +562,16 @@ function ResultsContent() {
 
               {/* Tab Bar */}
               <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
-                {['templates', 'filters', 'fonts'].map(tab => (
+                {['templates', 'filters', 'fonts', 'motion'].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     style={{
-                      flex: 1, padding: '14px 8px', background: 'none', border: 'none',
+                      flex: 1, padding: '14px 4px', background: 'none', border: 'none',
                       color: activeTab === tab ? '#fff' : '#52525B',
-                      fontSize: '10px', fontWeight: 800, cursor: 'pointer',
+                      fontSize: '9px', fontWeight: 800, cursor: 'pointer',
                       borderBottom: activeTab === tab ? '2px solid #8B5CF6' : '2px solid transparent',
-                      transition: 'all 0.2s', letterSpacing: '0.08em',
+                      transition: 'all 0.2s', letterSpacing: '0.06em',
                     }}
                   >{tab.toUpperCase()}</button>
                 ))}
@@ -476,6 +664,77 @@ function ResultsContent() {
                     )}
                   </div>
                 ))}
+
+                {/* MOTION */}
+                {activeTab === 'motion' && (
+                  <>
+                    <div style={{ marginBottom: '8px' }}>
+                      <div style={{ fontSize: '9px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '12px' }}>CAPTION ANIMATION</div>
+                      {ANIMATIONS.map(a => (
+                        <div
+                          key={a.id}
+                          onClick={() => setSelectedAnimation(a.id)}
+                          style={{
+                            padding: '14px 16px', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s', marginBottom: '8px',
+                            background: selectedAnimation === a.id ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
+                            border: selectedAnimation === a.id ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
+                            display: 'flex', alignItems: 'center', gap: '12px',
+                          }}
+                        >
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>
+                            {a.id === 'fade' ? '✦' : a.id === 'slideUp' ? '↑' : a.id === 'zoom' ? '⊕' : '▶'}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '12px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>{a.name}</div>
+                            <div style={{ fontSize: '10px', color: '#71717A' }}>{a.desc}</div>
+                          </div>
+                          {selectedAnimation === a.id && (
+                            <div style={{ marginLeft: 'auto', width: '18px', height: '18px', borderRadius: '50%', background: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Timestamp Scrubber */}
+                    <div style={{ marginTop: '8px', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize: '9px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '14px' }}>TRIM CLIP</div>
+                      <div style={{ marginBottom: '14px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '10px', color: '#A1A1AA', fontWeight: 700 }}>IN POINT</span>
+                          <span style={{ fontSize: '10px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{trimStart}s</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={selectedClip ? parseTime(selectedClip.start) : 0}
+                          max={trimEnd - 1}
+                          value={trimStart}
+                          onChange={e => setTrimStart(Number(e.target.value))}
+                          style={{ width: '100%', accentColor: '#8B5CF6' }}
+                        />
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '10px', color: '#A1A1AA', fontWeight: 700 }}>OUT POINT</span>
+                          <span style={{ fontSize: '10px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{trimEnd}s</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={trimStart + 1}
+                          max={selectedClip ? parseTime(selectedClip.end) + 30 : 300}
+                          value={trimEnd}
+                          onChange={e => setTrimEnd(Number(e.target.value))}
+                          style={{ width: '100%', accentColor: '#8B5CF6' }}
+                        />
+                      </div>
+                      <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(139,92,246,0.06)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '10px', color: '#71717A' }}>Duration</span>
+                        <span style={{ fontSize: '10px', color: '#C4B5FD', fontWeight: 900, fontFamily: 'monospace' }}>{trimEnd - trimStart}s</span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Export Footer */}
@@ -486,8 +745,9 @@ function ResultsContent() {
                     <b style={{ color: '#C4B5FD' }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FONTS.find(f => f.id === selectedFont)?.name}</b>
-                  </div>
-                </div>
+                    {' · '}<b style={{ color: '#C4B5FD' }}>{ANIMATIONS.find(a => a.id === selectedAnimation)?.name}</b>
+                    {' · '}<b style={{ color: '#C4B5FD' }}>{trimEnd - trimStart}s</b>
+                  </div>                </div>
                 <button
                   onClick={() => startExport(selectedClip)}
                   className="shimmer-btn"
