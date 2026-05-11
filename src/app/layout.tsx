@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 
@@ -18,16 +18,22 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { dark } from '@clerk/themes';
 import { Toaster } from 'react-hot-toast';
 
+export const viewport: Viewport = {
+  themeColor: '#0A0A0F',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
-  title: "Vesper | Cinematic Kingdom Media",
-  description: "Neural-powered sermon harvesting and social media kit generation.",
+  title: 'Vesper | Neural Sermon Harvesting',
+  description: 'Transform your ministry into viral cinematic reels with AI-driven sermon harvesting.',
+  manifest: '/manifest.webmanifest',
   icons: {
     icon: '/favicon.png',
     apple: '/vesper-logo.png',
   },
-  manifest: '/manifest.webmanifest',
-  themeColor: '#8B5CF6',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
 };
 
 export default function RootLayout({
