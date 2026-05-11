@@ -132,6 +132,24 @@ function ResultsContent() {
   const [showYTDesc, setShowYTDesc] = useState(false);
   const [showTour, setShowTour] = useState(false);
 
+  // Caption overrides — user edits per clip in Studio
+  const [captionOverrides, setCaptionOverrides] = useState<{ [key: number]: string }>({});
+
+  // Brand Kit — persisted in localStorage
+  const loadBrandKit = () => {
+    try {
+      const saved = localStorage.getItem('vesper-brand-kit');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  };
+  const saveBrandKit = (kit: { template: string; filter: string; font: string; animation: string }) => {
+    localStorage.setItem('vesper-brand-kit', JSON.stringify(kit));
+    toast.success('Brand kit saved as default! ✦');
+  };
+
+
+
   // Core Asset State
   const [thumbnails, setThumbnails] = useState<{ [key: number]: { status: string; url?: string } }>({});
   const ANIMATIONS = [
@@ -225,7 +243,12 @@ function ResultsContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           jobId, 
-          clip: { ...clip, start: trimStart || clip.start, end: trimEnd || clip.end },
+          clip: { 
+            ...clip, 
+            start: trimStart || clip.start, 
+            end: trimEnd || clip.end,
+            suggested_captions: captionOverrides[index] ? [captionOverrides[index]] : clip.suggested_captions
+          },
           index,
           template: selectedTemplate,
           filter: selectedFilter,
@@ -470,6 +493,13 @@ function ResultsContent() {
                       style={{ width: '100%', height: '80px', objectFit: 'cover', display: 'block' }} 
                     />
                   </div>
+                ) : thumbnails[i]?.status === 'error' ? (
+                  <button
+                    onClick={() => { setActiveThumbnailClip({ ...clip, index: i }); setThumbPrompt(clip.hook_title); }}
+                    style={{ width: '100%', marginBottom: '12px', padding: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', color: '#EF4444', fontSize: '10px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.08em' }}
+                  >
+                    ⚠ THUMBNAIL FAILED — RETRY
+                  </button>
                 ) : (
                   <button
                     onClick={() => { setActiveThumbnailClip({ ...clip, index: i }); setThumbPrompt(clip.hook_title); }}
@@ -501,6 +531,10 @@ function ResultsContent() {
                   <a href={rendering[i].url} download target="_blank" className="shimmer-btn" style={{ display: 'block', width: '100%', textAlign: 'center', background: 'linear-gradient(90deg, #10B981, #34D399)', textDecoration: 'none', padding: '14px' }}>
                     DOWNLOAD REEL
                   </a>
+                ) : rendering[i]?.status === 'error' ? (
+                  <button onClick={() => startExport({ ...clip, index: i })} className="shimmer-btn" style={{ width: '100%', padding: '14px', background: 'linear-gradient(90deg, #EF4444, #B91C1C)', animation: 'none' }}>
+                    ⚠ RENDER FAILED — RETRY
+                  </button>
                 ) : (
                   <button onClick={() => handleCustomize(clip, i)} className="shimmer-btn" style={{ width: '100%', padding: '14px' }}>
                     CUSTOMIZE REEL
@@ -800,13 +834,22 @@ function ResultsContent() {
                     {' · '}<b style={{ color: '#C4B5FD' }}>{ANIMATIONS.find(a => a.id === selectedAnimation)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{trimEnd - trimStart}s</b>
                   </div>                </div>
-                <button
-                  onClick={() => startExport(selectedClip)}
-                  className="shimmer-btn"
-                  style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}
-                >
-                  CONFIRM & EXPORT
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => saveBrandKit({ template: selectedTemplate, filter: selectedFilter, font: selectedFont, animation: selectedAnimation })}
+                    style={{ width: '48px', flexShrink: 0, padding: '16px 0', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', cursor: 'pointer', fontSize: '14px' }}
+                    title="Save as Default Brand Kit"
+                  >
+                    💾
+                  </button>
+                  <button
+                    onClick={() => startExport(selectedClip)}
+                    className="shimmer-btn"
+                    style={{ flex: 1, padding: '16px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}
+                  >
+                    CONFIRM & EXPORT
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -862,8 +905,26 @@ function ResultsContent() {
                 </div>
               </div>
 
+              {/* Caption Edit — below phone */}
+              <div style={{ width: '100%', maxWidth: 'min(320px, 45vh)', marginTop: '16px' }}>
+                <div style={{ fontSize: '9px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '8px', textAlign: 'center' }}>EDIT CAPTION</div>
+                <textarea
+                  value={captionOverrides[selectedClip?.index] ?? (selectedClip?.suggested_captions?.[0] || selectedClip?.main_quote || '')}
+                  onChange={e => setCaptionOverrides(prev => ({ ...prev, [selectedClip.index]: e.target.value }))}
+                  rows={3}
+                  style={{
+                    width: '100%', background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px',
+                    padding: '12px 14px', color: '#fff', fontSize: '12px',
+                    lineHeight: 1.5, resize: 'none', fontFamily: 'inherit',
+                    outline: 'none',
+                  }}
+                  placeholder="Edit caption before exporting..."
+                />
+              </div>
+              
               {/* Format badges below phone */}
-              <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
                 {['9:16 Vertical', '1080p', 'MP4'].map(label => (
                   <div key={label} style={{ padding: '5px 12px', borderRadius: '99px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '9px', fontWeight: 800, color: '#71717A', letterSpacing: '0.1em' }}>
                     {label}
