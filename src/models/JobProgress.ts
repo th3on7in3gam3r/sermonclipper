@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const JobProgressSchema = new mongoose.Schema({
   jobId: { type: String, required: true, unique: true },
+  userId: { type: String, required: false },
   step: { type: String, default: 'Initializing' },
   status: { type: String, enum: ['pending', 'loading', 'completed', 'error'], default: 'pending' },
   message: { type: String, default: '' },

@@ -25,7 +25,7 @@ export default function Home() {
       const res = await fetch('/api/download-youtube', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, jobId: newJobId }),
+        body: JSON.stringify({ url, jobId: newJobId, userId }),
       });
       
       if (!res.ok) {

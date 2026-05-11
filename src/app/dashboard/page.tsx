@@ -11,6 +11,14 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const getYoutubeId = (url: string) => {
+    try {
+      if (url.includes('youtube.com')) return new URL(url).searchParams.get('v');
+      if (url.includes('youtu.be')) return url.split('/').pop()?.split('?')[0];
+    } catch { return null; }
+    return null;
+  };
+
   useEffect(() => {
     if (isLoaded && !userId) {
       router.push('/');
@@ -83,7 +91,17 @@ export default function Dashboard() {
               >
                 <div className="clip-card animate-up" style={{ height: '100%', transition: 'transform 0.3s ease' }}>
                   <div className="clip-preview" style={{ height: '200px', background: 'rgba(139, 92, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ fontSize: '40px', opacity: 0.2, fontWeight: 900 }}>VESPER</div>
+                    {getYoutubeId(sermon.videoUrl || '') ? (
+                      <img 
+                        src={`https://img.youtube.com/vi/${getYoutubeId(sermon.videoUrl || '')}/maxresdefault.jpg`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
+                        alt="Sermon Thumbnail"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div style={{ fontSize: '40px', opacity: 0.2, fontWeight: 900 }}>VESPER</div>
+                    )}
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #111114, transparent)' }} />
                     <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: '99px', fontSize: '10px', color: '#8B5CF6', fontWeight: 800 }}>
                       {sermon.analysis?.clips?.length || 0} CLIPS
                     </div>

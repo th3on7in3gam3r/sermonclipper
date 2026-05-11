@@ -11,6 +11,7 @@ export interface ProgressUpdate {
   r2Url?: string;
   finalPath?: string;
   analysis?: any;
+  userId?: string;
 }
 
 class ProgressManager {
