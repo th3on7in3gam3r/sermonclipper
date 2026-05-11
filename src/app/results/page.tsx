@@ -419,9 +419,8 @@ function ResultsContent() {
                 ) : thumbnails[i]?.status === 'done' && thumbnails[i]?.url ? (
                   <a href={thumbnails[i].url} target="_blank" rel="noreferrer" style={{ display: 'block', marginBottom: '12px', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
                     <img 
-                      src={thumbnails[i].url} 
+                      src={`/api/proxy-image?url=${encodeURIComponent(thumbnails[i].url)}`} 
                       alt="Neural Thumbnail" 
-                      referrerPolicy="no-referrer"
                       loading="lazy"
                       style={{ width: '100%', height: '80px', objectFit: 'cover', display: 'block' }} 
                     />
