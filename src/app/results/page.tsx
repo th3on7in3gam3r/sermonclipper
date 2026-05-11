@@ -275,19 +275,16 @@ function ResultsContent() {
   };
 
   return (
-    <div className="animate-up" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
-      {/* Cinematic Navigation */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.8)', backdropFilter: 'blur(30px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+    <div style={{ width: '100%' }}>
+      {/* Navigation — Fixed 64px height */}
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '64px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.95)', backdropFilter: 'blur(30px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <div style={{ fontSize: '15px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>
-            VESPER
-          </div>
+          <div style={{ fontSize: '13px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
         </Link>
-
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
           {isLoaded && userId ? (
             <>
-              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '12px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>ARCHIVE</Link>
+              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>ARCHIVE</Link>
               <UserButton />
             </>
           ) : (
@@ -298,29 +295,31 @@ function ResultsContent() {
         </div>
       </header>
 
-      {/* Hero Metadata Section */}
-      <div className="glass-panel" style={{ padding: '48px 40px', marginTop: '100px', marginBottom: '48px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 0, right: 0, width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)', zIndex: 0 }} />
-        
+      {/* Main Content Wrapper with PaddingTop to clear fixed header */}
+      <div style={{ paddingTop: '64px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 32px' }}>
+
+          {/* Hero Metadata Section — 32px MarginTop */}
+          <div className="glass-panel" style={{ padding: '40px', marginTop: '32px', marginBottom: '40px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 0, right: 0, width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '24px' }}>
-            <div style={{ flex: 1, minWidth: '300px' }}>
-              <h1 style={{ fontSize: 'clamp(32px, 5vw, 64px)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', lineHeight: 1 }}>
-                {analysis?.sermon_title || 'PROCESSING...'} <br/>
+            <div style={{ flex: 1, minWidth: '280px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '99px', marginBottom: '16px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#8B5CF6', boxShadow: '0 0 6px #8B5CF6' }} />
+                <span style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em' }}>MEDIA KIT READY</span>
+              </div>
+              <h1 style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '12px' }}>
+                {analysis?.sermon_title || 'PROCESSING...'}{' '}
                 <span style={{ color: '#8B5CF6' }}>RESULTS</span>
               </h1>
-              <p style={{ color: '#A1A1AA', fontSize: '18px', marginTop: '20px', maxWidth: '600px', lineHeight: 1.6 }}>
+              <p style={{ color: '#A1A1AA', fontSize: '15px', maxWidth: '560px', lineHeight: 1.6 }}>
                 {analysis?.main_theme || 'Harvesting deep insights from your sermon session...'}
               </p>
             </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '240px' }}>
-              <button onClick={handleCopy} className="shimmer-btn" style={{ width: '100%', padding: '16px' }}>
-                COPY SESSION LINK
-              </button>
-              <a href={videoUrl || '#'} download className="glass-panel" style={{ width: '100%', padding: '16px', textAlign: 'center', textDecoration: 'none', color: '#fff', fontSize: '12px', fontWeight: 800, letterSpacing: '0.1em', background: 'rgba(255,255,255,0.05)', borderRadius: '16px' }}>
-                DOWNLOAD MASTER
-              </a>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: '200px' }}>
+              <button onClick={handleCopy} className="shimmer-btn" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>COPY SESSION LINK</button>
+              <a href={videoUrl || '#'} download className="glass-panel" style={{ width: '100%', padding: '14px', textAlign: 'center', textDecoration: 'none', color: '#fff', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)', borderRadius: '14px', display: 'block' }}>DOWNLOAD MASTER</a>
             </div>
           </div>
         </div>
@@ -493,13 +492,16 @@ function ResultsContent() {
       </div>
 
       {/* PWA / Link Footer */}
-      <footer style={{ padding: '80px 0', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.2em', opacity: 0.5 }}>
+      <footer style={{ padding: '60px 0', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.2em', opacity: 0.4 }}>
           <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>PRIVACY</Link>
           <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>TERMS</Link>
           <span style={{ color: '#fff' }}>© 2026 VESPER</span>
         </div>
       </footer>
+
+      </div>{/* end inner max-width */}
+      </div>{/* end paddingTop wrapper */}
 
       {showCarouselModal && carouselData && (
         <CarouselModal data={carouselData} onClose={() => setShowCarouselModal(false)} />
@@ -537,41 +539,41 @@ function ResultsContent() {
         </div>
       )}
 
-      {/* Vesper Studio Overlay */}
+      {/* Vesper Studio Overlay — Professional 3-Panel Suite */}
       {selectedClip && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#050508', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1)' }}>
 
-          {/* Studio Top Bar */}
-          <div style={{ height: '56px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', background: 'rgba(10,10,15,0.95)', borderBottom: '1px solid rgba(255,255,255,0.07)', zIndex: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#8B5CF6', boxShadow: '0 0 8px #8B5CF6' }} />
-              <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.35em', color: '#fff' }}>VESPER STUDIO</span>
-              <span style={{ fontSize: '10px', color: '#52525B', letterSpacing: '0.1em' }}>— {selectedClip.hook_title || 'Clip'}</span>
+          {/* Top Bar — Global Controls */}
+          <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', background: 'rgba(10,10,15,0.98)', borderBottom: '1px solid rgba(255,255,255,0.06)', zIndex: 50 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8B5CF6', boxShadow: '0 0 12px #8B5CF6' }} />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER STUDIO</span>
+                <span style={{ fontSize: '9px', color: '#52525B', letterSpacing: '0.1em' }}>Neural Editing Phase — 9:16 Vertical</span>
+              </div>
             </div>
             <button
               onClick={() => setSelectedClip(null)}
-              style={{ width: '30px', height: '30px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >✕</button>
+              style={{ padding: '8px 20px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', transition: 'all 0.2s' }}
+            >✕ CLOSE STUDIO</button>
           </div>
 
-          {/* Studio Body */}
-          <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+          <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-            {/* Left Panel: Tools */}
-            <div style={{ width: '320px', flexShrink: 0, background: 'rgba(10,10,15,0.9)', borderRight: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* PANEL 1: LEFT SIDEBAR (Tools & Tabs) */}
+            <div style={{ width: '280px', flexShrink: 0, background: '#0A0A0F', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column' }}>
 
-              {/* Tab Bar */}
-              <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
+              <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 {['templates', 'filters', 'fonts', 'motion'].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     style={{
-                      flex: 1, padding: '14px 4px', background: 'none', border: 'none',
+                      flex: 1, padding: '16px 4px', background: 'none', border: 'none',
                       color: activeTab === tab ? '#fff' : '#52525B',
-                      fontSize: '9px', fontWeight: 800, cursor: 'pointer',
+                      fontSize: '9px', fontWeight: 900, cursor: 'pointer',
                       borderBottom: activeTab === tab ? '2px solid #8B5CF6' : '2px solid transparent',
-                      transition: 'all 0.2s', letterSpacing: '0.06em',
+                      transition: 'all 0.2s', letterSpacing: '0.08em'
                     }}
                   >{tab.toUpperCase()}</button>
                 ))}
@@ -758,63 +760,52 @@ function ResultsContent() {
               </div>
             </div>
 
-            {/* Center: Video Preview — properly centered for 13" screens */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#050508', position: 'relative', overflow: 'hidden', padding: '24px' }}>
-
-              {/* Ambient glow */}
-              <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
-
-              {/* Phone mockup — sized to fit 13" screen */}
-              <div style={{
-                width: 'min(260px, 38vh)',
-                aspectRatio: '9/16',
-                background: '#000',
-                borderRadius: '32px',
-                overflow: 'hidden',
-                boxShadow: '0 0 80px rgba(139,92,246,0.12), 0 40px 80px rgba(0,0,0,0.6)',
+            {/* PANEL 2: CENTER (Cinematic Preview) */}
+            <div style={{ flex: 1, position: 'relative', background: '#050508', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
+              <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
+              
+              {/* Phone Mockup Wrapper */}
+              <div style={{ 
+                width: 'min(320px, 45vh)', 
+                aspectRatio: '9/16', 
+                background: '#000', 
+                borderRadius: '40px', 
+                border: '8px solid #18181B', 
+                boxShadow: '0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
                 position: 'relative',
-                border: '8px solid rgba(255,255,255,0.06)',
-                flexShrink: 0,
+                overflow: 'hidden',
+                zIndex: 10
               }}>
-                {/* Lens flare */}
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '60px', background: 'linear-gradient(to bottom, rgba(139,92,246,0.08), transparent)', zIndex: 5, pointerEvents: 'none' }} />
+                {videoId ? (
+                  <iframe
+                    style={{ width: '100%', height: '100%', border: 'none', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
+                    src={`https://www.youtube.com/embed/${videoId}?start=${trimStart}&end=${trimEnd}&autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0`}
+                    allow="autoplay"
+                  />
+                ) : videoUrl && (
+                  <video 
+                    src={`${videoUrl}#t=${trimStart},${trimEnd}`}
+                    autoPlay muted loop playsInline
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
+                  />
+                )}
 
-                {/* Video with filter applied */}
-                <iframe
-                  src={`https://www.youtube.com/embed/${videoId}?start=${parseTime(selectedClip.start)}&autoplay=1&controls=0&modestbranding=1&rel=0&mute=0`}
-                  style={{
-                    width: '100%', height: '100%', border: 'none',
-                    position: 'absolute', top: '50%', left: '50%',
-                    transform: 'translate(-50%, -50%) scale(1.6)',
-                    filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none',
-                  }}
-                  allow="autoplay; encrypted-media"
-                />
-
-                {/* Live caption overlay */}
-                <div style={{ position: 'absolute', bottom: '12%', left: 0, right: 0, padding: '0 16px', textAlign: 'center', zIndex: 10 }}>
+                {/* Caption Overlay Preview */}
+                <div style={{ position: 'absolute', bottom: '25%', left: '10%', right: '10%', zIndex: 20 }}>
                   <div style={{
-                    background: 'rgba(0,0,0,0.65)',
-                    backdropFilter: 'blur(12px)',
-                    padding: '12px 16px',
-                    borderRadius: '12px',
+                    textAlign: 'center',
                     color: TEMPLATES.find(t => t.id === selectedTemplate)?.color || '#fff',
-                    fontSize: '13px',
-                    fontWeight: FONTS.find(f => f.id === selectedFont)?.weight || 900,
-                    fontStyle: TEMPLATES.find(t => t.id === selectedTemplate)?.fontStyle || 'normal',
                     fontFamily: FONTS.find(f => f.id === selectedFont)?.family || 'inherit',
+                    fontWeight: FONTS.find(f => f.id === selectedFont)?.weight || 900,
+                    fontSize: '18px',
                     textShadow: TEMPLATES.find(t => t.id === selectedTemplate)?.textShadow || 'none',
+                    fontStyle: TEMPLATES.find(t => t.id === selectedTemplate)?.fontStyle || 'normal',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    lineHeight: 1.3,
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    lineHeight: 1.2
                   }}>
-                    {selectedClip.suggested_captions?.[0] || selectedClip.main_quote || 'Caption Preview'}
+                    {selectedClip.suggested_captions?.[0] || selectedClip.main_quote}
                   </div>
                 </div>
-
-                {/* Notch */}
-                <div style={{ position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)', width: '60px', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '99px', zIndex: 20 }} />
               </div>
 
               {/* Format badges below phone */}
@@ -827,6 +818,55 @@ function ResultsContent() {
               </div>
             </div>
 
+            {/* PANEL 3: RIGHT SIDEBAR (Clip Meta & Export) */}
+            <div style={{ width: '300px', flexShrink: 0, background: '#0A0A0F', borderLeft: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', padding: '24px' }}>
+              <div style={{ marginBottom: '32px' }}>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '8px' }}>CLIP METADATA</div>
+                <h3 style={{ fontSize: '18px', fontWeight: 900, lineHeight: 1.2, marginBottom: '16px' }}>{selectedClip.hook_title}</h3>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div className="glass-panel" style={{ padding: '12px', background: 'rgba(255,255,255,0.02)' }}>
+                    <div style={{ fontSize: '9px', color: '#52525B', marginBottom: '4px' }}>START</div>
+                    <div style={{ fontSize: '12px', fontWeight: 800 }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')}</div>
+                  </div>
+                  <div className="glass-panel" style={{ padding: '12px', background: 'rgba(255,255,255,0.02)' }}>
+                    <div style={{ fontSize: '9px', color: '#52525B', marginBottom: '4px' }}>DURATION</div>
+                    <div style={{ fontSize: '12px', fontWeight: 800 }}>{trimEnd - trimStart}s</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '12px' }}>SOCIAL KIT</div>
+                {PLATFORMS.map((p, pi) => {
+                   const caption = selectedClip.suggested_captions?.[pi] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote || '';
+                   return (
+                     <button key={p.id} onClick={() => { navigator.clipboard.writeText(`${p.prefix}${caption}`); toast.success(`${p.label} caption copied!`); }} style={{ 
+                       width: '100%', marginBottom: '8px', padding: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', 
+                       borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', transition: 'all 0.2s' 
+                     }}>
+                       <span style={{ fontSize: '16px' }}>{p.icon}</span>
+                       <div style={{ textAlign: 'left' }}>
+                         <div style={{ fontSize: '10px', fontWeight: 800 }}>{p.label}</div>
+                         <div style={{ fontSize: '9px', color: '#52525B' }}>Copy Optimized Caption</div>
+                       </div>
+                     </button>
+                   );
+                })}
+              </div>
+
+              <div style={{ marginTop: 'auto' }}>
+                <div style={{ padding: '20px', borderRadius: '16px', background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.2)', marginBottom: '16px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em', marginBottom: '4px' }}>ACTIVE PROFILE</div>
+                  <div style={{ fontSize: '12px', fontWeight: 700 }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</div>
+                  <div style={{ fontSize: '10px', color: '#52525B' }}>{FILTERS.find(f => f.id === selectedFilter)?.name} Atmos</div>
+                </div>
+                <button onClick={() => startExport(selectedClip)} className="shimmer-btn" style={{ width: '100%', padding: '18px', fontSize: '12px' }}>
+                  CONFIRM & EXPORT
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
@@ -834,16 +874,16 @@ function ResultsContent() {
   );
 }
 
-function ToolCard({ title, desc, onClick, loading }: any) {
+function ToolCard({ title, desc, onClick, loading }: { title: string; desc: string; onClick?: () => void; loading?: boolean }) {
   return (
-    <div className="glass-panel" style={{ padding: '40px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '20px', transition: 'all 0.3s' }}>
-      <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#fff' }}>{title}</h3>
-      <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.6, flex: 1 }}>{desc}</p>
-      <button 
-        onClick={onClick} 
-        disabled={loading}
-        className="shimmer-btn" 
-        style={{ width: '100%', padding: '12px', fontSize: '11px', opacity: loading ? 0.7 : 1 }}
+    <div className="glass-panel" style={{ padding: '36px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '16px', transition: 'all 0.3s', cursor: onClick ? 'pointer' : 'default' }}>
+      <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#fff' }}>{title}</h3>
+      <p style={{ fontSize: '14px', color: '#A1A1AA', lineHeight: 1.6, flex: 1 }}>{desc}</p>
+      <button
+        onClick={onClick}
+        disabled={loading || !onClick}
+        className="shimmer-btn"
+        style={{ width: '100%', padding: '12px', fontSize: '11px', opacity: (loading || !onClick) ? 0.5 : 1, cursor: onClick ? 'pointer' : 'not-allowed' }}
       >
         {loading ? 'GENERATING...' : `ACTIVATE ${title.toUpperCase()}`}
       </button>
@@ -851,35 +891,28 @@ function ToolCard({ title, desc, onClick, loading }: any) {
   );
 }
 
-function CarouselModal({ data, onClose }: any) {
+function CarouselModal({ data, onClose }: { data: { slides: { slide_number: number; heading: string; content: string }[]; post_caption: string }; onClose: () => void }) {
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(20px)', zIndex: 10000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-      <div className="animate-up glass-panel" style={{ padding: '60px', width: '100%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '48px' }}>
-          <h2 style={{ fontSize: '32px', fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>Kingdom <span style={{ color: '#8B5CF6' }}>Carousel</span></h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '32px', cursor: 'pointer', opacity: 0.5 }}>✕</button>
+      <div className="animate-up glass-panel" style={{ padding: '48px', width: '100%', maxWidth: '860px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+          <h2 style={{ fontSize: '28px', fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>Kingdom <span style={{ color: '#8B5CF6' }}>Carousel</span></h2>
+          <button onClick={onClose} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px' }}>✕</button>
         </div>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', marginBottom: '48px' }}>
-          {data.slides.map((slide: any) => (
-            <div key={slide.slide_number} className="glass-panel" style={{ padding: '32px', background: 'rgba(255,255,255,0.03)' }}>
-              <div style={{ fontSize: '10px', color: '#8B5CF6', fontWeight: 900, marginBottom: '16px', letterSpacing: '0.2em' }}>SLIDE {slide.slide_number}</div>
-              <h4 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '16px', lineHeight: 1.2 }}>{slide.heading}</h4>
-              <p style={{ fontSize: '14px', color: '#A1A1AA', lineHeight: 1.6 }}>{slide.content}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '40px' }}>
+          {data.slides.map((slide) => (
+            <div key={slide.slide_number} className="glass-panel" style={{ padding: '28px', background: 'rgba(255,255,255,0.03)' }}>
+              <div style={{ fontSize: '9px', color: '#8B5CF6', fontWeight: 900, marginBottom: '12px', letterSpacing: '0.2em' }}>SLIDE {slide.slide_number}</div>
+              <h4 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '12px', lineHeight: 1.2 }}>{slide.heading}</h4>
+              <p style={{ fontSize: '13px', color: '#A1A1AA', lineHeight: 1.6 }}>{slide.content}</p>
             </div>
           ))}
         </div>
-
-        <div className="glass-panel" style={{ padding: '40px', background: 'rgba(139, 92, 246, 0.05)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-          <h4 style={{ fontSize: '12px', fontWeight: 900, marginBottom: '16px', color: '#8B5CF6', letterSpacing: '0.2em' }}>OPTIMIZED CAPTION</h4>
-          <p style={{ fontSize: '15px', color: '#fff', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.post_caption}</p>
-          <button 
-            onClick={() => {
-              navigator.clipboard.writeText(data.post_caption);
-              toast.success('Caption copied!');
-            }}
-            className="shimmer-btn" style={{ marginTop: '32px', padding: '16px 32px', fontSize: '12px' }}
-          >
+        <div className="glass-panel" style={{ padding: '32px', background: 'rgba(139, 92, 246, 0.05)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+          <h4 style={{ fontSize: '11px', fontWeight: 900, marginBottom: '14px', color: '#8B5CF6', letterSpacing: '0.2em' }}>OPTIMIZED CAPTION</h4>
+          <p style={{ fontSize: '14px', color: '#fff', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.post_caption}</p>
+          <button onClick={() => { navigator.clipboard.writeText(data.post_caption); toast.success('Caption copied!'); }}
+            className="shimmer-btn" style={{ marginTop: '24px', padding: '14px 28px', fontSize: '11px' }}>
             COPY CAPTION
           </button>
         </div>
