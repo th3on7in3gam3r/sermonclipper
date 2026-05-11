@@ -5,6 +5,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import VesperTour from '@/components/VesperTour';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
 const GOOGLE_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap';
 
@@ -129,6 +130,7 @@ function ResultsContent() {
 
   // YouTube description modal
   const [showYTDesc, setShowYTDesc] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   // Core Asset State
   const [thumbnails, setThumbnails] = useState<{ [key: number]: { status: string; url?: string } }>({});
@@ -319,6 +321,17 @@ function ResultsContent() {
           {isLoaded && userId ? (
             <>
               <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>ARCHIVE</Link>
+              <button
+                onClick={() => setShowTour(true)}
+                title="Open tutorial"
+                style={{
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)',
+                  color: '#8B5CF6', fontSize: '14px', fontWeight: 900,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.2s', flexShrink: 0,
+                }}
+              >?</button>
               <UserButton />
             </>
           ) : (
@@ -1057,6 +1070,8 @@ function ResultsContent() {
           </div>
         </div>
       )}
+      {/* Vesper Onboarding Tour */}
+      <VesperTour forceOpen={showTour} onClose={() => setShowTour(false)} />
     </div>
   );
 }
