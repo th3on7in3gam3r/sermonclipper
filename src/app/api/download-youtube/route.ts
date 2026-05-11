@@ -212,16 +212,60 @@ export async function POST(req: NextRequest) {
   const { url, jobId } = await req.json();
   if (!url || !jobId) return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
   
-  // On Vercel, we need to wait for the analysis to finish before sending response
-  // to ensure the job actually starts and makes progress.
+  // VERCEL-SAFE ARCHITECTURE:
+  // We MUST await the AI analysis in the main request. 
+  // Download/Upload will happen as a side-effect if time permits, 
+  // but the 'Brain' work is secured first.
+  
   try {
-    // We kick off the background pipeline but don't await the WHOLE thing
-    // (download takes too long). We just let it run. 
-    // IMPORTANT: Vercel might kill this. For a real fix, use a Queue.
-    runSermonPipeline(url, jobId, userId).catch(e => console.error('[Engine] Pipeline Error:', e));
+    // 1. Initial State
+    await progressManager.update(jobId, { 
+      step: 'Analysis', 
+      status: 'loading', 
+      message: 'Neural Engine: Harvesting viral spiritual moments...' 
+    });
+
+    // 2. Await AI BRAIN (This takes ~15-30s, safely under Vercel's 60s limit)
+    console.log(`[Engine] Starting Synchronous Analysis for ${jobId}`);
+    const analysisResult = await runOpenAIPrimary(url, jobId);
+    
+    // 3. Persist immediately to MongoDB
+    const connectDB = (await import('../../../lib/mongodb')).default;
+    const Sermon = (await import('../../../models/Sermon')).default;
+    await connectDB();
+    
+    await Sermon.findOneAndUpdate(
+      { jobId },
+      {
+        userId,
+        jobId,
+        title: analysisResult.sermon_title || 'Untitled Sermon',
+        mainTheme: analysisResult.main_theme || '',
+        videoUrl: url,
+        finalPath: url, // Use YT URL as fallback immediately
+        analysis: analysisResult,
+        createdAt: new Date()
+      },
+      { upsert: true }
+    );
+
+    // 4. Update progress to reflect success
+    await progressManager.update(jobId, { 
+      step: 'Analysis', 
+      status: 'completed', 
+      message: `✅ GPT-4o generated ${analysisResult?.clips?.length || 0} clips`,
+      finalPath: url,
+      analysis: analysisResult
+    });
+
+    // 5. Kick off download as a "Best Effort" background task
+    // It might finish, it might not, but the analysis is SAFE in the DB now.
+    runSermonPipeline(url, jobId, userId).catch(e => console.error('[Engine] BG Pipeline:', e));
     
     return NextResponse.json({ success: true, jobId });
-  } catch (e) {
-    return NextResponse.json({ error: 'Failed to start neural engine' }, { status: 500 });
+  } catch (e: any) {
+    console.error('[Engine] Synchronous Failure:', e);
+    await progressManager.update(jobId, { step: 'Analysis', status: 'error', message: `Neural Analysis Failed: ${e.message}` });
+    return NextResponse.json({ error: 'Neural Engine Timeout' }, { status: 500 });
   }
 }
