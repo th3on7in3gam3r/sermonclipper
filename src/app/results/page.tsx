@@ -78,17 +78,30 @@ function ResultsContent() {
   const [selectedFilter, setSelectedFilter] = useState('none');
 
   const TEMPLATES = [
-    { id: 'minimal', name: 'Minimalist Prophet', desc: 'Clean, modern subtitles', color: '#FFFF00' },
-    { id: 'cinematic', name: 'Cinematic Glory', desc: 'Epic overlays and deep shadows', color: '#FFFFFF' },
-    { id: 'modern', name: 'Modern Apostle', desc: 'Dynamic, fast-paced text', color: '#8B5CF6' }
+    { id: 'minimal', name: 'Minimalist Prophet', desc: 'Clean white subtitles, no background', color: '#FFFFFF', fontStyle: 'normal', textShadow: '0 2px 8px rgba(0,0,0,0.8)' },
+    { id: 'cinematic', name: 'Cinematic Glory', desc: 'Bold yellow, deep shadow overlay', color: '#FFFF00', fontStyle: 'italic', textShadow: '0 4px 20px rgba(0,0,0,1)' },
+    { id: 'modern', name: 'Modern Apostle', desc: 'Violet gradient, dynamic weight', color: '#C4B5FD', fontStyle: 'normal', textShadow: '0 0 30px rgba(139,92,246,0.6)' },
+    { id: 'fire', name: 'Holy Fire', desc: 'Amber glow, bold impact style', color: '#FCD34D', fontStyle: 'normal', textShadow: '0 0 20px rgba(251,146,60,0.8)' },
   ];
 
   const FILTERS = [
-    { id: 'none', name: 'Original', style: {} },
-    { id: 'vintage', name: 'Vintage Grace', style: { sepia: 0.5, contrast: 1.2 } },
-    { id: 'cold', name: 'Cold Truth', style: { saturate: 0.5, brightness: 1.1 } },
-    { id: 'warm', name: 'Warm Spirit', style: { sepia: 0.3, hueRotate: '15deg' } }
+    { id: 'none', name: 'Original', css: 'none', preview: 'bg-gradient-to-br from-zinc-700 to-zinc-900' },
+    { id: 'vintage', name: 'Vintage Grace', css: 'sepia(0.55) contrast(1.15) brightness(0.95)', preview: 'bg-gradient-to-br from-amber-900 to-yellow-800' },
+    { id: 'cold', name: 'Cold Truth', css: 'saturate(0.4) brightness(1.1) hue-rotate(200deg)', preview: 'bg-gradient-to-br from-blue-900 to-slate-700' },
+    { id: 'warm', name: 'Warm Spirit', css: 'sepia(0.3) saturate(1.4) hue-rotate(15deg)', preview: 'bg-gradient-to-br from-orange-900 to-red-800' },
+    { id: 'noir', name: 'Noir Prophet', css: 'grayscale(0.9) contrast(1.3)', preview: 'bg-gradient-to-br from-zinc-900 to-zinc-600' },
+    { id: 'glory', name: 'Glory Light', css: 'brightness(1.15) saturate(1.3) contrast(0.95)', preview: 'bg-gradient-to-br from-violet-800 to-purple-600' },
   ];
+
+  const FONTS = [
+    { id: 'outfit', name: 'Outfit', desc: 'Modern & clean', family: "'Outfit', sans-serif", weight: 900 },
+    { id: 'impact', name: 'Impact', desc: 'Bold & powerful', family: "Impact, 'Arial Narrow', sans-serif", weight: 900 },
+    { id: 'georgia', name: 'Georgia', desc: 'Classic & reverent', family: "Georgia, serif", weight: 700 },
+    { id: 'mono', name: 'Mono', desc: 'Technical & precise', family: "'Courier New', monospace", weight: 700 },
+    { id: 'serif', name: 'Playfair', desc: 'Elegant & editorial', family: "'Playfair Display', Georgia, serif", weight: 900 },
+  ];
+
+  const [selectedFont, setSelectedFont] = useState('outfit');
 
   const startExport = async (clip: any) => {
     const index = clip.index;
@@ -104,7 +117,8 @@ function ResultsContent() {
           clip, 
           index,
           template: selectedTemplate,
-          filter: selectedFilter 
+          filter: selectedFilter,
+          font: selectedFont,
         })
       });
       const data = await res.json();
@@ -200,7 +214,7 @@ function ResultsContent() {
       </header>
 
       {/* Hero Metadata Section */}
-      <div className="glass-panel" style={{ padding: '60px 40px', marginTop: '220px', marginBottom: '60px', position: 'relative', overflow: 'hidden' }}>
+      <div className="glass-panel" style={{ padding: '48px 40px', marginTop: '100px', marginBottom: '48px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: 0, right: 0, width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)', zIndex: 0 }} />
         
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -337,170 +351,222 @@ function ResultsContent() {
 
       {/* Vesper Studio Overlay */}
       {selectedClip && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#000', display: 'flex', animation: 'fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-          {/* Neural Background Gradients */}
-          <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)', zIndex: 0 }} />
-          <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)', zIndex: 0 }} />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#050508', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1)' }}>
 
-          {/* Left Sidebar: Cinematic Tools */}
-          <div style={{ 
-            width: '380px', 
-            background: 'rgba(10, 10, 15, 0.8)', 
-            backdropFilter: 'blur(32px)', 
-            borderRight: '1px solid rgba(255,255,255,0.08)', 
-            display: 'flex', 
-            flexDirection: 'column',
-            position: 'relative',
-            zIndex: 10
-          }}>
-            <div style={{ padding: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8B5CF6', boxShadow: '0 0 10px #8B5CF6' }} />
-                <div style={{ fontSize: '12px', fontWeight: 900, letterSpacing: '0.3em', color: '#fff', fontFamily: 'var(--font-outfit)' }}>STUDIO</div>
-              </div>
-              <button 
-                onClick={() => setSelectedClip(null)} 
-                className="glass-panel"
-                style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', transition: 'all 0.2s' }}
-              >✕</button>
+          {/* Studio Top Bar */}
+          <div style={{ height: '56px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', background: 'rgba(10,10,15,0.95)', borderBottom: '1px solid rgba(255,255,255,0.07)', zIndex: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#8B5CF6', boxShadow: '0 0 8px #8B5CF6' }} />
+              <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.35em', color: '#fff' }}>VESPER STUDIO</span>
+              <span style={{ fontSize: '10px', color: '#52525B', letterSpacing: '0.1em' }}>— {selectedClip.hook_title || 'Clip'}</span>
             </div>
-
-            <div style={{ display: 'flex', padding: '0 20px', marginBottom: '20px' }}>
-              {['templates', 'filters', 'fonts'].map(tab => (
-                <button 
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  style={{ 
-                    flex: 1, padding: '14px', background: 'none', border: 'none', 
-                    color: activeTab === tab ? '#fff' : '#52525B', fontSize: '11px', 
-                    fontWeight: 800, cursor: 'pointer', borderBottom: activeTab === tab ? '2px solid #8B5CF6' : '2px solid transparent',
-                    transition: 'all 0.3s', fontFamily: 'var(--font-outfit)', letterSpacing: '0.05em'
-                  }}
-                >
-                  {tab.toUpperCase()}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {activeTab === 'templates' && TEMPLATES.map(t => (
-                <div 
-                  key={t.id} 
-                  onClick={() => setSelectedTemplate(t.id)}
-                  className="glass-card" 
-                  style={{ 
-                    padding: '20px', 
-                    background: selectedTemplate === t.id ? 'rgba(139, 92, 246, 0.1)' : 'rgba(255,255,255,0.03)', 
-                    border: selectedTemplate === t.id ? '1px solid #8B5CF6' : '1px solid rgba(255,255,255,0.08)', 
-                    borderRadius: '16px', 
-                    cursor: 'pointer',
-                    transition: 'all 0.3s'
-                  }}
-                >
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '6px', fontFamily: 'var(--font-outfit)' }}>{t.name}</div>
-                  <div style={{ fontSize: '11px', color: '#71717A', lineHeight: 1.5 }}>{t.desc}</div>
-                </div>
-              ))}
-
-              {activeTab === 'filters' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  {FILTERS.map(f => (
-                    <div 
-                      key={f.id} 
-                      onClick={() => setSelectedFilter(f.id)}
-                      className="glass-card"
-                      style={{ 
-                        aspectRatio: '1', 
-                        background: selectedFilter === f.id ? 'rgba(139, 92, 246, 0.1)' : 'rgba(255,255,255,0.03)', 
-                        border: selectedFilter === f.id ? '1px solid #8B5CF6' : '1px solid rgba(255,255,255,0.08)', 
-                        borderRadius: '16px', 
-                        display: 'flex', 
-                        flexDirection: 'column',
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        gap: '8px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(45deg, #8B5CF6, #D946EF)', opacity: selectedFilter === f.id ? 1 : 0.5 }} />
-                      <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff' }}>{f.name}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div style={{ padding: '32px', background: 'rgba(0,0,0,0.4)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-              <div style={{ marginBottom: '24px', padding: '16px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.1)' }}>
-                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em', marginBottom: '8px' }}>NEURAL REVIEW</div>
-                <div style={{ fontSize: '12px', color: '#fff', opacity: 0.8 }}>
-                  Ready to export with <b>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b> and <b>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>.
-                </div>
-              </div>
-              <button 
-                onClick={() => startExport(selectedClip)}
-                className="shimmer-btn" 
-                style={{ width: '100%', padding: '20px', borderRadius: '16px', fontSize: '13px', fontWeight: 800 }}
-              >
-                CONFIRM & EXPORT
-              </button>
-            </div>
+            <button
+              onClick={() => setSelectedClip(null)}
+              style={{ width: '30px', height: '30px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >✕</button>
           </div>
 
-          {/* Center: Cinematic Video Preview */}
-          <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050508', overflow: 'hidden' }}>
-            <div style={{ 
-              width: '100%', 
-              maxWidth: '380px', 
-              aspectRatio: '9/16', 
-              background: '#000', 
-              borderRadius: '40px', 
-              overflow: 'hidden', 
-              boxShadow: '0 0 200px rgba(139, 92, 246, 0.15), 0 0 50px rgba(0,0,0,0.5)', 
-              position: 'relative',
-              border: '12px solid rgba(255,255,255,0.04)',
-              animation: 'slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
-            }}>
-              {/* Cinematic Lens Flare Overlay */}
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100px', background: 'linear-gradient(to bottom, rgba(139, 92, 246, 0.1), transparent)', zIndex: 5, pointerEvents: 'none' }} />
+          {/* Studio Body */}
+          <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
 
-              <iframe
-                src={`https://www.youtube.com/embed/${videoId}?start=${parseTime(selectedClip.start)}&end=${parseTime(selectedClip.end)}&autoplay=1&controls=0&modestbranding=1&rel=0`}
-                style={{ 
-                  width: '100%', height: '100%', border: 'none', position: 'absolute', top: '50%', left: '50%', 
-                  transform: 'translate(-50%, -50%) scale(1.8)',
-                  filter: selectedFilter === 'vintage' ? 'sepia(0.5) contrast(1.2)' : 
-                          selectedFilter === 'cold' ? 'saturate(0.5) brightness(1.1)' :
-                          selectedFilter === 'warm' ? 'sepia(0.3) hue-rotate(15deg)' : 'none'
-                }}
-                allow="autoplay; encrypted-media"
-              />
+            {/* Left Panel: Tools */}
+            <div style={{ width: '320px', flexShrink: 0, background: 'rgba(10,10,15,0.9)', borderRight: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-              {/* Dynamic Captions Preview Overlay */}
-              <div style={{ position: 'absolute', bottom: '15%', left: 0, right: 0, padding: '0 40px', textAlign: 'center', zIndex: 10 }}>
-                <div style={{ 
-                  background: 'rgba(0,0,0,0.6)', 
-                  backdropFilter: 'blur(20px)', 
-                  padding: '20px', 
-                  borderRadius: '20px', 
-                  color: TEMPLATES.find(t => t.id === selectedTemplate)?.color || '#FFFF00', 
-                  fontSize: '22px', 
-                  fontWeight: 900, 
-                  textTransform: 'uppercase', 
-                  boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  fontFamily: 'var(--font-outfit)'
-                }}>
-                  {selectedClip.suggested_captions?.[0] || "Neural Word Preview"}
+              {/* Tab Bar */}
+              <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
+                {['templates', 'filters', 'fonts'].map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    style={{
+                      flex: 1, padding: '14px 8px', background: 'none', border: 'none',
+                      color: activeTab === tab ? '#fff' : '#52525B',
+                      fontSize: '10px', fontWeight: 800, cursor: 'pointer',
+                      borderBottom: activeTab === tab ? '2px solid #8B5CF6' : '2px solid transparent',
+                      transition: 'all 0.2s', letterSpacing: '0.08em',
+                    }}
+                  >{tab.toUpperCase()}</button>
+                ))}
+              </div>
+
+              {/* Tab Content */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+                {/* TEMPLATES */}
+                {activeTab === 'templates' && TEMPLATES.map(t => (
+                  <div
+                    key={t.id}
+                    onClick={() => setSelectedTemplate(t.id)}
+                    style={{
+                      padding: '16px', borderRadius: '14px', cursor: 'pointer', transition: 'all 0.2s',
+                      background: selectedTemplate === t.id ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
+                      border: selectedTemplate === t.id ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
+                      display: 'flex', alignItems: 'center', gap: '14px',
+                    }}
+                  >
+                    {/* Color swatch */}
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0, background: `linear-gradient(135deg, ${t.color}33, ${t.color}88)`, border: `1px solid ${t.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: t.color }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#fff', marginBottom: '3px' }}>{t.name}</div>
+                      <div style={{ fontSize: '10px', color: '#71717A', lineHeight: 1.4 }}>{t.desc}</div>
+                    </div>
+                    {selectedTemplate === t.id && (
+                      <div style={{ marginLeft: 'auto', width: '18px', height: '18px', borderRadius: '50%', background: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* FILTERS */}
+                {activeTab === 'filters' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    {FILTERS.map(f => (
+                      <div
+                        key={f.id}
+                        onClick={() => setSelectedFilter(f.id)}
+                        style={{
+                          borderRadius: '14px', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s',
+                          border: selectedFilter === f.id ? '2px solid #8B5CF6' : '2px solid rgba(255,255,255,0.06)',
+                        }}
+                      >
+                        {/* Visual preview swatch */}
+                        <div style={{ height: '52px', background: f.preview.replace('bg-gradient-to-br ', ''), position: 'relative' }}
+                          className={f.preview}>
+                          {selectedFilter === f.id && (
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(139,92,246,0.3)' }}>
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ padding: '8px 10px', background: 'rgba(255,255,255,0.03)' }}>
+                          <div style={{ fontSize: '10px', fontWeight: 700, color: selectedFilter === f.id ? '#C4B5FD' : '#A1A1AA' }}>{f.name}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* FONTS */}
+                {activeTab === 'fonts' && FONTS.map(f => (
+                  <div
+                    key={f.id}
+                    onClick={() => setSelectedFont(f.id)}
+                    style={{
+                      padding: '16px', borderRadius: '14px', cursor: 'pointer', transition: 'all 0.2s',
+                      background: selectedFont === f.id ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
+                      border: selectedFont === f.id ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
+                      display: 'flex', alignItems: 'center', gap: '14px',
+                    }}
+                  >
+                    {/* Font preview */}
+                    <div style={{ width: '44px', height: '36px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontFamily: f.family, fontWeight: f.weight, fontSize: '16px', color: selectedFont === f.id ? '#C4B5FD' : '#fff' }}>Aa</span>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#fff', marginBottom: '3px', fontFamily: f.family }}>{f.name}</div>
+                      <div style={{ fontSize: '10px', color: '#71717A' }}>{f.desc}</div>
+                    </div>
+                    {selectedFont === f.id && (
+                      <div style={{ marginLeft: 'auto', width: '18px', height: '18px', borderRadius: '50%', background: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Export Footer */}
+              <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
+                <div style={{ marginBottom: '12px', padding: '12px 14px', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.12)' }}>
+                  <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.12em', marginBottom: '6px' }}>EXPORT SETTINGS</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+                    <b style={{ color: '#C4B5FD' }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b>
+                    {' · '}<b style={{ color: '#C4B5FD' }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>
+                    {' · '}<b style={{ color: '#C4B5FD' }}>{FONTS.find(f => f.id === selectedFont)?.name}</b>
+                  </div>
                 </div>
+                <button
+                  onClick={() => startExport(selectedClip)}
+                  className="shimmer-btn"
+                  style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}
+                >
+                  CONFIRM & EXPORT
+                </button>
               </div>
             </div>
 
-            {/* Scale/Format Controls Placeholder */}
-            <div style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '12px' }}>
-              <div className="glass-panel" style={{ padding: '8px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 800, color: '#A1A1AA' }}>9:16 VERTICAL</div>
-              <div className="glass-panel" style={{ padding: '8px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 800, color: '#A1A1AA' }}>1080p EXPORT</div>
+            {/* Center: Video Preview — properly centered for 13" screens */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#050508', position: 'relative', overflow: 'hidden', padding: '24px' }}>
+
+              {/* Ambient glow */}
+              <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+              {/* Phone mockup — sized to fit 13" screen */}
+              <div style={{
+                width: 'min(260px, 38vh)',
+                aspectRatio: '9/16',
+                background: '#000',
+                borderRadius: '32px',
+                overflow: 'hidden',
+                boxShadow: '0 0 80px rgba(139,92,246,0.12), 0 40px 80px rgba(0,0,0,0.6)',
+                position: 'relative',
+                border: '8px solid rgba(255,255,255,0.06)',
+                flexShrink: 0,
+              }}>
+                {/* Lens flare */}
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '60px', background: 'linear-gradient(to bottom, rgba(139,92,246,0.08), transparent)', zIndex: 5, pointerEvents: 'none' }} />
+
+                {/* Video with filter applied */}
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoId}?start=${parseTime(selectedClip.start)}&autoplay=1&controls=0&modestbranding=1&rel=0&mute=0`}
+                  style={{
+                    width: '100%', height: '100%', border: 'none',
+                    position: 'absolute', top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%) scale(1.6)',
+                    filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none',
+                  }}
+                  allow="autoplay; encrypted-media"
+                />
+
+                {/* Live caption overlay */}
+                <div style={{ position: 'absolute', bottom: '12%', left: 0, right: 0, padding: '0 16px', textAlign: 'center', zIndex: 10 }}>
+                  <div style={{
+                    background: 'rgba(0,0,0,0.65)',
+                    backdropFilter: 'blur(12px)',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    color: TEMPLATES.find(t => t.id === selectedTemplate)?.color || '#fff',
+                    fontSize: '13px',
+                    fontWeight: FONTS.find(f => f.id === selectedFont)?.weight || 900,
+                    fontStyle: TEMPLATES.find(t => t.id === selectedTemplate)?.fontStyle || 'normal',
+                    fontFamily: FONTS.find(f => f.id === selectedFont)?.family || 'inherit',
+                    textShadow: TEMPLATES.find(t => t.id === selectedTemplate)?.textShadow || 'none',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    lineHeight: 1.3,
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}>
+                    {selectedClip.suggested_captions?.[0] || selectedClip.main_quote || 'Caption Preview'}
+                  </div>
+                </div>
+
+                {/* Notch */}
+                <div style={{ position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)', width: '60px', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '99px', zIndex: 20 }} />
+              </div>
+
+              {/* Format badges below phone */}
+              <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
+                {['9:16 Vertical', '1080p', 'MP4'].map(label => (
+                  <div key={label} style={{ padding: '5px 12px', borderRadius: '99px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '9px', fontWeight: 800, color: '#71717A', letterSpacing: '0.1em' }}>
+                    {label}
+                  </div>
+                ))}
+              </div>
             </div>
+
           </div>
         </div>
       )}
