@@ -829,17 +829,21 @@ function ResultsContent() {
 
                 {/* Caption Overlay Preview */}
                 <div style={{ position: 'absolute', bottom: '25%', left: '10%', right: '10%', zIndex: 20 }}>
-                  <div style={{
-                    textAlign: 'center',
-                    color: TEMPLATES.find(t => t.id === selectedTemplate)?.color || '#fff',
-                    fontFamily: FONTS.find(f => f.id === selectedFont)?.family || 'inherit',
-                    fontWeight: FONTS.find(f => f.id === selectedFont)?.weight || 900,
-                    fontSize: '18px',
-                    textShadow: TEMPLATES.find(t => t.id === selectedTemplate)?.textShadow || 'none',
-                    fontStyle: TEMPLATES.find(t => t.id === selectedTemplate)?.fontStyle || 'normal',
-                    textTransform: 'uppercase',
-                    lineHeight: 1.2
-                  }}>
+                  <div
+                    key={selectedAnimation}
+                    style={{
+                      textAlign: 'center',
+                      color: TEMPLATES.find(t => t.id === selectedTemplate)?.color || '#fff',
+                      fontFamily: FONTS.find(f => f.id === selectedFont)?.family || 'inherit',
+                      fontWeight: FONTS.find(f => f.id === selectedFont)?.weight || 900,
+                      fontSize: '18px',
+                      textShadow: TEMPLATES.find(t => t.id === selectedTemplate)?.textShadow || 'none',
+                      fontStyle: TEMPLATES.find(t => t.id === selectedTemplate)?.fontStyle || 'normal',
+                      textTransform: 'uppercase',
+                      lineHeight: 1.2,
+                      animation: `vesper-${selectedAnimation} 2.5s ease-in-out infinite`,
+                    }}
+                  >
                     {selectedClip.suggested_captions?.[0] || selectedClip.main_quote}
                   </div>
                 </div>

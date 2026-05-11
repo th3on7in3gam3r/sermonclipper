@@ -283,6 +283,37 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* --- Vesper Studio Caption Animations --- */
+/* These mirror the Shotstack transitions sent on export */
+
+@keyframes vesper-fade {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes vesper-slideUp {
+  0%   { opacity: 0; transform: translateY(24px); }
+  20%  { opacity: 1; transform: translateY(0); }
+  80%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes vesper-zoom {
+  0%   { opacity: 0; transform: scale(0.75); }
+  20%  { opacity: 1; transform: scale(1); }
+  80%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.08); }
+}
+
+@keyframes vesper-carve {
+  0%   { opacity: 1; clip-path: inset(0 100% 0 0); }
+  25%  { opacity: 1; clip-path: inset(0 0% 0 0); }
+  80%  { opacity: 1; clip-path: inset(0 0% 0 0); }
+  100% { opacity: 0; clip-path: inset(0 0% 0 0); }
+}
+
 /* --- Phase 4: Mobile Optimization --- */
 @media (max-width: 768px) {
   .hero-logo {
