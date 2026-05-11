@@ -129,11 +129,11 @@ function ResultsContent() {
   };
 
   return (
-    <div className="animate-up" style={{ width: '100%', maxWidth: '1200px', padding: '0 20px' }}>
-      {/* Global Navigation Header */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 60px', zIndex: 1000, background: 'transparent' }}>
+    <div className="animate-up" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Cinematic Navigation */}
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.5)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <div style={{ fontSize: '14px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff', opacity: 0.8 }}>
+          <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>
             VESPER
           </div>
         </Link>
@@ -141,43 +141,49 @@ function ResultsContent() {
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           {isLoaded && userId ? (
             <>
-              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA', marginRight: '8px' }}>Dashboard</Link>
-              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', backdropFilter: 'blur(10px)' }}>
-                <UserButton />
-              </div>
+              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA' }}>Archive</Link>
+              <UserButton />
             </>
           ) : (
             <SignInButton mode="modal">
-              <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', padding: '12px 32px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>Sign In</button>
+              <button className="shimmer-btn" style={{ padding: '10px 24px', fontSize: '12px' }}>Sign In</button>
             </SignInButton>
           )}
         </div>
       </header>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '64px', borderBottom: '1px solid #222228', paddingBottom: '32px', marginTop: '120px' }}>
-        <div>
-          <h1 style={{ fontSize: '48px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em' }}>
-            {analysis?.sermon_title || 'SERMON'} <span style={{ color: '#8B5CF6' }}>RESULTS</span>
-          </h1>
-          <p style={{ color: '#A1A1AA', fontSize: '18px', marginTop: '8px' }}>
-            {analysis?.main_theme || 'Neural harvesting complete. Clips are ready for social.'}
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', gap: '16px' }}>
-          <button onClick={handleCopy} className="platinum-btn" style={{ flex: 1 }}>
-            COPY SESSION LINK
-          </button>
-          <a href={videoUrl || '#'} download className="platinum-btn" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}>
-            DOWNLOAD MASTER
-          </a>
+      {/* Hero Metadata Section */}
+      <div className="glass-panel" style={{ padding: '60px 40px', marginTop: '140px', marginBottom: '60px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 0, right: 0, width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)', zIndex: 0 }} />
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '24px' }}>
+            <div style={{ flex: 1, minWidth: '300px' }}>
+              <h1 style={{ fontSize: 'clamp(32px, 5vw, 64px)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', lineHeight: 1 }}>
+                {analysis?.sermon_title || 'PROCESSING...'} <br/>
+                <span style={{ color: '#8B5CF6' }}>RESULTS</span>
+              </h1>
+              <p style={{ color: '#A1A1AA', fontSize: '18px', marginTop: '20px', maxWidth: '600px', lineHeight: 1.6 }}>
+                {analysis?.main_theme || 'Harvesting deep insights from your sermon session...'}
+              </p>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '240px' }}>
+              <button onClick={handleCopy} className="shimmer-btn" style={{ width: '100%', padding: '16px' }}>
+                COPY SESSION LINK
+              </button>
+              <a href={videoUrl || '#'} download className="glass-panel" style={{ width: '100%', padding: '16px', textAlign: 'center', textDecoration: 'none', color: '#fff', fontSize: '12px', fontWeight: 800, letterSpacing: '0.1em', background: 'rgba(255,255,255,0.05)', borderRadius: '16px' }}>
+                DOWNLOAD MASTER
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="dashboard-grid">
-        {/* Master Sermon */}
-        <div className="clip-card">
-          <div className="clip-preview" style={{ background: '#000' }}>
+      <div className="dashboard-grid" style={{ marginTop: '0' }}>
+        {/* Master Sermon Card */}
+        <div className="clip-card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className="clip-preview" style={{ background: '#000', borderRadius: '0' }}>
             {videoId ? (
               <iframe
                 style={{ width: '100%', height: '100%', border: 'none' }}
@@ -188,22 +194,22 @@ function ResultsContent() {
             ) : videoUrl && (
               <video src={videoUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             )}
-            <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(0,0,0,0.7)', padding: '4px 12px', borderRadius: '999px', fontSize: '10px' }}>FULL SESSION</div>
+            <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'rgba(139, 92, 246, 0.9)', color: '#fff', padding: '4px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em' }}>MASTER SESSION</div>
           </div>
           <div className="clip-info">
-            <h3>Master Sermon Session</h3>
-            <p>{analysis?.summary || 'High-resolution session capture.'}</p>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '12px' }}>Full Sermon Context</h3>
+            <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#A1A1AA' }}>{analysis?.summary || 'The complete cinematic capture of your ministry session.'}</p>
           </div>
         </div>
 
         {/* Generated Clips */}
         {analysis?.clips && analysis.clips.length > 0 ? (
           analysis.clips.map((clip: any, i: number) => (
-            <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.1}s` }}>
-              <div className="clip-preview" style={{ background: '#000', position: 'relative' }}>
+            <div key={i} className="clip-card animate-up" style={{ animationDelay: `${i * 0.1}s`, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="clip-preview" style={{ background: '#000', borderRadius: '0' }}>
                 {videoId ? (
                   <iframe
-                    style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', top: 0, left: 0 }}
+                    style={{ width: '100%', height: '100%', border: 'none' }}
                     src={`https://www.youtube.com/embed/${videoId}?start=${parseTime(clip.start)}&end=${parseTime(clip.end)}`}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -215,164 +221,139 @@ function ResultsContent() {
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 )}
+                <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em', backdropFilter: 'blur(10px)' }}>NEURAL CLIP {i+1}</div>
               </div>
               <div className="clip-info">
-                <h4 style={{ color: '#8B5CF6', marginBottom: '8px' }}>{clip.hook_title}</h4>
-                <p style={{ fontStyle: 'italic', color: '#ddd' }}>"{clip.main_quote}"</p>
+                <h4 style={{ color: '#8B5CF6', fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>{clip.hook_title}</h4>
+                <p style={{ fontStyle: 'italic', color: '#fff', fontSize: '15px', lineHeight: 1.5 }}>"{clip.main_quote}"</p>
               </div>
               <div style={{ padding: '0 24px 24px' }}>
                 {rendering[i]?.status === 'loading' ? (
-                  <button className="platinum-btn" style={{ width: '100%', opacity: 0.7, cursor: 'wait' }} disabled>
-                    Rendering Reel... (~30s)
+                  <button className="shimmer-btn" style={{ width: '100%', opacity: 0.7, cursor: 'wait', padding: '14px' }} disabled>
+                    RENDERING...
                   </button>
                 ) : rendering[i]?.status === 'complete' ? (
-                  <a href={rendering[i].url} download target="_blank" className="platinum-btn" style={{ display: 'block', width: '100%', textAlign: 'center', background: '#10B981', color: '#fff', textDecoration: 'none' }}>
-                    Download MP4 Reel
+                  <a href={rendering[i].url} download target="_blank" className="shimmer-btn" style={{ display: 'block', width: '100%', textAlign: 'center', background: 'linear-gradient(90deg, #10B981, #34D399)', textDecoration: 'none', padding: '14px' }}>
+                    DOWNLOAD REEL
                   </a>
-                ) : rendering[i]?.status === 'error' ? (
-                  <button onClick={() => handleRender(clip, i)} className="platinum-btn" style={{ width: '100%', background: 'rgba(239, 68, 68, 0.2)' }}>
-                    Render Failed (Retry)
-                  </button>
                 ) : (
-                  <button onClick={() => handleRender(clip, i)} className="platinum-btn" style={{ width: '100%' }}>
-                    Download Reel + Captions
+                  <button onClick={() => handleRender(clip, i)} className="shimmer-btn" style={{ width: '100%', padding: '14px' }}>
+                    PROCESS REEL
                   </button>
                 )}
               </div>
             </div>
           ))
         ) : (
-          [1, 2, 3].map(i => (
-            <div key={i} className="clip-card" style={{ opacity: 0.5 }}>
-              <div className="clip-preview" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-                  <p style={{ fontSize: '11px', color: '#666' }}>LOADING CLIP {i}...</p>
-                </div>
+          [1, 2].map(i => (
+            <div key={i} className="clip-card" style={{ opacity: 0.3, background: 'rgba(255,255,255,0.01)' }}>
+              <div style={{ padding: '100px 20px', textAlign: 'center' }}>
+                <p style={{ fontSize: '12px', fontWeight: 900, letterSpacing: '0.2em' }}>NEURAL HARVESTING...</p>
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* Premium Features Grid */}
-      <div className="animate-up" style={{ marginTop: '96px', marginBottom: '64px' }}>
-        <h2 style={{ fontSize: '36px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', textAlign: 'center', marginBottom: '48px' }}>
-          Unlock <span style={{ color: '#8B5CF6' }}>Pro Tools</span>
+      {/* Pro Tools Section */}
+      <div className="animate-up" style={{ marginTop: '120px', marginBottom: '100px', textAlign: 'center' }}>
+        <h2 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', marginBottom: '60px' }}>
+          EXPAND YOUR <span style={{ color: '#8B5CF6' }}>MINISTRY</span>
         </h2>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-          
-          {/* Quotes and Verses */}
-          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Quotes and Verses</h3>
-            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
-              Quickly extract 20 engaging and inspiring quotes from your sermon, perfect for sharing on your church's social media accounts. Plus, grab every Bible verse reference from the sermon.
-            </p>
-            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Extract Quotes</button>
-          </div>
-
-          {/* Sermon Summaries */}
-          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Sermon Summaries</h3>
-            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
-              Turn your sermon into various summaries, including short, long, YouTube, and social media versions. Perfect for sharing anywhere.
-            </p>
-            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Generate Summaries</button>
-          </div>
-
-          {/* Sermon Transcription */}
-          <div style={{ padding: '32px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '24px', border: '1px solid rgba(139, 92, 246, 0.2)', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Sermon Transcription</h3>
-            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
-              Get a full transcription of your church service with nearly 99% accuracy. Upload your sermon and receive a precise text version in minutes.
-            </p>
-            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Generate Transcription</button>
-          </div>
-
-          {/* Quote Images */}
-          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Quote Images</h3>
-            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
-              Create a social media image with a speaker’s photo and engaging quote from the sermon.
-            </p>
-            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Create Image</button>
-          </div>
-
-          {/* Thumbnail Images */}
-          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Thumbnail Images</h3>
-            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
-              Design an eye-catching thumbnail for YouTube videos or sermon clips.
-            </p>
-            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Design Thumbnail</button>
-          </div>
-
-          {/* 5-Day Devotional */}
-          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>5-Day Devotional</h3>
-            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
-              Transform each sermon into a 5-day devotional series. Each day includes a short read, a thought-provoking question, a verse from the sermon, and an inspiring quote.
-            </p>
-            <button className="platinum-btn" style={{ width: '100%', fontSize: '12px' }}>Create Devotional</button>
-          </div>
-
-          {/* Social Carousel */}
-          <div style={{ padding: '32px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Social Carousel</h3>
-            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px', flex: 1 }}>
-              Each time you create a clip, Sermon Shots automatically generates three AI-powered captions with relevant hashtags. It's now easier than ever to share your content.
-            </p>
-            <button onClick={handleGenerateCarousel} disabled={carouselLoading} className="platinum-btn" style={{ width: '100%', fontSize: '12px', opacity: carouselLoading ? 0.7 : 1, cursor: carouselLoading ? 'wait' : 'pointer' }}>
-              {carouselLoading ? 'Generating...' : 'View Carousel'}
-            </button>
-          </div>
-
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+          <ToolCard 
+            title="Social Carousel" 
+            desc="Neural-generated multi-slide series for Instagram and LinkedIn." 
+            onClick={handleGenerateCarousel}
+            loading={carouselLoading}
+          />
+          <ToolCard 
+            title="Sermon Summaries" 
+            desc="Long-form breakdowns and YouTube descriptions ready to post." 
+          />
+          <ToolCard 
+            title="Quote Vault" 
+            desc="A collection of the most impactful 20 quotes for daily sharing." 
+          />
         </div>
       </div>
 
-      {showCarouselModal && carouselData && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-          <div className="animate-up" style={{ background: '#111', border: '1px solid #333', borderRadius: '24px', padding: '48px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <h2 style={{ fontSize: '32px', fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>Instagram <span style={{ color: '#8B5CF6' }}>Carousel</span></h2>
-              <button onClick={() => setShowCarouselModal(false)} style={{ background: 'none', border: 'none', color: '#A1A1AA', fontSize: '24px', cursor: 'pointer' }}>✕</button>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-              {carouselData.slides.map((slide: any) => (
-                <div key={slide.slide_number} style={{ background: '#1A1A1A', padding: '24px', borderRadius: '16px', border: '1px solid #222' }}>
-                  <div style={{ fontSize: '12px', color: '#8B5CF6', fontWeight: 700, marginBottom: '8px' }}>SLIDE {slide.slide_number}</div>
-                  <h4 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '12px' }}>{slide.heading}</h4>
-                  <p style={{ fontSize: '14px', color: '#A1A1AA', lineHeight: 1.5 }}>{slide.content}</p>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ background: 'rgba(139, 92, 246, 0.05)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '12px', color: '#8B5CF6' }}>Post Caption</h4>
-              <p style={{ fontSize: '14px', color: '#fff', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{carouselData.post_caption}</p>
-              <button 
-                onClick={() => {
-                  navigator.clipboard.writeText(carouselData.post_caption);
-                  toast.success('Caption copied!');
-                }}
-                className="platinum-btn" style={{ marginTop: '16px', fontSize: '12px' }}
-              >
-                Copy Caption
-              </button>
-            </div>
-          </div>
+      {/* PWA / Link Footer */}
+      <footer style={{ padding: '80px 0', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.2em', opacity: 0.5 }}>
+          <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>PRIVACY</Link>
+          <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>TERMS</Link>
+          <span style={{ color: '#fff' }}>© 2026 VESPER</span>
         </div>
-      )}
+      </footer>
 
+      {showCarouselModal && carouselData && (
+        <CarouselModal data={carouselData} onClose={() => setShowCarouselModal(false)} />
+      )}
+    </div>
+  );
+}
+
+function ToolCard({ title, desc, onClick, loading }: any) {
+  return (
+    <div className="glass-panel" style={{ padding: '40px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '20px', transition: 'all 0.3s' }}>
+      <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#fff' }}>{title}</h3>
+      <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.6, flex: 1 }}>{desc}</p>
+      <button 
+        onClick={onClick} 
+        disabled={loading}
+        className="shimmer-btn" 
+        style={{ width: '100%', padding: '12px', fontSize: '11px', opacity: loading ? 0.7 : 1 }}
+      >
+        {loading ? 'GENERATING...' : `ACTIVATE ${title.toUpperCase()}`}
+      </button>
+    </div>
+  );
+}
+
+function CarouselModal({ data, onClose }: any) {
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(20px)', zIndex: 10000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+      <div className="animate-up glass-panel" style={{ padding: '60px', width: '100%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '48px' }}>
+          <h2 style={{ fontSize: '32px', fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>Kingdom <span style={{ color: '#8B5CF6' }}>Carousel</span></h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '32px', cursor: 'pointer', opacity: 0.5 }}>✕</button>
+        </div>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', marginBottom: '48px' }}>
+          {data.slides.map((slide: any) => (
+            <div key={slide.slide_number} className="glass-panel" style={{ padding: '32px', background: 'rgba(255,255,255,0.03)' }}>
+              <div style={{ fontSize: '10px', color: '#8B5CF6', fontWeight: 900, marginBottom: '16px', letterSpacing: '0.2em' }}>SLIDE {slide.slide_number}</div>
+              <h4 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '16px', lineHeight: 1.2 }}>{slide.heading}</h4>
+              <p style={{ fontSize: '14px', color: '#A1A1AA', lineHeight: 1.6 }}>{slide.content}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="glass-panel" style={{ padding: '40px', background: 'rgba(139, 92, 246, 0.05)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+          <h4 style={{ fontSize: '12px', fontWeight: 900, marginBottom: '16px', color: '#8B5CF6', letterSpacing: '0.2em' }}>OPTIMIZED CAPTION</h4>
+          <p style={{ fontSize: '15px', color: '#fff', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.post_caption}</p>
+          <button 
+            onClick={() => {
+              navigator.clipboard.writeText(data.post_caption);
+              toast.success('Caption copied!');
+            }}
+            className="shimmer-btn" style={{ marginTop: '32px', padding: '16px 32px', fontSize: '12px' }}
+          >
+            COPY CAPTION
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
 export default function Results() {
   return (
-    <main style={{ minHeight: '100vh', padding: '64px 20px', display: 'flex', justifyContent: 'center' }}>
+    <main style={{ minHeight: '100vh', background: '#0A0A0F', color: '#fff' }}>
       <div className="spiritual-rays" />
+      <div className="vesper-bg" style={{ opacity: 0.15 }} />
       <Suspense fallback={null}>
         <ResultsContent />
       </Suspense>
