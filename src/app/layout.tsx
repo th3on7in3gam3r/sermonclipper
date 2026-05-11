@@ -41,7 +41,7 @@ export default function RootLayout({
         <head>
           <meta
             httpEquiv="Content-Security-Policy"
-            content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.vesper.biblefunland.com https://accounts.vesper.biblefunland.com https://challenges.cloudflare.com; connect-src 'self' https://*.clerk.accounts.dev https://clerk.vesper.biblefunland.com https://accounts.vesper.biblefunland.com https://*.mongodb.net; img-src 'self' data: https://img.clerk.com https://images.clerk.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://challenges.cloudflare.com https://clerk.vesper.biblefunland.com https://accounts.vesper.biblefunland.com;"
+            content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://*.clerk.accounts.dev https://clerk.vesper.biblefunland.com https://accounts.vesper.biblefunland.com https://challenges.cloudflare.com; connect-src 'self' https://*.clerk.accounts.dev https://clerk.vesper.biblefunland.com https://accounts.vesper.biblefunland.com https://*.mongodb.net; img-src 'self' data: https://img.clerk.com https://images.clerk.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://challenges.cloudflare.com https://clerk.vesper.biblefunland.com https://accounts.vesper.biblefunland.com; worker-src 'self' blob:;"
           />
         </head>
         <body className="antialiased">
