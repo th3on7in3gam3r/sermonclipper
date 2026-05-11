@@ -72,7 +72,24 @@ function ResultsContent() {
     return Math.floor(Number(str)) || 0;
   };
 
-  const handleRender = async (clip: any, index: number) => {
+  const [selectedClip, setSelectedClip] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState('templates'); // templates, filters, fonts
+
+  const TEMPLATES = [
+    { id: 'minimal', name: 'Minimalist Prophet', desc: 'Clean, modern subtitles' },
+    { id: 'cinematic', name: 'Cinematic Glory', desc: 'Epic overlays and deep shadows' },
+    { id: 'modern', name: 'Modern Apostle', desc: 'Dynamic, fast-paced text' }
+  ];
+
+  const FILTERS = [
+    { id: 'none', name: 'Original', class: '' },
+    { id: 'vintage', name: 'Vintage Grace', class: 'sepia contrast-125' },
+    { id: 'cold', name: 'Cold Truth', class: 'saturate-50 brightness-110' },
+    { id: 'warm', name: 'Warm Spirit', class: 'sepia-25 hue-rotate-15' }
+  ];
+
+  const startExport = async (clip: any) => {
+    const index = clip.index;
     setRendering(prev => ({ ...prev, [index]: { status: 'loading' } }));
     const renderToastId = toast.loading('Sending mission to Shotstack Cloud...');
     
@@ -105,17 +122,19 @@ function ResultsContent() {
       if (data.status === 'done') {
         setRendering(prev => ({ ...prev, [index]: { status: 'complete', url: data.url } }));
         toast.success('Reel successfully rendered!', { id: toastId });
+        setSelectedClip(null); // Close studio on success
       } else if (data.status === 'failed') {
         setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
         toast.error('Cloud render failed.', { id: toastId });
       } else {
-        // Still processing, poll again in 3 seconds
         setTimeout(() => pollStatus(id, index, toastId), 3000);
       }
     } catch (e) {
       setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
-      toast.error('Polling lost connection.', { id: toastId });
-    }
+  };
+
+  const handleCustomize = (clip: any, index: number) => {
+    setSelectedClip({ ...clip, index });
   };
 
   useEffect(() => {
@@ -256,21 +275,17 @@ function ResultsContent() {
                     DOWNLOAD REEL
                   </a>
                 ) : (
-                  <button onClick={() => handleRender(clip, i)} className="shimmer-btn" style={{ width: '100%', padding: '14px' }}>
-                    PROCESS REEL
+                  <button onClick={() => handleCustomize(clip, i)} className="shimmer-btn" style={{ width: '100%', padding: '14px' }}>
+                    CUSTOMIZE REEL
                   </button>
                 )}
               </div>
             </div>
           ))
         ) : (
-          [1, 2].map(i => (
-            <div key={i} className="clip-card" style={{ opacity: 0.3, background: 'rgba(255,255,255,0.01)' }}>
-              <div style={{ padding: '100px 20px', textAlign: 'center' }}>
-                <p style={{ fontSize: '12px', fontWeight: 900, letterSpacing: '0.2em' }}>NEURAL HARVESTING...</p>
-              </div>
-            </div>
-          ))
+          <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '100px', color: '#A1A1AA' }}>
+            Establishing Neural Link to Sermon Analysis...
+          </div>
         )}
       </div>
 
@@ -309,6 +324,88 @@ function ResultsContent() {
 
       {showCarouselModal && carouselData && (
         <CarouselModal data={carouselData} onClose={() => setShowCarouselModal(false)} />
+      )}
+
+      {/* Vesper Studio Overlay */}
+      {selectedClip && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 5000, background: '#0A0A0F', display: 'flex', animation: 'fade-in 0.3s ease' }}>
+          {/* Left Sidebar: Tools */}
+          <div style={{ width: '320px', background: 'rgba(255,255,255,0.02)', borderRight: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.2em', color: '#8B5CF6' }}>STUDIO</div>
+              <button onClick={() => setSelectedClip(null)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '24px' }}>×</button>
+            </div>
+
+            <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              {['templates', 'filters', 'fonts'].map(tab => (
+                <button 
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  style={{ 
+                    flex: 1, padding: '12px', background: 'none', border: 'none', 
+                    color: activeTab === tab ? '#fff' : '#A1A1AA', fontSize: '10px', 
+                    fontWeight: 700, cursor: 'pointer', borderBottom: activeTab === tab ? '2px solid #8B5CF6' : 'none' 
+                  }}
+                >
+                  {tab.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+              {activeTab === 'templates' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {TEMPLATES.map(t => (
+                    <div key={t.id} style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', cursor: 'pointer' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>{t.name}</div>
+                      <div style={{ fontSize: '10px', color: '#A1A1AA' }}>{t.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {activeTab === 'filters' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  {FILTERS.map(f => (
+                    <div key={f.id} style={{ aspectRatio: '1', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#fff', cursor: 'pointer' }}>
+                      {f.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{ padding: '24px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              <button 
+                onClick={() => startExport(selectedClip)}
+                className="shimmer-btn" 
+                style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '12px' }}
+              >
+                EXPORT REEL
+              </button>
+            </div>
+          </div>
+
+          {/* Center: Video Preview */}
+          <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', overflow: 'hidden' }}>
+            <div style={{ 
+              width: '100%', maxWidth: '360px', aspectRatio: '9/16', 
+              background: '#111', borderRadius: '24px', overflow: 'hidden', 
+              boxShadow: '0 0 100px rgba(139, 92, 246, 0.15)', position: 'relative' 
+            }}>
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}?start=${parseTime(selectedClip.start)}&end=${parseTime(selectedClip.end)}&autoplay=1&controls=0&modestbranding=1&rel=0`}
+                style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) scale(1.6)' }}
+                allow="autoplay; encrypted-media"
+              />
+              {/* Fake Subtitle Preview */}
+              <div style={{ position: 'absolute', bottom: '15%', left: 0, right: 0, padding: '0 20px', textAlign: 'center', zIndex: 10 }}>
+                <div style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', padding: '12px', borderRadius: '8px', color: '#FFFF00', fontSize: '18px', fontWeight: 900, textTransform: 'uppercase' }}>
+                  {selectedClip.suggested_captions?.[0] || "Neural Caption Preview"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
