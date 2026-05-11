@@ -73,31 +73,39 @@ function ResultsContent() {
   };
 
   const [selectedClip, setSelectedClip] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState('templates'); // templates, filters, fonts
+  const [activeTab, setActiveTab] = useState('templates');
+  const [selectedTemplate, setSelectedTemplate] = useState('minimal');
+  const [selectedFilter, setSelectedFilter] = useState('none');
 
   const TEMPLATES = [
-    { id: 'minimal', name: 'Minimalist Prophet', desc: 'Clean, modern subtitles' },
-    { id: 'cinematic', name: 'Cinematic Glory', desc: 'Epic overlays and deep shadows' },
-    { id: 'modern', name: 'Modern Apostle', desc: 'Dynamic, fast-paced text' }
+    { id: 'minimal', name: 'Minimalist Prophet', desc: 'Clean, modern subtitles', color: '#FFFF00' },
+    { id: 'cinematic', name: 'Cinematic Glory', desc: 'Epic overlays and deep shadows', color: '#FFFFFF' },
+    { id: 'modern', name: 'Modern Apostle', desc: 'Dynamic, fast-paced text', color: '#8B5CF6' }
   ];
 
   const FILTERS = [
-    { id: 'none', name: 'Original', class: '' },
-    { id: 'vintage', name: 'Vintage Grace', class: 'sepia contrast-125' },
-    { id: 'cold', name: 'Cold Truth', class: 'saturate-50 brightness-110' },
-    { id: 'warm', name: 'Warm Spirit', class: 'sepia-25 hue-rotate-15' }
+    { id: 'none', name: 'Original', style: {} },
+    { id: 'vintage', name: 'Vintage Grace', style: { sepia: 0.5, contrast: 1.2 } },
+    { id: 'cold', name: 'Cold Truth', style: { saturate: 0.5, brightness: 1.1 } },
+    { id: 'warm', name: 'Warm Spirit', style: { sepia: 0.3, hueRotate: '15deg' } }
   ];
 
   const startExport = async (clip: any) => {
     const index = clip.index;
     setRendering(prev => ({ ...prev, [index]: { status: 'loading' } }));
-    const renderToastId = toast.loading('Sending mission to Shotstack Cloud...');
+    const renderToastId = toast.loading('Synchronizing with Shotstack Cloud...');
     
     try {
       const res = await fetch('/api/render-clip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId, clip, index })
+        body: JSON.stringify({ 
+          jobId, 
+          clip, 
+          index,
+          template: selectedTemplate,
+          filter: selectedFilter 
+        })
       });
       const data = await res.json();
       
@@ -192,7 +200,7 @@ function ResultsContent() {
       </header>
 
       {/* Hero Metadata Section */}
-      <div className="glass-panel" style={{ padding: '60px 40px', marginTop: '140px', marginBottom: '60px', position: 'relative', overflow: 'hidden' }}>
+      <div className="glass-panel" style={{ padding: '60px 40px', marginTop: '220px', marginBottom: '60px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: 0, right: 0, width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)', zIndex: 0 }} />
         
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -378,22 +386,15 @@ function ResultsContent() {
               {activeTab === 'templates' && TEMPLATES.map(t => (
                 <div 
                   key={t.id} 
+                  onClick={() => setSelectedTemplate(t.id)}
                   className="glass-card" 
                   style={{ 
                     padding: '20px', 
-                    background: 'rgba(255,255,255,0.03)', 
-                    border: '1px solid rgba(255,255,255,0.08)', 
+                    background: selectedTemplate === t.id ? 'rgba(139, 92, 246, 0.1)' : 'rgba(255,255,255,0.03)', 
+                    border: selectedTemplate === t.id ? '1px solid #8B5CF6' : '1px solid rgba(255,255,255,0.08)', 
                     borderRadius: '16px', 
                     cursor: 'pointer',
                     transition: 'all 0.3s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(139, 92, 246, 0.05)';
-                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
                   }}
                 >
                   <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '6px', fontFamily: 'var(--font-outfit)' }}>{t.name}</div>
@@ -406,24 +407,22 @@ function ResultsContent() {
                   {FILTERS.map(f => (
                     <div 
                       key={f.id} 
+                      onClick={() => setSelectedFilter(f.id)}
                       className="glass-card"
                       style={{ 
                         aspectRatio: '1', 
-                        background: 'rgba(255,255,255,0.03)', 
-                        border: '1px solid rgba(255,255,255,0.08)', 
+                        background: selectedFilter === f.id ? 'rgba(139, 92, 246, 0.1)' : 'rgba(255,255,255,0.03)', 
+                        border: selectedFilter === f.id ? '1px solid #8B5CF6' : '1px solid rgba(255,255,255,0.08)', 
                         borderRadius: '16px', 
                         display: 'flex', 
                         flexDirection: 'column',
                         alignItems: 'center', 
                         justifyContent: 'center', 
                         gap: '8px',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s'
+                        cursor: 'pointer'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.borderColor = '#8B5CF6'}
-                      onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
                     >
-                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(45deg, #8B5CF6, #D946EF)', opacity: 0.5 }} />
+                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(45deg, #8B5CF6, #D946EF)', opacity: selectedFilter === f.id ? 1 : 0.5 }} />
                       <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff' }}>{f.name}</div>
                     </div>
                   ))}
@@ -432,16 +431,18 @@ function ResultsContent() {
             </div>
 
             <div style={{ padding: '32px', background: 'rgba(0,0,0,0.4)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-              <div style={{ marginBottom: '20px' }}>
-                <div style={{ fontSize: '10px', fontWeight: 900, color: '#52525B', letterSpacing: '0.1em', marginBottom: '8px' }}>NEURAL SEED</div>
-                <div style={{ fontSize: '12px', color: '#fff', opacity: 0.6, fontStyle: 'italic' }}>Shotstack V2.1 Encryption Active</div>
+              <div style={{ marginBottom: '24px', padding: '16px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.1)' }}>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em', marginBottom: '8px' }}>NEURAL REVIEW</div>
+                <div style={{ fontSize: '12px', color: '#fff', opacity: 0.8 }}>
+                  Ready to export with <b>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b> and <b>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>.
+                </div>
               </div>
               <button 
                 onClick={() => startExport(selectedClip)}
                 className="shimmer-btn" 
-                style={{ width: '100%', padding: '20px', borderRadius: '16px', fontSize: '13px', fontWeight: 800, letterSpacing: '0.05em' }}
+                style={{ width: '100%', padding: '20px', borderRadius: '16px', fontSize: '13px', fontWeight: 800 }}
               >
-                EXPORT FOR SOCIAL
+                CONFIRM & EXPORT
               </button>
             </div>
           </div>
@@ -464,8 +465,14 @@ function ResultsContent() {
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100px', background: 'linear-gradient(to bottom, rgba(139, 92, 246, 0.1), transparent)', zIndex: 5, pointerEvents: 'none' }} />
 
               <iframe
-                src={`https://www.youtube.com/embed/${videoId}?start=${parseTime(selectedClip.start)}&end=${parseTime(selectedClip.end)}&autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3`}
-                style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) scale(1.8)' }}
+                src={`https://www.youtube.com/embed/${videoId}?start=${parseTime(selectedClip.start)}&end=${parseTime(selectedClip.end)}&autoplay=1&controls=0&modestbranding=1&rel=0`}
+                style={{ 
+                  width: '100%', height: '100%', border: 'none', position: 'absolute', top: '50%', left: '50%', 
+                  transform: 'translate(-50%, -50%) scale(1.8)',
+                  filter: selectedFilter === 'vintage' ? 'sepia(0.5) contrast(1.2)' : 
+                          selectedFilter === 'cold' ? 'saturate(0.5) brightness(1.1)' :
+                          selectedFilter === 'warm' ? 'sepia(0.3) hue-rotate(15deg)' : 'none'
+                }}
                 allow="autoplay; encrypted-media"
               />
 
@@ -476,11 +483,10 @@ function ResultsContent() {
                   backdropFilter: 'blur(20px)', 
                   padding: '20px', 
                   borderRadius: '20px', 
-                  color: '#FFFF00', 
+                  color: TEMPLATES.find(t => t.id === selectedTemplate)?.color || '#FFFF00', 
                   fontSize: '22px', 
                   fontWeight: 900, 
                   textTransform: 'uppercase', 
-                  letterSpacing: '0.02em', 
                   boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
                   border: '1px solid rgba(255,255,255,0.1)',
                   fontFamily: 'var(--font-outfit)'
