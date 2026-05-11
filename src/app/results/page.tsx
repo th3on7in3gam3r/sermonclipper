@@ -197,28 +197,6 @@ function ResultsContent() {
     return lines.join('\n');
   };
 
-  const handleGenerateThumbnail = async (clip: any, i: number) => {
-    setThumbnails(prev => ({ ...prev, [i]: { status: 'loading' } }));
-    const prompt = `YouTube thumbnail, 16:9 aspect ratio, bold cinematic design, text overlay saying "${clip.hook_title || clip.main_quote}", dramatic lighting, church/faith theme, high contrast, professional photography style, no watermarks`;
-    try {
-      const res = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setThumbnails(prev => ({ ...prev, [i]: { status: 'done', url: data.imageUrl } }));
-        toast.success('Thumbnail generated!');
-      } else {
-        setThumbnails(prev => ({ ...prev, [i]: { status: 'error' } }));
-        toast.error('Thumbnail generation failed.');
-      }
-    } catch {
-      setThumbnails(prev => ({ ...prev, [i]: { status: 'error' } }));
-      toast.error('Network error.');
-    }
-  };
 
   const startExport = async (clip: any) => {
     const index = clip.index;
@@ -460,7 +438,7 @@ function ResultsContent() {
                     style={{ cursor: 'pointer', marginBottom: '12px', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}
                   >
                     <img 
-                      src={`/api/proxy-image?url=${encodeURIComponent(thumbnails[i].url)}`} 
+                      src={`/api/proxy-image?url=${encodeURIComponent(thumbnails[i]?.url || '')}`} 
                       alt="Neural Thumbnail" 
                       loading="lazy"
                       style={{ width: '100%', height: '80px', objectFit: 'cover', display: 'block' }} 
@@ -915,6 +893,8 @@ function ResultsContent() {
 
           </div>
         </div>
+      )}
+      
       {/* Thumbnail Studio Drawer — Side Slide-in */}
       {activeThumbnailClip && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 20000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', display: 'flex', justifyContent: 'flex-end', animation: 'fadeIn 0.3s ease' }}>
@@ -951,7 +931,7 @@ function ResultsContent() {
                      </div>
                    ) : thumbnails[activeThumbnailClip.index]?.url ? (
                      <img 
-                        src={`/api/proxy-image?url=${encodeURIComponent(thumbnails[activeThumbnailClip.index].url)}`} 
+                        src={`/api/proxy-image?url=${encodeURIComponent(thumbnails[activeThumbnailClip.index]?.url || '')}`} 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         alt="Neural Preview"
                      />
@@ -1033,6 +1013,8 @@ function ResultsContent() {
         </div>
       )}
     </div>
+  );
+}
 
 function ToolCard({ title, desc, onClick, loading }: { title: string; desc: string; onClick?: () => void; loading?: boolean }) {
   return (
