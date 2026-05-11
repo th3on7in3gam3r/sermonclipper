@@ -222,13 +222,25 @@ export async function POST(req: NextRequest) {
     await progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'loading', 
-      message: 'Neural Engine: Harvesting viral spiritual moments...' 
+      message: '[Neural Pulse] Initializing Vesper Engine...' 
     });
 
-    // 2. Await AI BRAIN (This takes ~15-30s, safely under Vercel's 60s limit)
+    // 2. Await AI BRAIN
+    await progressManager.update(jobId, { 
+      step: 'Analysis', 
+      status: 'loading', 
+      message: '[Neural Pulse] Establishing Secure AI Handshake...' 
+    });
+    
     console.log(`[Engine] Starting Synchronous Analysis for ${jobId}`);
     const analysisResult = await runOpenAIPrimary(url, jobId);
     
+    await progressManager.update(jobId, { 
+      step: 'Analysis', 
+      status: 'loading', 
+      message: '[Neural Pulse] Spiritual Insights Harvested. Syncing to Sanctum...' 
+    });
+
     // 3. Persist immediately to MongoDB
     const connectDB = (await import('../../../lib/mongodb')).default;
     const Sermon = (await import('../../../models/Sermon')).default;
@@ -242,18 +254,24 @@ export async function POST(req: NextRequest) {
         title: analysisResult.sermon_title || 'Untitled Sermon',
         mainTheme: analysisResult.main_theme || '',
         videoUrl: url,
-        finalPath: url, // Use YT URL as fallback immediately
+        finalPath: url, 
         analysis: analysisResult,
         createdAt: new Date()
       },
       { upsert: true }
     );
 
+    await progressManager.update(jobId, { 
+      step: 'Analysis', 
+      status: 'loading', 
+      message: '[Neural Pulse] Database Write Confirmed.' 
+    });
+
     // 4. Update progress to reflect success
     await progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'completed', 
-      message: `✅ GPT-4o generated ${analysisResult?.clips?.length || 0} clips`,
+      message: `[Neural Pulse] Complete. GPT-4o generated ${analysisResult?.clips?.length || 0} clips.`,
       finalPath: url,
       analysis: analysisResult
     });

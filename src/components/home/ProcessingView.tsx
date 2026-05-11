@@ -29,6 +29,8 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
 
   const progressPercent = Math.min(100, Math.max(5, ((currentStepIndex + 1) / steps.length) * 100));
 
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
+
   return (
     <div className="animate-up" style={{ width: '100%', maxWidth: '500px', textAlign: 'center' }}>
       <h2 style={{ fontSize: '32px', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: '8px' }}>Processing Your Sermon</h2>
@@ -65,6 +67,34 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
             );
           })}
         </div>
+      </div>
+
+      {/* Neural Diagnostics Toggle */}
+      <div style={{ marginTop: '32px' }}>
+        <button 
+          onClick={() => setShowDiagnostics(!showDiagnostics)}
+          style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '99px', padding: '8px 16px', color: '#52525B', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em', cursor: 'pointer', transition: 'all 0.3s' }}
+        >
+          {showDiagnostics ? 'HIDE NEURAL LOG' : 'SHOW NEURAL LOG'}
+        </button>
+
+        {showDiagnostics && (
+          <div 
+            ref={scrollRef}
+            style={{ 
+              marginTop: '16px', padding: '20px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.05)', 
+              borderRadius: '16px', textAlign: 'left', maxHeight: '200px', overflowY: 'auto', 
+              fontFamily: 'monospace', fontSize: '11px', color: '#A1A1AA', lineHeight: 1.5 
+            }}
+          >
+            {logs.map((log, i) => (
+              <div key={i} style={{ marginBottom: '8px', borderLeft: '2px solid #8B5CF6', paddingLeft: '12px' }}>
+                <span style={{ color: '#8B5CF6' }}>[{new Date().toLocaleTimeString()}]</span> {log}
+              </div>
+            ))}
+            {logs.length === 0 && <div style={{ opacity: 0.5 }}>Waiting for neural handshake...</div>}
+          </div>
+        )}
       </div>
 
       <p style={{ textAlign: 'center', color: '#555', marginTop: '40px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>
