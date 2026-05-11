@@ -104,24 +104,26 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
   const filePath = join(TMP_DIR, `${jobId}.mp4`);
   
   // 1. PRIMARY: NEURAL BRAIN (Instant Analysis)
-  progressManager.update(jobId, { step: 'Analysis', status: 'loading', message: 'Neural Engine: Harvesting viral spiritual moments...' });
+  await progressManager.update(jobId, { step: 'Analysis', status: 'loading', message: 'Neural Engine: Harvesting viral spiritual moments...' });
+  
+  let analysisResult = null;
   try {
-    const analysis = await runOpenAIPrimary(url, jobId);
-    progressManager.update(jobId, { 
+    analysisResult = await runOpenAIPrimary(url, jobId);
+    await progressManager.update(jobId, { 
       step: 'Analysis', 
       status: 'completed', 
-      message: `✅ GPT-4o generated ${analysis?.clips?.length || 0} clips`,
-      finalPath: url, // Temporary until download finishes
-      analysis: analysis
+      message: `✅ GPT-4o generated ${analysisResult?.clips?.length || 0} clips`,
+      finalPath: url, 
+      analysis: analysisResult
     });
-    // We keep going in the background to get the actual MP4
   } catch (e: any) {
     console.error('[Engine] Neural Primary Failed:', e.message);
-    progressManager.update(jobId, { step: 'Analysis', status: 'error', message: `Neural Analysis Failed: ${e.message}` });
+    await progressManager.update(jobId, { step: 'Analysis', status: 'error', message: `Neural Analysis Failed: ${e.message}` });
+    return; // Stop if analysis fails
   }
 
   // 2. SECONDARY: BINARY HARVEST (MP4 Download)
-  progressManager.update(jobId, { step: 'Downloading', status: 'loading', message: 'Engine: Harvesting media binary...' });
+  await progressManager.update(jobId, { step: 'Downloading', status: 'loading', message: 'Engine: Harvesting media binary...' });
   
   let downloadSuccess = false;
 
@@ -143,79 +145,62 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
     }
   }
 
-  // Try Primary Download if tunnel failed
-  if (!downloadSuccess) {
-    try {
-      const options: any = {
-        output: filePath,
-        format: 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-        mergeOutputFormat: 'mp4',
-        userAgent: CHROME_UA,
-        referer: 'https://www.youtube.com',
-        retries: 2,
-      };
-
-      if (process.env.YTDLP_COOKIES_CONTENT) {
-        const ckPath = join(TMP_DIR, `ck_${jobId}.txt`);
-        writeFileSync(ckPath, process.env.YTDLP_COOKIES_CONTENT);
-        options.cookies = ckPath;
-      }
-
-      await ytdlpExec(url, options);
-      downloadSuccess = true;
-    } catch (e) {}
-  }
-
   // 3. Finalize Media Kit
   if (downloadSuccess) {
     try {
-      progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Cloud Sync: Finalizing Media Kit...' });
+      await progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Cloud Sync: Finalizing Media Kit...' });
       const r2Url = await uploadStreamToR2(`sermons/${jobId}.mp4`, createReadStream(filePath), 'video/mp4');
-      progressManager.update(jobId, { 
+      await progressManager.update(jobId, { 
         step: 'Downloading', 
         status: 'completed', 
         message: 'Master Download Complete', 
-        finalPath: r2Url 
+        finalPath: r2Url,
+        analysis: analysisResult,
+        status: 'completed' // Mark job as done
       });
       if (existsSync(filePath)) unlinkSync(filePath);
     } catch (e: any) {
-      // If upload fails, we still have the OpenAI analysis from before
-      progressManager.update(jobId, { step: 'Downloading', status: 'completed', message: 'Analysis Ready (Download Sync Pending)', finalPath: url });
+      await progressManager.update(jobId, { 
+        step: 'Downloading', 
+        status: 'completed', 
+        message: 'Analysis Ready (Download Sync Pending)', 
+        finalPath: url,
+        analysis: analysisResult,
+        status: 'completed'
+      });
     }
   } else {
-    // If download completely fails, we still consider the job 'completed' if OpenAI worked
-    progressManager.update(jobId, { 
+    await progressManager.update(jobId, { 
       step: 'Downloading', 
       status: 'completed', 
       message: 'Processing Ready (Using Cloud Streaming)', 
-      finalPath: url 
+      finalPath: url,
+      analysis: analysisResult,
+      status: 'completed'
     });
   }
 
   // 4. Persistence (SAVE TO MONGODB)
   try {
-    const finalUpdate = progressManager.get(jobId);
-    if (finalUpdate?.analysis) {
-      const connectDB = (await import('../../../lib/mongodb')).default;
-      const Sermon = (await import('../../../models/Sermon')).default;
-      
-      await connectDB();
-      await Sermon.findOneAndUpdate(
-        { jobId },
-        {
-          userId,
-          jobId,
-          title: finalUpdate.analysis.sermon_title || 'Untitled Sermon',
-          mainTheme: finalUpdate.analysis.main_theme || '',
-          videoUrl: url,
-          finalPath: finalUpdate.finalPath,
-          analysis: finalUpdate.analysis,
-          createdAt: new Date()
-        },
-        { upsert: true }
-      );
-      console.log(`[Database] Sermon saved successfully for user ${userId}`);
-    }
+    const connectDB = (await import('../../../lib/mongodb')).default;
+    const Sermon = (await import('../../../models/Sermon')).default;
+    
+    await connectDB();
+    await Sermon.findOneAndUpdate(
+      { jobId },
+      {
+        userId,
+        jobId,
+        title: analysisResult.sermon_title || 'Untitled Sermon',
+        mainTheme: analysisResult.main_theme || '',
+        videoUrl: url,
+        finalPath: downloadSuccess ? (await progressManager.get(jobId))?.finalPath : url,
+        analysis: analysisResult,
+        createdAt: new Date()
+      },
+      { upsert: true }
+    );
+    console.log(`[Database] Sermon saved successfully for user ${userId}`);
   } catch (dbErr) {
     console.error('[Database] Persistence Failed:', dbErr);
   }
@@ -224,17 +209,22 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized. Please sign in to use Vesper.' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized. Please sign in.' }, { status: 401 });
   }
 
   const { url, jobId } = await req.json();
   if (!url || !jobId) return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
   
-  // Kick off the background pipeline
-  runSermonPipeline(url, jobId, userId).catch(e => {
-    console.error('[Engine] Pipeline Error:', e);
-    progressManager.update(jobId, { step: 'Analysis', status: 'error', message: 'Critical System Failure' });
-  });
-
-  return NextResponse.json({ success: true, jobId });
+  // On Vercel, we need to wait for the analysis to finish before sending response
+  // to ensure the job actually starts and makes progress.
+  try {
+    // We kick off the background pipeline but don't await the WHOLE thing
+    // (download takes too long). We just let it run. 
+    // IMPORTANT: Vercel might kill this. For a real fix, use a Queue.
+    runSermonPipeline(url, jobId, userId).catch(e => console.error('[Engine] Pipeline Error:', e));
+    
+    return NextResponse.json({ success: true, jobId });
+  } catch (e) {
+    return NextResponse.json({ error: 'Failed to start neural engine' }, { status: 500 });
+  }
 }

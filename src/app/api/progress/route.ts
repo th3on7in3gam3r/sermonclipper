@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   // Safe dynamic check for different method names
   const manager = progressManager as any;
-  const progress = manager.get ? manager.get(id) : (manager.getProgress ? manager.getProgress(id) : null);
+  const progress = manager.get ? await manager.get(id) : (manager.getProgress ? await manager.getProgress(id) : null);
 
   if (!progress) {
     return NextResponse.json({ 

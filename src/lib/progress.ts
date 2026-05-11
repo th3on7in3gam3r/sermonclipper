@@ -1,3 +1,6 @@
+import connectDB from './mongodb';
+import JobProgress from '../models/JobProgress';
+
 export interface ProgressUpdate {
   step: string;
   status: 'pending' | 'loading' | 'completed' | 'error';
@@ -7,13 +10,11 @@ export interface ProgressUpdate {
   r2Key?: string;
   r2Url?: string;
   finalPath?: string;
-  analysis?: any; // Stores Gemini results
+  analysis?: any;
 }
 
 class ProgressManager {
   private static instance: ProgressManager;
-  private clients: Map<string, (data: ProgressUpdate) => void> = new Map();
-  private updates: Map<string, ProgressUpdate> = new Map();
 
   private constructor() {}
 
@@ -24,29 +25,42 @@ class ProgressManager {
     return ProgressManager.instance;
   }
 
-  public subscribe(id: string, callback: (data: ProgressUpdate) => void) {
-    this.clients.set(id, callback);
-  }
+  public async update(id: string, update: ProgressUpdate) {
+    try {
+      await connectDB();
+      const existing = await JobProgress.findOne({ jobId: id });
+      
+      const updateData = {
+        ...update,
+        jobId: id,
+        updatedAt: new Date()
+      };
 
-  public unsubscribe(id: string) {
-    this.clients.delete(id);
-  }
-
-  public update(id: string, update: ProgressUpdate) {
-    // Merge existing analysis if only partial update provided
-    const existing = this.updates.get(id);
-    const merged = { ...existing, ...update };
-    
-    this.updates.set(id, merged);
-    
-    const callback = this.clients.get(id);
-    if (callback) {
-      callback(merged);
+      if (existing) {
+        // Merge analysis if provided
+        if (update.analysis) {
+          updateData.analysis = update.analysis;
+        }
+        await JobProgress.updateOne({ jobId: id }, { $set: updateData });
+      } else {
+        await JobProgress.create(updateData);
+      }
+      
+      console.log(`[Progress] Updated ${id}: ${update.step} (${update.status})`);
+    } catch (err) {
+      console.error(`[Progress] Failed to update ${id}:`, err);
     }
   }
 
-  public get(id: string): ProgressUpdate | undefined {
-    return this.updates.get(id);
+  public async get(id: string): Promise<ProgressUpdate | null> {
+    try {
+      await connectDB();
+      const job = await JobProgress.findOne({ jobId: id });
+      return job ? job.toObject() : null;
+    } catch (err) {
+      console.error(`[Progress] Failed to get ${id}:`, err);
+      return null;
+    }
   }
 }
 
