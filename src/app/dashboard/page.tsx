@@ -58,9 +58,11 @@ export default function Dashboard() {
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
           {userData && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(139, 92, 246, 0.1)', padding: '6px 16px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-              <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{userData.plan}</span>
+              <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                {userData.plan?.replace('_', ' ') || 'Plan'}
+              </span>
               <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.1)' }} />
-              <span style={{ fontSize: '10px', color: '#A1A1AA' }}>{userData.usageCount}/{userData.limit === 999999 ? '∞' : userData.limit} Clips</span>
+              <span style={{ fontSize: '10px', color: '#A1A1AA' }}>{userData.usageCount || 0} / {userData.limit === 999999 ? '∞' : userData.limit} Clips</span>
             </div>
           )}
           <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>
