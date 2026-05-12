@@ -62,14 +62,11 @@ export default function Dashboard() {
                 {userData.plan?.replace('_', ' ') || 'PLAN'}
               </span>
               <span style={{ fontSize: '10px', color: '#A1A1AA', fontWeight: 800 }}>
-                {`${userData.usageCount || 0} / ${userData.limit === 999999 ? '∞' : userData.limit}`}
+                {userData.usageCount || 0} / {userData.limit === 999999 ? '∞' : userData.limit}
               </span>
             </div>
           )}
           <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>
-          {userData?.plan === 'free' && (
-             <Link href="/#pricing" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#F4B942', letterSpacing: '0.1em' }}>UPGRADE</Link>
-          )}
           <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
             <UserButton />
           </div>
