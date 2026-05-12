@@ -97,8 +97,8 @@ export default function Home() {
         </div>
 
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
-          <Link href="/about" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA' }}>Vision</Link>
-          <Link href="/pricing" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA' }}>Pricing</Link>
+          <Link href="/#features" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA' }}>Vision</Link>
+          <Link href="/#pricing" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA' }}>Pricing</Link>
           {isLoaded && userId ? (
             <>
               <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#fff' }}>Dashboard</Link>
