@@ -68,31 +68,38 @@ async function runOpenAIPrimary(url: string, jobId: string) {
     messages: [
       {
         role: "system",
-        content: "You are an expert sermon clip editor for social media."
+        content: "You are a World-Class Ministry Content Strategist and Social Media Expert. Your goal is to harvest high-impact, spiritually provocative, and emotionally resonant segments for viral social media clips (Reels, TikToks, Shorts)."
       },
       {
         role: "user",
-        content: `Analyze this sermon video. Return ONLY valid JSON.
+        content: `Analyze this sermon: ${url}
+        
+        CRITICAL SELECTION CRITERIA:
+        1. THE MIC DROP: Find moments where the speaker makes a definitive, life-changing point.
+        2. THE HOOK: Ensure the clip starts with a strong statement or a provocative question.
+        3. DURATION: Prioritize clips between 35 and 58 seconds.
+        4. THEOLOGICAL CORE: Each clip must contain a complete thought or theological point.
 
-YouTube URL: ${url}
+        Return ONLY valid JSON:
+        {
+          "success": true,
+          "sermon_title": "Cinematic Sermon Title",
+          "main_theme": "The deep spiritual core of this message",
+          "summary": "A 3-sentence theological summary for descriptions",
+          "clips": [
+            {
+              "start": 245,
+              "end": 298,
+              "hook_title": "Catchy Viral Title",
+              "main_quote": "The most powerful sentence in this clip",
+              "suggested_captions": ["Short, punchy line 1", "Short, punchy line 2"],
+              "viral_score": 95,
+              "engagement_hook": "Why this clip will stop the scroll"
+            }
+          ]
+        }
 
-{
-  "success": true,
-  "sermon_title": "Short powerful title",
-  "main_theme": "One sentence theme",
-  "clips": [
-    {
-      "start": 245,
-      "end": 298,
-      "hook_title": "Catchy title",
-      "main_quote": "Exact powerful quote",
-      "suggested_captions": ["Line 1", "Line 2", "Line 3"]
-    }
-  ],
-  "summary": "Powerful 2-3 sentence summary"
-}
-
-Generate 8-12 high-quality clips.`
+        Generate 8-12 high-quality clips.`
       }
     ]
   });

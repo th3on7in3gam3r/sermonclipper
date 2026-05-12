@@ -42,26 +42,37 @@ export async function POST(req: NextRequest) {
       model: "gemini-1.5-flash",
     });
 
-    const prompt = `YouTube sermon URL: ${url}
+    const prompt = `You are a World-Class Ministry Content Strategist and Social Media Expert. 
+      Analyze this YouTube sermon: ${url}
+      
+      Your goal is to "Harvest" the most high-impact, spiritually provocative, and emotionally resonant segments for viral social media clips (Reels, TikToks, Shorts).
 
-      Return only valid JSON:
+      CRITICAL SELECTION CRITERIA:
+      1. THE MIC DROP: Find moments where the speaker makes a definitive, life-changing point.
+      2. THE HOOK: Ensure the clip starts with a strong statement or a provocative question.
+      3. DURATION: Prioritize clips between 35 and 58 seconds.
+      4. THEOLOGICAL CORE: Each clip must contain a complete thought or theological point.
+
+      Return ONLY valid JSON in this format:
       {
         "success": true,
-        "sermon_title": "Short title",
-        "main_theme": "One sentence theme",
+        "sermon_title": "Cinematic Sermon Title",
+        "main_theme": "The deep spiritual core of this message",
+        "summary": "A 3-sentence theological summary for the description box",
         "clips": [
           {
             "start": 120,
-            "end": 190,
-            "hook_title": "Catchy title",
-            "main_quote": "Powerful quote",
-            "suggested_captions": ["Line 1", "Line 2"]
+            "end": 175,
+            "hook_title": "The Truth About [Topic]", 
+            "main_quote": "The most powerful sentence in this clip",
+            "suggested_captions": ["Short, punchy line 1", "Short, punchy line 2"],
+            "viral_score": 95,
+            "engagement_hook": "Why this clip will stop the scroll"
           }
-        ],
-        "summary": "Short summary"
+        ]
       }
 
-      Return 6-10 clips.`;
+      Return 8-12 high-quality clips.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;

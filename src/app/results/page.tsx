@@ -589,6 +589,11 @@ function ResultsContent() {
                   />
                 )}
                 <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em', backdropFilter: 'blur(10px)' }}>NEURAL CLIP {i+1}</div>
+                {clip.viral_score && (
+                  <div style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(139, 92, 246, 0.9)', color: '#fff', padding: '4px 12px', borderRadius: '99px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '12px' }}>🔥</span> {clip.viral_score}% VIRAL
+                  </div>
+                )}
               </div>
               <div className="clip-info">
                 <h4 style={{ color: '#8B5CF6', fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>{clip.hook_title}</h4>
@@ -1191,6 +1196,16 @@ function ResultsContent() {
                   </div>
                 </div>
                 <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', marginBottom: '20px' }} />
+                
+                {selectedClip.engagement_hook && (
+                  <div style={{ marginBottom: '24px', padding: '16px', background: 'rgba(139,92,246,0.08)', borderRadius: '14px', border: '1px solid rgba(139,92,246,0.2)' }}>
+                    <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '8px' }}>ENGAGEMENT STRATEGY</div>
+                    <p style={{ fontSize: '12px', color: '#C4B5FD', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
+                      "{selectedClip.engagement_hook}"
+                    </p>
+                  </div>
+                )}
+
                 <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.25em', marginBottom: '14px' }}>SOCIAL KIT</div>
               </div>
 
