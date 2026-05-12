@@ -101,7 +101,7 @@ export default function Pricing() {
               </div>
 
               <button 
-                onClick={() => handleSubscription(p.priceId, p.plan)}
+                onClick={() => handleSubscription(p.priceId as string | null, p.plan)}
                 disabled={!p.priceId || loading !== null}
                 className={p.popular ? "primary-btn" : ""}
                 style={{ 
