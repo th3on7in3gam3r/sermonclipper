@@ -1,8 +1,9 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
-import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import VesperTour from '@/components/VesperTour';
@@ -66,7 +67,7 @@ function ResultsContent() {
       } else {
         toast.error('Failed to generate carousel.', { id: loadToast });
       }
-    } catch (e) {
+    } catch {
       toast.error('Network error.', { id: loadToast });
     } finally {
       setCarouselLoading(false);
@@ -149,6 +150,7 @@ function ResultsContent() {
   const [captionOverrides, setCaptionOverrides] = useState<{ [key: number]: string }>({});
 
   // Brand Kit — persisted in localStorage
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const loadBrandKit = () => {
     try {
       const saved = localStorage.getItem('vesper-brand-kit');
@@ -330,7 +332,7 @@ function ResultsContent() {
         setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
         toast.error('Shotstack failed to queue render.', { id: renderToastId });
       }
-    } catch (e) {
+    } catch {
       setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
       toast.error('Network error during rendering.', { id: renderToastId });
     }
@@ -438,7 +440,7 @@ function ResultsContent() {
       } else {
         setTimeout(() => pollStatus(id, index, toastId), 3000);
       }
-    } catch (e) {
+    } catch {
       setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
     }
   };
@@ -607,7 +609,7 @@ function ResultsContent() {
               </div>
               <div className="clip-info">
                 <h4 style={{ color: '#8B5CF6', fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>{clip.hook_title}</h4>
-                <p style={{ fontStyle: 'italic', color: '#fff', fontSize: '15px', lineHeight: 1.5 }}>"{clip.main_quote}"</p>
+                <p style={{ fontStyle: 'italic', color: '#fff', fontSize: '15px', lineHeight: 1.5 }}>&ldquo;{clip.main_quote}&rdquo;</p>
               </div>
               <div style={{ padding: '0 24px 24px' }}>
 
@@ -805,7 +807,7 @@ function ResultsContent() {
                 <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em', marginBottom: '12px' }}>CLIP {i + 1}</div>
                   <div style={{ flex: 1, marginBottom: '20px' }}>
-                    <p style={{ fontStyle: 'italic', fontSize: '16px', lineHeight: 1.5, color: '#E4E4E7' }}>"{clip.main_quote}"</p>
+                    <p style={{ fontStyle: 'italic', fontSize: '16px', lineHeight: 1.5, color: '#E4E4E7' }}>&ldquo;{clip.main_quote}&rdquo;</p>
                   </div>
                   <button
                     onClick={() => downloadQuoteGraphic(clip, i)}
@@ -1245,7 +1247,7 @@ function ResultsContent() {
                   <div style={{ marginBottom: '24px', padding: '16px', background: 'rgba(139,92,246,0.08)', borderRadius: '14px', border: '1px solid rgba(139,92,246,0.2)' }}>
                     <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '8px' }}>ENGAGEMENT STRATEGY</div>
                     <p style={{ fontSize: '12px', color: '#C4B5FD', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
-                      "{selectedClip.engagement_hook}"
+                      &ldquo;{selectedClip.engagement_hook}&rdquo;
                     </p>
                   </div>
                 )}
@@ -1396,7 +1398,7 @@ function ResultsContent() {
                           opacity: selectedVariantIdx === vIdx ? 1 : 0.5, transition: 'all 0.2s'
                         }}
                       >
-                        <img src={`/api/proxy-image?url=${encodeURIComponent(vUrl)}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={`/api/proxy-image?url=${encodeURIComponent(vUrl)}`} alt="Thumbnail variant" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                     ))}
                   </div>
