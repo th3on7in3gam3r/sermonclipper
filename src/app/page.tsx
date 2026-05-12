@@ -4,12 +4,15 @@
 import { useState, useEffect } from 'react';
 import ProcessingView from '@/components/home/ProcessingView';
 import Pricing from '@/components/home/Pricing';
+import FAQ from '@/components/FAQ';
+import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
 
 export default function Home() {
+  const { needsOnboarding, setNeedsOnboarding } = useOnboarding();
   const [url, setUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -242,6 +245,8 @@ export default function Home() {
 
       <Pricing />
 
+      <FAQ />
+
       {/* Testimonials Section */}
       <section style={{ padding: '120px 20px' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
@@ -288,6 +293,11 @@ export default function Home() {
           Made by <a href="https://biblefunland.com" target="_blank" rel="noreferrer" style={{ color: '#8B5CF6', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
         </p>
       </footer>
+
+      {/* Onboarding Modal — shows on first visit */}
+      {needsOnboarding && (
+        <OnboardingModal onComplete={() => setNeedsOnboarding(false)} />
+      )}
     </main>
   );
 }
