@@ -1285,35 +1285,24 @@ function ResultsContent() {
             }}>
 
               {/* Clip Metadata Strip */}
-              <div style={{ padding: '20px 24px 0', flexShrink: 0 }}>
-                <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.25em', marginBottom: '6px' }}>CLIP METADATA</div>
-                <h3 style={{ fontSize: '15px', fontWeight: 900, lineHeight: 1.3, marginBottom: '14px', color: '#fff' }}>{selectedClip.hook_title}</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
-                  <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ fontSize: '9px', color: '#52525B', marginBottom: '4px', letterSpacing: '0.1em' }}>START</div>
-                    <div style={{ fontSize: '13px', fontWeight: 900, fontFamily: 'monospace', color: '#C4B5FD' }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')}</div>
-                  </div>
-                  <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ fontSize: '9px', color: '#52525B', marginBottom: '4px', letterSpacing: '0.1em' }}>DURATION</div>
-                    <div style={{ fontSize: '13px', fontWeight: 900, fontFamily: 'monospace', color: '#C4B5FD' }}>{trimEnd - trimStart}s</div>
-                  </div>
+              <div style={{ padding: '16px 20px 0', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '13px', fontWeight: 900, lineHeight: 1.3, color: '#fff', margin: 0 }}>{selectedClip.hook_title}</h3>
+                  <div style={{ fontSize: '11px', fontWeight: 900, fontFamily: 'monospace', color: '#C4B5FD', flexShrink: 0 }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')} · {trimEnd - trimStart}s</div>
                 </div>
-                <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', marginBottom: '20px' }} />
-                
+              </div>
+
+              {/* Scrollable content: Social Kit + Engagement */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
                 {selectedClip.engagement_hook && (
-                  <div style={{ marginBottom: '24px', padding: '16px', background: 'rgba(139,92,246,0.08)', borderRadius: '14px', border: '1px solid rgba(139,92,246,0.2)' }}>
-                    <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '8px' }}>ENGAGEMENT STRATEGY</div>
-                    <p style={{ fontSize: '12px', color: '#C4B5FD', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
-                      &ldquo;{selectedClip.engagement_hook}&rdquo;
-                    </p>
+                  <div style={{ padding: '12px', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.15)' }}>
+                    <div style={{ fontSize: '8px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '4px' }}>ENGAGEMENT HOOK</div>
+                    <p style={{ fontSize: '11px', color: '#A78BFA', lineHeight: 1.4, margin: 0 }}>&ldquo;{selectedClip.engagement_hook}&rdquo;</p>
                   </div>
                 )}
 
-                <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.25em', marginBottom: '14px' }}>SOCIAL KIT</div>
-              </div>
-
-              {/* Platform Cards — Scrollable */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ fontSize: '8px', fontWeight: 900, color: '#3F3F46', letterSpacing: '0.2em', padding: '8px 0 4px' }}>SOCIAL KIT — TAP TO COPY</div>
                 {PLATFORMS.map((p, pi) => {
                   const caption = selectedClip.suggested_captions?.[pi] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote || '';
                   const fullText = `${p.prefix}${caption}`;
