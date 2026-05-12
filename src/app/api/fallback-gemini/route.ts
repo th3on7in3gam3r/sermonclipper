@@ -99,15 +99,12 @@ export async function POST(req: NextRequest) {
       analysis: parsed
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Gemini analysis failed';
     console.error("Gemini Error:", error);
     if (jobId) {
-      progressManager.update(jobId, { 
-        step: 'Analysis', 
-        status: 'error', 
-        message: error.message 
-      });
+      progressManager.update(jobId, { step: 'Analysis', status: 'error', message: msg });
     }
-    return NextResponse.json({ success: false, clips: [], message: error.message });
+    return NextResponse.json({ success: false, clips: [], message: msg });
   }
 }

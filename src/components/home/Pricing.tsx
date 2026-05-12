@@ -49,18 +49,21 @@ export default function Pricing() {
       });
 
       const responseText = await res.text();
-      let data: any = {};
+      let data: { url?: string; error?: string } = {};
       try {
         data = JSON.parse(responseText);
-      } catch (e) {}
+      } catch {
+        // responseText is not JSON
+      }
 
       if (res.ok && data.url) {
-        window.location.href = data.url;
+        window.location.assign(data.url);
       } else {
         throw new Error(data.error || responseText || 'Failed to create checkout session');
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Checkout failed';
+      toast.error(msg);
       setLoading(null);
     }
   };

@@ -53,8 +53,10 @@ export default function VesperTour({ forceOpen, onClose }: VesperTourProps) {
 
   useEffect(() => {
     if (forceOpen) {
-      setStep(0);
-      setVisible(true);
+      Promise.resolve().then(() => {
+        setStep(0);
+        setVisible(true);
+      });
       return;
     }
     const seen = localStorage.getItem(TOUR_KEY);

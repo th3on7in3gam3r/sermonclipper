@@ -60,7 +60,7 @@ const FILTER_EFFECTS: Record<string, Record<string, number> | null> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { jobId, clip, index, template, filter, font, animation } = await req.json();
+    const { jobId, clip, index: _index, template, filter, font, animation } = await req.json();
 
     if (!jobId || !clip) {
       return NextResponse.json({ error: 'Missing jobId or clip data' }, { status: 400 });

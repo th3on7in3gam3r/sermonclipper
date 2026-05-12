@@ -36,8 +36,9 @@ export async function POST(req: NextRequest) {
       jobId,
       url: r2Url
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Upload error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Upload failed';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

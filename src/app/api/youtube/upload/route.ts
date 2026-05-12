@@ -25,8 +25,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, youtubeId: result.id });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[YOUTUBE_UPLOAD_ERROR]', error);
-    return new NextResponse(error.message || 'Internal Error', { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Internal Error';
+    return new NextResponse(msg, { status: 500 });
   }
 }

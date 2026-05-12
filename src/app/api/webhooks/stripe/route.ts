@@ -18,8 +18,9 @@ export async function POST(req: Request) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-  } catch (error: any) {
-    return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Webhook Error';
+    return new NextResponse(`Webhook Error: ${msg}`, { status: 400 });
   }
 
   // Handle successful checkout
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
 
   // Handle successful payments
   if (event.type === 'invoice.payment_succeeded') {
-    const invoice = event.data.object as any;
+    const invoice = event.data.object as Stripe.Invoice & { subscription?: string };
     if (invoice.subscription) {
       await connectDB();
       await User.findOneAndUpdate(

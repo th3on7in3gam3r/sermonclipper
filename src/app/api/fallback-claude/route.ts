@@ -82,7 +82,7 @@ Generate 8-12 high-quality clips. Focus on impactful, emotional, and biblical mo
     try {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
-    } catch (e) {
+    } catch {
       parsed = { success: true, sermon_title: "Sermon Highlights", clips: [] };
     }
 
@@ -99,15 +99,12 @@ Generate 8-12 high-quality clips. Focus on impactful, emotional, and biblical mo
       analysis: parsed
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Claude analysis failed';
     console.error("Claude Error:", error);
     if (jobId) {
-      progressManager.update(jobId, { 
-        step: 'Analysis', 
-        status: 'error', 
-        message: error.message 
-      });
+      progressManager.update(jobId, { step: 'Analysis', status: 'error', message: msg });
     }
-    return NextResponse.json({ success: false, clips: [], message: error.message });
+    return NextResponse.json({ success: false, clips: [], message: msg });
   }
 }

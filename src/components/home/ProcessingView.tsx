@@ -15,10 +15,10 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
 
   useEffect(() => {
     if (statusMessage) {
-      setLogs(prev => {
+      Promise.resolve().then(() => setLogs(prev => {
         if (prev[prev.length - 1] === statusMessage && !statusMessage.startsWith('[Raw]')) return prev;
         return [...prev, statusMessage].slice(-10);
-      });
+      }));
     }
   }, [statusMessage]);
 
@@ -35,7 +35,7 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
-      setNotificationPermission(Notification.permission);
+      Promise.resolve().then(() => setNotificationPermission(Notification.permission));
     }
   }, []);
 

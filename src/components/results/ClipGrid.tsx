@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface Clip {
   id: string;
@@ -29,7 +29,7 @@ export default function ClipGrid({ clips }: ClipGridProps) {
     return (
       <div className="glass-card p-16 text-center">
         <p className="text-white/40 font-semibold uppercase tracking-widest text-xs">Processing Video Streams</p>
-        <p className="text-white/20 text-sm mt-4 max-w-sm mx-auto font-medium">We're finalizing your clips. Please refresh in a moment if they haven't appeared.</p>
+        <p className="text-white/20 text-sm mt-4 max-w-sm mx-auto font-medium">We&apos;re finalizing your clips. Please refresh in a moment if they haven&apos;t appeared.</p>
       </div>
     );
   }

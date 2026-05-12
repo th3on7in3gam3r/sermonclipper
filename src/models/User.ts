@@ -8,7 +8,7 @@ export interface IUser extends Document {
   status: 'active' | 'canceled' | 'past_due' | 'unpaid';
   usageCount: number;
   lastUsageReset: Date;
-  youtubeTokens?: any;
+  youtubeTokens?: Record<string, unknown>;
   createdAt: Date;
 }
 

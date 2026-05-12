@@ -5,14 +5,14 @@ import ProcessingView from '@/components/home/ProcessingView';
 import Pricing from '@/components/home/Pricing';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
 
 export default function Home() {
   const [url, setUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
-  const [status, setStatus] = useState<any>(null);
+  const [status, setStatus] = useState<Record<string, string> | null>(null);
   const router = useRouter();
   const { isLoaded, userId } = useAuth();
 
@@ -35,9 +35,10 @@ export default function Home() {
         setIsProcessing(false);
         return;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Connection failed';
       console.error('Failed to start job:', error);
-      toast.error(`Connection failed: ${error.message}`);
+      toast.error(`Connection failed: ${msg}`);
       setIsProcessing(false);
     }
   };
@@ -191,8 +192,9 @@ export default function Home() {
                 });
 
                 toast.success('Upload complete. Neural Harvesting started!', { id: loadToast });
-              } catch (err: any) {
-                toast.error(err.message, { id: loadToast });
+              } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : 'Upload failed';
+                toast.error(msg, { id: loadToast });
                 setIsProcessing(false);
               }
             }}
@@ -223,7 +225,7 @@ export default function Home() {
           
           <div className="features-grid">
             {[
-              { title: 'Neural Selection', icon: '🧠', desc: 'Our AI doesn\'t just "clip" video; it understands theological context to find the moments that will change lives.' },
+              { title: 'Neural Selection', icon: '🧠', desc: "Our AI doesn't just clip video; it understands theological context to find the moments that will change lives." },
               { title: 'Social Stewardship', icon: '📱', desc: 'Direct-to-platform publishing ensures your ministry stays consistent without overwhelming your team.' },
               { title: 'Global Impact', icon: '🌎', desc: 'By optimizing for short-form, we help your church message cross borders and reach a digital generation.' }
             ].map((f, i) => (
@@ -251,7 +253,7 @@ export default function Home() {
               { text: "The quality of the AI-generated clips is incredible. It captures the heart of the message perfectly every single time.", author: "Sarah J.", role: "Media Director" }
             ].map((t, i) => (
               <div key={i} className="testimonial-card">
-                <p style={{ marginBottom: '24px' }}>"{t.text}"</p>
+                <p style={{ marginBottom: '24px' }}>&ldquo;{t.text}&rdquo;</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#1F1F24' }} />
                   <div>

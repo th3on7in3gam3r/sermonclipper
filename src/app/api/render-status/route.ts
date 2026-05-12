@@ -29,7 +29,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch status' }, { status: 500 });
     }
 
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Unknown error';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

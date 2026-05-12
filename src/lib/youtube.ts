@@ -26,7 +26,7 @@ export const getTokens = async (code: string) => {
   return tokens;
 };
 
-export const uploadVideo = async (tokens: any, videoData: { title: string, description: string, url: string }) => {
+export const uploadVideo = async (tokens: Record<string, unknown>, videoData: { title: string, description: string, url: string }) => {
   oauth2Client.setCredentials(tokens);
   const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
 

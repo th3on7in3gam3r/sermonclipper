@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Safe dynamic check for different method names
-  const manager = progressManager as any;
+  const manager = progressManager as unknown as { get?: (id: string) => Promise<unknown>; getProgress?: (id: string) => Promise<unknown> };
   const progress = manager.get ? await manager.get(id) : (manager.getProgress ? await manager.getProgress(id) : null);
 
   if (!progress) {

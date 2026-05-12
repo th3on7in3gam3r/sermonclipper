@@ -7,7 +7,7 @@ export interface ISermon extends Document {
   mainTheme: string;
   videoUrl: string;
   finalPath?: string;
-  analysis: any;
+  analysis: Record<string, unknown>;
   createdAt: Date;
 }
 

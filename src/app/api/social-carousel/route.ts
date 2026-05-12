@@ -63,8 +63,9 @@ Please generate the carousel JSON.`;
     const parsed = JSON.parse(content);
     return NextResponse.json(parsed);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Social Carousel] API Error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to generate carousel' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Failed to generate carousel';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

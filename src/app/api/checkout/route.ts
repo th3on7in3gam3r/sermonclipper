@@ -67,10 +67,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[STRIPE_CHECKOUT_ERROR]', error);
-    // Return a more descriptive error if possible
-    const message = error?.raw?.message || error.message || 'Internal Error';
-    return new NextResponse(`Stripe Error: ${message}`, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Internal Error';
+    return new NextResponse(`Stripe Error: ${msg}`, { status: 500 });
   }
 }

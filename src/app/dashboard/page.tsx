@@ -7,8 +7,8 @@ import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
   const { isLoaded, userId } = useAuth();
-  const [sermons, setSermons] = useState<any[]>([]);
-  const [userData, setUserData] = useState<any>(null);
+  const [sermons, setSermons] = useState<{ _id: string; jobId: string; title: string; mainTheme?: string; videoUrl: string; createdAt: string; analysis?: { clips?: unknown[] } }[]>([]);
+  const [userData, setUserData] = useState<{ plan?: string; usageCount?: number; limit?: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -103,14 +103,14 @@ export default function Dashboard() {
                 if (!acc[month]) acc[month] = [];
                 acc[month].push(sermon);
                 return acc;
-              }, {} as Record<string, any[]>)
-            ).map(([month, monthSermons]: [string, any]) => (
+              }, {} as Record<string, typeof sermons>)
+            ).map(([month, monthSermons]) => (
               <div key={month} style={{ marginBottom: '64px' }}>
                 <h2 style={{ fontSize: '14px', fontWeight: 900, color: '#A1A1AA', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
                   {month} Series
                 </h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '32px' }}>
-                  {monthSermons.map((sermon: any) => (
+                  {monthSermons.map((sermon) => (
                     <Link 
                       key={sermon._id} 
                       href={`/results?jobId=${sermon.jobId}&videoUrl=${encodeURIComponent(sermon.videoUrl)}`}

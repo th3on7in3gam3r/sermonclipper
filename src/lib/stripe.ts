@@ -16,7 +16,7 @@ export function getStripe(): Stripe {
   }
 
   _stripe = new Stripe(key, {
-    apiVersion: '2025-01-27.acacia' as any,
+    apiVersion: '2026-04-22.dahlia',
     appInfo: {
       name: 'Vesper Studio',
       version: '1.0.0',
@@ -29,6 +29,6 @@ export function getStripe(): Stripe {
 /** @deprecated use getStripe() instead */
 export const stripe = new Proxy({} as Stripe, {
   get(_target, prop) {
-    return (getStripe() as any)[prop];
+    return (getStripe() as unknown as Record<string | symbol, unknown>)[prop as string];
   },
 });

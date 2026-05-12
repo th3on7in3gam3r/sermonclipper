@@ -1104,6 +1104,7 @@ function ResultsContent() {
                     {' · '}<b style={{ color: '#C4B5FD' }}>{ANIMATIONS.find(a => a.id === selectedAnimation)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{trimEnd - trimStart}s</b>
                   </div>
+                </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     onClick={() => saveBrandKit({ template: selectedTemplate, filter: selectedFilter, font: selectedFont, animation: selectedAnimation })}
@@ -1119,10 +1120,9 @@ function ResultsContent() {
                   >
                     CONFIRM & EXPORT
                   </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
 
             {/* PANEL 2: CENTER (Cinematic Preview) */}
             <div style={{ 
@@ -1301,12 +1301,13 @@ function ResultsContent() {
                     <b style={{ color: '#C4B5FD' }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FONTS.find(f => f.id === selectedFont)?.name}</b>
+                  </div>
+                </div>
                 <button onClick={() => startExport(selectedClip)} className="shimmer-btn" style={{ width: '100%', padding: '16px', fontSize: '12px' }}>
                   CONFIRM & EXPORT
                 </button>
               </div>
             </div>
-          </div>
           </div>
 
             {/* Mobile Bottom Tab Bar */}
@@ -1332,8 +1333,7 @@ function ResultsContent() {
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
       
       {/* Thumbnail Studio Drawer — Side Slide-in */}
       {activeThumbnailClip && (

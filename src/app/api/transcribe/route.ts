@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { join } from 'path';
-import { existsSync, unlinkSync } from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import { progressManager } from '../../../lib/progress';
 import { TMP_DIR } from '../../../lib/paths';
@@ -66,19 +65,12 @@ export async function POST(req: NextRequest) {
       transcript: "Transcription generated successfully. Ready for social clipping."
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
     console.error("🔥 TRANSCRIBE ERROR:", error);
     if (currentJobId) {
-      progressManager.update(currentJobId, { 
-        step: 'Analysis', 
-        status: 'error', 
-        message: `Analysis Failed: ${error.message}` 
-      });
+      progressManager.update(currentJobId, { step: 'Analysis', status: 'error', message: `Analysis Failed: ${msg}` });
     }
-
-    return NextResponse.json({ 
-      error: "Transcription failed", 
-      message: error.message 
-    }, { status: 500 });
+    return NextResponse.json({ error: "Transcription failed", message: msg }, { status: 500 });
   }
 }

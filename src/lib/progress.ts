@@ -10,7 +10,7 @@ export interface ProgressUpdate {
   r2Key?: string;
   r2Url?: string;
   finalPath?: string;
-  analysis?: any;
+  analysis?: Record<string, unknown>;
   userId?: string;
 }
 
