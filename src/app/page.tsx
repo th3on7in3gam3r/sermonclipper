@@ -116,13 +116,13 @@ export default function Home() {
       {/* Hero Section */}
       <section style={{ padding: '200px 20px 100px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div className="animate-up">
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', marginBottom: '40px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '32px', marginBottom: '60px' }}>
             <img 
               src="/vesper-logo-icon.png" 
               alt="VESPER Icon" 
-              style={{ width: '120px', height: '120px', objectFit: 'contain', mixBlendMode: 'screen' }}
+              style={{ width: '140px', height: '140px', objectFit: 'contain', mixBlendMode: 'screen' }}
             />
-            <h1 className="hero-title" style={{ margin: 0 }}>VESPER</h1>
+            <h1 className="hero-title" style={{ margin: 0, fontSize: 'clamp(48px, 10vw, 140px)' }}>VESPER</h1>
           </div>
           
           <p className="hero-tagline">
