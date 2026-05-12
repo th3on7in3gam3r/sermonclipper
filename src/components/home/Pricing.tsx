@@ -18,7 +18,7 @@ const plans = [
     price: '$19',
     desc: 'Power your ministry with consistent cinematic short-form.',
     features: ['20 Neural Harvests /mo', 'High-Priority Rendering', 'All Caption Templates', 'Custom Branding', 'Email Support'],
-    priceId: 'price_1TW9zPDaUBBsjt5moFS7VuWK',
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_CREATOR,
     plan: 'creator',
     btn: 'Upgrade to Creator',
     popular: true
@@ -28,7 +28,7 @@ const plans = [
     price: '$49',
     desc: 'The full Vesper suite for growing churches.',
     features: ['Unlimited Harvests', 'Ultra-Fast Dedicated Rendering', 'Multi-User Access', 'White-Label Branding', 'Priority Phone Support'],
-    priceId: 'price_1TW9zPDaUBBsjt5moFS7VuWK', // User provided same ID for now
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_CHURCH_PRO,
     plan: 'church_pro',
     btn: 'Go Pro'
   }
