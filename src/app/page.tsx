@@ -279,11 +279,14 @@ export default function Home() {
 
       {/* Footer */}
       <footer style={{ padding: '80px 20px', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.2em', opacity: 0.4 }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.2em', opacity: 0.4, marginBottom: '16px' }}>
           <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>PRIVACY POLICY</Link>
           <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>TERMS OF SERVICE</Link>
-          <span style={{ color: '#fff' }}>© 2026 VESPER STUDIO · AMRE MEDIA</span>
+          <span style={{ color: '#fff' }}>© 2026 VESPER</span>
         </div>
+        <p style={{ fontSize: '12px', color: '#52525B', fontWeight: 600 }}>
+          Made by <a href="https://biblefunland.com" target="_blank" rel="noreferrer" style={{ color: '#8B5CF6', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
+        </p>
       </footer>
     </main>
   );

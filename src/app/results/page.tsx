@@ -786,11 +786,14 @@ function ResultsContent() {
 
       {/* PWA / Link Footer */}
       <footer style={{ padding: '60px 0', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.2em', opacity: 0.4 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.2em', opacity: 0.4, marginBottom: '16px' }}>
           <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>PRIVACY</Link>
           <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>TERMS</Link>
           <span style={{ color: '#fff' }}>© 2026 VESPER</span>
         </div>
+        <p style={{ fontSize: '11px', color: '#52525B', fontWeight: 600 }}>
+          Made by <a href="https://biblefunland.com" target="_blank" rel="noreferrer" style={{ color: '#8B5CF6', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
+        </p>
       </footer>
 
       {showCarouselModal && carouselData && (
