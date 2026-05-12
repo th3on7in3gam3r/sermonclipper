@@ -92,8 +92,8 @@ export default function Home() {
       {/* Navigation */}
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/vesper-logo-icon.png" alt="Logo" style={{ height: '32px', width: 'auto', mixBlendMode: 'screen' }} />
-          <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
+          <img src="/vesper-logo-icon.png" alt="Logo" style={{ height: '36px', width: 'auto', mixBlendMode: 'screen', display: 'block' }} />
+          <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff', display: 'flex', alignItems: 'center' }}>VESPER</div>
         </div>
 
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
@@ -117,13 +117,25 @@ export default function Home() {
       {/* Hero Section */}
       <section style={{ padding: '200px 20px 100px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div className="animate-up">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '32px', marginBottom: '60px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2em', marginBottom: '60px' }}>
             <img 
               src="/vesper-logo-icon.png" 
               alt="VESPER Icon" 
-              style={{ width: '140px', height: '140px', objectFit: 'contain', mixBlendMode: 'screen' }}
+              style={{ 
+                height: 'clamp(64px, 15vw, 180px)', 
+                width: 'auto', 
+                objectFit: 'contain', 
+                mixBlendMode: 'screen',
+                display: 'block'
+              }}
             />
-            <h1 className="hero-title" style={{ margin: 0, fontSize: 'clamp(48px, 10vw, 140px)' }}>VESPER</h1>
+            <h1 className="hero-title" style={{ 
+              margin: 0, 
+              fontSize: 'clamp(48px, 10vw, 140px)',
+              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center'
+            }}>VESPER</h1>
           </div>
           
           <p className="hero-tagline">
