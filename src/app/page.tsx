@@ -91,7 +91,7 @@ export default function Home() {
       {/* Navigation */}
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/vesper-logo-clean.png" alt="Logo" style={{ height: '32px', width: 'auto' }} />
+          <img src="/vesper-logo-icon.png" alt="Logo" style={{ height: '32px', width: 'auto', mixBlendMode: 'screen' }} />
           <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
         </div>
 
@@ -116,12 +116,13 @@ export default function Home() {
       {/* Hero Section */}
       <section style={{ padding: '200px 20px 100px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div className="animate-up">
-          <div style={{ marginBottom: '40px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', marginBottom: '40px' }}>
             <img 
-              src="/vesper-logo-clean.png" 
-              alt="VESPER" 
-              style={{ width: '100%', maxWidth: '500px', height: 'auto', margin: '0 auto' }}
+              src="/vesper-logo-icon.png" 
+              alt="VESPER Icon" 
+              style={{ width: '120px', height: '120px', objectFit: 'contain', mixBlendMode: 'screen' }}
             />
+            <h1 className="hero-title" style={{ margin: 0 }}>VESPER</h1>
           </div>
           
           <p className="hero-tagline">
