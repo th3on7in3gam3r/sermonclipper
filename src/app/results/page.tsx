@@ -897,21 +897,32 @@ function ResultsContent() {
               visibility: isMobile && mobileTab !== 'studio' ? 'hidden' : 'visible'
             }}>
 
-              {/* Tabs Header */}
-              <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                {['templates', 'filters', 'fonts', 'motion', 'trim', 'publish'].map(tab => (
+              {/* Tabs Header — Icon Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+                {[
+                  { id: 'templates', icon: '◈', label: 'Style' },
+                  { id: 'filters', icon: '◐', label: 'Filter' },
+                  { id: 'fonts', icon: 'Aa', label: 'Font' },
+                  { id: 'motion', icon: '▷', label: 'Motion' },
+                  { id: 'trim', icon: '✂', label: 'Trim' },
+                  { id: 'publish', icon: '↗', label: 'Publish' },
+                ].map(tab => (
                   <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
                     style={{
-                      flex: isMobile ? '0 0 auto' : 1, padding: isMobile ? '14px 20px' : '14px 0', fontSize: '9px', fontWeight: 900, letterSpacing: '0.1em',
-                      color: activeTab === tab ? '#8B5CF6' : '#52525B',
-                      background: activeTab === tab ? 'rgba(139,92,246,0.05)' : 'transparent',
-                      border: 'none', borderBottom: activeTab === tab ? '2px solid #8B5CF6' : '2px solid transparent',
-                      cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase',
-                      whiteSpace: 'nowrap'
+                      padding: '12px 4px',
+                      background: activeTab === tab.id ? 'rgba(139,92,246,0.08)' : 'transparent',
+                      border: 'none',
+                      borderBottom: activeTab === tab.id ? '2px solid #8B5CF6' : '2px solid transparent',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
                     }}
-                  >{tab.toUpperCase()}</button>
+                  >
+                    <span style={{ fontSize: '14px', color: activeTab === tab.id ? '#A78BFA' : '#52525B', lineHeight: 1 }}>{tab.icon}</span>
+                    <span style={{ fontSize: '8px', fontWeight: 800, letterSpacing: '0.05em', color: activeTab === tab.id ? '#A78BFA' : '#3F3F46' }}>{tab.label}</span>
+                  </button>
                 ))}
               </div>
 
