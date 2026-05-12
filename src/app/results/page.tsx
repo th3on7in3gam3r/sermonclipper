@@ -993,7 +993,7 @@ function ResultsContent() {
 
             {/* PANEL 2: CENTER (Cinematic Preview) */}
             <div style={{ flex: 1, position: 'relative', background: '#050508', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
-              <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
+              <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '30px 30px', pointerEvents: 'none' }} />
               
               {/* Phone Mockup Wrapper */}
               <div style={{ 
