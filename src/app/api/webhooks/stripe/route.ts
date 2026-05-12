@@ -26,13 +26,10 @@ export async function POST(req: Request) {
 
   // Handle successful checkout
   if (event.type === 'checkout.session.completed') {
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string
-    );
+    const session = event.data.object as Stripe.Checkout.Session;
+    if (!session?.metadata?.clerkId) return new NextResponse('Missing metadata', { status: 400 });
 
-    if (!session?.metadata?.clerkId) {
-      return new NextResponse('Clerk ID is required', { status: 400 });
-    }
+    const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
 
     await connectDB();
     await User.findOneAndUpdate(
@@ -46,21 +43,37 @@ export async function POST(req: Request) {
     );
   }
 
-  // Handle subscription updates/cancellations
+  // Handle successful payments
   if (event.type === 'invoice.payment_succeeded') {
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string
-    );
+    const invoice = event.data.object as Stripe.Invoice;
+    if (invoice.subscription) {
+      await connectDB();
+      await User.findOneAndUpdate(
+        { stripeSubscriptionId: invoice.subscription as string },
+        { status: 'active' }
+      );
+    }
+  }
 
+  // Handle cancellations
+  if (event.type === 'customer.subscription.deleted') {
+    const subscription = event.data.object as Stripe.Subscription;
     await connectDB();
     await User.findOneAndUpdate(
       { stripeSubscriptionId: subscription.id },
-      {
-        plan: subscription.items.data[0].plan.metadata?.plan || 'creator', // Fallback or logic based on price ID
-        status: 'active',
-      }
+      { plan: 'free', status: 'canceled' }
     );
   }
 
-  return new NextResponse(null, { status: 200 });
+  // Handle plan updates
+  if (event.type === 'customer.subscription.updated') {
+    const subscription = event.data.object as Stripe.Subscription;
+    await connectDB();
+    await User.findOneAndUpdate(
+      { stripeSubscriptionId: subscription.id },
+      { status: subscription.status === 'active' ? 'active' : 'past_due' }
+    );
+  }
+
+  return new NextResponse('Webhook processed', { status: 200 });
 }

@@ -136,9 +136,23 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
   
   let downloadSuccess = false;
 
-  // Try Tunneling
+  // Try Direct Download (R2/Direct Link)
   const vid = extractVideoId(url);
-  if (vid) {
+  if (!vid) {
+    try {
+      console.log('[Engine] Non-YouTube URL detected, attempting direct harvest...');
+      const res = await fetch(url, { signal: AbortSignal.timeout(300000) });
+      if (res.ok && res.body) {
+        await pipeline(Readable.fromWeb(res.body as any), createWriteStream(filePath));
+        downloadSuccess = true;
+      }
+    } catch (err: any) {
+      console.error('[Engine] Direct harvest failed:', err.message);
+    }
+  }
+
+  // Try Tunneling
+  if (!downloadSuccess && vid) {
     for (const m of MIRRORS) {
       const streamUrl = await resolveMirror(vid, m, url);
       if (streamUrl) {

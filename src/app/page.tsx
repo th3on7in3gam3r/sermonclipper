@@ -157,7 +157,52 @@ export default function Home() {
             <span>OR UPLOAD VIDEO FILE</span>
           </div>
 
-          <div className="glass-panel animate-up" style={{ animationDelay: '0.6s', maxWidth: '800px', margin: '0 auto', padding: '60px', borderStyle: 'dashed', borderWidth: '2px', cursor: 'pointer' }}>
+          <input 
+            type="file" 
+            id="video-upload" 
+            accept="video/*" 
+            style={{ display: 'none' }} 
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+
+              const loadToast = toast.loading('Uploading to Sanctum...');
+              const newJobId = Math.random().toString(36).substring(7);
+              setJobId(newJobId);
+              setIsProcessing(true);
+
+              try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('jobId', newJobId);
+
+                const res = await fetch('/api/upload', {
+                  method: 'POST',
+                  body: formData
+                });
+
+                if (!res.ok) throw new Error('Upload failed');
+                const { url: r2Url } = await res.json();
+
+                await fetch('/api/download-youtube', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ url: r2Url, jobId: newJobId, userId }),
+                });
+
+                toast.success('Upload complete. Neural Harvesting started!', { id: loadToast });
+              } catch (err: any) {
+                toast.error(err.message, { id: loadToast });
+                setIsProcessing(false);
+              }
+            }}
+          />
+
+          <div 
+            className="glass-panel animate-up" 
+            onClick={() => document.getElementById('video-upload')?.click()}
+            style={{ animationDelay: '0.6s', maxWidth: '800px', margin: '0 auto', padding: '60px', borderStyle: 'dashed', borderWidth: '2px', cursor: 'pointer' }}
+          >
              <div style={{ fontSize: '40px', marginBottom: '16px' }}>📁</div>
              <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>Drag & Drop Your Sermon Video</h3>
              <p style={{ color: '#52525B', fontSize: '14px' }}>MP4, MOV, or WEBM (Max 2GB)</p>
