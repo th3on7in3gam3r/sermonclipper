@@ -26,6 +26,16 @@ function ResultsContent() {
   const [rendering, setRendering] = useState<{ [key: number]: { status: string, url?: string } }>({});
   const [userStatus, setUserStatus] = useState<any>(null);
   const { isLoaded, userId } = useAuth();
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileTab, setMobileTab] = useState('studio'); // 'studio', 'strategy', 'publish'
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   
   // Carousel State
   const [carouselLoading, setCarouselLoading] = useState(false);
@@ -488,13 +498,13 @@ function ResultsContent() {
       {/* Navigation — Fixed 64px height */}
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '64px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.95)', backdropFilter: 'blur(30px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <div style={{ fontSize: '13px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
+          <div style={{ fontSize: isMobile ? '11px' : '13px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
         </Link>
-        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: isMobile ? '12px' : '24px', alignItems: 'center' }}>
           {isLoaded && userId ? (
             <>
-              <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>
-              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>ARCHIVE</Link>
+              {!isMobile && <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>}
+              {!isMobile && <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>ARCHIVE</Link>}
               <button
                 onClick={() => setShowTour(true)}
                 title="Open tutorial"
@@ -518,7 +528,7 @@ function ResultsContent() {
 
       {/* Main Content Wrapper with PaddingTop to clear fixed header */}
       <div style={{ paddingTop: '64px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 32px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '0 16px' : '0 32px' }}>
 
           {/* Hero Metadata Section — 32px MarginTop */}
           <div className="glass-panel" style={{ padding: '40px', marginTop: '32px', marginBottom: '40px', position: 'relative', overflow: 'hidden' }}>
@@ -530,24 +540,22 @@ function ResultsContent() {
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#8B5CF6', boxShadow: '0 0 6px #8B5CF6' }} />
                 <span style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em' }}>MEDIA KIT READY</span>
               </div>
-              <h1 style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '12px' }}>
+              <h1 style={{ fontSize: isMobile ? '32px' : 'clamp(28px, 4vw, 52px)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '12px' }}>
                 {analysis?.sermon_title || 'PROCESSING...'}{' '}
                 <span style={{ color: '#8B5CF6' }}>RESULTS</span>
               </h1>
-              <p style={{ color: '#A1A1AA', fontSize: '15px', maxWidth: '560px', lineHeight: 1.6 }}>
+              <p style={{ color: '#A1A1AA', fontSize: isMobile ? '14px' : '15px', maxWidth: '560px', lineHeight: 1.6 }}>
                 {analysis?.main_theme || 'Harvesting deep insights from your sermon session...'}
               </p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: '200px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: isMobile ? '100%' : '200px', width: isMobile ? '100%' : 'auto' }}>
               <button onClick={handleBatchExport} className="shimmer-btn" style={{ width: '100%', padding: '14px', fontSize: '11px', background: 'linear-gradient(90deg, #10B981, #059669)' }}>BATCH EXPORT ALL</button>
               <button onClick={handleCopy} className="glass-panel" style={{ width: '100%', padding: '14px', fontSize: '11px', border: '1px solid rgba(255,255,255,0.1)' }}>COPY SESSION LINK</button>
               <a href={videoUrl || '#'} download className="glass-panel" style={{ width: '100%', padding: '14px', textAlign: 'center', textDecoration: 'none', color: '#fff', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)', borderRadius: '14px', display: 'block' }}>DOWNLOAD MASTER</a>
-            </div>
-          </div>
         </div>
       </div>
 
-      <div className="dashboard-grid" style={{ marginTop: '0' }}>
+       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(360px, 1fr))', gap: '24px', marginTop: '0' }}>
         {/* Master Sermon Card */}
         <div className="clip-card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
           <div className="clip-preview" style={{ background: '#000', borderRadius: '0' }}>
@@ -751,8 +759,8 @@ function ResultsContent() {
 
       {/* YouTube Description Modal */}
       {showYTDesc && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div className="glass-panel animate-up" style={{ width: '100%', maxWidth: '680px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', border: '1px solid rgba(139,92,246,0.25)', overflow: 'hidden' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '0' : '20px' }}>
+          <div className="glass-panel animate-up" style={{ width: '100%', maxWidth: isMobile ? '100%' : '680px', height: isMobile ? '100%' : 'auto', maxHeight: isMobile ? '100%' : '85vh', borderRadius: isMobile ? '0' : '32px', display: 'flex', flexDirection: 'column', border: isMobile ? 'none' : '1px solid rgba(139,92,246,0.25)', overflow: 'hidden' }}>
             <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div>
                 <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '6px' }}>EXPORT TOOL</div>
@@ -783,8 +791,8 @@ function ResultsContent() {
 
       {/* Quote Vault Modal */}
       {showQuoteVault && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div className="glass-panel animate-up" style={{ width: '100%', maxWidth: '800px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', border: '1px solid rgba(139,92,246,0.25)', overflow: 'hidden' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '0' : '20px' }}>
+          <div className="glass-panel animate-up" style={{ width: '100%', maxWidth: isMobile ? '100%' : '800px', height: isMobile ? '100%' : 'auto', maxHeight: isMobile ? '100%' : '85vh', borderRadius: isMobile ? '0' : '32px', display: 'flex', flexDirection: 'column', border: isMobile ? 'none' : '1px solid rgba(139,92,246,0.25)', overflow: 'hidden' }}>
             <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div>
                 <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '6px' }}>EXPAND YOUR MINISTRY</div>
@@ -836,20 +844,32 @@ function ResultsContent() {
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
             {/* PANEL 1: LEFT SIDEBAR (Tools & Tabs) */}
-            <div style={{ width: '280px', flexShrink: 0, background: '#0A0A0F', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ 
+              width: isMobile ? '100%' : '280px', 
+              height: isMobile ? (mobileTab === 'studio' ? 'auto' : '0') : '100%',
+              flexShrink: 0, 
+              background: '#0A0A0F', 
+              borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.05)', 
+              borderBottom: isMobile ? '1px solid rgba(255,255,255,0.05)' : 'none',
+              display: 'flex', 
+              flexDirection: 'column',
+              overflow: 'hidden',
+              visibility: isMobile && mobileTab !== 'studio' ? 'hidden' : 'visible'
+            }}>
 
               {/* Tabs Header */}
-              <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+              <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 {['templates', 'filters', 'fonts', 'motion', 'trim', 'publish'].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     style={{
-                      flex: 1, padding: '14px 0', fontSize: '9px', fontWeight: 900, letterSpacing: '0.1em',
+                      flex: isMobile ? '0 0 auto' : 1, padding: isMobile ? '14px 20px' : '14px 0', fontSize: '9px', fontWeight: 900, letterSpacing: '0.1em',
                       color: activeTab === tab ? '#8B5CF6' : '#52525B',
                       background: activeTab === tab ? 'rgba(139,92,246,0.05)' : 'transparent',
                       border: 'none', borderBottom: activeTab === tab ? '2px solid #8B5CF6' : '2px solid transparent',
-                      cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase'
+                      cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase',
+                      whiteSpace: 'nowrap'
                     }}
                   >{tab.toUpperCase()}</button>
                 ))}
@@ -1105,7 +1125,17 @@ function ResultsContent() {
             </div>
 
             {/* PANEL 2: CENTER (Cinematic Preview) */}
-            <div style={{ flex: 1, position: 'relative', background: '#050508', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
+            <div style={{ 
+              flex: 1, 
+              position: 'relative', 
+              background: '#050508', 
+              display: (isMobile && mobileTab !== 'studio') ? 'none' : 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              padding: isMobile ? '20px' : '40px',
+              minHeight: isMobile ? '60vh' : 'auto'
+            }}>
               <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '30px 30px', pointerEvents: 'none' }} />
               
               {/* Phone Mockup Wrapper */}
@@ -1185,7 +1215,15 @@ function ResultsContent() {
             </div>
 
             {/* PANEL 3: RIGHT SIDEBAR — Social Kit & Export */}
-            <div style={{ width: '320px', flexShrink: 0, background: '#0A0A0F', borderLeft: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ 
+              width: isMobile ? '100%' : '320px', 
+              flexShrink: 0, 
+              background: '#0A0A0F', 
+              borderLeft: isMobile ? 'none' : '1px solid rgba(255,255,255,0.05)', 
+              display: isMobile ? (mobileTab === 'strategy' ? 'flex' : 'none') : 'flex', 
+              flexDirection: 'column', 
+              overflow: 'hidden' 
+            }}>
 
               {/* Clip Metadata Strip */}
               <div style={{ padding: '20px 24px 0', flexShrink: 0 }}>
@@ -1271,6 +1309,28 @@ function ResultsContent() {
               </div>
             </div>
 
+            {/* Mobile Bottom Tab Bar */}
+            {isMobile && (
+              <div style={{ position: 'sticky', bottom: 0, left: 0, right: 0, height: '72px', background: '#0A0A0F', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', zIndex: 100, backdropFilter: 'blur(20px)', flexShrink: 0 }}>
+                {[
+                  { id: 'studio', label: 'STUDIO', icon: '🎨' },
+                  { id: 'strategy', label: 'STRATEGY', icon: '📈' },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setMobileTab(tab.id)}
+                    style={{
+                      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                      background: 'none', border: 'none', color: mobileTab === tab.id ? '#8B5CF6' : '#52525B',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <span style={{ fontSize: '18px' }}>{tab.icon}</span>
+                    <span style={{ fontSize: '9px', fontWeight: 900, letterSpacing: '0.1em' }}>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
