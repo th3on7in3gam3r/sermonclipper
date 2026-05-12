@@ -83,6 +83,9 @@ function ResultsContent() {
 
   const videoId = videoUrl ? getYouTubeId(videoUrl) : null;
 
+  // If the source is YouTube (not a direct upload), Shotstack can't render from it
+  const isYouTubeSource = !!videoId;
+
   // Robust time parser to handle cases where AI returns 'MM:SS' instead of raw seconds
   const parseTime = (timeVal: any): number => {
     if (typeof timeVal === 'number') return Math.floor(timeVal);
@@ -534,6 +537,20 @@ function ResultsContent() {
 
           {/* Hero Metadata Section — 32px MarginTop */}
           <div className="glass-panel" style={{ padding: '40px', marginTop: '32px', marginBottom: '40px', position: 'relative', overflow: 'hidden' }}>
+
+        {/* YouTube source banner */}
+        {isYouTubeSource && (
+          <div style={{ marginBottom: '24px', padding: '14px 20px', background: 'rgba(251,146,60,0.06)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 2 }}>
+            <span style={{ fontSize: '18px', flexShrink: 0 }}>📺</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '11px', color: '#FB923C', fontWeight: 800, marginBottom: '2px' }}>YOUTUBE SOURCE — PREVIEW MODE</p>
+              <p style={{ fontSize: '10px', color: '#A1A1AA', lineHeight: 1.5 }}>AI analysis is complete. To export reels via Shotstack, download the sermon MP4 from YouTube and re-upload it directly.</p>
+            </div>
+            <Link href="/" style={{ flexShrink: 0, padding: '8px 16px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', color: '#34D399', fontSize: '10px', fontWeight: 800, textDecoration: 'none', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
+              UPLOAD MP4
+            </Link>
+          </div>
+        )}
         <div style={{ position: 'absolute', top: 0, right: 0, width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '24px' }}>
@@ -708,6 +725,24 @@ function ResultsContent() {
                   <button onClick={() => startExport({ ...clip, index: i })} className="shimmer-btn" style={{ width: '100%', padding: '14px', background: 'linear-gradient(90deg, #EF4444, #B91C1C)', animation: 'none' }}>
                     ⚠ RENDER FAILED — RETRY
                   </button>
+                ) : isYouTubeSource ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ padding: '12px 16px', background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '12px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                      <span style={{ fontSize: '14px', flexShrink: 0, marginTop: '1px' }}>⚠️</span>
+                      <div>
+                        <p style={{ fontSize: '11px', color: '#FB923C', fontWeight: 800, marginBottom: '4px' }}>YOUTUBE SOURCE DETECTED</p>
+                        <p style={{ fontSize: '10px', color: '#A1A1AA', lineHeight: 1.5 }}>Reel export requires a direct MP4 file. Download this sermon from YouTube and re-upload it to enable full Studio rendering.</p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => handleCustomize(clip, i)} style={{ flex: 1, padding: '12px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '10px', color: '#A78BFA', fontSize: '10px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.08em' }}>
+                        PREVIEW STUDIO
+                      </button>
+                      <Link href="/" style={{ flex: 1, padding: '12px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', color: '#34D399', fontSize: '10px', fontWeight: 800, textDecoration: 'none', textAlign: 'center', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        RE-UPLOAD MP4
+                      </Link>
+                    </div>
+                  </div>
                 ) : (
                   <button onClick={() => handleCustomize(clip, i)} className="shimmer-btn" style={{ width: '100%', padding: '14px' }}>
                     CUSTOMIZE REEL
