@@ -552,6 +552,8 @@ function ResultsContent() {
               <button onClick={handleBatchExport} className="shimmer-btn" style={{ width: '100%', padding: '14px', fontSize: '11px', background: 'linear-gradient(90deg, #10B981, #059669)' }}>BATCH EXPORT ALL</button>
               <button onClick={handleCopy} className="glass-panel" style={{ width: '100%', padding: '14px', fontSize: '11px', border: '1px solid rgba(255,255,255,0.1)' }}>COPY SESSION LINK</button>
               <a href={videoUrl || '#'} download className="glass-panel" style={{ width: '100%', padding: '14px', textAlign: 'center', textDecoration: 'none', color: '#fff', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)', borderRadius: '14px', display: 'block' }}>DOWNLOAD MASTER</a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -749,9 +751,6 @@ function ResultsContent() {
           <span style={{ color: '#fff' }}>© 2026 VESPER</span>
         </div>
       </footer>
-
-      </div>{/* end inner max-width */}
-      </div>{/* end paddingTop wrapper */}
 
       {showCarouselModal && carouselData && (
         <CarouselModal data={carouselData} onClose={() => setShowCarouselModal(false)} />
@@ -1104,7 +1103,7 @@ function ResultsContent() {
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FONTS.find(f => f.id === selectedFont)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{ANIMATIONS.find(a => a.id === selectedAnimation)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{trimEnd - trimStart}s</b>
-                  </div>                </div>
+                  </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     onClick={() => saveBrandKit({ template: selectedTemplate, filter: selectedFilter, font: selectedFont, animation: selectedAnimation })}
@@ -1120,9 +1119,10 @@ function ResultsContent() {
                   >
                     CONFIRM & EXPORT
                   </button>
-                </div>
-              </div>
             </div>
+          </div>
+        </div>
+      </div>
 
             {/* PANEL 2: CENTER (Cinematic Preview) */}
             <div style={{ 
@@ -1301,13 +1301,13 @@ function ResultsContent() {
                     <b style={{ color: '#C4B5FD' }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FONTS.find(f => f.id === selectedFont)?.name}</b>
-                  </div>
-                </div>
                 <button onClick={() => startExport(selectedClip)} className="shimmer-btn" style={{ width: '100%', padding: '16px', fontSize: '12px' }}>
                   CONFIRM & EXPORT
                 </button>
               </div>
             </div>
+          </div>
+          </div>
 
             {/* Mobile Bottom Tab Bar */}
             {isMobile && (
@@ -1472,8 +1472,9 @@ function ResultsContent() {
           </div>
         </div>
       )}
-      {/* Vesper Onboarding Tour */}
       <VesperTour forceOpen={showTour} onClose={() => setShowTour(false)} />
+        </div>
+      </div>
     </div>
   );
 }
