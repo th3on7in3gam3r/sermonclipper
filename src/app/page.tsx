@@ -165,19 +165,24 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section style={{ padding: '100px 20px', background: 'rgba(255,255,255,0.01)' }}>
+      {/* Vision Section */}
+      <section id="features" style={{ padding: '120px 20px', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <span className="section-subtitle">Core Capabilities</span>
-          <h2 className="section-title">Everything Your Church Needs</h2>
+          <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+            <span className="section-subtitle">THE VISION</span>
+            <h2 className="section-title">Beyond Technology: Our Ministry</h2>
+            <p style={{ color: '#A1A1AA', fontSize: '18px', maxWidth: '700px', margin: '0 auto', lineHeight: 1.6 }}>
+              Vesper was born from a simple conviction: the Gospel should be shared with the same cinematic excellence that the world uses to capture attention. We build tools that empower pastors to reach the harvest.
+            </p>
+          </div>
           
           <div className="features-grid">
             {[
-              { title: 'Smart Sermon Clips', icon: '🎬', desc: 'AI automatically identifies the most engaging hooks and theological insights from your message.' },
-              { title: 'Beautiful Graphics', icon: '🎨', desc: 'Generate high-end quote cards and thumbnails that match your church brand instantly.' },
-              { title: 'Extra Resources', icon: '📖', desc: 'Get automated devotionals, discussion questions, and full transcripts for every sermon.' }
+              { title: 'Neural Selection', icon: '🧠', desc: 'Our AI doesn\'t just "clip" video; it understands theological context to find the moments that will change lives.' },
+              { title: 'Social Stewardship', icon: '📱', desc: 'Direct-to-platform publishing ensures your ministry stays consistent without overwhelming your team.' },
+              { title: 'Global Impact', icon: '🌎', desc: 'By optimizing for short-form, we help your church message cross borders and reach a digital generation.' }
             ].map((f, i) => (
-              <div key={i} className="glass-panel feature-card">
+              <div key={i} className="glass-panel feature-card" style={{ padding: '40px' }}>
                 <div style={{ fontSize: '48px', marginBottom: '24px' }}>{f.icon}</div>
                 <h3 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '16px' }}>{f.title}</h3>
                 <p style={{ color: '#A1A1AA', lineHeight: 1.6 }}>{f.desc}</p>

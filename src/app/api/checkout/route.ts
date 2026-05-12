@@ -39,6 +39,16 @@ export async function POST(req: Request) {
     }
 
     // 3. Create Checkout Session
+    if (!priceId) {
+      console.error('[STRIPE_ERROR] Missing Price ID for plan:', plan);
+      return new NextResponse('Stripe Price ID is missing. Please check your environment variables.', { status: 400 });
+    }
+
+    if (!process.env.NEXT_PUBLIC_APP_URL) {
+      console.error('[STRIPE_ERROR] Missing NEXT_PUBLIC_APP_URL');
+      return new NextResponse('Application URL configuration error. Please check your environment variables.', { status: 500 });
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
@@ -49,7 +59,7 @@ export async function POST(req: Request) {
       ],
       mode: 'subscription',
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/#pricing?canceled=true`,
       metadata: {
         clerkId: userId,
         plan: plan,
@@ -59,6 +69,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: session.url });
   } catch (error: any) {
     console.error('[STRIPE_CHECKOUT_ERROR]', error);
-    return new NextResponse(error.message || 'Internal Error', { status: 500 });
+    // Return a more descriptive error if possible
+    const message = error?.raw?.message || error.message || 'Internal Error';
+    return new NextResponse(`Stripe Error: ${message}`, { status: 500 });
   }
 }

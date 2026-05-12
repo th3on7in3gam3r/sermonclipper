@@ -48,11 +48,16 @@ export default function Pricing() {
         body: JSON.stringify({ priceId, plan }),
       });
 
-      const data = await res.json();
-      if (data.url) {
+      const responseText = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {}
+
+      if (res.ok && data.url) {
         window.location.href = data.url;
       } else {
-        throw new Error('Failed to create checkout session');
+        throw new Error(data.error || responseText || 'Failed to create checkout session');
       }
     } catch (error: any) {
       toast.error(error.message);
