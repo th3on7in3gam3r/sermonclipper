@@ -845,6 +845,12 @@ function ResultsContent() {
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     style={{
+                      flex: 1, padding: '14px 0', fontSize: '9px', fontWeight: 900, letterSpacing: '0.1em',
+                      color: activeTab === tab ? '#8B5CF6' : '#52525B',
+                      background: activeTab === tab ? 'rgba(139,92,246,0.05)' : 'transparent',
+                      border: 'none', borderBottom: activeTab === tab ? '2px solid #8B5CF6' : '2px solid transparent',
+                      cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase'
+                    }}
                   >{tab.toUpperCase()}</button>
                 ))}
               </div>
