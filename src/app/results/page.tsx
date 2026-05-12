@@ -884,20 +884,16 @@ function ResultsContent() {
             >✕ CLOSE STUDIO</button>
           </div>
 
-          <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-
-            {/* PANEL 1: LEFT SIDEBAR (Tools & Tabs) */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
             <div style={{ 
               width: isMobile ? '100%' : '280px', 
-              height: isMobile ? (mobileTab === 'studio' ? 'auto' : '0') : '100%',
               flexShrink: 0, 
               background: '#0A0A0F', 
               borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.05)', 
               borderBottom: isMobile ? '1px solid rgba(255,255,255,0.05)' : 'none',
-              display: 'flex', 
+              display: isMobile ? (mobileTab === 'studio' ? 'flex' : 'none') : 'flex', 
               flexDirection: 'column',
               overflow: 'hidden',
-              visibility: isMobile && mobileTab !== 'studio' ? 'hidden' : 'visible'
             }}>
 
               {/* Tabs Header — Icon Grid */}
