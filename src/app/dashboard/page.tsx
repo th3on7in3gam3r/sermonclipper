@@ -42,13 +42,21 @@ export default function Dashboard() {
     }
   }, [userId]);
 
-  if (!isLoaded || !userId) return null;
+  const statusBar = userData ? (
+    <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(139, 92, 246, 0.1)', padding: '6px 16px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)', gap: '10px' }}>
+      <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+        {userData.plan?.replace('_', ' ') || 'PLAN'}
+      </span>
+      <span style={{ fontSize: '10px', color: '#A1A1AA', fontWeight: 800 }}>
+        {`${userData.usageCount || 0} / ${userData.limit === 999999 ? '∞' : userData.limit}`}
+      </span>
+    </div>
+  ) : null;
 
   return (
     <main style={{ minHeight: '100vh', padding: '60px 20px', position: 'relative', background: '#0A0A0F' }}>
       <div className="vesper-bg" />
       
-      {/* Navigation */}
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 60px', zIndex: 1000 }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
           <div style={{ fontSize: '14px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff', opacity: 0.8 }}>
@@ -56,16 +64,7 @@ export default function Dashboard() {
           </div>
         </Link>
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-          {userData && (
-            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(139, 92, 246, 0.1)', padding: '6px 16px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)', gap: '10px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                {userData.plan?.replace('_', ' ') || 'PLAN'}
-              </span>
-              <span style={{ fontSize: '10px', color: '#A1A1AA', fontWeight: 800 }}>
-                {userData.usageCount || 0} / {userData.limit === 999999 ? '∞' : userData.limit}
-              </span>
-            </div>
-          )}
+          {statusBar}
           <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>
           <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
             <UserButton />
