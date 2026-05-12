@@ -90,14 +90,8 @@ export default function Home() {
       
       {/* Navigation */}
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L14.5 9H12H9.5L12 2Z" fill="#8B5CF6"/>
-            <path d="M12 22L9.5 15H12H14.5L12 22Z" fill="#8B5CF6"/>
-            <path d="M2 12L9 9.5V12V14.5L2 12Z" fill="#8B5CF6"/>
-            <path d="M22 12L15 14.5V12V9.5L22 12Z" fill="#8B5CF6"/>
-            <circle cx="12" cy="12" r="3" fill="#F4B942"/>
-          </svg>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img src="/vesper-logo-clean.png" alt="Logo" style={{ height: '32px', width: 'auto' }} />
           <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
         </div>
 
@@ -122,16 +116,12 @@ export default function Home() {
       {/* Hero Section */}
       <section style={{ padding: '200px 20px 100px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div className="animate-up">
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '20px', marginBottom: '40px' }}>
-             <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M32 4L38 24H32H26L32 4Z" fill="#8B5CF6"/>
-              <path d="M32 60L26 40H32H38L32 60Z" fill="#8B5CF6"/>
-              <path d="M4 32L24 26V32V38L4 32Z" fill="#8B5CF6"/>
-              <path d="M60 32L40 38V32V26L60 32Z" fill="#8B5CF6"/>
-              <circle cx="32" cy="32" r="8" fill="#F4B942" filter="blur(2px)"/>
-              <path d="M32 16V48M16 32H48" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
-            </svg>
-            <h1 className="hero-title" style={{ margin: 0 }}>VESPER</h1>
+          <div style={{ marginBottom: '40px' }}>
+            <img 
+              src="/vesper-logo-clean.png" 
+              alt="VESPER" 
+              style={{ width: '100%', maxWidth: '500px', height: 'auto', margin: '0 auto' }}
+            />
           </div>
           
           <p className="hero-tagline">
