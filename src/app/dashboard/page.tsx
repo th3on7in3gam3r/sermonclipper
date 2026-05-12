@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 export default function Dashboard() {
   const { isLoaded, userId } = useAuth();
   const [sermons, setSermons] = useState<any[]>([]);
+  const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -27,16 +28,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (userId) {
-      fetch('/api/sermons')
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) setSermons(data);
-          setLoading(false);
-        })
-        .catch(err => {
-          console.error('Failed to fetch sermons:', err);
-          setLoading(false);
-        });
+      Promise.all([
+        fetch('/api/sermons').then(res => res.json()),
+        fetch('/api/user/status').then(res => res.json())
+      ]).then(([sermonsData, statusData]) => {
+        if (Array.isArray(sermonsData)) setSermons(sermonsData);
+        setUserData(statusData);
+        setLoading(false);
+      }).catch(err => {
+        console.error('Failed to fetch dashboard data:', err);
+        setLoading(false);
+      });
     }
   }, [userId]);
 
@@ -54,8 +56,17 @@ export default function Dashboard() {
           </div>
         </Link>
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          {userData && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(139, 92, 246, 0.1)', padding: '6px 16px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+              <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{userData.plan}</span>
+              <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.1)' }} />
+              <span style={{ fontSize: '10px', color: '#A1A1AA' }}>{userData.usageCount}/{userData.limit === 999999 ? '∞' : userData.limit} Clips</span>
+            </div>
+          )}
           <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>
-          <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>NEW HARVEST</Link>
+          {userData?.plan === 'free' && (
+             <Link href="/#pricing" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#F4B942', letterSpacing: '0.1em' }}>UPGRADE</Link>
+          )}
           <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
             <UserButton />
           </div>

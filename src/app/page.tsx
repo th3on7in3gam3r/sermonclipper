@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ProcessingView from '@/components/home/ProcessingView';
+import Pricing from '@/components/home/Pricing';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
@@ -173,6 +174,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <Pricing />
 
       {/* Testimonials Section */}
       <section style={{ padding: '120px 20px' }}>

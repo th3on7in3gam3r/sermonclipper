@@ -11,6 +11,8 @@ import { exec as ytdlpExec } from 'youtube-dl-exec';
 import OpenAI from 'openai';
 import * as dns from 'dns';
 import { auth } from '@clerk/nextjs/server';
+import connectDB from '@/lib/mongodb';
+import User from '@/models/User';
 
 // ── Configuration ────────────────────────────────────────────────────────────
 try {
@@ -211,6 +213,41 @@ export async function POST(req: NextRequest) {
 
   const { url, jobId } = await req.json();
   if (!url || !jobId) return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+
+  // ── Usage Limit Enforcement ──
+  await connectDB();
+  let dbUser = await User.findOne({ clerkId: userId });
+  if (!dbUser) {
+    dbUser = await User.create({ clerkId: userId, plan: 'free', usageCount: 0 });
+  }
+
+  // Monthly Reset Check
+  const now = new Date();
+  const resetDate = new Date(dbUser.lastUsageReset);
+  if (now.getTime() - resetDate.getTime() > 30 * 24 * 60 * 60 * 1000) {
+    dbUser.usageCount = 0;
+    dbUser.lastUsageReset = now;
+    await dbUser.save();
+  }
+
+  const limits: Record<string, number> = {
+    'free': 2,
+    'creator': 20,
+    'church_pro': 999999
+  };
+
+  const limit = limits[dbUser.plan as string] || 2;
+  if (dbUser.usageCount >= limit) {
+    return NextResponse.json({ 
+      error: 'Plan limit reached', 
+      details: `Your ${dbUser.plan} plan is limited to ${limit} sermons per month. Please upgrade to continue reaching more hearts.`,
+      code: 'LIMIT_REACHED'
+    }, { status: 403 });
+  }
+
+  // Increment usage
+  dbUser.usageCount += 1;
+  await dbUser.save();
   
   // VERCEL-SAFE ARCHITECTURE:
   // We MUST await the AI analysis in the main request. 
