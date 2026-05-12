@@ -1327,7 +1327,7 @@ function ResultsContent() {
                         </div>
                       </div>
                       {/* Caption preview */}
-                      <div style={{ padding: '12px 14px 8px', fontSize: '11px', color: '#A1A1AA', lineHeight: 1.6, maxHeight: '80px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as const }}>
+                      <div style={{ padding: '10px 14px', fontSize: '12px', color: '#E4E4E7', lineHeight: 1.5 }}>
                         {fullText || <span style={{ color: '#3F3F46', fontStyle: 'italic' }}>No caption available</span>}
                       </div>
                       {/* Copy button */}
@@ -1345,18 +1345,25 @@ function ResultsContent() {
               </div>
 
               {/* Export Footer */}
-              <div style={{ padding: '16px 24px 24px', flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ padding: '12px 14px', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.12)', marginBottom: '12px' }}>
-                  <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.12em', marginBottom: '6px' }}>ACTIVE PROFILE</div>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+              <div style={{ padding: '16px 20px 20px', flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ padding: '10px 12px', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.12)', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '8px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.12em', marginBottom: '4px' }}>ACTIVE PROFILE</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
                     <b style={{ color: '#C4B5FD' }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FONTS.find(f => f.id === selectedFont)?.name}</b>
                   </div>
                 </div>
-                <button onClick={() => startExport(selectedClip)} className="shimmer-btn" style={{ width: '100%', padding: '16px', fontSize: '12px' }}>
-                  CONFIRM & EXPORT
-                </button>
+                {isYouTubeSource ? (
+                  <div style={{ padding: '12px', background: 'rgba(251,146,60,0.06)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '10px', textAlign: 'center' }}>
+                    <p style={{ fontSize: '10px', color: '#FB923C', fontWeight: 800, marginBottom: '4px' }}>EXPORT UNAVAILABLE</p>
+                    <p style={{ fontSize: '9px', color: '#A1A1AA', lineHeight: 1.4 }}>Upload the MP4 directly to enable cloud rendering.</p>
+                  </div>
+                ) : (
+                  <button onClick={() => startExport(selectedClip)} className="shimmer-btn" style={{ width: '100%', padding: '16px', fontSize: '12px' }}>
+                    CONFIRM & EXPORT
+                  </button>
+                )}
               </div>
             </div>
           </div>
