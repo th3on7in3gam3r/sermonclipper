@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
 import { join } from 'path';
-import { existsSync, createWriteStream, createReadStream, writeFileSync, unlinkSync } from 'fs';
+import { existsSync, createWriteStream, createReadStream, unlinkSync } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 import { progressManager } from '../../../lib/progress';
 import { uploadStreamToR2 } from '../../../lib/r2';
 import { TMP_DIR } from '../../../lib/paths';
-import { exec as ytdlpExec } from 'youtube-dl-exec';
 import OpenAI from 'openai';
 import * as dns from 'dns';
 import { auth } from '@clerk/nextjs/server';
@@ -17,7 +15,7 @@ import User from '@/models/User';
 // ── Configuration ────────────────────────────────────────────────────────────
 try {
   dns.setServers(['1.1.1.1', '1.0.0.1', '8.8.8.8']);
-} catch (e) {
+} catch {
   console.warn('[Engine] DNS redundancy active.');
 }
 
@@ -25,8 +23,6 @@ const MIRRORS = [
   { name: 'Cobalt Ghost (Elite)', type: 'cobalt', url: 'https://cobalt.tools/api/json' },
   { name: 'Clipper Global A', type: 'invidious', url: 'https://invidious.projectsegfau.lt' },
 ];
-
-const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function extractVideoId(url: string): string | null {
@@ -52,7 +48,7 @@ async function resolveMirror(videoId: string, mirror: any, fullUrl: string): Pro
 }
 
 // ── OpenAI Strategy ──────────────────────────────────────────────────────────
-async function runOpenAIPrimary(url: string, jobId: string) {
+async function runOpenAIPrimary(url: string, _jobId: string) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('Missing OPENAI_API_KEY in Settings');
   }
@@ -163,7 +159,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
             downloadSuccess = true;
             break;
           }
-        } catch (e) {}
+        } catch { /* mirror failed, try next */ }
       }
     }
   }

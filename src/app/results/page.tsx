@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useSearchParams } from 'next/navigation';
-import { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -601,6 +601,10 @@ function ResultsContent() {
                   />
                 )}
                 <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em', backdropFilter: 'blur(10px)' }}>NEURAL CLIP {i+1}</div>
+                {/* Duration badge */}
+                <div style={{ position: 'absolute', bottom: '12px', left: '20px', background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '3px 10px', borderRadius: '99px', fontSize: '10px', fontWeight: 800, backdropFilter: 'blur(10px)', fontFamily: 'monospace' }}>
+                  {Math.floor((parseTime(clip.end) - parseTime(clip.start)) / 60)}:{String((parseTime(clip.end) - parseTime(clip.start)) % 60).padStart(2, '0')}
+                </div>
                 {clip.viral_score && (
                   <div style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(139, 92, 246, 0.9)', color: '#fff', padding: '4px 12px', borderRadius: '99px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ fontSize: '12px' }}>🔥</span> {clip.viral_score}% VIRAL
@@ -1116,6 +1120,13 @@ function ResultsContent() {
                     💾
                   </button>
                   <button
+                    onClick={() => { setSelectedTemplate('minimal'); setSelectedFilter('none'); setSelectedFont('outfit'); setSelectedAnimation('fade'); if (selectedClip) { setTrimStart(parseTime(selectedClip.start)); setTrimEnd(parseTime(selectedClip.end)); } toast.success('Reset to defaults'); }}
+                    style={{ width: '48px', flexShrink: 0, padding: '16px 0', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', cursor: 'pointer', fontSize: '14px' }}
+                    title="Reset to Defaults"
+                  >
+                    ↺
+                  </button>
+                  <button
                     onClick={() => startExport(selectedClip)}
                     className="shimmer-btn"
                     style={{ flex: 1, padding: '16px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}
@@ -1528,14 +1539,49 @@ function CarouselModal({ data, onClose }: { data: { slides: { slide_number: numb
   );
 }
 
+class ResultsErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: string }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: '' };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error: error.message };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ minHeight: '100vh', background: '#0A0A0F', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
+          <div style={{ maxWidth: '500px' }}>
+            <div style={{ fontSize: '48px', marginBottom: '24px' }}>⚠️</div>
+            <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '16px' }}>Something went wrong</h2>
+            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px' }}>
+              {this.state.error || 'An unexpected error occurred while loading your media kit.'}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="shimmer-btn"
+              style={{ padding: '14px 32px', fontSize: '12px' }}
+            >
+              RELOAD PAGE
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function Results() {
   return (
-    <main style={{ minHeight: '100vh', background: '#0A0A0F', color: '#fff' }}>
-      <div className="spiritual-rays" />
-      <div className="vesper-bg" style={{ opacity: 0.15 }} />
-      <Suspense fallback={null}>
-        <ResultsContent />
-      </Suspense>
-    </main>
+    <ResultsErrorBoundary>
+      <main style={{ minHeight: '100vh', background: '#0A0A0F', color: '#fff' }}>
+        <div className="spiritual-rays" />
+        <div className="vesper-bg" style={{ opacity: 0.15 }} />
+        <Suspense fallback={null}>
+          <ResultsContent />
+        </Suspense>
+      </main>
+    </ResultsErrorBoundary>
   );
 }

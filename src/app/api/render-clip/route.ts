@@ -69,10 +69,24 @@ export async function POST(req: NextRequest) {
 
     const state = await progressManager.get(jobId);
     if (!state || !state.finalPath) {
-      return NextResponse.json({ error: 'Master video not ready. Please wait.' }, { status: 404 });
+      return NextResponse.json({ error: 'Master video not ready. Please wait for the download to complete.' }, { status: 404 });
     }
 
     const videoUrl = state.finalPath;
+
+    // Shotstack cannot render from YouTube URLs directly — needs a direct MP4/video file URL
+    const isYouTubeUrl = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be');
+    if (isYouTubeUrl) {
+      return NextResponse.json({ 
+        error: 'Video rendering requires a direct MP4 file. The YouTube download did not complete successfully. Please try uploading the video file directly instead.' 
+      }, { status: 400 });
+    }
+
+    if (!SHOTSTACK_API_KEY) {
+      return NextResponse.json({ 
+        error: 'Video rendering is not configured. Please add SHOTSTACK_SANDBOX_KEY or SHOTSTACK_PRODUCTION_KEY to your environment variables.' 
+      }, { status: 503 });
+    }
     const start = parseTime(clip.start);
     const end = parseTime(clip.end);
     const duration = Math.max(end - start, 1);
