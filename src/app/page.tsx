@@ -65,110 +65,165 @@ export default function Home() {
 
   if (isProcessing) {
     return (
-      <main className="flex-center" style={{ minHeight: '100vh', padding: '20px' }}>
+      <main className="flex-center" style={{ minHeight: '100vh', padding: '20px', background: '#0A0A0F' }}>
         <div className="spiritual-rays" />
-        <ProcessingView 
-          steps={[
-            { id: 'engine', label: 'Extracting Audio track' },
-            { id: 'transcribe', label: 'Neural Transcription' },
-            { id: 'analysis', label: 'Analyzing moments' },
-            { id: 'visuals', label: 'Generating Reels' }
-          ]}
-          currentStepIndex={status?.step === 'Uploading' ? 0 : status?.step === 'Transcribing' ? 1 : 2}
-          statusMessage={status?.message || 'Initializing...'}
-        />
+        <div className="animate-up" style={{ width: '100%', maxWidth: '600px' }}>
+          <ProcessingView 
+            steps={[
+              { id: 'engine', label: 'Extracting Audio track' },
+              { id: 'transcribe', label: 'Neural Transcription' },
+              { id: 'analysis', label: 'Analyzing moments' },
+              { id: 'visuals', label: 'Generating Reels' }
+            ]}
+            currentStepIndex={status?.step === 'Uploading' ? 0 : status?.step === 'Transcribing' ? 1 : 2}
+            statusMessage={status?.message || 'Initializing Neural Engine...'}
+          />
+        </div>
       </main>
     );
   }
 
   return (
-    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
-      <div className="vesper-bg" />
+    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <div className="spiritual-rays" />
+      <div className="cross-motif" />
       
-      {/* Global Navigation Header */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 60px', zIndex: 1000, background: 'transparent' }}>
-        <div style={{ fontSize: '14px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff', opacity: 0.8 }}>
-          VESPER
+      {/* Navigation */}
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L14.5 9H12H9.5L12 2Z" fill="#8B5CF6"/>
+            <path d="M12 22L9.5 15H12H14.5L12 22Z" fill="#8B5CF6"/>
+            <path d="M2 12L9 9.5V12V14.5L2 12Z" fill="#8B5CF6"/>
+            <path d="M22 12L15 14.5V12V9.5L22 12Z" fill="#8B5CF6"/>
+            <circle cx="12" cy="12" r="3" fill="#F4B942"/>
+          </svg>
+          <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
         </div>
 
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
+          <Link href="/about" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA' }}>Vision</Link>
+          <Link href="/pricing" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA' }}>Pricing</Link>
           {isLoaded && userId ? (
             <>
-              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA', marginRight: '8px', transition: 'color 0.3s' }}>Dashboard</Link>
-              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', backdropFilter: 'blur(10px)' }}>
+              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#fff' }}>Dashboard</Link>
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)' }}>
                 <UserButton />
               </div>
             </>
           ) : (
             <SignInButton mode="modal">
-              <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', padding: '12px 32px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}>Sign In</button>
+              <button style={{ background: '#8B5CF6', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>Sign In</button>
             </SignInButton>
           )}
         </div>
       </header>
 
-      <div style={{ margin: 'auto', width: '100%', maxWidth: '900px', padding: '120px 20px 60px', textAlign: 'center' }}>
+      {/* Hero Section */}
+      <section style={{ padding: '200px 20px 100px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div className="animate-up">
-          {/* Logo Section */}
-          <div style={{ marginBottom: '80px' }}>
-            <h1 className="hero-logo" style={{ fontSize: '100px', marginBottom: '24px' }}>
-              VES<span>PER</span>
-            </h1>
-            <p style={{ color: '#A1A1AA', fontSize: '24px', fontWeight: 300, letterSpacing: '0.05em', maxWidth: '700px', margin: '0 auto', lineHeight: 1.4 }}>
-              Transform your ministry's long-form sermons into <span style={{ color: '#fff', fontWeight: 500 }}>cinematic short-form media</span> that reaches the next generation.
-            </p>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '20px', marginBottom: '40px' }}>
+             <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M32 4L38 24H32H26L32 4Z" fill="#8B5CF6"/>
+              <path d="M32 60L26 40H32H38L32 60Z" fill="#8B5CF6"/>
+              <path d="M4 32L24 26V32V38L4 32Z" fill="#8B5CF6"/>
+              <path d="M60 32L40 38V32V26L60 32Z" fill="#8B5CF6"/>
+              <circle cx="32" cy="32" r="8" fill="#F4B942" filter="blur(2px)"/>
+              <path d="M32 16V48M16 32H48" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
+            </svg>
+            <h1 className="hero-title" style={{ margin: 0 }}>VESPER</h1>
+          </div>
+          
+          <p className="hero-tagline">
+            Turn powerful sermons into short-form content that reaches more hearts. Our Neural Engine finds the most impactful moments automatically.
+          </p>
+
+          <div className="input-wrapper animate-up" style={{ animationDelay: '0.2s' }}>
+            <input 
+              type="text" 
+              placeholder="Paste YouTube sermon link here..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleProcess()}
+            />
+            <button onClick={handleProcess} className="primary-btn">Process Sermon</button>
           </div>
 
-          {/* Input Area */}
-          <div className="glass-panel" style={{ padding: '64px', background: 'rgba(15, 15, 20, 0.4)' }}>
-            <div style={{ textAlign: 'left' }}>
-              <label style={{ display: 'block', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5em', color: '#8B5CF6', marginBottom: '20px' }}>
-                Paste YouTube Sermon Link
-              </label>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <input 
-                  type="text" 
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  className="glass-input"
-                  style={{ flex: 1, height: '72px', fontSize: '18px' }}
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                />
-                <button 
-                  onClick={handleProcess}
-                  className="shimmer-btn"
-                  style={{ padding: '0 48px', height: '72px', fontSize: '14px' }}
-                >
-                  Process Sermon
-                </button>
-              </div>
-            </div>
-
-            <div className="divider" style={{ margin: '48px 0' }}>or drag and drop video</div>
-
-            <div style={{ cursor: 'pointer', padding: '24px', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)', transition: 'all 0.3s' }}>
-              <p style={{ fontSize: '14px', fontWeight: 600, color: '#666' }}>
-                <span style={{ color: '#8B5CF6' }}>Upload MP4 or MOV</span> (Max 2GB)
-              </p>
-            </div>
+          <div className="luxury-divider animate-up" style={{ animationDelay: '0.4s' }}>
+            <span>OR UPLOAD VIDEO FILE</span>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '64px', marginTop: '80px', opacity: 0.3 }}>
-            {['Neural Clipping', 'Cinematic 9:16', 'Dynamic Captions'].map((text, i) => (
-              <div key={i} style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em' }}>
-                {text}
+          <div className="glass-panel animate-up" style={{ animationDelay: '0.6s', maxWidth: '800px', margin: '0 auto', padding: '60px', borderStyle: 'dashed', borderWidth: '2px', cursor: 'pointer' }}>
+             <div style={{ fontSize: '40px', marginBottom: '16px' }}>📁</div>
+             <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>Drag & Drop Your Sermon Video</h3>
+             <p style={{ color: '#52525B', fontSize: '14px' }}>MP4, MOV, or WEBM (Max 2GB)</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section style={{ padding: '100px 20px', background: 'rgba(255,255,255,0.01)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <span className="section-subtitle">Core Capabilities</span>
+          <h2 className="section-title">Everything Your Church Needs</h2>
+          
+          <div className="features-grid">
+            {[
+              { title: 'Smart Sermon Clips', icon: '🎬', desc: 'AI automatically identifies the most engaging hooks and theological insights from your message.' },
+              { title: 'Beautiful Graphics', icon: '🎨', desc: 'Generate high-end quote cards and thumbnails that match your church brand instantly.' },
+              { title: 'Extra Resources', icon: '📖', desc: 'Get automated devotionals, discussion questions, and full transcripts for every sermon.' }
+            ].map((f, i) => (
+              <div key={i} className="glass-panel feature-card">
+                <div style={{ fontSize: '48px', marginBottom: '24px' }}>{f.icon}</div>
+                <h3 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '16px' }}>{f.title}</h3>
+                <p style={{ color: '#A1A1AA', lineHeight: 1.6 }}>{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section style={{ padding: '120px 20px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <span className="section-subtitle">Community Feedback</span>
+          <h2 className="section-title">What Pastors Are Saying</h2>
+
+          <div className="testimonials-grid">
+            {[
+              { text: "Vesper has completely transformed our social media presence. What used to take our tech team 10 hours now takes 10 minutes.", author: "Pastor David M.", role: "Lead Pastor" },
+              { text: "The quality of the AI-generated clips is incredible. It captures the heart of the message perfectly every single time.", author: "Sarah J.", role: "Media Director" }
+            ].map((t, i) => (
+              <div key={i} className="testimonial-card">
+                <p style={{ marginBottom: '24px' }}>"{t.text}"</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#1F1F24' }} />
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 900 }}>{t.author}</div>
+                    <div style={{ fontSize: '12px', color: '#8B5CF6' }}>{t.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section style={{ padding: '100px 20px', textAlign: 'center' }}>
+        <div className="glass-panel" style={{ maxWidth: '900px', margin: '0 auto', padding: '80px 40px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(244, 185, 66, 0.05))' }}>
+           <h2 style={{ fontSize: '36px', fontWeight: 900, marginBottom: '24px' }}>Ready to amplify your message?</h2>
+           <p style={{ color: '#A1A1AA', fontSize: '18px', marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>Join 500+ churches using Vesper to reach more people with the Gospel.</p>
+           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="primary-btn">Get Started Now</button>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer style={{ position: 'relative', zIndex: 10, padding: '80px 20px', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '100px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.2em', opacity: 0.4 }}>
+      <footer style={{ padding: '80px 20px', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.2em', opacity: 0.4 }}>
           <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>PRIVACY POLICY</Link>
           <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>TERMS OF SERVICE</Link>
-          <span style={{ color: '#fff' }}>© 2026 VESPER BY BIBLEFUNLAND</span>
+          <span style={{ color: '#fff' }}>© 2026 VESPER STUDIO · AMRE MEDIA</span>
         </div>
       </footer>
     </main>
