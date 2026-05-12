@@ -124,13 +124,15 @@ function ResultsContent() {
   // Timestamp scrubber state in Studio
   const [trimStart, setTrimStart] = useState(0);
   const [trimEnd, setTrimEnd] = useState(0);
+  const [previewStart, setPreviewStart] = useState(0);
+  const [previewEnd, setPreviewEnd] = useState(0);
 
   // Caption animation style
   const [selectedAnimation, setSelectedAnimation] = useState('fade');
 
-  // YouTube description modal
   const [showYTDesc, setShowYTDesc] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  const [showQuoteVault, setShowQuoteVault] = useState(false);
 
   // Caption overrides — user edits per clip in Studio
   const [captionOverrides, setCaptionOverrides] = useState<{ [key: number]: string }>({});
@@ -151,7 +153,8 @@ function ResultsContent() {
 
 
   // Core Asset State
-  const [thumbnails, setThumbnails] = useState<{ [key: number]: { status: string; url?: string } }>({});
+  const [thumbnails, setThumbnails] = useState<{ [key: number]: { status: string; url?: string; variants?: string[] } }>({});
+  const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
   const ANIMATIONS = [
     { id: 'fade', name: 'Fade', desc: 'Smooth dissolve in/out' },
     { id: 'slideUp', name: 'Slide Up', desc: 'Text rises from below' },
@@ -178,19 +181,30 @@ function ResultsContent() {
     const i = activeThumbnailClip.index;
     setThumbnails(prev => ({ ...prev, [i]: { status: 'loading' } }));
     
-    const stylePrompt = THUMB_STYLES.find(s => s.id === thumbStyle)?.prompt || '';
-    const fullPrompt = `YouTube thumbnail, 16:9 aspect ratio, ${stylePrompt}, text overlay saying "${thumbPrompt || activeThumbnailClip.hook_title}", church/faith theme, professional quality, no watermarks`;
+    const baseText = `YouTube thumbnail, 16:9 aspect ratio, text overlay saying "${thumbPrompt || activeThumbnailClip.hook_title}", church/faith theme, professional quality, no watermarks`;
+    
+    const prompts = [
+      `${baseText}, ${THUMB_STYLES[0].prompt}`,
+      `${baseText}, ${THUMB_STYLES[1].prompt}`,
+      `${baseText}, ${THUMB_STYLES[2].prompt}`
+    ];
     
     try {
-      const res = await fetch('/api/generate-image', {
+      const promises = prompts.map(p => fetch('/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: fullPrompt }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setThumbnails(prev => ({ ...prev, [i]: { status: 'done', url: data.imageUrl } }));
-        toast.success('Thumbnail generated!');
+        body: JSON.stringify({ prompt: p }),
+      }).then(res => res.json()));
+
+      const results = await Promise.allSettled(promises);
+      const urls = results
+        .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled' && r.value.success)
+        .map(r => r.value.imageUrl);
+        
+      if (urls.length > 0) {
+        setThumbnails(prev => ({ ...prev, [i]: { status: 'done', url: urls[0], variants: urls } }));
+        setSelectedVariantIdx(0);
+        toast.success(`Generated ${urls.length} variants! ✦`);
       } else {
         setThumbnails(prev => ({ ...prev, [i]: { status: 'error' } }));
         toast.error('Thumbnail generation failed.');
@@ -271,6 +285,88 @@ function ResultsContent() {
     }
   };
 
+  const handleBatchExport = async () => {
+    if (!analysis?.clips) return;
+    toast.success('Batch export initiated! Firing up neural engines...', { icon: '🚀' });
+    
+    const clips = analysis.clips;
+    for (let i = 0; i < clips.length; i += 3) {
+      const batch = clips.slice(i, i + 3);
+      await Promise.all(batch.map((clip: any, idx: number) => startExport({ ...clip, index: i + idx })));
+      // Throttle slightly to respect cloud rendering bounds
+      if (i + 3 < clips.length) await new Promise(r => setTimeout(r, 2000));
+    }
+  };
+
+  const downloadQuoteGraphic = (clip: any, index: number) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1080;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Background Gradient (Deep Space to Vesper Purple)
+    const grad = ctx.createLinearGradient(0, 0, 1080, 1080);
+    grad.addColorStop(0, '#0A0A0F');
+    grad.addColorStop(1, '#2c1954');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1080, 1080);
+
+    // Decorative Quotation Mark
+    ctx.fillStyle = 'rgba(139, 92, 246, 0.15)';
+    ctx.font = '900 600px sans-serif';
+    ctx.fillText('"', 80, 500);
+
+    // Quote Text Wrapper
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 54px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const quote = `"${clip.main_quote}"`;
+    const words = quote.split(' ');
+    let line = '';
+    let y = 440;
+    const lines = [];
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + ' ';
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > 800 && i > 0) {
+        lines.push(line);
+        line = words[i] + ' ';
+      } else {
+        line = testLine;
+      }
+    }
+    lines.push(line);
+
+    // Center text vertically
+    const totalTextHeight = lines.length * 80;
+    y = (1080 - totalTextHeight) / 2 + 40;
+
+    lines.forEach(l => {
+      ctx.fillText(l, 540, y);
+      y += 80;
+    });
+
+    // Branding Footer
+    ctx.fillStyle = '#8B5CF6';
+    ctx.font = '900 28px sans-serif';
+    ctx.fillText('VESPER', 540, 950);
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '400 24px sans-serif';
+    ctx.fillText(analysis?.sermon_title || 'Sermon Highlight', 540, 990);
+
+    // Trigger Download
+    const link = document.createElement('a');
+    link.download = `quote-vault-${index + 1}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    toast.success('Quote Graphic Downloaded! 📸');
+  };
+
   const pollStatus = async (id: string, index: number, toastId: string) => {
     try {
       const res = await fetch(`/api/render-status?id=${id}`);
@@ -301,6 +397,8 @@ function ResultsContent() {
     const e = parseTime(clip.end);
     setTrimStart(s);
     setTrimEnd(e);
+    setPreviewStart(s);
+    setPreviewEnd(e);
     setSelectedClip({ ...clip, index });
   };
 
@@ -343,6 +441,7 @@ function ResultsContent() {
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
           {isLoaded && userId ? (
             <>
+              <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>
               <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>ARCHIVE</Link>
               <button
                 onClick={() => setShowTour(true)}
@@ -388,7 +487,8 @@ function ResultsContent() {
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: '200px' }}>
-              <button onClick={handleCopy} className="shimmer-btn" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>COPY SESSION LINK</button>
+              <button onClick={handleBatchExport} className="shimmer-btn" style={{ width: '100%', padding: '14px', fontSize: '11px', background: 'linear-gradient(90deg, #10B981, #059669)' }}>BATCH EXPORT ALL</button>
+              <button onClick={handleCopy} className="glass-panel" style={{ width: '100%', padding: '14px', fontSize: '11px', border: '1px solid rgba(255,255,255,0.1)' }}>COPY SESSION LINK</button>
               <a href={videoUrl || '#'} download className="glass-panel" style={{ width: '100%', padding: '14px', textAlign: 'center', textDecoration: 'none', color: '#fff', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)', borderRadius: '14px', display: 'block' }}>DOWNLOAD MASTER</a>
             </div>
           </div>
@@ -571,6 +671,7 @@ function ResultsContent() {
           <ToolCard 
             title="Quote Vault" 
             desc="A collection of the most impactful quotes for daily sharing." 
+            onClick={() => setShowQuoteVault(true)}
           />
         </div>
       </div>
@@ -618,6 +719,39 @@ function ResultsContent() {
               >
                 COPY TO CLIPBOARD
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quote Vault Modal */}
+      {showQuoteVault && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div className="glass-panel animate-up" style={{ width: '100%', maxWidth: '800px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', border: '1px solid rgba(139,92,246,0.25)', overflow: 'hidden' }}>
+            <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <div>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '6px' }}>EXPAND YOUR MINISTRY</div>
+                <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.02em' }}>Quote Vault</h2>
+                <p style={{ color: '#A1A1AA', fontSize: '14px', marginTop: '4px' }}>Auto-generated 1080x1080 graphics for Instagram Stories.</p>
+              </div>
+              <button onClick={() => setShowQuoteVault(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
+              {analysis?.clips?.map((clip: any, i: number) => (
+                <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em', marginBottom: '12px' }}>CLIP {i + 1}</div>
+                  <div style={{ flex: 1, marginBottom: '20px' }}>
+                    <p style={{ fontStyle: 'italic', fontSize: '16px', lineHeight: 1.5, color: '#E4E4E7' }}>"{clip.main_quote}"</p>
+                  </div>
+                  <button
+                    onClick={() => downloadQuoteGraphic(clip, i)}
+                    className="shimmer-btn"
+                    style={{ padding: '12px', fontSize: '11px', width: '100%' }}
+                  >
+                    DOWNLOAD GRAPHIC
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -797,6 +931,8 @@ function ResultsContent() {
                           max={trimEnd - 1}
                           value={trimStart}
                           onChange={e => setTrimStart(Number(e.target.value))}
+                          onMouseUp={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
+                          onTouchEnd={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
                           style={{ width: '100%', accentColor: '#8B5CF6' }}
                         />
                       </div>
@@ -811,6 +947,8 @@ function ResultsContent() {
                           max={selectedClip ? parseTime(selectedClip.end) + 30 : 300}
                           value={trimEnd}
                           onChange={e => setTrimEnd(Number(e.target.value))}
+                          onMouseUp={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
+                          onTouchEnd={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
                           style={{ width: '100%', accentColor: '#8B5CF6' }}
                         />
                       </div>
@@ -872,12 +1010,12 @@ function ResultsContent() {
                 {videoId ? (
                   <iframe
                     style={{ width: '100%', height: '100%', border: 'none', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
-                    src={`https://www.youtube.com/embed/${videoId}?start=${trimStart}&end=${trimEnd}&autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0`}
+                    src={`https://www.youtube.com/embed/${videoId}?start=${previewStart}&end=${previewEnd}&autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0`}
                     allow="autoplay"
                   />
                 ) : videoUrl && (
                   <video 
-                    src={`${videoUrl}#t=${trimStart},${trimEnd}`}
+                    src={`${videoUrl}#t=${previewStart},${previewEnd}`}
                     autoPlay muted loop playsInline
                     style={{ width: '100%', height: '100%', objectFit: 'cover', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
                   />
@@ -1048,9 +1186,9 @@ function ResultsContent() {
                         <div style={{ width: '40px', height: '40px', border: '3px solid rgba(244,185,66,0.2)', borderTopColor: '#F4B942', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' }} />
                         <div style={{ fontSize: '11px', fontWeight: 900, color: '#F4B942', letterSpacing: '0.2em' }}>RENDERING CINEMATIC ASSET...</div>
                      </div>
-                   ) : thumbnails[activeThumbnailClip.index]?.url ? (
+                   ) : thumbnails[activeThumbnailClip.index]?.variants && thumbnails[activeThumbnailClip.index].variants!.length > 0 ? (
                      <img 
-                        src={`/api/proxy-image?url=${encodeURIComponent(thumbnails[activeThumbnailClip.index]?.url || '')}`} 
+                        src={`/api/proxy-image?url=${encodeURIComponent(thumbnails[activeThumbnailClip.index].variants![selectedVariantIdx] || '')}`} 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         alt="Neural Preview"
                      />
@@ -1061,9 +1199,29 @@ function ResultsContent() {
                      </div>
                    )}
                 </div>
+
+                {/* Variant Selector */}
+                {thumbnails[activeThumbnailClip.index]?.variants && thumbnails[activeThumbnailClip.index].variants!.length > 0 && (
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                    {thumbnails[activeThumbnailClip.index].variants!.map((vUrl, vIdx) => (
+                      <div 
+                        key={vIdx}
+                        onClick={() => setSelectedVariantIdx(vIdx)}
+                        style={{ 
+                          width: '100px', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer',
+                          border: selectedVariantIdx === vIdx ? '2px solid #F4B942' : '2px solid transparent',
+                          opacity: selectedVariantIdx === vIdx ? 1 : 0.5, transition: 'all 0.2s'
+                        }}
+                      >
+                        <img src={`/api/proxy-image?url=${encodeURIComponent(vUrl)}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {thumbnails[activeThumbnailClip.index]?.status === 'done' && (
                   <button onClick={handleGenerateThumbnail} style={{ marginTop: '24px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', padding: '10px 24px', borderRadius: '99px', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>
-                    🔄 REGENERATE THUMBNAIL
+                    🔄 REGENERATE VARIANTS
                   </button>
                 )}
               </div>
@@ -1107,7 +1265,7 @@ function ResultsContent() {
                 <div style={{ marginTop: 'auto' }}>
                    {thumbnails[activeThumbnailClip.index]?.status === 'done' ? (
                      <a 
-                       href={thumbnails[activeThumbnailClip.index].url} 
+                       href={thumbnails[activeThumbnailClip.index].variants?.[selectedVariantIdx] || thumbnails[activeThumbnailClip.index].url} 
                        download 
                        target="_blank"
                        className="shimmer-btn" 

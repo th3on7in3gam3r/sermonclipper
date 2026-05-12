@@ -53,8 +53,12 @@ export default function Dashboard() {
             VESPER
           </div>
         </Link>
-        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
-          <UserButton />
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>
+          <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>NEW HARVEST</Link>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
+            <UserButton />
+          </div>
         </div>
       </header>
 
@@ -82,44 +86,60 @@ export default function Dashboard() {
             </Link>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '32px' }}>
-            {sermons.map((sermon) => (
-              <Link 
-                key={sermon._id} 
-                href={`/results?jobId=${sermon.jobId}&videoUrl=${encodeURIComponent(sermon.videoUrl)}`}
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                <div className="clip-card animate-up" style={{ height: '100%', transition: 'transform 0.3s ease' }}>
-                  <div className="clip-preview" style={{ height: '200px', background: 'rgba(139, 92, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-                    {getYoutubeId(sermon.videoUrl || '') ? (
-                      <img 
-                        src={`https://img.youtube.com/vi/${getYoutubeId(sermon.videoUrl || '')}/maxresdefault.jpg`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
-                        alt="Sermon Thumbnail"
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                      />
-                    ) : (
-                      <div style={{ fontSize: '40px', opacity: 0.2, fontWeight: 900 }}>VESPER</div>
-                    )}
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #111114, transparent)' }} />
-                    <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: '99px', fontSize: '10px', color: '#8B5CF6', fontWeight: 800 }}>
-                      {sermon.analysis?.clips?.length || 0} CLIPS
-                    </div>
-                  </div>
-                  <div className="clip-info" style={{ padding: '24px' }}>
-                    <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px', lineBreak: 'anywhere' }}>{sermon.title}</h3>
-                    <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.5, height: '4.5em', overflow: 'hidden' }}>
-                      {sermon.mainTheme || 'Neural analysis complete.'}
-                    </p>
-                    <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '10px', fontWeight: 900, color: '#666' }}>
-                        {new Date(sermon.createdAt).toLocaleDateString()}
-                      </span>
-                      <span style={{ color: '#8B5CF6', fontSize: '12px', fontWeight: 700 }}>VIEW ASSETS →</span>
-                    </div>
-                  </div>
+          <div>
+            {Object.entries(
+              sermons.reduce((acc, sermon) => {
+                const month = new Date(sermon.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' });
+                if (!acc[month]) acc[month] = [];
+                acc[month].push(sermon);
+                return acc;
+              }, {} as Record<string, any[]>)
+            ).map(([month, monthSermons]: [string, any]) => (
+              <div key={month} style={{ marginBottom: '64px' }}>
+                <h2 style={{ fontSize: '14px', fontWeight: 900, color: '#A1A1AA', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+                  {month} Series
+                </h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '32px' }}>
+                  {monthSermons.map((sermon: any) => (
+                    <Link 
+                      key={sermon._id} 
+                      href={`/results?jobId=${sermon.jobId}&videoUrl=${encodeURIComponent(sermon.videoUrl)}`}
+                      style={{ textDecoration: 'none', color: 'inherit' }}
+                    >
+                      <div className="clip-card animate-up" style={{ height: '100%', transition: 'transform 0.3s ease' }}>
+                        <div className="clip-preview" style={{ height: '200px', background: 'rgba(139, 92, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+                          {getYoutubeId(sermon.videoUrl || '') ? (
+                            <img 
+                              src={`https://img.youtube.com/vi/${getYoutubeId(sermon.videoUrl || '')}/maxresdefault.jpg`}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
+                              alt="Sermon Thumbnail"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                          ) : (
+                            <div style={{ fontSize: '40px', opacity: 0.2, fontWeight: 900 }}>VESPER</div>
+                          )}
+                          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #111114, transparent)' }} />
+                          <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: '99px', fontSize: '10px', color: '#8B5CF6', fontWeight: 800 }}>
+                            {sermon.analysis?.clips?.length || 0} CLIPS
+                          </div>
+                        </div>
+                        <div className="clip-info" style={{ padding: '24px' }}>
+                          <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px', lineBreak: 'anywhere' }}>{sermon.title}</h3>
+                          <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.5, height: '4.5em', overflow: 'hidden' }}>
+                            {sermon.mainTheme || 'Neural analysis complete.'}
+                          </p>
+                          <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '10px', fontWeight: 900, color: '#666' }}>
+                              {new Date(sermon.createdAt).toLocaleDateString()}
+                            </span>
+                            <span style={{ color: '#8B5CF6', fontSize: '12px', fontWeight: 700 }}>VIEW ASSETS →</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
