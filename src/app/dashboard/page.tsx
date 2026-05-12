@@ -57,13 +57,12 @@ export default function Dashboard() {
         </Link>
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
           {userData && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(139, 92, 246, 0.1)', padding: '6px 16px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(139, 92, 246, 0.1)', padding: '6px 16px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)', gap: '10px' }}>
               <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 {userData.plan?.replace('_', ' ') || 'PLAN'}
               </span>
-              <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.1)' }} />
               <span style={{ fontSize: '10px', color: '#A1A1AA', fontWeight: 800 }}>
-                {`${userData.usageCount || 0} / ${userData.limit === 999999 ? '∞' : userData.limit} CLIPS`}
+                {`${userData.usageCount || 0} / ${userData.limit === 999999 ? '∞' : userData.limit}`}
               </span>
             </div>
           )}
