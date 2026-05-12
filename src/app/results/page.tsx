@@ -1215,13 +1215,13 @@ function ResultsContent() {
                 {videoId ? (
                   <iframe
                     style={{ width: '100%', height: '100%', border: 'none', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
-                    src={`https://www.youtube.com/embed/${videoId}?start=${previewStart}&end=${previewEnd}&autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0`}
-                    allow="autoplay"
+                    src={`https://www.youtube.com/embed/${videoId}?start=${previewStart}&end=${previewEnd}&autoplay=0&mute=0&loop=1&playlist=${videoId}&controls=1&modestbranding=1&rel=0`}
+                    allow="autoplay; encrypted-media"
                   />
                 ) : videoUrl && (
                   <video 
                     src={`${videoUrl}#t=${previewStart},${previewEnd}`}
-                    autoPlay muted loop playsInline
+                    controls loop playsInline
                     style={{ width: '100%', height: '100%', objectFit: 'cover', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
                   />
                 )}
