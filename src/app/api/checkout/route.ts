@@ -6,7 +6,7 @@ import User from '@/models/User';
 
 export async function POST(req: Request) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     const user = await currentUser();
     const { priceId, plan } = await req.json();
 

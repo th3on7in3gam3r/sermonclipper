@@ -4,7 +4,7 @@ import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 
 export async function GET() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
