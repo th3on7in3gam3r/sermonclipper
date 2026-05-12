@@ -20,6 +20,7 @@ export async function GET() {
     plan: dbUser.plan,
     status: dbUser.status,
     usageCount: dbUser.usageCount,
-    limit: dbUser.plan === 'free' ? 2 : dbUser.plan === 'creator' ? 20 : 999999
+    limit: dbUser.plan === 'free' ? 2 : dbUser.plan === 'creator' ? 20 : 999999,
+    youtubeConnected: !!dbUser.youtubeTokens
   });
 }

@@ -24,6 +24,7 @@ function ResultsContent() {
   const jobId = searchParams.get('jobId');
   const [analysis, setAnalysis] = useState<any>(null);
   const [rendering, setRendering] = useState<{ [key: number]: { status: string, url?: string } }>({});
+  const [userStatus, setUserStatus] = useState<any>(null);
   const { isLoaded, userId } = useAuth();
   
   // Carousel State
@@ -244,6 +245,46 @@ function ResultsContent() {
     return lines.join('\n');
   };
 
+  const handleYouTubeUpload = async (clip: any) => {
+    const i = clip.index;
+    const exportUrl = rendering[i]?.url;
+    if (!exportUrl) return toast.error('Please render the reel first!');
+
+    const loadToast = toast.loading('Preparing YouTube Harvest...');
+    
+    try {
+      // 1. Check if connected, else redirect to auth
+      const authRes = await fetch('/api/youtube/auth');
+      const authData = await authRes.json();
+      
+      // If the backend says we need to authorize, redirect
+      if (authData.url) {
+        window.location.href = authData.url;
+        return;
+      }
+
+      // 2. Upload
+      const uploadRes = await fetch('/api/youtube/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoUrl: exportUrl,
+          title: clip.hook_title || 'Sermon Highlight',
+          description: buildYouTubeDescription()
+        })
+      });
+
+      const uploadData = await uploadRes.json();
+      if (uploadData.success) {
+        toast.success('Successfully uploaded to YouTube Shorts! 🚀', { id: loadToast });
+      } else {
+        throw new Error(uploadData.error || 'Upload failed');
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'YouTube integration requires setup.', { id: loadToast });
+    }
+  };
+
 
   const startExport = async (clip: any) => {
     const index = clip.index;
@@ -420,11 +461,22 @@ function ResultsContent() {
       }
     };
 
+    const fetchUserStatus = async () => {
+      try {
+        const res = await fetch('/api/user/status');
+        const data = await res.json();
+        setUserStatus(data);
+      } catch (e) {
+        console.error('Failed to fetch user status:', e);
+      }
+    };
+
     fetchResults();
+    fetchUserStatus();
     const interval = setInterval(fetchResults, 2000);
 
     return () => clearInterval(interval);
-  }, [jobId]);
+  }, [jobId, userId]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -781,18 +833,13 @@ function ResultsContent() {
             {/* PANEL 1: LEFT SIDEBAR (Tools & Tabs) */}
             <div style={{ width: '280px', flexShrink: 0, background: '#0A0A0F', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column' }}>
 
-              <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                {['templates', 'filters', 'fonts', 'motion'].map(tab => (
+              {/* Tabs Header */}
+              <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+                {['templates', 'filters', 'fonts', 'motion', 'trim', 'publish'].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     style={{
-                      flex: 1, padding: '16px 4px', background: 'none', border: 'none',
-                      color: activeTab === tab ? '#fff' : '#52525B',
-                      fontSize: '9px', fontWeight: 900, cursor: 'pointer',
-                      borderBottom: activeTab === tab ? '2px solid #8B5CF6' : '2px solid transparent',
-                      transition: 'all 0.2s', letterSpacing: '0.08em'
-                    }}
                   >{tab.toUpperCase()}</button>
                 ))}
               </div>
@@ -916,48 +963,103 @@ function ResultsContent() {
                         </div>
                       ))}
                     </div>
+                  </>
+                )}
 
-                    {/* Timestamp Scrubber */}
-                    <div style={{ marginTop: '8px', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ fontSize: '9px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '14px' }}>TRIM CLIP</div>
-                      <div style={{ marginBottom: '14px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '10px', color: '#A1A1AA', fontWeight: 700 }}>IN POINT</span>
-                          <span style={{ fontSize: '10px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{trimStart}s</span>
+                {/* TRIM TAB */}
+                {activeTab === 'trim' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ padding: '20px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '16px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                      <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '16px' }}>PRECISION TRIMMER</div>
+                      
+                      <div style={{ marginBottom: '24px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                          <span style={{ fontSize: '11px', color: '#fff', fontWeight: 700 }}>IN POINT</span>
+                          <span style={{ fontSize: '12px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')}</span>
                         </div>
                         <input
                           type="range"
-                          min={selectedClip ? parseTime(selectedClip.start) : 0}
+                          min={Math.max(0, parseTime(selectedClip.start) - 60)}
                           max={trimEnd - 1}
                           value={trimStart}
                           onChange={e => setTrimStart(Number(e.target.value))}
                           onMouseUp={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
-                          onTouchEnd={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
-                          style={{ width: '100%', accentColor: '#8B5CF6' }}
+                          style={{ width: '100%', accentColor: '#8B5CF6', height: '6px' }}
                         />
                       </div>
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '10px', color: '#A1A1AA', fontWeight: 700 }}>OUT POINT</span>
-                          <span style={{ fontSize: '10px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{trimEnd}s</span>
+
+                      <div style={{ marginBottom: '24px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                          <span style={{ fontSize: '11px', color: '#fff', fontWeight: 700 }}>OUT POINT</span>
+                          <span style={{ fontSize: '12px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{Math.floor(trimEnd/60)}:{String(trimEnd%60).padStart(2,'0')}</span>
                         </div>
                         <input
                           type="range"
                           min={trimStart + 1}
-                          max={selectedClip ? parseTime(selectedClip.end) + 30 : 300}
+                          max={parseTime(selectedClip.end) + 60}
                           value={trimEnd}
                           onChange={e => setTrimEnd(Number(e.target.value))}
                           onMouseUp={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
-                          onTouchEnd={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
-                          style={{ width: '100%', accentColor: '#8B5CF6' }}
+                          style={{ width: '100%', accentColor: '#8B5CF6', height: '6px' }}
                         />
                       </div>
-                      <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(139,92,246,0.06)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '10px', color: '#71717A' }}>Duration</span>
-                        <span style={{ fontSize: '10px', color: '#C4B5FD', fontWeight: 900, fontFamily: 'monospace' }}>{trimEnd - trimStart}s</span>
+
+                      <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: '#71717A', fontWeight: 700 }}>FINAL DURATION</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '14px', color: '#fff', fontWeight: 900 }}>{trimEnd - trimStart}s</span>
+                          <span style={{ fontSize: '10px', color: trimEnd - trimStart > 60 ? '#EF4444' : '#22C55E' }}>
+                            {trimEnd - trimStart > 60 ? '⚠️ Too long for Shorts' : '✓ Perfect for Reels'}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </>
+                    <p style={{ fontSize: '11px', color: '#52525B', lineHeight: 1.6, padding: '0 10px' }}>
+                      Tip: Use the sliders to adjust the exact moment the clip starts and ends. The preview will automatically loop between these two points.
+                    </p>
+                  </div>
+                )}
+
+                {/* PUBLISH TAB */}
+                {activeTab === 'publish' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+                      <div style={{ fontSize: '40px', marginBottom: '16px' }}>▶️</div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>Push to YouTube</h3>
+                      <p style={{ fontSize: '12px', color: '#A1A1AA', marginBottom: '24px', lineHeight: 1.5 }}>
+                        Instantly upload this cinematic clip as a YouTube Short to your ministry channel.
+                      </p>
+                      
+                      {rendering[selectedClip.index]?.status === 'complete' ? (
+                        <button 
+                          onClick={() => handleYouTubeUpload(selectedClip)}
+                          className="shimmer-btn"
+                          style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}
+                        >
+                          {userStatus?.youtubeConnected ? 'DIRECT UPLOAD TO YOUTUBE' : 'CONNECT YOUTUBE CHANNEL'}
+                        </button>
+                      ) : (
+                        <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', fontSize: '10px', color: '#71717A', fontWeight: 700 }}>
+                          RENDER REEL FIRST TO UNLOCK UPLOAD
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+                      <div style={{ fontSize: '40px', marginBottom: '16px' }}>📸</div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>Instagram / TikTok</h3>
+                      <p style={{ fontSize: '12px', color: '#A1A1AA', marginBottom: '24px', lineHeight: 1.5 }}>
+                        Download the reel and use the generated captions to post on social platforms.
+                      </p>
+                      <button 
+                        onClick={() => window.open(rendering[selectedClip.index]?.url)}
+                        disabled={rendering[selectedClip.index]?.status !== 'complete'}
+                        style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '12px', fontWeight: 800, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }}
+                      >
+                        DOWNLOAD ASSET
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
 

@@ -8,6 +8,7 @@ export interface IUser extends Document {
   status: 'active' | 'canceled' | 'past_due' | 'unpaid';
   usageCount: number;
   lastUsageReset: Date;
+  youtubeTokens?: any;
   createdAt: Date;
 }
 
@@ -19,6 +20,7 @@ const UserSchema: Schema = new Schema({
   status: { type: String, default: 'active' },
   usageCount: { type: Number, default: 0 },
   lastUsageReset: { type: Date, default: Date.now },
+  youtubeTokens: { type: Schema.Types.Mixed },
   createdAt: { type: Date, default: Date.now },
 });
 

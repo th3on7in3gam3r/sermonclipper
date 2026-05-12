@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import toast from 'react-hot-toast';
 
 interface ProcessingViewProps {
   steps: { id: string; label: string }[];
@@ -30,6 +31,32 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
   const progressPercent = Math.min(100, Math.max(5, ((currentStepIndex + 1) / steps.length) * 100));
 
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<string>('default');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      if (permission === 'granted') {
+        toast.success('We will notify you when your harvest is ready! 🔔');
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (progressPercent >= 100 && notificationPermission === 'granted') {
+      new Notification('Vesper: Harvest Complete!', {
+        body: 'Your sermon has been successfully processed and your cinematic clips are ready.',
+        icon: '/favicon.ico'
+      });
+    }
+  }, [progressPercent, notificationPermission]);
 
   return (
     <div className="animate-up" style={{ width: '100%', maxWidth: '500px', textAlign: 'center' }}>
@@ -68,6 +95,19 @@ export default function ProcessingView({ steps, currentStepIndex, statusMessage 
           })}
         </div>
       </div>
+
+      {/* Notification Toggle */}
+      {notificationPermission !== 'granted' && (
+        <div style={{ marginTop: '24px' }}>
+          <button 
+            onClick={requestNotificationPermission}
+            className="shimmer-btn"
+            style={{ padding: '12px 24px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}
+          >
+            NOTIFY ME WHEN DONE 🔔
+          </button>
+        </div>
+      )}
 
       {/* Neural Diagnostics Toggle */}
       <div style={{ marginTop: '32px' }}>
