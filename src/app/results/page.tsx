@@ -302,6 +302,12 @@ function ResultsContent() {
 
 
   const startExport = async (clip: any) => {
+    // Guard: prevent export attempts when source is YouTube (no direct MP4)
+    if (isYouTubeSource) {
+      toast.error('Export requires a direct MP4 upload. YouTube streaming cannot be rendered.');
+      return;
+    }
+
     const index = clip.index;
     setRendering(prev => ({ ...prev, [index]: { status: 'loading' } }));
     setRenderProgress(prev => ({ ...prev, [index]: 0 }));
