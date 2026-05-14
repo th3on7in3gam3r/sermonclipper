@@ -1,9 +1,17 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile } from '@ffmpeg/util';
 import toast from 'react-hot-toast';
+
+// FFmpeg types only — actual module loaded dynamically at runtime
+type FFmpegInstance = {
+  on: (event: string, cb: (data: { progress: number }) => void) => void;
+  load: (config: { coreURL: string; wasmURL: string }) => Promise<void>;
+  writeFile: (name: string, data: Uint8Array) => Promise<void>;
+  readFile: (name: string) => Promise<Uint8Array | string>;
+  exec: (args: string[]) => Promise<number>;
+  deleteFile: (name: string) => Promise<void>;
+};
 
 interface VideoTrimmerProps {
   onTrimComplete: (trimmedFile: File, jobId: string) => void;
@@ -24,25 +32,27 @@ export default function VideoTrimmer({ onTrimComplete, onCancel }: VideoTrimmerP
   const [estimatedSize, setEstimatedSize] = useState('');
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const ffmpegRef = useRef<FFmpeg | null>(null);
+  const ffmpegRef = useRef<FFmpegInstance | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef<'in' | 'out' | 'playhead' | null>(null);
 
-  // Load FFmpeg on mount
+  // Load FFmpeg dynamically at runtime (bypasses webpack bundling issues)
   useEffect(() => {
     const loadFFmpeg = async () => {
       if (ffmpegRef.current) return;
       setFfmpegLoading(true);
       try {
+        // Dynamic import avoids webpack "Cannot find module" error
+        const { FFmpeg } = await import('@ffmpeg/ffmpeg');
         const ffmpeg = new FFmpeg();
-        ffmpeg.on('progress', ({ progress }) => {
+        ffmpeg.on('progress', ({ progress }: { progress: number }) => {
           setTrimProgress(Math.round(progress * 100));
         });
         await ffmpeg.load({
           coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
           wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
         });
-        ffmpegRef.current = ffmpeg;
+        ffmpegRef.current = ffmpeg as unknown as FFmpegInstance;
         setFfmpegLoaded(true);
       } catch (err) {
         console.error('FFmpeg load failed:', err);
@@ -169,6 +179,7 @@ export default function VideoTrimmer({ onTrimComplete, onCancel }: VideoTrimmerP
       const outputName = 'trimmed.mp4';
 
       // Write input file to FFmpeg virtual filesystem
+      const { fetchFile } = await import('@ffmpeg/util');
       await ffmpeg.writeFile(inputName, await fetchFile(file));
 
       // Trim using stream copy (instant, no re-encoding)
