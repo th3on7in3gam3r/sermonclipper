@@ -58,8 +58,19 @@ export async function uploadBufferToR2(key: string, buffer: Uint8Array, contentT
  * Bypasses the server entirely — no proxy size limits.
  */
 export async function generatePresignedUploadUrl(key: string, contentType = 'video/mp4', expiresIn = 3600) {
-  const client = getR2Client();
-  if (!client) throw new Error('Missing Cloudflare R2 credentials');
+  if (!accountId || !bucket || !accessKeyId || !secretAccessKey) {
+    throw new Error('Missing Cloudflare R2 credentials');
+  }
+
+  // Use a dedicated client with checksum disabled for presigned URLs.
+  // Newer AWS SDK adds x-amz-checksum-crc32 which R2 doesn't support in presigned context.
+  const presignClient = new S3Client({
+    endpoint,
+    region: 'auto',
+    credentials: { accessKeyId, secretAccessKey },
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
+  });
 
   const command = new PutObjectCommand({
     Bucket: bucket,
@@ -67,7 +78,7 @@ export async function generatePresignedUploadUrl(key: string, contentType = 'vid
     ContentType: contentType,
   });
 
-  const url = await getSignedUrl(client, command, { expiresIn });
+  const url = await getSignedUrl(presignClient, command, { expiresIn });
   return { uploadUrl: url, publicUrl: getR2ObjectUrl(key) };
 }
 
