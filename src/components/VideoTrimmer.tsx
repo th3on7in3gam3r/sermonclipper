@@ -40,14 +40,15 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
   const timelineRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef<'in' | 'out' | 'playhead' | null>(null);
 
-  // Load FFmpeg dynamically
+  // Load FFmpeg entirely from CDN via script tag (completely bypasses webpack)
   useEffect(() => {
     const loadFFmpeg = async () => {
       if (ffmpegRef.current) return;
       setFfmpegLoading(true);
       try {
-        const { FFmpeg } = await import('@ffmpeg/ffmpeg');
-        const ffmpeg = new FFmpeg();
+        // Dynamically create a module script to load FFmpeg from CDN
+        const module = await new Function('return import("https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js")')();
+        const ffmpeg = new module.FFmpeg();
         ffmpeg.on('progress', ({ progress }: { progress: number }) => {
           setTrimProgress(Math.round(progress * 100));
         });
@@ -188,8 +189,9 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
     setTrimProgress(0);
     try {
       const ffmpeg = ffmpegRef.current;
-      const { fetchFile } = await import('@ffmpeg/util');
-      await ffmpeg.writeFile('input.mp4', await fetchFile(file));
+      // Read file as Uint8Array directly (avoids importing @ffmpeg/util which has same webpack issue)
+      const fileBuffer = await file.arrayBuffer();
+      await ffmpeg.writeFile('input.mp4', new Uint8Array(fileBuffer));
       await ffmpeg.exec(['-ss', String(inPoint), '-i', 'input.mp4', '-t', String(trimDuration), '-c', 'copy', '-avoid_negative_ts', 'make_zero', 'output.mp4']);
       const data = await ffmpeg.readFile('output.mp4');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
