@@ -40,20 +40,21 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
   const timelineRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef<'in' | 'out' | 'playhead' | null>(null);
 
-  // Load FFmpeg from local static files (same-origin, no CORS/Worker issues)
+  // Load FFmpeg from local static files — completely bypasses webpack/turbopack
   useEffect(() => {
     const loadFFmpeg = async () => {
       if (ffmpegRef.current) return;
       setFfmpegLoading(true);
       try {
-        // Import FFmpeg class from npm (webpack handles this fine for the class itself)
-        const { FFmpeg } = await import('@ffmpeg/ffmpeg');
-        const ffmpeg = new FFmpeg();
+        // Use new Function to create a dynamic import that webpack CANNOT analyze
+        // This loads our local /ffmpeg/classes.js which has the FFmpeg class
+        const mod = await (new Function('return import("/ffmpeg/classes.js")'))();
+        const ffmpeg = new mod.FFmpeg();
         ffmpeg.on('progress', ({ progress }: { progress: number }) => {
           setTrimProgress(Math.round(progress * 100));
         });
 
-        // All files served from same origin — no CORS, no Worker restrictions
+        // All files are same-origin from public/ffmpeg/
         await ffmpeg.load({
           coreURL: '/ffmpeg/ffmpeg-core.js',
           wasmURL: '/ffmpeg/ffmpeg-core.wasm',
