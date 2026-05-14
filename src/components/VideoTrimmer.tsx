@@ -122,9 +122,57 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
     }
   };
 
-  // Select a segment
-  const handleSelectSegment = (idx: number) => {
+  // Trim a specific segment directly (called from segment cards)
+  const trimSegment = async (start: number, end: number) => {
+    if (!ffmpegRef.current || !file) return;
+    const trimDuration = end - start;
+    if (trimDuration < 3) { toast.error('Segment too short.'); return; }
+
+    setIsTrimming(true);
+    setTrimProgress(0);
+    const trimToast = toast.loading('Trimming segment...');
+    try {
+      const ffmpeg = ffmpegRef.current;
+      const fileBuffer = await file.arrayBuffer();
+      await ffmpeg.writeFile('input.mp4', new Uint8Array(fileBuffer));
+      await ffmpeg.exec(['-ss', String(start), '-i', 'input.mp4', '-t', String(trimDuration), '-c', 'copy', '-avoid_negative_ts', 'make_zero', 'output.mp4']);
+      const data = await ffmpeg.readFile('output.mp4');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const blob = new Blob([data as any], { type: 'video/mp4' });
+      const trimmedFile = new File([blob], `trimmed_${file.name}`, { type: 'video/mp4' });
+
+      if (trimmedFile.size > 100 * 1024 * 1024) {
+        toast.error(`Segment is ${Math.round(trimmedFile.size / (1024 * 1024))}MB — over the 100MB limit. Try the next segment or use manual trim.`, { id: trimToast });
+        setIsTrimming(false);
+        return;
+      }
+
+      const jobId = Math.random().toString(36).substring(7);
+      toast.success(`Trimmed ${formatTime(trimDuration)} (${Math.round(trimmedFile.size / (1024 * 1024))}MB) — uploading...`, { id: trimToast });
+      onTrimComplete(trimmedFile, jobId);
+      await ffmpeg.deleteFile('input.mp4');
+      await ffmpeg.deleteFile('output.mp4');
+    } catch (err) {
+      console.error('Segment trim failed:', err);
+      toast.error('Trim failed. Try manual trimming instead.', { id: trimToast });
+    } finally {
+      setIsTrimming(false);
+    }
+  };
+
+  // Select a segment — auto-trim and upload
+  const handleSelectSegment = async (idx: number) => {
+    if (!ffmpegLoaded) {
+      toast.error('Video engine still loading, please wait...');
+      return;
+    }
     setSelectedSegment(idx);
+    const seg = segments[idx];
+    await trimSegment(seg.start, seg.end);
+  };
+
+  // Switch to manual trim mode for fine-tuning
+  const handleManualEdit = (idx: number) => {
     const seg = segments[idx];
     setInPoint(seg.start);
     setOutPoint(seg.end);
@@ -252,7 +300,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
             <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '8px' }}>Your sermon is {Math.round(file.size / (1024 * 1024))}MB</h2>
             <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6 }}>
               We&apos;ve split it into {segments.length} segments of ~{formatTime(segments[0]?.end - segments[0]?.start)} each.<br />
-              Pick a segment to process, or switch to manual trimming.
+              Click <b style={{ color: '#C4B5FD' }}>✂️ USE THIS</b> to trim & upload that segment instantly, or <b style={{ color: '#A1A1AA' }}>⚙</b> to fine-tune the in/out points.
             </p>
           </div>
 
@@ -262,22 +310,62 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
           </div>
 
           {/* Segment cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px', marginBottom: '32px' }}>
-            {segments.map((seg, i) => (
-              <button
-                key={i}
-                onClick={() => handleSelectSegment(i)}
-                style={{
-                  padding: '20px', borderRadius: '14px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
-                  background: selectedSegment === i ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
-                  border: selectedSegment === i ? '1px solid #8B5CF6' : '1px solid rgba(255,255,255,0.06)',
-                }}
-              >
-                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '8px' }}>SEGMENT {i + 1}</div>
-                <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>{formatTime(seg.start)} → {formatTime(seg.end)}</div>
-                <div style={{ fontSize: '11px', color: '#71717A' }}>~{seg.sizeMB}MB · {formatTime(seg.end - seg.start)} long</div>
-              </button>
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px', marginBottom: '32px' }}>
+            {segments.map((seg, i) => {
+              const isActive = selectedSegment === i;
+              const isProcessing = isTrimming && isActive;
+              return (
+                <div
+                  key={i}
+                  style={{
+                    padding: '16px', borderRadius: '14px', transition: 'all 0.2s',
+                    background: isActive ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
+                    border: isActive ? '1px solid #8B5CF6' : '1px solid rgba(255,255,255,0.06)',
+                    opacity: isTrimming && !isActive ? 0.4 : 1,
+                  }}
+                >
+                  <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '6px' }}>SEGMENT {i + 1}</div>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>{formatTime(seg.start)} → {formatTime(seg.end)}</div>
+                  <div style={{ fontSize: '11px', color: '#71717A', marginBottom: '12px' }}>~{seg.sizeMB}MB · {formatTime(seg.end - seg.start)} long</div>
+
+                  {isProcessing ? (
+                    <div>
+                      <div style={{ fontSize: '10px', color: '#C4B5FD', fontWeight: 800, marginBottom: '6px' }}>TRIMMING... {trimProgress}%</div>
+                      <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '99px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${trimProgress}%`, background: 'linear-gradient(90deg, #8B5CF6, #D8B4FE)', transition: 'width 0.3s' }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        onClick={() => handleSelectSegment(i)}
+                        disabled={isTrimming || !ffmpegLoaded}
+                        style={{
+                          flex: 1, padding: '8px', background: '#8B5CF6', border: 'none', borderRadius: '8px',
+                          color: '#fff', fontSize: '11px', fontWeight: 900, letterSpacing: '0.05em',
+                          cursor: (isTrimming || !ffmpegLoaded) ? 'not-allowed' : 'pointer',
+                          opacity: (isTrimming || !ffmpegLoaded) ? 0.5 : 1,
+                        }}
+                      >
+                        ✂️ USE THIS
+                      </button>
+                      <button
+                        onClick={() => handleManualEdit(i)}
+                        disabled={isTrimming}
+                        style={{
+                          padding: '8px 10px', background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px',
+                          color: '#A1A1AA', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                        }}
+                        title="Fine-tune in/out points"
+                      >
+                        ⚙
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Actions */}
