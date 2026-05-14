@@ -40,21 +40,29 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
   const timelineRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef<'in' | 'out' | 'playhead' | null>(null);
 
-  // Load FFmpeg entirely from CDN via script tag (completely bypasses webpack)
+  // Load FFmpeg entirely from CDN via runtime import (bypasses webpack)
   useEffect(() => {
     const loadFFmpeg = async () => {
       if (ffmpegRef.current) return;
       setFfmpegLoading(true);
       try {
-        // Dynamically create a module script to load FFmpeg from CDN
+        // Load FFmpeg module from CDN (webpack can't see this)
         const module = await new Function('return import("https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js")')();
         const ffmpeg = new module.FFmpeg();
         ffmpeg.on('progress', ({ progress }: { progress: number }) => {
           setTrimProgress(Math.round(progress * 100));
         });
+
+        // Fetch the worker script and create a same-origin blob URL
+        // (browsers block cross-origin Worker construction)
+        const workerResponse = await fetch('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/worker.js');
+        const workerBlob = new Blob([await workerResponse.text()], { type: 'text/javascript' });
+        const workerURL = URL.createObjectURL(workerBlob);
+
         await ffmpeg.load({
           coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
           wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
+          workerURL,
         });
         ffmpegRef.current = ffmpeg as unknown as FFmpegInstance;
         setFfmpegLoaded(true);
