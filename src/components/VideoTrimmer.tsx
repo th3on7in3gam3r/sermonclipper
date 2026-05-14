@@ -73,24 +73,25 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
     loadFFmpeg();
   }, []);
 
-  // Auto-load initial file
-  useEffect(() => {
-    if (initialFile && !videoUrl) {
-      handleFileSelect(initialFile);
-    }
-  }, [initialFile]);
-
-  const handleFileSelect = (selectedFile: File) => {
-    if (videoUrl) URL.revokeObjectURL(videoUrl);
-    const url = URL.createObjectURL(selectedFile);
+  const handleFileSelect = useCallback((selectedFile: File) => {
+    setVideoUrl(prev => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(selectedFile);
+    });
     setFile(selectedFile);
-    setVideoUrl(url);
     setInPoint(0);
     setOutPoint(0);
     setCurrentTime(0);
     setSegments([]);
     setSelectedSegment(null);
-  };
+  }, []);
+
+  // Auto-load initial file
+  useEffect(() => {
+    if (initialFile && !videoUrl) {
+      Promise.resolve().then(() => handleFileSelect(initialFile));
+    }
+  }, [initialFile, videoUrl, handleFileSelect]);
 
   // Calculate segments when duration is known
   const handleLoadedMetadata = () => {
