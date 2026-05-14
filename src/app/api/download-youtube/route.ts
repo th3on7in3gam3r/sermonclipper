@@ -30,7 +30,7 @@ function extractVideoId(url: string): string | null {
   return m?.[1] ?? null;
 }
 
-async function resolveMirror(videoId: string, mirror: any, fullUrl: string): Promise<string | null> {
+async function resolveMirror(videoId: string, mirror: { name: string; type: string; url: string }, fullUrl: string): Promise<string | null> {
   try {
     if (mirror.type === 'cobalt') {
       const res = await fetch(mirror.url, {
@@ -48,6 +48,7 @@ async function resolveMirror(videoId: string, mirror: any, fullUrl: string): Pro
 }
 
 // ── OpenAI Strategy ──────────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function runOpenAIPrimary(url: string, _jobId: string) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('Missing OPENAI_API_KEY in Settings');
@@ -121,9 +122,10 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
       finalPath: url, 
       analysis: analysisResult
     });
-  } catch (e: any) {
-    console.error('[Engine] Neural Primary Failed:', e.message);
-    await progressManager.update(jobId, { step: 'Analysis', status: 'error', message: `Neural Analysis Failed: ${e.message}` });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Unknown error';
+    console.error('[Engine] Neural Primary Failed:', msg);
+    await progressManager.update(jobId, { step: 'Analysis', status: 'error', message: `Neural Analysis Failed: ${msg}` });
     return; // Stop if analysis fails
   }
 
@@ -139,11 +141,13 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
       console.log('[Engine] Non-YouTube URL detected, attempting direct harvest...');
       const res = await fetch(url, { signal: AbortSignal.timeout(300000) });
       if (res.ok && res.body) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await pipeline(Readable.fromWeb(res.body as any), createWriteStream(filePath));
         downloadSuccess = true;
       }
-    } catch (err: any) {
-      console.error('[Engine] Direct harvest failed:', err.message);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      console.error('[Engine] Direct harvest failed:', msg);
     }
   }
 
@@ -155,6 +159,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
         try {
           const res = await fetch(streamUrl, { signal: AbortSignal.timeout(90000) });
           if (res.ok && res.body) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await pipeline(Readable.fromWeb(res.body as any), createWriteStream(filePath));
             downloadSuccess = true;
             break;
@@ -177,7 +182,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
         analysis: analysisResult
       });
       if (existsSync(filePath)) unlinkSync(filePath);
-    } catch (e: any) {
+    } catch {
       await progressManager.update(jobId, { 
         step: 'Downloading', 
         status: 'completed', 
@@ -336,8 +341,8 @@ export async function POST(req: NextRequest) {
     });
     
     return NextResponse.json({ success: true, jobId });
-  } catch (e: any) {
-    const errorMsg = e.message || 'Unknown Neural Error';
+  } catch (e: unknown) {
+    const errorMsg = e instanceof Error ? e.message : 'Unknown Neural Error';
     console.error('[Engine] Synchronous Failure:', e);
     
     // Log the EXACT error to the progress manager so the user sees it in the log
@@ -350,7 +355,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ 
       error: 'Neural Engine Failure', 
       details: errorMsg,
-      code: e.code || '500' 
+      code: (e as { code?: string })?.code || '500' 
     }, { status: 500 });
   }
 }

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Static third-party files (FFmpeg WASM core)
+    "public/**",
   ]),
 ]);
 

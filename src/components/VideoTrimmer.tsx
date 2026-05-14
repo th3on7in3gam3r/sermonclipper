@@ -147,7 +147,8 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
         return;
       }
 
-      const jobId = Math.random().toString(36).substring(7);
+      // eslint-disable-next-line react-hooks/purity
+      const jobId = (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID().slice(0, 8) : Date.now().toString(36);
       toast.success(`Trimmed ${formatTime(trimDuration)} (${Math.round(trimmedFile.size / (1024 * 1024))}MB) — uploading...`, { id: trimToast });
       onTrimComplete(trimmedFile, jobId);
       await ffmpeg.deleteFile('input.mp4');
@@ -264,7 +265,8 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
         return;
       }
 
-      const jobId = Math.random().toString(36).substring(7);
+      // eslint-disable-next-line react-hooks/purity
+      const jobId = (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID().slice(0, 8) : Date.now().toString(36);
       toast.success(`Trimmed to ${formatTime(trimDuration)} (${Math.round(trimmedFile.size / (1024 * 1024))}MB)`);
       onTrimComplete(trimmedFile, jobId);
       await ffmpeg.deleteFile('input.mp4');
