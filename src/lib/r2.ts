@@ -1,4 +1,5 @@
 import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Readable } from 'stream';
 
@@ -50,6 +51,24 @@ export async function uploadBufferToR2(key: string, buffer: Uint8Array, contentT
 
   await client.send(command);
   return getR2ObjectUrl(key);
+}
+
+/**
+ * Generate a presigned PUT URL for direct browser-to-R2 uploads.
+ * Bypasses the server entirely — no proxy size limits.
+ */
+export async function generatePresignedUploadUrl(key: string, contentType = 'video/mp4', expiresIn = 3600) {
+  const client = getR2Client();
+  if (!client) throw new Error('Missing Cloudflare R2 credentials');
+
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ContentType: contentType,
+  });
+
+  const url = await getSignedUrl(client, command, { expiresIn });
+  return { uploadUrl: url, publicUrl: getR2ObjectUrl(key) };
 }
 
 

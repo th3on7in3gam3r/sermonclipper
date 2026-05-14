@@ -73,6 +73,31 @@ export default function Home() {
   }, [jobId, isProcessing, router]);
 
   // Handle trimmed file upload
+  // Upload directly to R2 using presigned URL (bypasses server size limits)
+  const uploadDirectToR2 = async (file: File, jobId: string): Promise<string> => {
+    // Step 1: get presigned URL from server
+    const urlRes = await fetch('/api/upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileName: file.name, contentType: file.type || 'video/mp4', jobId }),
+    });
+    if (!urlRes.ok) {
+      const err = await urlRes.json();
+      throw new Error(err.error || 'Failed to get upload URL');
+    }
+    const { uploadUrl, publicUrl } = await urlRes.json();
+
+    // Step 2: PUT file directly to R2 (no server in middle, no size limit)
+    const putRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type || 'video/mp4' },
+      body: file,
+    });
+    if (!putRes.ok) throw new Error(`R2 upload failed: ${putRes.status}`);
+
+    return publicUrl;
+  };
+
   const handleTrimComplete = async (trimmedFile: File, trimJobId: string) => {
     setShowTrimmer(false);
     setJobId(trimJobId);
@@ -80,13 +105,8 @@ export default function Home() {
 
     const loadToast = toast.loading('Uploading trimmed video...');
     try {
-      const formData = new FormData();
-      formData.append('file', trimmedFile);
-      formData.append('jobId', trimJobId);
-
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      if (!res.ok) throw new Error('Upload failed');
-      const { url: r2Url } = await res.json();
+      // Direct browser-to-R2 upload (no proxy size limits)
+      const r2Url = await uploadDirectToR2(trimmedFile, trimJobId);
 
       await fetch('/api/download-youtube', {
         method: 'POST',
@@ -215,33 +235,23 @@ export default function Home() {
               const file = e.target.files?.[0];
               if (!file) return;
 
-              // Client-side file size check (25MB limit — Koyeb proxy)
-              const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
-              if (file.size > MAX_FILE_SIZE) {
-                // File too large — open the smart trimmer instead of rejecting
+              // Files over 500MB → open trimmer to split into segments
+              const TRIMMER_THRESHOLD = 500 * 1024 * 1024; // 500MB
+              if (file.size > TRIMMER_THRESHOLD) {
                 toast(`File is ${Math.round(file.size / 1024 / 1024)}MB — opening trimmer to split it down.`, { icon: '✂️' });
                 setLargeFile(file);
                 setShowTrimmer(true);
                 return;
               }
 
+              // Direct browser-to-R2 upload via presigned URL (bypasses proxy limits)
               const loadToast = toast.loading('Uploading to Sanctum...');
               const newJobId = Math.random().toString(36).substring(7);
               setJobId(newJobId);
               setIsProcessing(true);
 
               try {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('jobId', newJobId);
-
-                const res = await fetch('/api/upload', {
-                  method: 'POST',
-                  body: formData
-                });
-
-                if (!res.ok) throw new Error('Upload failed');
-                const { url: r2Url } = await res.json();
+                const r2Url = await uploadDirectToR2(file, newJobId);
 
                 await fetch('/api/download-youtube', {
                   method: 'POST',
@@ -267,7 +277,7 @@ export default function Home() {
              <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>Drag & Drop Your Sermon Video</h3>
              <p style={{ color: '#52525B', fontSize: '14px' }}>MP4, MOV, or WEBM</p>
              <div style={{ marginTop: '12px', padding: '8px 16px', background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '10px', display: 'inline-block' }}>
-               <p style={{ color: '#FB923C', fontSize: '12px', fontWeight: 700, margin: 0 }}>⚠️ Maximum file size: 25 MB</p>
+               <p style={{ color: '#FB923C', fontSize: '12px', fontWeight: 700, margin: 0 }}>⚠️ Maximum file size: 500 MB</p>
                <p style={{ color: '#71717A', fontSize: '10px', marginTop: '4px' }}>Larger files? We&apos;ll auto-open the trimmer to split it into uploadable segments.</p>
              </div>
           </div>

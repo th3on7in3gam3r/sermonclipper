@@ -18,7 +18,7 @@ interface VideoTrimmerProps {
   onCancel: () => void;
 }
 
-const MAX_OUTPUT_MB = 25; // Conservative target to fit in serverless proxy limits
+const MAX_OUTPUT_MB = 500; // Presigned URLs bypass proxy — direct browser-to-R2 upload
 
 export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: VideoTrimmerProps) {
   const [file, setFile] = useState<File | null>(initialFile || null);
