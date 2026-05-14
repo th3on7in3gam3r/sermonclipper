@@ -160,7 +160,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
     }
   };
 
-  // Select a segment — auto-trim and upload
+  // Select a segment — preview the timestamp, then trim & upload
   const handleSelectSegment = async (idx: number) => {
     if (!ffmpegLoaded) {
       toast.error('Video engine still loading, please wait...');
@@ -168,6 +168,12 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
     }
     setSelectedSegment(idx);
     const seg = segments[idx];
+
+    // Jump the preview to the segment's start so user sees what they're trimming
+    if (videoRef.current) {
+      videoRef.current.currentTime = seg.start;
+    }
+
     await trimSegment(seg.start, seg.end);
   };
 
@@ -317,6 +323,12 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
               return (
                 <div
                   key={i}
+                  onMouseEnter={() => {
+                    // Jump preview to segment start on hover so user can see what's there
+                    if (videoRef.current && !isTrimming) {
+                      videoRef.current.currentTime = seg.start;
+                    }
+                  }}
                   style={{
                     padding: '16px', borderRadius: '14px', transition: 'all 0.2s',
                     background: isActive ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
