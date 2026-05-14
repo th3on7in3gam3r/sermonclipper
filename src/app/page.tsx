@@ -171,6 +171,13 @@ export default function Home() {
               const file = e.target.files?.[0];
               if (!file) return;
 
+              // Client-side file size check (100MB limit)
+              const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+              if (file.size > MAX_FILE_SIZE) {
+                toast.error(`File too large (${Math.round(file.size / 1024 / 1024)}MB). Maximum upload size is 100MB. Please compress the video or use a YouTube link instead.`);
+                return;
+              }
+
               const loadToast = toast.loading('Uploading to Sanctum...');
               const newJobId = Math.random().toString(36).substring(7);
               setJobId(newJobId);
@@ -211,7 +218,11 @@ export default function Home() {
           >
              <div style={{ fontSize: '40px', marginBottom: '16px' }}>📁</div>
              <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>Drag & Drop Your Sermon Video</h3>
-             <p style={{ color: '#52525B', fontSize: '14px' }}>MP4, MOV, or WEBM (Max 2GB)</p>
+             <p style={{ color: '#52525B', fontSize: '14px' }}>MP4, MOV, or WEBM</p>
+             <div style={{ marginTop: '12px', padding: '8px 16px', background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '10px', display: 'inline-block' }}>
+               <p style={{ color: '#FB923C', fontSize: '12px', fontWeight: 700, margin: 0 }}>⚠️ Maximum file size: 100 MB</p>
+               <p style={{ color: '#71717A', fontSize: '10px', marginTop: '4px' }}>For larger sermons, compress the video first or use a YouTube link for AI analysis only.</p>
+             </div>
           </div>
         </div>
       </section>

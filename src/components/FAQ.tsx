@@ -21,7 +21,7 @@ const FAQ_DATA = [
   },
   {
     q: 'What are the file size limits?',
-    a: 'Uploaded videos can be up to 2GB. For best results, use MP4 format at 720p or 1080p resolution. Longer sermons (60+ minutes) work fine but analysis may take slightly longer.'
+    a: 'Uploaded videos can be up to 100MB. For best results, use MP4 format at 720p resolution. If your sermon file is larger, you can:\n\n• Compress it using HandBrake (free) or similar tools\n• Use a YouTube link for AI analysis (clips, captions, Social Kit)\n• Split longer sermons into parts\n\nWe recommend 720p MP4 which typically keeps a 60-minute sermon under 80MB.'
   },
   {
     q: 'What does the Studio do?',

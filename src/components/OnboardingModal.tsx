@@ -14,7 +14,7 @@ const SLIDES = [
   {
     icon: '📤',
     title: 'Step 1: Upload or Paste',
-    body: 'You have two options:\n\n• Upload an MP4 file directly (recommended for full export)\n• Paste a YouTube link (AI analysis only — no reel export)',
+    body: 'You have two options:\n\n• Upload an MP4 file directly (max 100MB — recommended for full export)\n• Paste a YouTube link (AI analysis only — no reel export)\n\nFor large sermons, compress to 720p MP4 first or use a YouTube link.',
     highlight: 'Upload MP4 for the complete experience.',
   },
   {
