@@ -115,9 +115,9 @@ export default function Home() {
 
   if (isProcessing) {
     return (
-      <main className="flex-center" style={{ minHeight: '100vh', padding: '20px', background: '#0A0A0F' }}>
+      <main style={{ minHeight: '100vh', padding: '20px', background: '#0A0A0F', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         <div className="spiritual-rays" />
-        <div className="animate-up" style={{ width: '100%', maxWidth: '600px' }}>
+        <div className="animate-up" style={{ width: '100%', maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <ProcessingView 
             steps={[
               { id: 'engine', label: 'Extracting Audio track' },
@@ -215,8 +215,8 @@ export default function Home() {
               const file = e.target.files?.[0];
               if (!file) return;
 
-              // Client-side file size check (100MB limit)
-              const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+              // Client-side file size check (25MB limit — Koyeb proxy)
+              const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
               if (file.size > MAX_FILE_SIZE) {
                 // File too large — open the smart trimmer instead of rejecting
                 toast(`File is ${Math.round(file.size / 1024 / 1024)}MB — opening trimmer to split it down.`, { icon: '✂️' });
@@ -267,8 +267,8 @@ export default function Home() {
              <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>Drag & Drop Your Sermon Video</h3>
              <p style={{ color: '#52525B', fontSize: '14px' }}>MP4, MOV, or WEBM</p>
              <div style={{ marginTop: '12px', padding: '8px 16px', background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '10px', display: 'inline-block' }}>
-               <p style={{ color: '#FB923C', fontSize: '12px', fontWeight: 700, margin: 0 }}>⚠️ Maximum file size: 100 MB</p>
-               <p style={{ color: '#71717A', fontSize: '10px', marginTop: '4px' }}>For larger sermons, compress the video first or use a YouTube link for AI analysis only.</p>
+               <p style={{ color: '#FB923C', fontSize: '12px', fontWeight: 700, margin: 0 }}>⚠️ Maximum file size: 25 MB</p>
+               <p style={{ color: '#71717A', fontSize: '10px', marginTop: '4px' }}>Larger files? We&apos;ll auto-open the trimmer to split it into uploadable segments.</p>
              </div>
           </div>
         </div>

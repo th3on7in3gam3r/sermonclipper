@@ -18,7 +18,7 @@ interface VideoTrimmerProps {
   onCancel: () => void;
 }
 
-const MAX_OUTPUT_MB = 95; // Target under 100MB with some headroom
+const MAX_OUTPUT_MB = 25; // Conservative target to fit in serverless proxy limits
 
 export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: VideoTrimmerProps) {
   const [file, setFile] = useState<File | null>(initialFile || null);
@@ -141,8 +141,8 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
       const blob = new Blob([data as any], { type: 'video/mp4' });
       const trimmedFile = new File([blob], `trimmed_${file.name}`, { type: 'video/mp4' });
 
-      if (trimmedFile.size > 100 * 1024 * 1024) {
-        toast.error(`Segment is ${Math.round(trimmedFile.size / (1024 * 1024))}MB — over the 100MB limit. Try the next segment or use manual trim.`, { id: trimToast });
+      if (trimmedFile.size > MAX_OUTPUT_MB * 1024 * 1024) {
+        toast.error(`Segment is ${Math.round(trimmedFile.size / (1024 * 1024))}MB — over the ${MAX_OUTPUT_MB}MB limit. Try the next segment or use manual trim.`, { id: trimToast });
         setIsTrimming(false);
         return;
       }
@@ -244,7 +244,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
     if (!ffmpegRef.current || !file) return;
     const trimDuration = outPoint - inPoint;
     if (trimDuration < 3) { toast.error('Clip must be at least 3 seconds.'); return; }
-    if (isOverLimit()) { toast.error('Selected range is still over 100MB. Shorten it.'); return; }
+    if (isOverLimit()) { toast.error(`Selected range is still over ${MAX_OUTPUT_MB}MB. Shorten it.`); return; }
 
     setIsTrimming(true);
     setTrimProgress(0);
@@ -259,7 +259,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
       const blob = new Blob([data as any], { type: 'video/mp4' });
       const trimmedFile = new File([blob], `trimmed_${file.name}`, { type: 'video/mp4' });
 
-      if (trimmedFile.size > 100 * 1024 * 1024) {
+      if (trimmedFile.size > MAX_OUTPUT_MB * 1024 * 1024) {
         toast.error(`Still ${Math.round(trimmedFile.size / (1024 * 1024))}MB. Select a shorter range.`);
         setIsTrimming(false);
         return;
