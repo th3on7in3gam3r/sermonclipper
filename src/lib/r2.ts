@@ -25,6 +25,7 @@ function getR2Client() {
         accessKeyId,
         secretAccessKey,
       },
+      forcePathStyle: true, // R2 requires path-style: account.r2.../bucket/key
     });
   }
 
@@ -68,6 +69,7 @@ export async function generatePresignedUploadUrl(key: string, contentType = 'vid
     endpoint,
     region: 'auto',
     credentials: { accessKeyId, secretAccessKey },
+    forcePathStyle: true, // R2 requires path-style: account.r2.../bucket/key
     requestChecksumCalculation: 'WHEN_REQUIRED',
     responseChecksumValidation: 'WHEN_REQUIRED',
   });
