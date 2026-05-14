@@ -6,6 +6,7 @@ import ProcessingView from '@/components/home/ProcessingView';
 import Pricing from '@/components/home/Pricing';
 import FAQ from '@/components/FAQ';
 import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
+import VideoTrimmer from '@/components/VideoTrimmer';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
@@ -15,6 +16,7 @@ export default function Home() {
   const { needsOnboarding, setNeedsOnboarding } = useOnboarding();
   const [url, setUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showTrimmer, setShowTrimmer] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
   const [status, setStatus] = useState<Record<string, string> | null>(null);
   const router = useRouter();
@@ -68,6 +70,46 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, [jobId, isProcessing, router]);
+
+  // Handle trimmed file upload
+  const handleTrimComplete = async (trimmedFile: File, trimJobId: string) => {
+    setShowTrimmer(false);
+    setJobId(trimJobId);
+    setIsProcessing(true);
+
+    const loadToast = toast.loading('Uploading trimmed video...');
+    try {
+      const formData = new FormData();
+      formData.append('file', trimmedFile);
+      formData.append('jobId', trimJobId);
+
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Upload failed');
+      const { url: r2Url } = await res.json();
+
+      await fetch('/api/download-youtube', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: r2Url, jobId: trimJobId, userId }),
+      });
+
+      toast.success('Trimmed video uploaded! Processing started.', { id: loadToast });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Upload failed';
+      toast.error(msg, { id: loadToast });
+      setIsProcessing(false);
+    }
+  };
+
+  // Show trimmer view
+  if (showTrimmer) {
+    return (
+      <VideoTrimmer
+        onTrimComplete={handleTrimComplete}
+        onCancel={() => setShowTrimmer(false)}
+      />
+    );
+  }
 
   if (isProcessing) {
     return (
@@ -223,6 +265,14 @@ export default function Home() {
                <p style={{ color: '#FB923C', fontSize: '12px', fontWeight: 700, margin: 0 }}>⚠️ Maximum file size: 100 MB</p>
                <p style={{ color: '#71717A', fontSize: '10px', marginTop: '4px' }}>For larger sermons, compress the video first or use a YouTube link for AI analysis only.</p>
              </div>
+
+             {/* Trim Large Video Button */}
+             <button
+               onClick={() => setShowTrimmer(true)}
+               style={{ marginTop: '16px', padding: '12px 24px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: '12px', color: '#C4B5FD', fontSize: '12px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', display: 'block' }}
+             >
+               ✂️ Have a large file? Trim it first →
+             </button>
           </div>
         </div>
       </section>
