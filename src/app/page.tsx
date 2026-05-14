@@ -17,6 +17,7 @@ export default function Home() {
   const [url, setUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTrimmer, setShowTrimmer] = useState(false);
+  const [largeFile, setLargeFile] = useState<File | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [status, setStatus] = useState<Record<string, string> | null>(null);
   const router = useRouter();
@@ -105,8 +106,9 @@ export default function Home() {
   if (showTrimmer) {
     return (
       <VideoTrimmer
+        initialFile={largeFile}
         onTrimComplete={handleTrimComplete}
-        onCancel={() => setShowTrimmer(false)}
+        onCancel={() => { setShowTrimmer(false); setLargeFile(null); }}
       />
     );
   }
@@ -216,7 +218,10 @@ export default function Home() {
               // Client-side file size check (100MB limit)
               const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
               if (file.size > MAX_FILE_SIZE) {
-                toast.error(`File too large (${Math.round(file.size / 1024 / 1024)}MB). Maximum upload size is 100MB. Please compress the video or use a YouTube link instead.`);
+                // File too large — open the smart trimmer instead of rejecting
+                toast(`File is ${Math.round(file.size / 1024 / 1024)}MB — opening trimmer to split it down.`, { icon: '✂️' });
+                setLargeFile(file);
+                setShowTrimmer(true);
                 return;
               }
 
@@ -265,14 +270,6 @@ export default function Home() {
                <p style={{ color: '#FB923C', fontSize: '12px', fontWeight: 700, margin: 0 }}>⚠️ Maximum file size: 100 MB</p>
                <p style={{ color: '#71717A', fontSize: '10px', marginTop: '4px' }}>For larger sermons, compress the video first or use a YouTube link for AI analysis only.</p>
              </div>
-
-             {/* Trim Large Video Button */}
-             <button
-               onClick={() => setShowTrimmer(true)}
-               style={{ marginTop: '16px', padding: '12px 24px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: '12px', color: '#C4B5FD', fontSize: '12px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', display: 'block' }}
-             >
-               ✂️ Have a large file? Trim it first →
-             </button>
           </div>
         </div>
       </section>
