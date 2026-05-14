@@ -69,11 +69,11 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }}>
       <div style={{
         width: '100%', maxWidth: '540px',
-        background: '#0D0D12',
-        border: '1px solid rgba(139,92,246,0.25)',
+        background: '#1A1A24',
+        border: '1px solid rgba(139,92,246,0.4)',
         borderRadius: '28px',
         overflow: 'hidden',
-        boxShadow: '0 40px 120px rgba(0,0,0,0.8), 0 0 0 1px rgba(139,92,246,0.1)',
+        boxShadow: '0 0 0 1px rgba(139,92,246,0.2), 0 40px 120px rgba(0,0,0,0.8), 0 0 80px rgba(139,92,246,0.15)',
         animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
       }}>
         {/* Progress bar */}
@@ -92,13 +92,13 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
             <div style={{
               width: '56px', height: '56px', borderRadius: '16px',
-              background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)',
+              background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '28px',
             }}>
               {current.icon}
             </div>
-            <span style={{ fontSize: '10px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em' }}>
+            <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em' }}>
               {step + 1} / {SLIDES.length}
             </span>
           </div>
@@ -109,7 +109,7 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
           </h2>
 
           {/* Body */}
-          <p style={{ fontSize: '14px', color: '#A1A1AA', lineHeight: 1.7, marginBottom: '16px', whiteSpace: 'pre-line' }}>
+          <p style={{ fontSize: '14px', color: '#D4D4D8', lineHeight: 1.7, marginBottom: '16px', whiteSpace: 'pre-line' }}>
             {current.body}
           </p>
 
@@ -117,10 +117,10 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             padding: '8px 14px', borderRadius: '99px',
-            background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)',
+            background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.3)',
             marginBottom: '28px',
           }}>
-            <span style={{ fontSize: '11px', color: '#C4B5FD', fontWeight: 700 }}>💡 {current.highlight}</span>
+            <span style={{ fontSize: '11px', color: '#E9D5FF', fontWeight: 700 }}>💡 {current.highlight}</span>
           </div>
 
           {/* Acknowledgment checkbox on last slide */}
