@@ -88,10 +88,10 @@ body {
 /* --- Typography --- */
 
 .title-xl {
-  font-size: clamp(40px, 8vw, 96px);
+  font-size: clamp(32px, 6vw, 72px);
   font-weight: 900;
   letter-spacing: -0.04em;
-  line-height: 0.9;
+  line-height: 0.95;
   text-transform: uppercase;
 }
 
@@ -115,8 +115,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 16px 32px;
-  border-radius: 14px;
+  padding: 12px 24px;
+  border-radius: 12px;
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;

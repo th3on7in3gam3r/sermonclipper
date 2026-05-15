@@ -166,10 +166,10 @@ export default function VesperStudio({
       <div className="glass-card" style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', borderRadius: 0, borderTop: 'none', borderLeft: 'none', borderRight: 'none', zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 15px var(--primary)' }} />
+            <img src="/vesper-logo-clean.png" alt="VESPER" style={{ height: '28px', width: 'auto' }} />
             <div>
-              <div style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '0.3em', color: '#fff' }}>VESPER STUDIO</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.1em', fontWeight: 700 }}>NEURAL EDITING SUITE V2.5</div>
+              <div style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '0.3em', color: '#fff', marginLeft: '12px' }}>STUDIO</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.1em', fontWeight: 700, marginLeft: '12px' }}>NEURAL EDITING SUITE V2.5</div>
             </div>
           </div>
           

@@ -42,6 +42,22 @@ export default function Dashboard() {
       });
     }
   }, [userId]);
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this harvest? This action cannot be undone.')) return;
+    
+    try {
+      const res = await fetch(`/api/sermons?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSermons(prev => prev.filter(s => s._id !== id));
+      } else {
+        alert('Failed to delete sermon');
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
+  };
 
   const statusBar = userData ? (
     <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(139, 92, 246, 0.1)', padding: '6px 16px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)', gap: '10px' }}>
@@ -67,8 +83,7 @@ export default function Dashboard() {
       }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 15px var(--primary)' }} />
-            <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
+            <img src="/vesper-logo-clean.png" alt="VESPER" style={{ height: '28px', width: 'auto' }} />
           </div>
         </Link>
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
@@ -123,7 +138,7 @@ export default function Dashboard() {
                 <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#A1A1AA', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
                   {month} Series
                 </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '32px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
                   {monthSermons.map((sermon) => (
                     <Link 
                       key={sermon._id} 
@@ -145,6 +160,13 @@ export default function Dashboard() {
                           <div className="vesper-badge badge-violet" style={{ position: 'absolute', top: '16px', right: '16px', backdropFilter: 'blur(8px)' }}>
                             {sermon.analysis?.clips?.length || 0} CLIPS
                           </div>
+                          <button 
+                            onClick={(e) => handleDelete(e, sermon._id)}
+                            style={{ position: 'absolute', top: '16px', left: '16px', background: 'rgba(239, 68, 68, 0.2)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.3)', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            title="Delete Harvest"
+                          >
+                            ✕
+                          </button>
                         </div>
                         <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                           <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>{sermon.title}</h3>

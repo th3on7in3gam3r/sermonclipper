@@ -533,8 +533,7 @@ function ResultsContent() {
       }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 15px var(--primary)' }} />
-            <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
+            <img src="/vesper-logo-clean.png" alt="VESPER" style={{ height: '28px', width: 'auto' }} />
           </div>
         </Link>
         <div style={{ display: 'flex', gap: isMobile ? '12px' : '32px', alignItems: 'center' }}>
