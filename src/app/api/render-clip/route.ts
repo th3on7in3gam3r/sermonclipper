@@ -176,6 +176,7 @@ export async function POST(req: NextRequest) {
     };
 
     console.log(`[Shotstack] Render: template=${template}, filter=${filter}, font=${font}, animation=${animation}, duration=${duration}s`);
+    console.log('[Shotstack] Payload:', JSON.stringify(shotstackEdit, null, 2));
 
     const response = await fetch(SHOTSTACK_URL, {
       method: 'POST',
