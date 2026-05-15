@@ -167,8 +167,7 @@ export default function Home() {
         padding: '0 32px', zIndex: 1000, borderRadius: '20px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 15px var(--primary)' }} />
-          <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
+          <img src="/vesper-logo.png" alt="VESPER" style={{ height: '40px', width: 'auto', filter: 'drop-shadow(0 0 8px rgba(139,92,246,0.3))' }} />
         </div>
 
         <nav style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>

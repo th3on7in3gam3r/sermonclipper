@@ -83,7 +83,7 @@ export default function Dashboard() {
       }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img src="/vesper-logo-clean.png" alt="VESPER" style={{ height: '28px', width: 'auto' }} />
+            <img src="/vesper-logo.png" alt="VESPER" style={{ height: '40px', width: 'auto', filter: 'drop-shadow(0 0 8px rgba(139,92,246,0.3))' }} />
           </div>
         </Link>
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
@@ -162,10 +162,21 @@ export default function Dashboard() {
                           </div>
                           <button 
                             onClick={(e) => handleDelete(e, sermon._id)}
-                            style={{ position: 'absolute', top: '16px', left: '16px', background: 'rgba(239, 68, 68, 0.2)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.3)', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            style={{ 
+                              position: 'absolute', top: '16px', left: '16px', 
+                              background: 'rgba(255, 255, 255, 0.05)', color: 'rgba(255, 255, 255, 0.4)', 
+                              border: '1px solid rgba(255, 255, 255, 0.1)', 
+                              width: '36px', height: '36px', borderRadius: '10px', 
+                              cursor: 'pointer', zIndex: 20, display: 'flex', 
+                              alignItems: 'center', justifyContent: 'center',
+                              transition: 'all 0.2s',
+                              backdropFilter: 'blur(10px)'
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'; }}
                             title="Delete Harvest"
                           >
-                            ✕
+                            <span style={{ fontSize: '18px' }}>🗑️</span>
                           </button>
                         </div>
                         <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
