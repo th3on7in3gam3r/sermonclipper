@@ -27,9 +27,23 @@ function ResultsContent() {
   const [analysis, setAnalysis] = useState<any>(null);
   const [rendering, setRendering] = useState<{ [key: number]: { status: string, url?: string } }>({});
   const [userStatus, setUserStatus] = useState<any>(null);
+  const [playableVideoUrl, setPlayableVideoUrl] = useState<string | null>(null);
   const { isLoaded, userId } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
   const [mobileTab, setMobileTab] = useState('studio'); // 'studio', 'strategy', 'publish'
+
+  // Resolve private R2 URL → presigned GET URL so the browser can play it
+  useEffect(() => {
+    if (!videoUrl) return;
+    if (!videoUrl.includes('.r2.cloudflarestorage.com') || videoUrl.includes('X-Amz-Signature')) {
+      setPlayableVideoUrl(videoUrl);
+      return;
+    }
+    fetch(`/api/video-url?url=${encodeURIComponent(videoUrl)}`)
+      .then(r => r.json())
+      .then(d => setPlayableVideoUrl(d.url || videoUrl))
+      .catch(() => setPlayableVideoUrl(videoUrl));
+  }, [videoUrl]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -595,7 +609,7 @@ function ResultsContent() {
                 allowFullScreen
               ></iframe>
             ) : videoUrl && (
-              <video src={videoUrl} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <video src={playableVideoUrl || ''} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             )}
             <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'rgba(139, 92, 246, 0.9)', color: '#fff', padding: '4px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em' }}>MASTER SESSION</div>
           </div>
@@ -619,7 +633,7 @@ function ResultsContent() {
                   ></iframe>
                 ) : videoUrl && (
                   <video 
-                    src={videoUrl}
+                    src={playableVideoUrl || ''}
                     controls
                     preload="metadata"
                     onLoadedMetadata={(e) => {
@@ -1229,7 +1243,7 @@ function ResultsContent() {
                   />
                 ) : videoUrl && (
                   <video 
-                    src={`${videoUrl}#t=${previewStart},${previewEnd}`}
+                    src={`${playableVideoUrl || ''}#t=${previewStart},${previewEnd}`}
                     controls loop playsInline
                     style={{ width: '100%', height: '100%', objectFit: 'cover', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
                   />
