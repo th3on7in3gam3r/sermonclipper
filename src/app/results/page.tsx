@@ -804,7 +804,7 @@ function ResultsContent() {
           <span style={{ color: '#fff' }}>© 2026 VESPER</span>
         </div>
         <p style={{ fontSize: '16px', color: 'var(--text-dim)', fontWeight: 600 }}>
-          Made by <a href="https://biblefunland.com" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
+          Made by <a href="https://www.biblefunlandstudios.com/" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
         </p>
       </footer>
 
