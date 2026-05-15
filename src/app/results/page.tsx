@@ -531,9 +531,10 @@ function ResultsContent() {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
         padding: '0 32px', zIndex: 1000, borderRadius: '20px'
       }}>
-        <Link href="/" style={{ textDecoration: 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img src="/vesper-logo.png" alt="VESPER" style={{ height: '40px', width: 'auto', filter: 'drop-shadow(0 0 8px rgba(139,92,246,0.3))' }} />
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '32px', width: 'auto' }} />
+          <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
+            <span style={{ color: '#8B5CF6' }}>VES</span>PER
           </div>
         </Link>
         <div style={{ display: 'flex', gap: isMobile ? '12px' : '32px', alignItems: 'center' }}>

@@ -166,9 +166,12 @@ export default function Home() {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
         padding: '0 32px', zIndex: 1000, borderRadius: '20px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/vesper-logo.png" alt="VESPER" style={{ height: '40px', width: 'auto', filter: 'drop-shadow(0 0 8px rgba(139,92,246,0.3))' }} />
-        </div>
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '32px', width: 'auto' }} />
+          <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
+            <span style={{ color: '#8B5CF6' }}>VES</span>PER
+          </div>
+        </Link>
 
         <nav style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
           <Link href="/#features" className="vesper-btn-outline" style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-muted)' }}>VISION</Link>

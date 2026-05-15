@@ -166,10 +166,12 @@ export default function VesperStudio({
       <div className="glass-card" style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', borderRadius: 0, borderTop: 'none', borderLeft: 'none', borderRight: 'none', zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img src="/vesper-logo.png" alt="VESPER" style={{ height: '40px', width: 'auto', filter: 'drop-shadow(0 0 8px rgba(139,92,246,0.3))' }} />
-            <div style={{ marginLeft: '12px' }}>
-              <div style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '0.3em', color: '#fff' }}>STUDIO</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.1em', fontWeight: 700 }}>NEURAL EDITING SUITE V2.5</div>
+            <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '32px', width: 'auto' }} />
+            <div style={{ marginLeft: '8px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
+                <span style={{ color: '#8B5CF6' }}>VES</span>PER <span style={{ opacity: 0.5, fontWeight: 300, fontSize: '16px', letterSpacing: '0.1em' }}>STUDIO</span>
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', fontWeight: 700 }}>NEURAL EDITING SUITE V2.5</div>
             </div>
           </div>
           
