@@ -196,9 +196,12 @@ export default function Home() {
             <span style={{ fontSize: '16px', marginRight: '8px' }}>✨</span> THE NEXT EVOLUTION OF MINISTRY MEDIA
           </div>
           
-          <h1 className="title-xl" style={{ fontSize: 'clamp(48px, 12vw, 160px)', marginBottom: '40px', letterSpacing: '-0.02em' }}>
-            <span style={{ color: '#8B5CF6' }}>VES</span>PER
-          </h1>
+          <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px', marginBottom: '40px' }}>
+            <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '120px', width: 'auto', filter: 'drop-shadow(0 0 30px rgba(139,92,246,0.3))' }} />
+            <h1 className="title-xl" style={{ fontSize: 'clamp(48px, 12vw, 160px)', letterSpacing: '-0.02em', margin: 0 }}>
+              <span style={{ color: '#8B5CF6' }}>VES</span>PER
+            </h1>
+          </div>
           
           <p className="title-xl" style={{ fontSize: 'clamp(24px, 5vw, 48px)', fontWeight: 300, marginBottom: '48px', color: 'var(--text-muted)' }}>
             Cinematic Reels. <span className="accent-text">Neural Precision.</span>
