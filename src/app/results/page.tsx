@@ -8,6 +8,7 @@ import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import VesperTour from '@/components/VesperTour';
+import VesperStudio from '@/components/studio/VesperStudio';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
 const GOOGLE_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap';
 
@@ -118,8 +119,9 @@ function ResultsContent() {
 
   const [selectedClip, setSelectedClip] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('templates');
-  const [selectedTemplate, setSelectedTemplate] = useState('minimal');
-  const [selectedFilter, setSelectedFilter] = useState('none');
+  const [showYTDesc, setShowYTDesc] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+  const [showQuoteVault, setShowQuoteVault] = useState(false);
 
   const TEMPLATES = [
     { id: 'minimal', name: 'Minimalist Prophet', desc: 'Clean white subtitles, no background', color: '#FFFFFF', fontStyle: 'normal', textShadow: '0 2px 8px rgba(0,0,0,0.8)' },
@@ -153,21 +155,7 @@ function ResultsContent() {
   // Render progress per clip (0-100)
   const [renderProgress, setRenderProgress] = useState<{ [key: number]: number }>({});
 
-  // Timestamp scrubber state in Studio
-  const [trimStart, setTrimStart] = useState(0);
-  const [trimEnd, setTrimEnd] = useState(0);
-  const [previewStart, setPreviewStart] = useState(0);
-  const [previewEnd, setPreviewEnd] = useState(0);
 
-  // Caption animation style
-  const [selectedAnimation, setSelectedAnimation] = useState('fade');
-
-  const [showYTDesc, setShowYTDesc] = useState(false);
-  const [showTour, setShowTour] = useState(false);
-  const [showQuoteVault, setShowQuoteVault] = useState(false);
-
-  // Caption overrides — user edits per clip in Studio
-  const [captionOverrides, setCaptionOverrides] = useState<{ [key: number]: string }>({});
 
   // Brand Kit — persisted in localStorage
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -318,7 +306,7 @@ function ResultsContent() {
   };
 
 
-  const startExport = async (clip: any) => {
+  const startExport = async (clip: any, settings: any = {}) => {
     // Guard: prevent export attempts when source is YouTube (no direct MP4)
     if (isYouTubeSource) {
       toast.error('Export requires a direct MP4 upload. YouTube streaming cannot be rendered.');
@@ -330,6 +318,17 @@ function ResultsContent() {
     setRenderProgress(prev => ({ ...prev, [index]: 0 }));
     const renderToastId = toast.loading('Synchronizing with Shotstack Cloud...');
     
+    // Default settings if not provided (e.g. for batch export)
+    const {
+      template = 'minimal',
+      filter = 'none',
+      font = 'outfit',
+      animation = 'fade',
+      trimStart: tStart,
+      trimEnd: tEnd,
+      caption
+    } = settings;
+
     try {
       const res = await fetch('/api/render-clip', {
         method: 'POST',
@@ -338,15 +337,15 @@ function ResultsContent() {
           jobId, 
           clip: { 
             ...clip, 
-            start: trimStart || clip.start, 
-            end: trimEnd || clip.end,
-            suggested_captions: captionOverrides[index] ? [captionOverrides[index]] : clip.suggested_captions
+            start: tStart || clip.start, 
+            end: tEnd || clip.end,
+            suggested_captions: caption ? [caption] : clip.suggested_captions
           },
           index,
-          template: selectedTemplate,
-          filter: selectedFilter,
-          font: selectedFont,
-          animation: selectedAnimation,
+          template,
+          filter,
+          font,
+          animation,
         })
       });
       const data = await res.json();
@@ -471,12 +470,6 @@ function ResultsContent() {
   };
 
   const handleCustomize = (clip: any, index: number) => {
-    const s = parseTime(clip.start);
-    const e = parseTime(clip.end);
-    setTrimStart(s);
-    setTrimEnd(e);
-    setPreviewStart(s);
-    setPreviewEnd(e);
     setSelectedClip({ ...clip, index });
   };
 
@@ -893,577 +886,28 @@ function ResultsContent() {
                   >
                     DOWNLOAD GRAPHIC
                   </button>
+                  {/* Vesper Studio Overlay — Componentized Refactor */}
+                  {selectedClip && (
+                    <VesperStudio
+                      selectedClip={selectedClip}
+                      onClose={() => setSelectedClip(null)}
+                      videoId={videoId}
+                      videoUrl={videoUrl}
+                      playableVideoUrl={playableVideoUrl}
+                      rendering={rendering}
+                      renderProgress={renderProgress}
+                      startExport={startExport}
+                      isMobile={isMobile}
+                      userStatus={userStatus}
+                      parseTime={parseTime}
+                    />
+                  )}
                 </div>
               ))}
             </div>
           </div>
         </div>
       )}
-
-      {/* Vesper Studio Overlay — Professional 3-Panel Suite */}
-      {selectedClip && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#050508', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-
-          {/* Top Bar — Global Controls */}
-          <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', background: 'rgba(10,10,15,0.98)', borderBottom: '1px solid rgba(255,255,255,0.06)', zIndex: 50 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8B5CF6', boxShadow: '0 0 12px #8B5CF6' }} />
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER STUDIO</span>
-                <span style={{ fontSize: '17px', color: '#52525B', letterSpacing: '0.1em' }}>Neural Editing Phase — 9:16 Vertical</span>
-              </div>
-            </div>
-            <button
-              onClick={() => setSelectedClip(null)}
-              style={{ padding: '8px 20px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer', fontSize: '18px', fontWeight: 800, letterSpacing: '0.1em', transition: 'all 0.2s' }}
-            >✕ CLOSE STUDIO</button>
-          </div>
-
-          {/* Mobile tab state for Studio: 'style' | 'preview' | 'captions' */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
-            {/* LEFT PANEL — Style tools */}
-            <div style={{ 
-              width: isMobile ? '100%' : '300px', 
-              flexShrink: 0, 
-              background: '#0A0A0F', 
-              borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.05)', 
-              display: isMobile ? (mobileTab === 'style' ? 'flex' : 'none') : 'flex', 
-              flexDirection: 'column',
-              overflow: 'hidden',
-              flex: isMobile ? 1 : undefined,
-            }}>
-
-              {/* Tabs Header — Icon Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-                {[
-                  { id: 'templates', icon: '◈', label: 'Style' },
-                  { id: 'filters', icon: '◐', label: 'Filter' },
-                  { id: 'fonts', icon: 'Aa', label: 'Font' },
-                  { id: 'motion', icon: '▷', label: 'Motion' },
-                  { id: 'trim', icon: '✂', label: 'Trim' },
-                  { id: 'publish', icon: '↗', label: 'Publish' },
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    style={{
-                      padding: '12px 4px',
-                      background: activeTab === tab.id ? 'rgba(139,92,246,0.08)' : 'transparent',
-                      border: 'none',
-                      borderBottom: activeTab === tab.id ? '2px solid #8B5CF6' : '2px solid transparent',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
-                    }}
-                  >
-                    <span style={{ fontSize: '18px', color: activeTab === tab.id ? '#A78BFA' : '#52525B', lineHeight: 1 }}>{tab.icon}</span>
-                    <span style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '0.05em', color: activeTab === tab.id ? '#A78BFA' : '#52525B' }}>{tab.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Tab Content */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-
-                {/* TEMPLATES */}
-                {activeTab === 'templates' && TEMPLATES.map(t => (
-                  <div
-                    key={t.id}
-                    onClick={() => setSelectedTemplate(t.id)}
-                    style={{
-                      padding: '16px', borderRadius: '14px', cursor: 'pointer', transition: 'all 0.2s',
-                      background: selectedTemplate === t.id ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
-                      border: selectedTemplate === t.id ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
-                      display: 'flex', alignItems: 'center', gap: '14px',
-                    }}
-                  >
-                    {/* Color swatch */}
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0, background: `linear-gradient(135deg, ${t.color}33, ${t.color}88)`, border: `1px solid ${t.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: t.color }} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '3px' }}>{t.name}</div>
-                      <div style={{ fontSize: '18px', color: '#71717A', lineHeight: 1.4 }}>{t.desc}</div>
-                    </div>
-                    {selectedTemplate === t.id && (
-                      <div style={{ marginLeft: 'auto', width: '18px', height: '18px', borderRadius: '50%', background: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {/* FILTERS */}
-                {activeTab === 'filters' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    {FILTERS.map(f => (
-                      <div
-                        key={f.id}
-                        onClick={() => setSelectedFilter(f.id)}
-                        style={{
-                          borderRadius: '14px', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s',
-                          border: selectedFilter === f.id ? '2px solid #8B5CF6' : '2px solid rgba(255,255,255,0.06)',
-                        }}
-                      >
-                        {/* Visual preview swatch */}
-                        <div style={{ height: '52px', background: f.preview.replace('bg-gradient-to-br ', ''), position: 'relative' }}
-                          className={f.preview}>
-                          {selectedFilter === f.id && (
-                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(139,92,246,0.3)' }}>
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            </div>
-                          )}
-                        </div>
-                        <div style={{ padding: '8px 10px', background: 'rgba(255,255,255,0.03)' }}>
-                          <div style={{ fontSize: '17px', fontWeight: 700, color: selectedFilter === f.id ? '#C4B5FD' : '#A1A1AA' }}>{f.name}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* FONTS */}
-                {activeTab === 'fonts' && FONTS.map(f => (
-                  <div
-                    key={f.id}
-                    onClick={() => setSelectedFont(f.id)}
-                    style={{
-                      padding: '16px', borderRadius: '14px', cursor: 'pointer', transition: 'all 0.2s',
-                      background: selectedFont === f.id ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
-                      border: selectedFont === f.id ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
-                      display: 'flex', alignItems: 'center', gap: '14px',
-                    }}
-                  >
-                    {/* Font preview */}
-                    <div style={{ width: '44px', height: '36px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontFamily: f.family, fontWeight: f.weight, fontSize: '18px', color: selectedFont === f.id ? '#C4B5FD' : '#fff' }}>Aa</span>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '17px', fontWeight: 800, color: '#fff', marginBottom: '3px', fontFamily: f.family }}>{f.name}</div>
-                      <div style={{ fontSize: '18px', color: '#71717A' }}>{f.desc}</div>
-                    </div>
-                    {selectedFont === f.id && (
-                      <div style={{ marginLeft: 'auto', width: '18px', height: '18px', borderRadius: '50%', background: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {/* MOTION */}
-                {activeTab === 'motion' && (
-                  <>
-                    <div style={{ marginBottom: '8px' }}>
-                      <div style={{ fontSize: '17px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '12px' }}>CAPTION ANIMATION</div>
-                      {ANIMATIONS.map(a => (
-                        <div
-                          key={a.id}
-                          onClick={() => setSelectedAnimation(a.id)}
-                          style={{
-                            padding: '14px 16px', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s', marginBottom: '8px',
-                            background: selectedAnimation === a.id ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
-                            border: selectedAnimation === a.id ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
-                            display: 'flex', alignItems: 'center', gap: '12px',
-                          }}
-                        >
-                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
-                            {a.id === 'fade' ? '✦' : a.id === 'slideUp' ? '↑' : a.id === 'zoom' ? '⊕' : '▶'}
-                          </div>
-                          <div>
-                            <div style={{ fontSize: '17px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>{a.name}</div>
-                            <div style={{ fontSize: '18px', color: '#71717A' }}>{a.desc}</div>
-                          </div>
-                          {selectedAnimation === a.id && (
-                            <div style={{ marginLeft: 'auto', width: '18px', height: '18px', borderRadius: '50%', background: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {/* TRIM TAB */}
-                {activeTab === 'trim' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div style={{ padding: '20px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '16px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-                      <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '16px' }}>PRECISION TRIMMER</div>
-                      
-                      <div style={{ marginBottom: '24px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                          <span style={{ fontSize: '18px', color: '#fff', fontWeight: 700 }}>IN POINT</span>
-                          <span style={{ fontSize: '17px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')}</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={Math.max(0, parseTime(selectedClip.start) - 60)}
-                          max={trimEnd - 1}
-                          value={trimStart}
-                          onChange={e => setTrimStart(Number(e.target.value))}
-                          onMouseUp={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
-                          style={{ width: '100%', accentColor: '#8B5CF6', height: '6px' }}
-                        />
-                      </div>
-
-                      <div style={{ marginBottom: '24px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                          <span style={{ fontSize: '18px', color: '#fff', fontWeight: 700 }}>OUT POINT</span>
-                          <span style={{ fontSize: '17px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{Math.floor(trimEnd/60)}:{String(trimEnd%60).padStart(2,'0')}</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={trimStart + 1}
-                          max={parseTime(selectedClip.end) + 60}
-                          value={trimEnd}
-                          onChange={e => setTrimEnd(Number(e.target.value))}
-                          onMouseUp={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
-                          style={{ width: '100%', accentColor: '#8B5CF6', height: '6px' }}
-                        />
-                      </div>
-
-                      <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '18px', color: '#71717A', fontWeight: 700 }}>FINAL DURATION</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '18px', color: '#fff', fontWeight: 900 }}>{trimEnd - trimStart}s</span>
-                          <span style={{ fontSize: '17px', color: trimEnd - trimStart > 60 ? '#EF4444' : '#22C55E' }}>
-                            {trimEnd - trimStart > 60 ? '⚠️ Too long for Shorts' : '✓ Perfect for Reels'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <p style={{ fontSize: '18px', color: '#52525B', lineHeight: 1.6, padding: '0 10px' }}>
-                      Tip: Use the sliders to adjust the exact moment the clip starts and ends. The preview will automatically loop between these two points.
-                    </p>
-                  </div>
-                )}
-
-                {/* PUBLISH TAB */}
-                {activeTab === 'publish' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-                      <div style={{ fontSize: '40px', marginBottom: '16px' }}>▶️</div>
-                      <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>Push to YouTube</h3>
-                      <p style={{ fontSize: '17px', color: '#A1A1AA', marginBottom: '24px', lineHeight: 1.5 }}>
-                        Instantly upload this cinematic clip as a YouTube Short to your ministry channel.
-                      </p>
-                      
-                      {rendering[selectedClip.index]?.status === 'complete' ? (
-                        <button 
-                          onClick={() => handleYouTubeUpload(selectedClip)}
-                          className="shimmer-btn"
-                          style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '17px', fontWeight: 800 }}
-                        >
-                          {userStatus?.youtubeConnected ? 'DIRECT UPLOAD TO YOUTUBE' : 'CONNECT YOUTUBE CHANNEL'}
-                        </button>
-                      ) : (
-                        <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', fontSize: '17px', color: '#71717A', fontWeight: 700 }}>
-                          RENDER REEL FIRST TO UNLOCK UPLOAD
-                        </div>
-                      )}
-                    </div>
-
-                    <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-                      <div style={{ fontSize: '40px', marginBottom: '16px' }}>📸</div>
-                      <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>Instagram / TikTok</h3>
-                      <p style={{ fontSize: '17px', color: '#A1A1AA', marginBottom: '24px', lineHeight: 1.5 }}>
-                        Download the reel and use the generated captions to post on social platforms.
-                      </p>
-                      <button 
-                        onClick={() => window.open(rendering[selectedClip.index]?.url)}
-                        disabled={rendering[selectedClip.index]?.status !== 'complete'}
-                        style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '17px', fontWeight: 800, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }}
-                      >
-                        DOWNLOAD ASSET
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Export Footer */}
-              <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
-                <div style={{ marginBottom: '12px', padding: '12px 14px', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.12)' }}>
-                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.12em', marginBottom: '6px' }}>EXPORT SETTINGS</div>
-                  <div style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
-                    <b style={{ color: '#C4B5FD' }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b>
-                    {' · '}<b style={{ color: '#C4B5FD' }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>
-                    {' · '}<b style={{ color: '#C4B5FD' }}>{FONTS.find(f => f.id === selectedFont)?.name}</b>
-                    {' · '}<b style={{ color: '#C4B5FD' }}>{ANIMATIONS.find(a => a.id === selectedAnimation)?.name}</b>
-                    {' · '}<b style={{ color: '#C4B5FD' }}>{trimEnd - trimStart}s</b>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => saveBrandKit({ template: selectedTemplate, filter: selectedFilter, font: selectedFont, animation: selectedAnimation })}
-                    style={{ width: '48px', flexShrink: 0, padding: '16px 0', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', cursor: 'pointer', fontSize: '18px' }}
-                    title="Save as Default Brand Kit"
-                  >
-                    💾
-                  </button>
-                  <button
-                    onClick={() => { setSelectedTemplate('minimal'); setSelectedFilter('none'); setSelectedFont('outfit'); setSelectedAnimation('fade'); if (selectedClip) { setTrimStart(parseTime(selectedClip.start)); setTrimEnd(parseTime(selectedClip.end)); } toast.success('Reset to defaults'); }}
-                    style={{ width: '48px', flexShrink: 0, padding: '16px 0', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', cursor: 'pointer', fontSize: '18px' }}
-                    title="Reset to Defaults"
-                  >
-                    ↺
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (selectedClip && rendering[selectedClip.index]?.status === 'complete') {
-                        setSelectedClip(null);
-                      } else {
-                        startExport(selectedClip);
-                      }
-                    }}
-                    className="shimmer-btn"
-                    disabled={!!(selectedClip && rendering[selectedClip.index]?.status === 'loading')}
-                    style={{ flex: 1, padding: '16px', borderRadius: '12px', fontSize: '17px', fontWeight: 800, opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1, background: (selectedClip && rendering[selectedClip.index]?.status === 'complete') ? 'linear-gradient(90deg,#10B981,#059669)' : undefined }}
-                  >
-                    {selectedClip && rendering[selectedClip.index]?.status === 'loading'
-                      ? `⏳ RENDERING... ${renderProgress[selectedClip.index] || 0}%`
-                      : selectedClip && rendering[selectedClip.index]?.status === 'complete'
-                      ? '✅ DONE — CLOSE STUDIO'
-                      : 'CONFIRM & EXPORT'}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* PANEL 2: CENTER (Cinematic Preview) */}
-            <div style={{ 
-              flex: 1, 
-              flexShrink: 0,
-              position: 'relative', 
-              background: '#050508', 
-              display: isMobile ? (mobileTab === 'preview' ? 'flex' : 'none') : 'flex',
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              padding: isMobile ? '20px 16px' : '40px',
-              overflow: 'hidden',
-            }}>
-              <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '30px 30px', pointerEvents: 'none' }} />
-              
-              {/* Phone Mockup Wrapper */}
-              <div style={{ 
-                width: 'min(320px, 45vh)', 
-                aspectRatio: '9/16', 
-                background: '#000', 
-                borderRadius: '40px', 
-                border: '8px solid #18181B', 
-                boxShadow: '0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
-                position: 'relative',
-                overflow: 'hidden',
-                zIndex: 10
-              }}>
-                {videoId ? (
-                  <iframe
-                    style={{ width: '100%', height: '100%', border: 'none', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
-                    src={`https://www.youtube.com/embed/${videoId}?start=${previewStart}&end=${previewEnd}&autoplay=0&mute=0&loop=1&playlist=${videoId}&controls=1&modestbranding=1&rel=0`}
-                    allow="autoplay; encrypted-media"
-                  />
-                ) : videoUrl && (
-                  <video 
-                    src={`${playableVideoUrl || ''}#t=${previewStart},${previewEnd}`}
-                    controls loop playsInline
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
-                  />
-                )}
-
-                {/* Caption Overlay Preview */}
-                <div style={{ position: 'absolute', bottom: '25%', left: '10%', right: '10%', zIndex: 20 }}>
-                  <div
-                    key={selectedAnimation}
-                    style={{
-                      textAlign: 'center',
-                      color: TEMPLATES.find(t => t.id === selectedTemplate)?.color || '#fff',
-                      fontFamily: FONTS.find(f => f.id === selectedFont)?.family || 'inherit',
-                      fontWeight: FONTS.find(f => f.id === selectedFont)?.weight || 900,
-                      fontSize: isMobile ? '24px' : '18px',
-                      textShadow: TEMPLATES.find(t => t.id === selectedTemplate)?.textShadow || 'none',
-                      fontStyle: TEMPLATES.find(t => t.id === selectedTemplate)?.fontStyle || 'normal',
-                      textTransform: 'uppercase',
-                      lineHeight: 1.2,
-                      animation: `vesper-${selectedAnimation} 2.5s ease-in-out infinite`,
-                    }}
-                  >
-                    {selectedClip.suggested_captions?.[0] || selectedClip.main_quote}
-                  </div>
-                </div>
-              </div>
-
-              {/* Caption Edit — below phone */}
-              <div style={{ width: '100%', maxWidth: 'min(320px, 45vh)', marginTop: '16px' }}>
-                <div style={{ fontSize: '17px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '8px', textAlign: 'center' }}>EDIT CAPTION</div>
-                <textarea
-                  value={captionOverrides[selectedClip?.index] ?? (selectedClip?.suggested_captions?.[0] || selectedClip?.main_quote || '')}
-                  onChange={e => setCaptionOverrides(prev => ({ ...prev, [selectedClip.index]: e.target.value }))}
-                  rows={3}
-                  style={{
-                    width: '100%', background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px',
-                    padding: '12px 14px', color: '#fff', fontSize: '17px',
-                    lineHeight: 1.5, resize: 'none', fontFamily: 'inherit',
-                    outline: 'none',
-                  }}
-                  placeholder="Edit caption before exporting..."
-                />
-              </div>
-              
-              {/* Format badges below phone */}
-              <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                {['9:16 Vertical', '1080p', 'MP4'].map(label => (
-                  <div key={label} style={{ padding: '5px 12px', borderRadius: '99px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '17px', fontWeight: 800, color: '#71717A', letterSpacing: '0.1em' }}>
-                    {label}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* PANEL 3: RIGHT SIDEBAR — Social Kit & Export */}
-            <div style={{ 
-              width: isMobile ? '100%' : '340px', 
-              flexShrink: 0, 
-              background: '#0A0A0F', 
-              borderLeft: isMobile ? 'none' : '1px solid rgba(255,255,255,0.05)', 
-              display: isMobile ? ((mobileTab === 'social' || mobileTab === 'export') ? 'flex' : 'none') : 'flex', 
-              flexDirection: 'column', 
-              overflow: 'hidden',
-              flex: isMobile ? 1 : undefined,
-            }}>
-
-              {/* Clip Metadata Strip */}
-              <div style={{ padding: '24px 20px 12px', flexShrink: 0, borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 900, lineHeight: 1.3, color: '#fff', margin: 0 }}>{selectedClip.hook_title}</h3>
-                  <div style={{ fontSize: '18px', fontWeight: 900, fontFamily: 'monospace', color: '#C4B5FD', flexShrink: 0 }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')} · {trimEnd - trimStart}s</div>
-                </div>
-              </div>
-
-              {/* Scrollable content: Social Kit + Engagement */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px', display: isMobile && mobileTab === 'export' ? 'none' : 'flex', flexDirection: 'column', gap: '10px' }}>
-
-                {selectedClip.engagement_hook && (
-                  <div style={{ padding: '12px', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.15)' }}>
-                    <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '4px' }}>ENGAGEMENT HOOK</div>
-                    <p style={{ fontSize: '17px', color: '#A78BFA', lineHeight: 1.4, margin: 0 }}>&ldquo;{selectedClip.engagement_hook}&rdquo;</p>
-                  </div>
-                )}
-
-                {/* Social Kit header + disclaimer */}
-                <div style={{ padding: '10px 12px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#34D399', letterSpacing: '0.2em', marginBottom: '4px' }}>📋 CAPTION KIT</div>
-                  <p style={{ fontSize: '17px', color: '#A1A1AA', lineHeight: 1.5, margin: 0 }}>
-                    AI-generated captions for each platform. Copy, paste into your post, then upload your downloaded reel directly to the app.
-                  </p>
-                </div>
-
-                {PLATFORMS.map((p, pi) => {
-                  const caption = selectedClip.suggested_captions?.[pi] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote || '';
-                  const fullText = `${p.prefix}${caption}`;
-                  const charCount = fullText.length;
-                  const overLimit = p.limit ? charCount > p.limit : false;
-                  return (
-                    <div key={p.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', overflow: 'hidden' }}>
-                      {/* Platform header */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ fontSize: '18px' }}>{p.icon}</span>
-                          <div>
-                            <div style={{ fontSize: '18px', fontWeight: 900, color: '#fff' }}>{p.label}</div>
-                            <div style={{ fontSize: '17px', color: '#52525B' }}>{p.format} · copy &amp; paste caption</div>
-                          </div>
-                        </div>
-                        <div style={{ fontSize: '17px', fontWeight: 700, color: overLimit ? '#F87171' : '#52525B', fontFamily: 'monospace' }}>
-                          {charCount}{p.limit ? `/${p.limit}` : ''}
-                        </div>
-                      </div>
-                      {/* Caption preview */}
-                      <div style={{ padding: '10px 14px', fontSize: '17px', color: '#E4E4E7', lineHeight: 1.5 }}>
-                        {fullText || <span style={{ color: '#3F3F46', fontStyle: 'italic' }}>No caption available</span>}
-                      </div>
-                      {/* Copy button */}
-                      <div style={{ padding: '8px 14px 12px' }}>
-                        <button
-                          onClick={() => { navigator.clipboard.writeText(fullText); toast.success(`${p.label} caption copied! Paste it when uploading your reel.`); }}
-                          style={{ width: '100%', padding: '8px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', color: '#C4B5FD', fontSize: '17px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.08em', transition: 'all 0.2s' }}
-                        >
-                          📋 COPY {p.label.toUpperCase()} CAPTION
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              {/* Export Footer */}
-              <div style={{ padding: '24px 20px 32px', flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.05)', display: isMobile && mobileTab === 'social' ? 'none' : 'block' }}>
-                <div style={{ padding: '16px', background: 'rgba(139,92,246,0.06)', borderRadius: '14px', border: '1px solid rgba(139,92,246,0.12)', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.12em', marginBottom: '8px' }}>ACTIVE PROFILE</div>
-                  <div style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
-                    <b style={{ color: '#C4B5FD' }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b>
-                    {' · '}<b style={{ color: '#C4B5FD' }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>
-                    {' · '}<b style={{ color: '#C4B5FD' }}>{FONTS.find(f => f.id === selectedFont)?.name}</b>
-                  </div>
-                </div>
-                {isYouTubeSource ? (
-                  <div style={{ padding: '16px', background: 'rgba(251,146,60,0.06)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '12px', textAlign: 'center' }}>
-                    <p style={{ fontSize: '17px', color: '#FB923C', fontWeight: 800, marginBottom: '6px' }}>EXPORT UNAVAILABLE</p>
-                    <p style={{ fontSize: '18px', color: '#A1A1AA', lineHeight: 1.4 }}>Upload the MP4 directly to enable cloud rendering.</p>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      if (selectedClip && rendering[selectedClip.index]?.status === 'complete') {
-                        setSelectedClip(null);
-                      } else {
-                        startExport(selectedClip);
-                      }
-                    }}
-                    className="shimmer-btn"
-                    disabled={!!(selectedClip && rendering[selectedClip.index]?.status === 'loading')}
-                    style={{ width: '100%', padding: '20px', fontSize: '17px', opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1, background: (selectedClip && rendering[selectedClip.index]?.status === 'complete') ? 'linear-gradient(90deg,#10B981,#059669)' : undefined }}
-                  >
-                    {selectedClip && rendering[selectedClip.index]?.status === 'loading'
-                      ? `⏳ RENDERING... ${renderProgress[selectedClip.index] || 0}%`
-                      : selectedClip && rendering[selectedClip.index]?.status === 'complete'
-                      ? '✅ DONE — CLOSE STUDIO'
-                      : 'CONFIRM & EXPORT'}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-            {/* Mobile Bottom Tab Bar — 4 tabs for Studio */}
-            {isMobile && (
-              <div style={{ height: '68px', background: 'rgba(10,10,15,0.98)', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', zIndex: 100, backdropFilter: 'blur(20px)', flexShrink: 0 }}>
-                {[
-                  { id: 'style', label: 'STYLE', icon: '🎨' },
-                  { id: 'preview', label: 'PREVIEW', icon: '📱' },
-                  { id: 'social', label: 'SOCIAL', icon: '📋' },
-                  { id: 'export', label: 'EXPORT', icon: '🚀' },
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setMobileTab(tab.id)}
-                    style={{
-                      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px',
-                      background: mobileTab === tab.id ? 'rgba(139,92,246,0.1)' : 'none',
-                      border: 'none',
-                      borderTop: mobileTab === tab.id ? '2px solid #8B5CF6' : '2px solid transparent',
-                      color: mobileTab === tab.id ? '#A78BFA' : '#52525B',
-                      transition: 'all 0.2s', cursor: 'pointer',
-                    }}
-                  >
-                    <span style={{ fontSize: '18px', lineHeight: 1 }}>{tab.icon}</span>
-                    <span style={{ fontSize: '12px', fontWeight: 900, letterSpacing: '0.06em' }}>{tab.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       
       {/* Thumbnail Studio Drawer — Side Slide-in */}
       {activeThumbnailClip && (
