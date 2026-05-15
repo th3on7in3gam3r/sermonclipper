@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const SHOTSTACK_SANDBOX_KEY = process.env.SHOTSTACK_SANDBOX_KEY;
 const SHOTSTACK_PRODUCTION_KEY = process.env.SHOTSTACK_PRODUCTION_KEY;
-const SHOTSTACK_API_KEY = SHOTSTACK_PRODUCTION_KEY || SHOTSTACK_SANDBOX_KEY;
-const IS_PRODUCTION = !!SHOTSTACK_PRODUCTION_KEY && !SHOTSTACK_SANDBOX_KEY;
-const SHOTSTACK_BASE_URL = IS_PRODUCTION
-  ? 'https://api.shotstack.io/edit/v1/render'
-  : 'https://api.shotstack.io/edit/stage/render';
+const SHOTSTACK_API_KEY = SHOTSTACK_SANDBOX_KEY || SHOTSTACK_PRODUCTION_KEY;
+const SHOTSTACK_BASE_URL = SHOTSTACK_SANDBOX_KEY
+  ? 'https://api.shotstack.io/edit/stage/render'
+  : 'https://api.shotstack.io/edit/v1/render';
 
 export async function GET(req: NextRequest) {
   try {

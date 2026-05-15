@@ -5,11 +5,12 @@ import { generatePresignedGetUrl } from '../../../lib/r2';
 const SHOTSTACK_SANDBOX_KEY = process.env.SHOTSTACK_SANDBOX_KEY;
 const SHOTSTACK_PRODUCTION_KEY = process.env.SHOTSTACK_PRODUCTION_KEY;
 
-const SHOTSTACK_API_KEY = SHOTSTACK_PRODUCTION_KEY || SHOTSTACK_SANDBOX_KEY;
-const IS_PRODUCTION = !!SHOTSTACK_PRODUCTION_KEY && !SHOTSTACK_SANDBOX_KEY;
-const SHOTSTACK_URL = IS_PRODUCTION
-  ? 'https://api.shotstack.io/edit/v1/render'
-  : 'https://api.shotstack.io/edit/stage/render';
+// Always pair the key with its matching endpoint
+// If both are set, prefer sandbox for safety
+const SHOTSTACK_API_KEY = SHOTSTACK_SANDBOX_KEY || SHOTSTACK_PRODUCTION_KEY;
+const SHOTSTACK_URL = SHOTSTACK_SANDBOX_KEY
+  ? 'https://api.shotstack.io/edit/stage/render'
+  : 'https://api.shotstack.io/edit/v1/render';
 
 const parseTime = (timeVal: unknown): number => {
   if (typeof timeVal === 'number') return timeVal;
