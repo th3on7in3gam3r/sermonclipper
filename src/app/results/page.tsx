@@ -1339,7 +1339,14 @@ function ResultsContent() {
                   </div>
                 )}
 
-                <div style={{ fontSize: '8px', fontWeight: 900, color: '#3F3F46', letterSpacing: '0.2em', padding: '8px 0 4px' }}>SOCIAL KIT — TAP TO COPY</div>
+                {/* Social Kit header + disclaimer */}
+                <div style={{ padding: '10px 12px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '8px', fontWeight: 900, color: '#34D399', letterSpacing: '0.2em', marginBottom: '4px' }}>📋 CAPTION KIT</div>
+                  <p style={{ fontSize: '10px', color: '#A1A1AA', lineHeight: 1.5, margin: 0 }}>
+                    AI-generated captions for each platform. Copy, paste into your post, then upload your downloaded reel directly to the app.
+                  </p>
+                </div>
+
                 {PLATFORMS.map((p, pi) => {
                   const caption = selectedClip.suggested_captions?.[pi] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote || '';
                   const fullText = `${p.prefix}${caption}`;
@@ -1353,7 +1360,7 @@ function ResultsContent() {
                           <span style={{ fontSize: '18px' }}>{p.icon}</span>
                           <div>
                             <div style={{ fontSize: '11px', fontWeight: 900, color: '#fff' }}>{p.label}</div>
-                            <div style={{ fontSize: '9px', color: '#52525B' }}>{p.format}</div>
+                            <div style={{ fontSize: '9px', color: '#52525B' }}>{p.format} · copy &amp; paste caption</div>
                           </div>
                         </div>
                         <div style={{ fontSize: '10px', fontWeight: 700, color: overLimit ? '#F87171' : '#52525B', fontFamily: 'monospace' }}>
@@ -1367,17 +1374,16 @@ function ResultsContent() {
                       {/* Copy button */}
                       <div style={{ padding: '8px 14px 12px' }}>
                         <button
-                          onClick={() => { navigator.clipboard.writeText(fullText); toast.success(`${p.label} caption copied!`); }}
+                          onClick={() => { navigator.clipboard.writeText(fullText); toast.success(`${p.label} caption copied! Paste it when uploading your reel.`); }}
                           style={{ width: '100%', padding: '8px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', color: '#C4B5FD', fontSize: '10px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.08em', transition: 'all 0.2s' }}
                         >
-                          COPY TO CLIPBOARD
+                          📋 COPY {p.label.toUpperCase()} CAPTION
                         </button>
                       </div>
                     </div>
                   );
                 })}
               </div>
-
               {/* Export Footer */}
               <div style={{ padding: '16px 20px 20px', flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ padding: '10px 12px', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.12)', marginBottom: '12px' }}>
