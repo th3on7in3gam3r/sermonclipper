@@ -595,7 +595,7 @@ function ResultsContent() {
                 allowFullScreen
               ></iframe>
             ) : videoUrl && (
-              <video src={videoUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <video src={videoUrl} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             )}
             <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'rgba(139, 92, 246, 0.9)', color: '#fff', padding: '4px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em' }}>MASTER SESSION</div>
           </div>
@@ -619,8 +619,14 @@ function ResultsContent() {
                   ></iframe>
                 ) : videoUrl && (
                   <video 
-                    src={`${videoUrl}#t=${clip.start}`} 
-                    controls 
+                    src={videoUrl}
+                    controls
+                    preload="metadata"
+                    onLoadedMetadata={(e) => {
+                      const vid = e.currentTarget;
+                      const start = parseTime(clip.start);
+                      vid.currentTime = start;
+                    }}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 )}

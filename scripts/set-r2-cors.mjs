@@ -58,7 +58,7 @@ const command = new PutBucketCorsCommand({
         ],
         AllowedMethods: ['GET', 'PUT', 'HEAD'],
         AllowedHeaders: ['*'],
-        ExposeHeaders: ['ETag', 'Content-Length'],
+        ExposeHeaders: ['ETag', 'Content-Length', 'Accept-Ranges', 'Content-Range'],
         MaxAgeSeconds: 3600,
       },
     ],
