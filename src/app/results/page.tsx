@@ -35,14 +35,16 @@ function ResultsContent() {
   // Resolve private R2 URL → presigned GET URL so the browser can play it
   useEffect(() => {
     if (!videoUrl) return;
+    let cancelled = false;
     if (!videoUrl.includes('.r2.cloudflarestorage.com') || videoUrl.includes('X-Amz-Signature')) {
       setPlayableVideoUrl(videoUrl);
       return;
     }
     fetch(`/api/video-url?url=${encodeURIComponent(videoUrl)}`)
       .then(r => r.json())
-      .then(d => setPlayableVideoUrl(d.url || videoUrl))
-      .catch(() => setPlayableVideoUrl(videoUrl));
+      .then(d => { if (!cancelled) setPlayableVideoUrl(d.url || videoUrl); })
+      .catch(() => { if (!cancelled) setPlayableVideoUrl(videoUrl); });
+    return () => { cancelled = true; };
   }, [videoUrl]);
 
   useEffect(() => {
@@ -489,11 +491,15 @@ function ResultsContent() {
 
         if (data?.analysis) {
           setAnalysis(data.analysis);
+          return true; // done
         } else if (data?.clips) {
           setAnalysis(data);
+          return true; // done
         }
+        return false;
       } catch (e) {
         console.error('Failed to fetch results:', e);
+        return false;
       }
     };
 
@@ -509,7 +515,10 @@ function ResultsContent() {
 
     fetchResults();
     fetchUserStatus();
-    const interval = setInterval(fetchResults, 2000);
+    const interval = setInterval(async () => {
+      const done = await fetchResults();
+      if (done) clearInterval(interval);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [jobId, userId]);
