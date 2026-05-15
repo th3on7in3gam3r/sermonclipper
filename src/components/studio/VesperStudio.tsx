@@ -40,10 +40,11 @@ const FONTS = [
 ];
 
 const ANIMATIONS = [
-  { id: 'fade', name: 'SOFT FADE', desc: 'Gentle opacity transition.' },
-  { id: 'slideUp', name: 'SLIDE UP', desc: 'Rising motion effect.' },
-  { id: 'zoom', name: 'PULSE', desc: 'Subtle breathing motion.' },
-  { id: 'reveal', name: 'REVEAL', desc: 'Typewriter-style disclosure.' },
+  { id: 'pop', name: 'KINETIC POP', desc: 'High-energy scale entrance.', class: 'animate-hook-pop' },
+  { id: 'pulse', name: 'BREATHING', desc: 'Subtle rhythmic scaling.', class: 'animate-hook-pulse' },
+  { id: 'shake', name: 'VIBRATE', desc: 'Intense word emphasis.', class: 'animate-hook-shake' },
+  { id: 'glitch', name: 'NEURAL GLITCH', desc: 'Digital distortion effect.', class: 'animate-hook-glitch' },
+  { id: 'fade', name: 'SOFT FADE', desc: 'Gentle opacity transition.', class: 'animate-in' },
 ];
 
 const PLATFORMS = [
@@ -613,7 +614,8 @@ export default function VesperStudio({
               {/* Caption Overlay Preview */}
               <div style={{ position: 'absolute', bottom: '22%', left: '8%', right: '8%', zIndex: 20 }}>
                 <div
-                  key={selectedAnimation}
+                  key={`${selectedAnimation}-${selectedClip.index}`}
+                  className={ANIMATIONS.find(a => a.id === selectedAnimation)?.class || 'animate-in'}
                   style={{
                     textAlign: 'center',
                     color: TEMPLATES.find(t => t.id === selectedTemplate)?.color || '#fff',
@@ -624,7 +626,6 @@ export default function VesperStudio({
                     fontStyle: TEMPLATES.find(t => t.id === selectedTemplate)?.fontStyle || 'normal',
                     textTransform: 'uppercase',
                     lineHeight: 1.1,
-                    animation: `vesper-${selectedAnimation} 2.5s ease-in-out infinite`,
                   }}
                 >
                   {captionOverrides[selectedClip.index] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote}
