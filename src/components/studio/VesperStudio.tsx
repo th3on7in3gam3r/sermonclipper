@@ -81,6 +81,26 @@ export default function VesperStudio({
   const [previewEnd, setPreviewEnd] = useState(0);
   
   const [captionOverrides, setCaptionOverrides] = useState<Record<number, string>>({});
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  // Sync video state with controls
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
 
   useEffect(() => {
     if (selectedClip) {
@@ -472,16 +492,53 @@ export default function VesperStudio({
               {videoId ? (
                 <iframe
                   style={{ width: '100%', height: '100%', border: 'none', transform: 'scale(1.05)', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
-                  src={`https://www.youtube.com/embed/${videoId}?start=${previewStart}&end=${previewEnd}&autoplay=0&mute=0&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`}
+                  src={`https://www.youtube.com/embed/${videoId}?start=${previewStart}&end=${previewEnd}&autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`}
                   allow="autoplay; encrypted-media"
                 />
               ) : videoUrl && (
                 <video 
+                  ref={videoRef}
                   src={`${playableVideoUrl || ''}#t=${previewStart},${previewEnd}`}
-                  controls={false} loop playsInline autoPlay muted
+                  loop playsInline autoPlay muted={isMuted}
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
                 />
               )}
+
+              {/* Playback Controls Overlay */}
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 50, display: 'flex', gap: '20px' }}>
+                {!isPlaying && (
+                  <button 
+                    onClick={() => setIsPlaying(true)}
+                    style={{ background: 'rgba(139,92,246,0.8)', border: 'none', color: '#fff', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(10px)', boxShadow: '0 0 30px rgba(139,92,246,0.4)' }}
+                  >
+                    <span style={{ fontSize: '24px', marginLeft: '4px' }}>▶</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Bottom Controls Bar */}
+              <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', height: '100px', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', zIndex: 40, display: 'flex', alignItems: 'flex-end', padding: '0 24px 24px', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button 
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '40px', height: '40px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}
+                  >
+                    <span style={{ fontSize: '18px' }}>{isPlaying ? '⏸' : '▶'}</span>
+                  </button>
+                  <button 
+                    onClick={() => setIsMuted(!isMuted)}
+                    style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '40px', height: '40px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}
+                  >
+                    <span style={{ fontSize: '18px' }}>{isMuted ? '🔇' : '🔊'}</span>
+                  </button>
+                </div>
+                
+                <div style={{ fontSize: '12px', fontWeight: 900, color: '#fff', letterSpacing: '0.1em', opacity: 0.8, marginBottom: '10px' }}>
+                  PREVIEW MODE
+                </div>
+              </div>
 
               {/* Caption Overlay Preview */}
               <div style={{ position: 'absolute', bottom: '22%', left: '8%', right: '8%', zIndex: 20 }}>
