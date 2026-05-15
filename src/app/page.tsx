@@ -196,9 +196,9 @@ export default function Home() {
             <span style={{ fontSize: '16px', marginRight: '8px' }}>✨</span> THE NEXT EVOLUTION OF MINISTRY MEDIA
           </div>
           
-          <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px', marginBottom: '40px' }}>
-            <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '120px', width: 'auto', filter: 'drop-shadow(0 0 30px rgba(139,92,246,0.3))' }} />
-            <h1 className="title-xl" style={{ fontSize: 'clamp(48px, 12vw, 160px)', letterSpacing: '-0.02em', margin: 0 }}>
+          <div className="animate-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(16px, 4vw, 48px)', marginBottom: '48px', flexWrap: 'wrap' }}>
+            <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: 'clamp(64px, 15vw, 200px)', width: 'auto', filter: 'drop-shadow(0 0 30px rgba(139,92,246,0.3))' }} />
+            <h1 className="title-xl" style={{ fontSize: 'clamp(48px, 12vw, 160px)', letterSpacing: '-0.02em', margin: 0, lineHeight: 1 }}>
               <span style={{ color: '#8B5CF6' }}>VES</span>PER
             </h1>
           </div>
