@@ -886,22 +886,6 @@ function ResultsContent() {
                   >
                     DOWNLOAD GRAPHIC
                   </button>
-                  {/* Vesper Studio Overlay — Componentized Refactor */}
-                  {selectedClip && (
-                    <VesperStudio
-                      selectedClip={selectedClip}
-                      onClose={() => setSelectedClip(null)}
-                      videoId={videoId}
-                      videoUrl={videoUrl}
-                      playableVideoUrl={playableVideoUrl}
-                      rendering={rendering}
-                      renderProgress={renderProgress}
-                      startExport={startExport}
-                      isMobile={isMobile}
-                      userStatus={userStatus}
-                      parseTime={parseTime}
-                    />
-                  )}
                 </div>
               ))}
             </div>
@@ -1045,6 +1029,22 @@ function ResultsContent() {
             </div>
           </div>
         </div>
+      )}
+      {/* Vesper Studio Overlay — Componentized Refactor */}
+      {selectedClip && (
+        <VesperStudio
+          selectedClip={selectedClip}
+          onClose={() => setSelectedClip(null)}
+          videoId={videoId}
+          videoUrl={videoUrl}
+          playableVideoUrl={playableVideoUrl}
+          rendering={rendering}
+          renderProgress={renderProgress}
+          startExport={startExport}
+          isMobile={isMobile}
+          userStatus={userStatus}
+          parseTime={parseTime}
+        />
       )}
       <VesperTour forceOpen={showTour} onClose={() => setShowTour(false)} />
         </div>
