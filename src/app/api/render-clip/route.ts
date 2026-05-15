@@ -124,16 +124,15 @@ export async function POST(req: NextRequest) {
         text: text.toUpperCase(),
         font: {
           family: fontFamily,
-          size: 52,
+          size: 80,
           color: captionColor,
         },
       },
       width: 1080,
-      height: 300,
+      height: 200,
       start: i * captionDuration,
       length: captionDuration,
       position: 'bottom',
-      offset: { y: 0.15 },
       transition: { in: transitionIn, out: 'fade' },
     }));
 
@@ -161,8 +160,9 @@ export async function POST(req: NextRequest) {
     const shotstackEdit = {
       timeline: {
         tracks: [
-          { clips: [videoClip] },
+          // Captions on top (first track = topmost layer in Shotstack)
           ...(captionClips.length > 0 ? [{ clips: captionClips }] : []),
+          { clips: [videoClip] },
         ],
       },
       output: {
