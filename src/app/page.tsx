@@ -196,8 +196,8 @@ export default function Home() {
             <span style={{ fontSize: '16px', marginRight: '8px' }}>✨</span> THE NEXT EVOLUTION OF MINISTRY MEDIA
           </div>
           
-          <h1 className="title-xl" style={{ fontSize: 'clamp(48px, 12vw, 160px)', marginBottom: '40px' }}>
-            <span className="gradient-text">VESPER</span>
+          <h1 className="title-xl" style={{ fontSize: 'clamp(48px, 12vw, 160px)', marginBottom: '40px', letterSpacing: '-0.02em' }}>
+            <span style={{ color: '#8B5CF6' }}>VES</span>PER
           </h1>
           
           <p className="title-xl" style={{ fontSize: 'clamp(24px, 5vw, 48px)', fontWeight: 300, marginBottom: '48px', color: 'var(--text-muted)' }}>
