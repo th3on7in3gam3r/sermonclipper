@@ -527,19 +527,20 @@ export default function VesperStudio({
 
             {/* Phone Body */}
             <div className="premium-border" style={{ 
-              width: 'min(380px, 55vh)', 
+              width: 'min(320px, 42vh)', 
               aspectRatio: '9/19.5', 
               background: '#000', 
-              borderRadius: '54px', 
+              borderRadius: '48px', 
               border: '8px solid #18181B', 
               boxShadow: `
-                0 50px 100px -20px rgba(0,0,0,0.8),
+                0 30px 60px -12px rgba(0,0,0,0.8),
                 0 0 0 1px rgba(255,255,255,0.05),
-                inset 0 0 20px rgba(255,255,255,0.05)
+                inset 0 0 15px rgba(255,255,255,0.05)
               `,
               position: 'relative',
               overflow: 'hidden',
-              transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+              transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+              maxHeight: 'calc(100vh - 240px)'
             }}>
               {/* Internal Screen Bezel (Super Slim) */}
               <div style={{ position: 'absolute', inset: '4px', borderRadius: '48px', border: '1px solid rgba(255,255,255,0.08)', pointerEvents: 'none', zIndex: 5 }} />
