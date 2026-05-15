@@ -354,7 +354,7 @@ function ResultsContent() {
         pollStatus(data.shotstackId, index, renderToastId);
       } else {
         setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
-        toast.error('Shotstack failed to queue render.', { id: renderToastId });
+        toast.error(data.error || 'Shotstack failed to queue render.', { id: renderToastId });
       }
     } catch {
       setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));

@@ -185,8 +185,8 @@ export async function POST(req: NextRequest) {
         status: 'queued',
       });
     } else {
-      console.error('[Shotstack] API Error:', data.message);
-      return NextResponse.json({ error: data.message || 'Shotstack failed' }, { status: 500 });
+      console.error('[Shotstack] API Error:', JSON.stringify(data));
+      return NextResponse.json({ error: data.message || data.error || JSON.stringify(data) }, { status: 500 });
     }
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Render pipeline failed';
