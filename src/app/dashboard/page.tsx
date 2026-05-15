@@ -45,10 +45,10 @@ export default function Dashboard() {
 
   const statusBar = userData ? (
     <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(139, 92, 246, 0.1)', padding: '6px 16px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)', gap: '10px' }}>
-      <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+      <span style={{ fontSize: '14px', fontWeight: 900, color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
         {userData.plan?.replace('_', ' ') || 'PLAN'}
       </span>
-      <span style={{ fontSize: '10px', color: '#A1A1AA', fontWeight: 800 }}>
+      <span style={{ fontSize: '14px', color: '#A1A1AA', fontWeight: 800 }}>
         {`${userData.usageCount || 0} / ${userData.limit === 999999 ? '∞' : userData.limit}`}
       </span>
     </div>
@@ -60,13 +60,13 @@ export default function Dashboard() {
       
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 60px', zIndex: 1000 }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <div style={{ fontSize: '14px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff', opacity: 0.8 }}>
+          <div style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff', opacity: 0.8 }}>
             VESPER
           </div>
         </Link>
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
           {statusBar}
-          <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>
+          <Link href="/" style={{ textDecoration: 'none', fontSize: '15px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>
           <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
             <UserButton />
           </div>
@@ -86,7 +86,7 @@ export default function Dashboard() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '100px 0' }}>
             <div className="spiritual-rays" style={{ position: 'static', margin: '0 auto 24px' }} />
-            <p style={{ color: '#666', fontSize: '12px', letterSpacing: '0.2em' }}>SYNCHRONIZING NEURAL ARCHIVES...</p>
+            <p style={{ color: '#666', fontSize: '16px', letterSpacing: '0.2em' }}>SYNCHRONIZING NEURAL ARCHIVES...</p>
           </div>
         ) : sermons.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '100px 40px', background: 'rgba(255,255,255,0.02)', borderRadius: '32px', border: '1px dashed rgba(255,255,255,0.1)' }}>
@@ -107,7 +107,7 @@ export default function Dashboard() {
               }, {} as Record<string, typeof sermons>)
             ).map(([month, monthSermons]) => (
               <div key={month} style={{ marginBottom: '64px' }}>
-                <h2 style={{ fontSize: '14px', fontWeight: 900, color: '#A1A1AA', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#A1A1AA', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
                   {month} Series
                 </h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '32px' }}>
@@ -130,20 +130,20 @@ export default function Dashboard() {
                             <div style={{ fontSize: '40px', opacity: 0.2, fontWeight: 900 }}>VESPER</div>
                           )}
                           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #111114, transparent)' }} />
-                          <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: '99px', fontSize: '10px', color: '#8B5CF6', fontWeight: 800 }}>
+                          <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: '99px', fontSize: '14px', color: '#8B5CF6', fontWeight: 800 }}>
                             {sermon.analysis?.clips?.length || 0} CLIPS
                           </div>
                         </div>
                         <div className="clip-info" style={{ padding: '24px' }}>
                           <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px', lineBreak: 'anywhere' }}>{sermon.title}</h3>
-                          <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.5, height: '4.5em', overflow: 'hidden' }}>
+                          <p style={{ color: '#A1A1AA', fontSize: '17px', lineHeight: 1.5, height: '4.5em', overflow: 'hidden' }}>
                             {sermon.mainTheme || 'Neural analysis complete.'}
                           </p>
                           <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '10px', fontWeight: 900, color: '#666' }}>
+                            <span style={{ fontSize: '14px', fontWeight: 900, color: '#666' }}>
                               {new Date(sermon.createdAt).toLocaleDateString()}
                             </span>
-                            <span style={{ color: '#8B5CF6', fontSize: '12px', fontWeight: 700 }}>VIEW ASSETS →</span>
+                            <span style={{ color: '#8B5CF6', fontSize: '16px', fontWeight: 700 }}>VIEW ASSETS →</span>
                           </div>
                         </div>
                       </div>
@@ -158,12 +158,12 @@ export default function Dashboard() {
 
       {/* Footer */}
       <footer style={{ position: 'relative', zIndex: 10, padding: '80px 20px', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '100px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.2em', opacity: 0.4, marginBottom: '16px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '15px', fontWeight: 700, letterSpacing: '0.2em', opacity: 0.4, marginBottom: '16px' }}>
           <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>PRIVACY POLICY</Link>
           <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>TERMS OF SERVICE</Link>
           <span style={{ color: '#fff' }}>© 2026 VESPER</span>
         </div>
-        <p style={{ fontSize: '12px', color: '#52525B', fontWeight: 600 }}>
+        <p style={{ fontSize: '15px', color: '#52525B', fontWeight: 600 }}>
           Made by <a href="https://biblefunland.com" target="_blank" rel="noreferrer" style={{ color: '#8B5CF6', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
         </p>
       </footer>

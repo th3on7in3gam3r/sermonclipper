@@ -30,7 +30,7 @@ function ResultsContent() {
   const [playableVideoUrl, setPlayableVideoUrl] = useState<string | null>(null);
   const { isLoaded, userId } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
-  const [mobileTab, setMobileTab] = useState('studio'); // 'studio', 'strategy', 'publish'
+  const [mobileTab, setMobileTab] = useState('style'); // 'style', 'preview', 'social', 'export'
 
   // Resolve private R2 URL → presigned GET URL so the browser can play it
   useEffect(() => {
@@ -532,20 +532,20 @@ function ResultsContent() {
       {/* Navigation — Fixed 64px height */}
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '64px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.95)', backdropFilter: 'blur(30px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <div style={{ fontSize: isMobile ? '11px' : '13px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
+          <div style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
         </Link>
         <div style={{ display: 'flex', gap: isMobile ? '12px' : '24px', alignItems: 'center' }}>
           {isLoaded && userId ? (
             <>
-              {!isMobile && <Link href="/" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>}
-              {!isMobile && <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '11px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>ARCHIVE</Link>}
+              {!isMobile && <Link href="/" style={{ textDecoration: 'none', fontSize: '18px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>}
+              {!isMobile && <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '18px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>ARCHIVE</Link>}
               <button
                 onClick={() => setShowTour(true)}
                 title="Open tutorial"
                 style={{
                   width: '32px', height: '32px', borderRadius: '50%',
                   background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)',
-                  color: '#8B5CF6', fontSize: '14px', fontWeight: 900,
+                  color: '#8B5CF6', fontSize: '18px', fontWeight: 900,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all 0.2s', flexShrink: 0,
                 }}
@@ -554,7 +554,7 @@ function ResultsContent() {
             </>
           ) : (
             <SignInButton mode="modal">
-              <button className="shimmer-btn" style={{ padding: '10px 24px', fontSize: '11px' }}>SIGN IN</button>
+              <button className="shimmer-btn" style={{ padding: '10px 24px', fontSize: '18px' }}>SIGN IN</button>
             </SignInButton>
           )}
         </div>
@@ -572,10 +572,10 @@ function ResultsContent() {
           <div style={{ marginBottom: '24px', padding: '14px 20px', background: 'rgba(251,146,60,0.06)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 2 }}>
             <span style={{ fontSize: '18px', flexShrink: 0 }}>📺</span>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: '11px', color: '#FB923C', fontWeight: 800, marginBottom: '2px' }}>YOUTUBE SOURCE — PREVIEW MODE</p>
-              <p style={{ fontSize: '10px', color: '#A1A1AA', lineHeight: 1.5 }}>AI analysis is complete. To export reels via Shotstack, download the sermon MP4 from YouTube and re-upload it directly.</p>
+              <p style={{ fontSize: '18px', color: '#FB923C', fontWeight: 800, marginBottom: '2px' }}>YOUTUBE SOURCE — PREVIEW MODE</p>
+              <p style={{ fontSize: '17px', color: '#A1A1AA', lineHeight: 1.5 }}>AI analysis is complete. To export reels via Shotstack, download the sermon MP4 from YouTube and re-upload it directly.</p>
             </div>
-            <Link href="/" style={{ flexShrink: 0, padding: '8px 16px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', color: '#34D399', fontSize: '10px', fontWeight: 800, textDecoration: 'none', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
+            <Link href="/" style={{ flexShrink: 0, padding: '8px 16px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', color: '#34D399', fontSize: '17px', fontWeight: 800, textDecoration: 'none', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
               UPLOAD MP4
             </Link>
           </div>
@@ -586,20 +586,20 @@ function ResultsContent() {
             <div style={{ flex: 1, minWidth: '280px' }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '99px', marginBottom: '16px' }}>
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#8B5CF6', boxShadow: '0 0 6px #8B5CF6' }} />
-                <span style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em' }}>MEDIA KIT READY</span>
+                <span style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em' }}>MEDIA KIT READY</span>
               </div>
               <h1 style={{ fontSize: isMobile ? '32px' : 'clamp(28px, 4vw, 52px)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '12px' }}>
                 {analysis?.sermon_title || 'PROCESSING...'}{' '}
                 <span style={{ color: '#8B5CF6' }}>RESULTS</span>
               </h1>
-              <p style={{ color: '#A1A1AA', fontSize: isMobile ? '14px' : '15px', maxWidth: '560px', lineHeight: 1.6 }}>
+              <p style={{ color: '#A1A1AA', fontSize: isMobile ? '16px' : '17px', maxWidth: '560px', lineHeight: 1.6 }}>
                 {analysis?.main_theme || 'Harvesting deep insights from your sermon session...'}
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: isMobile ? '100%' : '200px', width: isMobile ? '100%' : 'auto' }}>
-              <button onClick={handleBatchExport} className="shimmer-btn" style={{ width: '100%', padding: '14px', fontSize: '11px', background: 'linear-gradient(90deg, #10B981, #059669)' }}>BATCH EXPORT ALL</button>
-              <button onClick={handleCopy} className="glass-panel" style={{ width: '100%', padding: '14px', fontSize: '11px', border: '1px solid rgba(255,255,255,0.1)' }}>COPY SESSION LINK</button>
-              <a href={videoUrl || '#'} download className="glass-panel" style={{ width: '100%', padding: '14px', textAlign: 'center', textDecoration: 'none', color: '#fff', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)', borderRadius: '14px', display: 'block' }}>DOWNLOAD MASTER</a>
+              <button onClick={handleBatchExport} className="shimmer-btn" style={{ width: '100%', padding: '14px', fontSize: '18px', background: 'linear-gradient(90deg, #10B981, #059669)' }}>BATCH EXPORT ALL</button>
+              <button onClick={handleCopy} className="glass-panel" style={{ width: '100%', padding: '14px', fontSize: '18px', border: '1px solid rgba(255,255,255,0.1)' }}>COPY SESSION LINK</button>
+              <a href={videoUrl || '#'} download className="glass-panel" style={{ width: '100%', padding: '14px', textAlign: 'center', textDecoration: 'none', color: '#fff', fontSize: '18px', fontWeight: 800, letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)', borderRadius: '14px', display: 'block' }}>DOWNLOAD MASTER</a>
             </div>
           </div>
         </div>
@@ -619,11 +619,11 @@ function ResultsContent() {
             ) : videoUrl && (
               <video src={playableVideoUrl || ''} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             )}
-            <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'rgba(139, 92, 246, 0.9)', color: '#fff', padding: '4px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em' }}>MASTER SESSION</div>
+            <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'rgba(139, 92, 246, 0.9)', color: '#fff', padding: '4px 16px', borderRadius: '99px', fontSize: '17px', fontWeight: 900, letterSpacing: '0.1em' }}>MASTER SESSION</div>
           </div>
           <div className="clip-info">
             <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '12px' }}>Full Sermon Context</h3>
-            <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#A1A1AA' }}>{analysis?.summary || 'The complete cinematic capture of your ministry session.'}</p>
+            <p style={{ fontSize: '18px', lineHeight: 1.6, color: '#A1A1AA' }}>{analysis?.summary || 'The complete cinematic capture of your ministry session.'}</p>
           </div>
         </div>
 
@@ -652,20 +652,20 @@ function ResultsContent() {
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 )}
-                <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 16px', borderRadius: '99px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em', backdropFilter: 'blur(10px)' }}>NEURAL CLIP {i+1}</div>
+                <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 16px', borderRadius: '99px', fontSize: '17px', fontWeight: 900, letterSpacing: '0.1em', backdropFilter: 'blur(10px)' }}>NEURAL CLIP {i+1}</div>
                 {/* Duration badge */}
-                <div style={{ position: 'absolute', bottom: '12px', left: '20px', background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '3px 10px', borderRadius: '99px', fontSize: '10px', fontWeight: 800, backdropFilter: 'blur(10px)', fontFamily: 'monospace' }}>
+                <div style={{ position: 'absolute', bottom: '12px', left: '20px', background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '3px 10px', borderRadius: '99px', fontSize: '17px', fontWeight: 800, backdropFilter: 'blur(10px)', fontFamily: 'monospace' }}>
                   {Math.floor((parseTime(clip.end) - parseTime(clip.start)) / 60)}:{String((parseTime(clip.end) - parseTime(clip.start)) % 60).padStart(2, '0')}
                 </div>
                 {clip.viral_score && (
-                  <div style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(139, 92, 246, 0.9)', color: '#fff', padding: '4px 12px', borderRadius: '99px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ fontSize: '12px' }}>🔥</span> {clip.viral_score}% VIRAL
+                  <div style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(139, 92, 246, 0.9)', color: '#fff', padding: '4px 12px', borderRadius: '99px', fontSize: '17px', fontWeight: 900, letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '17px' }}>🔥</span> {clip.viral_score}% VIRAL
                   </div>
                 )}
               </div>
               <div className="clip-info">
-                <h4 style={{ color: '#8B5CF6', fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>{clip.hook_title}</h4>
-                <p style={{ fontStyle: 'italic', color: '#fff', fontSize: '15px', lineHeight: 1.5 }}>&ldquo;{clip.main_quote}&rdquo;</p>
+                <h4 style={{ color: '#8B5CF6', fontSize: '20px', fontWeight: 800, marginBottom: '12px' }}>{clip.hook_title}</h4>
+                <p style={{ fontStyle: 'italic', color: '#fff', fontSize: '17px', lineHeight: 1.5 }}>&ldquo;{clip.main_quote}&rdquo;</p>
               </div>
               <div style={{ padding: '0 24px 24px' }}>
 
@@ -673,7 +673,7 @@ function ResultsContent() {
                 <div style={{ marginBottom: '12px', position: 'relative' }}>
                   <button
                     onClick={() => setOpenCaptionIdx(openCaptionIdx === i ? null : i)}
-                    style={{ width: '100%', padding: '10px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', color: '#A1A1AA', fontSize: '10px', fontWeight: 800, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', letterSpacing: '0.08em' }}
+                    style={{ width: '100%', padding: '10px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', color: '#A1A1AA', fontSize: '17px', fontWeight: 800, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', letterSpacing: '0.08em' }}
                   >
                     <span>COPY CAPTION</span>
                     <span style={{ opacity: 0.5 }}>{openCaptionIdx === i ? '▲' : '▼'}</span>
@@ -691,12 +691,12 @@ function ResultsContent() {
                               toast.success(`${p.label} caption copied!`);
                               setOpenCaptionIdx(null);
                             }}
-                            style={{ width: '100%', padding: '12px 16px', background: 'none', border: 'none', borderBottom: pi < PLATFORMS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', color: '#fff', fontSize: '11px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left' }}
+                            style={{ width: '100%', padding: '12px 16px', background: 'none', border: 'none', borderBottom: pi < PLATFORMS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', color: '#fff', fontSize: '18px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left' }}
                           >
-                            <span style={{ fontSize: '14px' }}>{p.icon}</span>
+                            <span style={{ fontSize: '18px' }}>{p.icon}</span>
                             <div>
-                              <div style={{ fontSize: '10px', color: '#8B5CF6', fontWeight: 900, letterSpacing: '0.1em', marginBottom: '2px' }}>{p.label}</div>
-                              <div style={{ color: '#A1A1AA', fontSize: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{text.slice(0, 60)}…</div>
+                              <div style={{ fontSize: '17px', color: '#8B5CF6', fontWeight: 900, letterSpacing: '0.1em', marginBottom: '2px' }}>{p.label}</div>
+                              <div style={{ color: '#A1A1AA', fontSize: '17px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{text.slice(0, 60)}…</div>
                             </div>
                           </button>
                         );
@@ -721,14 +721,14 @@ function ResultsContent() {
                 ) : thumbnails[i]?.status === 'error' ? (
                   <button
                     onClick={() => { setActiveThumbnailClip({ ...clip, index: i }); setThumbPrompt(clip.hook_title); }}
-                    style={{ width: '100%', marginBottom: '12px', padding: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', color: '#EF4444', fontSize: '10px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.08em' }}
+                    style={{ width: '100%', marginBottom: '12px', padding: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', color: '#EF4444', fontSize: '17px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.08em' }}
                   >
                     ⚠ THUMBNAIL FAILED — RETRY
                   </button>
                 ) : (
                   <button
                     onClick={() => { setActiveThumbnailClip({ ...clip, index: i }); setThumbPrompt(clip.hook_title); }}
-                    style={{ width: '100%', marginBottom: '12px', padding: '10px', background: 'rgba(244,185,66,0.05)', border: '1px solid rgba(244,185,66,0.15)', borderRadius: '10px', color: '#F4B942', fontSize: '10px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.08em' }}
+                    style={{ width: '100%', marginBottom: '12px', padding: '10px', background: 'rgba(244,185,66,0.05)', border: '1px solid rgba(244,185,66,0.15)', borderRadius: '10px', color: '#F4B942', fontSize: '17px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.08em' }}
                   >
                     🖼 OPEN THUMBNAIL STUDIO
                   </button>
@@ -738,8 +738,8 @@ function ResultsContent() {
                 {rendering[i]?.status === 'loading' && (
                   <div style={{ marginBottom: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em' }}>RENDERING</span>
-                      <span style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6' }}>{renderProgress[i] || 0}%</span>
+                      <span style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em' }}>RENDERING</span>
+                      <span style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6' }}>{renderProgress[i] || 0}%</span>
                     </div>
                     <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '99px', overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${renderProgress[i] || 0}%`, background: 'linear-gradient(90deg, #8B5CF6, #D8B4FE)', borderRadius: '99px', transition: 'width 0.5s ease' }} />
@@ -763,17 +763,17 @@ function ResultsContent() {
                 ) : isYouTubeSource ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ padding: '12px 16px', background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '12px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                      <span style={{ fontSize: '14px', flexShrink: 0, marginTop: '1px' }}>⚠️</span>
+                      <span style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>⚠️</span>
                       <div>
-                        <p style={{ fontSize: '11px', color: '#FB923C', fontWeight: 800, marginBottom: '4px' }}>YOUTUBE SOURCE DETECTED</p>
-                        <p style={{ fontSize: '10px', color: '#A1A1AA', lineHeight: 1.5 }}>Reel export requires a direct MP4 file. Download this sermon from YouTube and re-upload it to enable full Studio rendering.</p>
+                        <p style={{ fontSize: '18px', color: '#FB923C', fontWeight: 800, marginBottom: '4px' }}>YOUTUBE SOURCE DETECTED</p>
+                        <p style={{ fontSize: '17px', color: '#A1A1AA', lineHeight: 1.5 }}>Reel export requires a direct MP4 file. Download this sermon from YouTube and re-upload it to enable full Studio rendering.</p>
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button onClick={() => handleCustomize(clip, i)} style={{ flex: 1, padding: '12px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '10px', color: '#A78BFA', fontSize: '10px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.08em' }}>
+                      <button onClick={() => handleCustomize(clip, i)} style={{ flex: 1, padding: '12px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '10px', color: '#A78BFA', fontSize: '17px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.08em' }}>
                         PREVIEW STUDIO
                       </button>
-                      <Link href="/" style={{ flex: 1, padding: '12px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', color: '#34D399', fontSize: '10px', fontWeight: 800, textDecoration: 'none', textAlign: 'center', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Link href="/" style={{ flex: 1, padding: '12px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', color: '#34D399', fontSize: '17px', fontWeight: 800, textDecoration: 'none', textAlign: 'center', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         RE-UPLOAD MP4
                       </Link>
                     </div>
@@ -821,12 +821,12 @@ function ResultsContent() {
 
       {/* PWA / Link Footer */}
       <footer style={{ padding: '60px 0', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.2em', opacity: 0.4, marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', fontSize: '17px', fontWeight: 900, letterSpacing: '0.2em', opacity: 0.4, marginBottom: '16px' }}>
           <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>PRIVACY</Link>
           <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>TERMS</Link>
           <span style={{ color: '#fff' }}>© 2026 VESPER</span>
         </div>
-        <p style={{ fontSize: '11px', color: '#52525B', fontWeight: 600 }}>
+        <p style={{ fontSize: '18px', color: '#52525B', fontWeight: 600 }}>
           Made by <a href="https://biblefunland.com" target="_blank" rel="noreferrer" style={{ color: '#8B5CF6', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
         </p>
       </footer>
@@ -841,13 +841,13 @@ function ResultsContent() {
           <div className="glass-panel animate-up" style={{ width: '100%', maxWidth: isMobile ? '100%' : '680px', height: isMobile ? '100%' : 'auto', maxHeight: isMobile ? '100%' : '85vh', borderRadius: isMobile ? '0' : '32px', display: 'flex', flexDirection: 'column', border: isMobile ? 'none' : '1px solid rgba(139,92,246,0.25)', overflow: 'hidden' }}>
             <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '6px' }}>EXPORT TOOL</div>
+                <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '6px' }}>EXPORT TOOL</div>
                 <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.02em' }}>YouTube Description</h2>
               </div>
-              <button onClick={() => setShowYTDesc(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+              <button onClick={() => setShowYTDesc(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '18px' }}>✕</button>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
-              <pre style={{ fontFamily: 'inherit', fontSize: '14px', color: '#D4D4D8', lineHeight: 1.8, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              <pre style={{ fontFamily: 'inherit', fontSize: '18px', color: '#D4D4D8', lineHeight: 1.8, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                 {buildYouTubeDescription()}
               </pre>
             </div>
@@ -858,7 +858,7 @@ function ResultsContent() {
                   toast.success('YouTube description copied!');
                 }}
                 className="shimmer-btn"
-                style={{ width: '100%', padding: '16px', fontSize: '12px' }}
+                style={{ width: '100%', padding: '16px', fontSize: '17px' }}
               >
                 COPY TO CLIPBOARD
               </button>
@@ -873,23 +873,23 @@ function ResultsContent() {
           <div className="glass-panel animate-up" style={{ width: '100%', maxWidth: isMobile ? '100%' : '800px', height: isMobile ? '100%' : 'auto', maxHeight: isMobile ? '100%' : '85vh', borderRadius: isMobile ? '0' : '32px', display: 'flex', flexDirection: 'column', border: isMobile ? 'none' : '1px solid rgba(139,92,246,0.25)', overflow: 'hidden' }}>
             <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '6px' }}>EXPAND YOUR MINISTRY</div>
+                <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '6px' }}>EXPAND YOUR MINISTRY</div>
                 <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.02em' }}>Quote Vault</h2>
-                <p style={{ color: '#A1A1AA', fontSize: '14px', marginTop: '4px' }}>Auto-generated 1080x1080 graphics for Instagram Stories.</p>
+                <p style={{ color: '#A1A1AA', fontSize: '18px', marginTop: '4px' }}>Auto-generated 1080x1080 graphics for Instagram Stories.</p>
               </div>
-              <button onClick={() => setShowQuoteVault(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+              <button onClick={() => setShowQuoteVault(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '18px' }}>✕</button>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
               {analysis?.clips?.map((clip: any, i: number) => (
                 <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em', marginBottom: '12px' }}>CLIP {i + 1}</div>
+                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em', marginBottom: '12px' }}>CLIP {i + 1}</div>
                   <div style={{ flex: 1, marginBottom: '20px' }}>
-                    <p style={{ fontStyle: 'italic', fontSize: '16px', lineHeight: 1.5, color: '#E4E4E7' }}>&ldquo;{clip.main_quote}&rdquo;</p>
+                    <p style={{ fontStyle: 'italic', fontSize: '18px', lineHeight: 1.5, color: '#E4E4E7' }}>&ldquo;{clip.main_quote}&rdquo;</p>
                   </div>
                   <button
                     onClick={() => downloadQuoteGraphic(clip, i)}
                     className="shimmer-btn"
-                    style={{ padding: '12px', fontSize: '11px', width: '100%' }}
+                    style={{ padding: '12px', fontSize: '18px', width: '100%' }}
                   >
                     DOWNLOAD GRAPHIC
                   </button>
@@ -909,26 +909,28 @@ function ResultsContent() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8B5CF6', boxShadow: '0 0 12px #8B5CF6' }} />
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER STUDIO</span>
-                <span style={{ fontSize: '9px', color: '#52525B', letterSpacing: '0.1em' }}>Neural Editing Phase — 9:16 Vertical</span>
+                <span style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER STUDIO</span>
+                <span style={{ fontSize: '17px', color: '#52525B', letterSpacing: '0.1em' }}>Neural Editing Phase — 9:16 Vertical</span>
               </div>
             </div>
             <button
               onClick={() => setSelectedClip(null)}
-              style={{ padding: '8px 20px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', transition: 'all 0.2s' }}
+              style={{ padding: '8px 20px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer', fontSize: '18px', fontWeight: 800, letterSpacing: '0.1em', transition: 'all 0.2s' }}
             >✕ CLOSE STUDIO</button>
           </div>
 
+          {/* Mobile tab state for Studio: 'style' | 'preview' | 'captions' */}
           <div style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
+            {/* LEFT PANEL — Style tools */}
             <div style={{ 
-              width: isMobile ? '100%' : '280px', 
+              width: isMobile ? '100%' : '300px', 
               flexShrink: 0, 
               background: '#0A0A0F', 
               borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.05)', 
-              borderBottom: isMobile ? '1px solid rgba(255,255,255,0.05)' : 'none',
-              display: isMobile ? (mobileTab === 'studio' ? 'flex' : 'none') : 'flex', 
+              display: isMobile ? (mobileTab === 'style' ? 'flex' : 'none') : 'flex', 
               flexDirection: 'column',
               overflow: 'hidden',
+              flex: isMobile ? 1 : undefined,
             }}>
 
               {/* Tabs Header — Icon Grid */}
@@ -945,17 +947,17 @@ function ResultsContent() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     style={{
-                      padding: isMobile ? '14px 4px' : '12px 4px',
+                      padding: '12px 4px',
                       background: activeTab === tab.id ? 'rgba(139,92,246,0.08)' : 'transparent',
                       border: 'none',
                       borderBottom: activeTab === tab.id ? '2px solid #8B5CF6' : '2px solid transparent',
                       cursor: 'pointer',
                       transition: 'all 0.15s',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
                     }}
                   >
-                    <span style={{ fontSize: isMobile ? '18px' : '16px', color: activeTab === tab.id ? '#A78BFA' : '#52525B', lineHeight: 1 }}>{tab.icon}</span>
-                    <span style={{ fontSize: isMobile ? '10px' : '9px', fontWeight: 800, letterSpacing: '0.05em', color: activeTab === tab.id ? '#A78BFA' : '#3F3F46' }}>{tab.label}</span>
+                    <span style={{ fontSize: '18px', color: activeTab === tab.id ? '#A78BFA' : '#52525B', lineHeight: 1 }}>{tab.icon}</span>
+                    <span style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '0.05em', color: activeTab === tab.id ? '#A78BFA' : '#52525B' }}>{tab.label}</span>
                   </button>
                 ))}
               </div>
@@ -980,8 +982,8 @@ function ResultsContent() {
                       <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: t.color }} />
                     </div>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '3px' }}>{t.name}</div>
-                      <div style={{ fontSize: '12px', color: '#71717A', lineHeight: 1.4 }}>{t.desc}</div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '3px' }}>{t.name}</div>
+                      <div style={{ fontSize: '18px', color: '#71717A', lineHeight: 1.4 }}>{t.desc}</div>
                     </div>
                     {selectedTemplate === t.id && (
                       <div style={{ marginLeft: 'auto', width: '18px', height: '18px', borderRadius: '50%', background: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -1013,7 +1015,7 @@ function ResultsContent() {
                           )}
                         </div>
                         <div style={{ padding: '8px 10px', background: 'rgba(255,255,255,0.03)' }}>
-                          <div style={{ fontSize: '10px', fontWeight: 700, color: selectedFilter === f.id ? '#C4B5FD' : '#A1A1AA' }}>{f.name}</div>
+                          <div style={{ fontSize: '17px', fontWeight: 700, color: selectedFilter === f.id ? '#C4B5FD' : '#A1A1AA' }}>{f.name}</div>
                         </div>
                       </div>
                     ))}
@@ -1034,11 +1036,11 @@ function ResultsContent() {
                   >
                     {/* Font preview */}
                     <div style={{ width: '44px', height: '36px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontFamily: f.family, fontWeight: f.weight, fontSize: '16px', color: selectedFont === f.id ? '#C4B5FD' : '#fff' }}>Aa</span>
+                      <span style={{ fontFamily: f.family, fontWeight: f.weight, fontSize: '18px', color: selectedFont === f.id ? '#C4B5FD' : '#fff' }}>Aa</span>
                     </div>
                     <div>
-                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#fff', marginBottom: '3px', fontFamily: f.family }}>{f.name}</div>
-                      <div style={{ fontSize: '10px', color: '#71717A' }}>{f.desc}</div>
+                      <div style={{ fontSize: '17px', fontWeight: 800, color: '#fff', marginBottom: '3px', fontFamily: f.family }}>{f.name}</div>
+                      <div style={{ fontSize: '18px', color: '#71717A' }}>{f.desc}</div>
                     </div>
                     {selectedFont === f.id && (
                       <div style={{ marginLeft: 'auto', width: '18px', height: '18px', borderRadius: '50%', background: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -1052,7 +1054,7 @@ function ResultsContent() {
                 {activeTab === 'motion' && (
                   <>
                     <div style={{ marginBottom: '8px' }}>
-                      <div style={{ fontSize: '9px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '12px' }}>CAPTION ANIMATION</div>
+                      <div style={{ fontSize: '17px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '12px' }}>CAPTION ANIMATION</div>
                       {ANIMATIONS.map(a => (
                         <div
                           key={a.id}
@@ -1064,12 +1066,12 @@ function ResultsContent() {
                             display: 'flex', alignItems: 'center', gap: '12px',
                           }}
                         >
-                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
                             {a.id === 'fade' ? '✦' : a.id === 'slideUp' ? '↑' : a.id === 'zoom' ? '⊕' : '▶'}
                           </div>
                           <div>
-                            <div style={{ fontSize: '12px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>{a.name}</div>
-                            <div style={{ fontSize: '10px', color: '#71717A' }}>{a.desc}</div>
+                            <div style={{ fontSize: '17px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>{a.name}</div>
+                            <div style={{ fontSize: '18px', color: '#71717A' }}>{a.desc}</div>
                           </div>
                           {selectedAnimation === a.id && (
                             <div style={{ marginLeft: 'auto', width: '18px', height: '18px', borderRadius: '50%', background: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -1086,12 +1088,12 @@ function ResultsContent() {
                 {activeTab === 'trim' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <div style={{ padding: '20px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '16px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-                      <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '16px' }}>PRECISION TRIMMER</div>
+                      <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '16px' }}>PRECISION TRIMMER</div>
                       
                       <div style={{ marginBottom: '24px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                          <span style={{ fontSize: '11px', color: '#fff', fontWeight: 700 }}>IN POINT</span>
-                          <span style={{ fontSize: '12px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')}</span>
+                          <span style={{ fontSize: '18px', color: '#fff', fontWeight: 700 }}>IN POINT</span>
+                          <span style={{ fontSize: '17px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')}</span>
                         </div>
                         <input
                           type="range"
@@ -1106,8 +1108,8 @@ function ResultsContent() {
 
                       <div style={{ marginBottom: '24px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                          <span style={{ fontSize: '11px', color: '#fff', fontWeight: 700 }}>OUT POINT</span>
-                          <span style={{ fontSize: '12px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{Math.floor(trimEnd/60)}:{String(trimEnd%60).padStart(2,'0')}</span>
+                          <span style={{ fontSize: '18px', color: '#fff', fontWeight: 700 }}>OUT POINT</span>
+                          <span style={{ fontSize: '17px', color: '#8B5CF6', fontWeight: 900, fontFamily: 'monospace' }}>{Math.floor(trimEnd/60)}:{String(trimEnd%60).padStart(2,'0')}</span>
                         </div>
                         <input
                           type="range"
@@ -1121,16 +1123,16 @@ function ResultsContent() {
                       </div>
 
                       <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11px', color: '#71717A', fontWeight: 700 }}>FINAL DURATION</span>
+                        <span style={{ fontSize: '18px', color: '#71717A', fontWeight: 700 }}>FINAL DURATION</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '14px', color: '#fff', fontWeight: 900 }}>{trimEnd - trimStart}s</span>
-                          <span style={{ fontSize: '10px', color: trimEnd - trimStart > 60 ? '#EF4444' : '#22C55E' }}>
+                          <span style={{ fontSize: '18px', color: '#fff', fontWeight: 900 }}>{trimEnd - trimStart}s</span>
+                          <span style={{ fontSize: '17px', color: trimEnd - trimStart > 60 ? '#EF4444' : '#22C55E' }}>
                             {trimEnd - trimStart > 60 ? '⚠️ Too long for Shorts' : '✓ Perfect for Reels'}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p style={{ fontSize: '11px', color: '#52525B', lineHeight: 1.6, padding: '0 10px' }}>
+                    <p style={{ fontSize: '18px', color: '#52525B', lineHeight: 1.6, padding: '0 10px' }}>
                       Tip: Use the sliders to adjust the exact moment the clip starts and ends. The preview will automatically loop between these two points.
                     </p>
                   </div>
@@ -1141,8 +1143,8 @@ function ResultsContent() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
                       <div style={{ fontSize: '40px', marginBottom: '16px' }}>▶️</div>
-                      <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>Push to YouTube</h3>
-                      <p style={{ fontSize: '12px', color: '#A1A1AA', marginBottom: '24px', lineHeight: 1.5 }}>
+                      <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>Push to YouTube</h3>
+                      <p style={{ fontSize: '17px', color: '#A1A1AA', marginBottom: '24px', lineHeight: 1.5 }}>
                         Instantly upload this cinematic clip as a YouTube Short to your ministry channel.
                       </p>
                       
@@ -1150,12 +1152,12 @@ function ResultsContent() {
                         <button 
                           onClick={() => handleYouTubeUpload(selectedClip)}
                           className="shimmer-btn"
-                          style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}
+                          style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '17px', fontWeight: 800 }}
                         >
                           {userStatus?.youtubeConnected ? 'DIRECT UPLOAD TO YOUTUBE' : 'CONNECT YOUTUBE CHANNEL'}
                         </button>
                       ) : (
-                        <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', fontSize: '10px', color: '#71717A', fontWeight: 700 }}>
+                        <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', fontSize: '17px', color: '#71717A', fontWeight: 700 }}>
                           RENDER REEL FIRST TO UNLOCK UPLOAD
                         </div>
                       )}
@@ -1163,14 +1165,14 @@ function ResultsContent() {
 
                     <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
                       <div style={{ fontSize: '40px', marginBottom: '16px' }}>📸</div>
-                      <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>Instagram / TikTok</h3>
-                      <p style={{ fontSize: '12px', color: '#A1A1AA', marginBottom: '24px', lineHeight: 1.5 }}>
+                      <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>Instagram / TikTok</h3>
+                      <p style={{ fontSize: '17px', color: '#A1A1AA', marginBottom: '24px', lineHeight: 1.5 }}>
                         Download the reel and use the generated captions to post on social platforms.
                       </p>
                       <button 
                         onClick={() => window.open(rendering[selectedClip.index]?.url)}
                         disabled={rendering[selectedClip.index]?.status !== 'complete'}
-                        style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '12px', fontWeight: 800, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }}
+                        style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '17px', fontWeight: 800, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }}
                       >
                         DOWNLOAD ASSET
                       </button>
@@ -1182,8 +1184,8 @@ function ResultsContent() {
               {/* Export Footer */}
               <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
                 <div style={{ marginBottom: '12px', padding: '12px 14px', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.12)' }}>
-                  <div style={{ fontSize: '9px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.12em', marginBottom: '6px' }}>EXPORT SETTINGS</div>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.12em', marginBottom: '6px' }}>EXPORT SETTINGS</div>
+                  <div style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
                     <b style={{ color: '#C4B5FD' }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FONTS.find(f => f.id === selectedFont)?.name}</b>
@@ -1194,14 +1196,14 @@ function ResultsContent() {
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     onClick={() => saveBrandKit({ template: selectedTemplate, filter: selectedFilter, font: selectedFont, animation: selectedAnimation })}
-                    style={{ width: '48px', flexShrink: 0, padding: '16px 0', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', cursor: 'pointer', fontSize: '14px' }}
+                    style={{ width: '48px', flexShrink: 0, padding: '16px 0', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', cursor: 'pointer', fontSize: '18px' }}
                     title="Save as Default Brand Kit"
                   >
                     💾
                   </button>
                   <button
                     onClick={() => { setSelectedTemplate('minimal'); setSelectedFilter('none'); setSelectedFont('outfit'); setSelectedAnimation('fade'); if (selectedClip) { setTrimStart(parseTime(selectedClip.start)); setTrimEnd(parseTime(selectedClip.end)); } toast.success('Reset to defaults'); }}
-                    style={{ width: '48px', flexShrink: 0, padding: '16px 0', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', cursor: 'pointer', fontSize: '14px' }}
+                    style={{ width: '48px', flexShrink: 0, padding: '16px 0', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', cursor: 'pointer', fontSize: '18px' }}
                     title="Reset to Defaults"
                   >
                     ↺
@@ -1216,7 +1218,7 @@ function ResultsContent() {
                     }}
                     className="shimmer-btn"
                     disabled={!!(selectedClip && rendering[selectedClip.index]?.status === 'loading')}
-                    style={{ flex: 1, padding: '16px', borderRadius: '12px', fontSize: '13px', fontWeight: 800, opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1, background: (selectedClip && rendering[selectedClip.index]?.status === 'complete') ? 'linear-gradient(90deg,#10B981,#059669)' : undefined }}
+                    style={{ flex: 1, padding: '16px', borderRadius: '12px', fontSize: '17px', fontWeight: 800, opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1, background: (selectedClip && rendering[selectedClip.index]?.status === 'complete') ? 'linear-gradient(90deg,#10B981,#059669)' : undefined }}
                   >
                     {selectedClip && rendering[selectedClip.index]?.status === 'loading'
                       ? `⏳ RENDERING... ${renderProgress[selectedClip.index] || 0}%`
@@ -1231,14 +1233,15 @@ function ResultsContent() {
             {/* PANEL 2: CENTER (Cinematic Preview) */}
             <div style={{ 
               flex: 1, 
+              flexShrink: 0,
               position: 'relative', 
               background: '#050508', 
-              display: (isMobile && mobileTab !== 'studio') ? 'none' : 'flex', 
+              display: isMobile ? (mobileTab === 'preview' ? 'flex' : 'none') : 'flex',
               flexDirection: 'column', 
               alignItems: 'center', 
               justifyContent: 'center', 
-              padding: isMobile ? '20px' : '40px',
-              minHeight: isMobile ? '60vh' : 'auto'
+              padding: isMobile ? '20px 16px' : '40px',
+              overflow: 'hidden',
             }}>
               <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '30px 30px', pointerEvents: 'none' }} />
               
@@ -1277,7 +1280,7 @@ function ResultsContent() {
                       color: TEMPLATES.find(t => t.id === selectedTemplate)?.color || '#fff',
                       fontFamily: FONTS.find(f => f.id === selectedFont)?.family || 'inherit',
                       fontWeight: FONTS.find(f => f.id === selectedFont)?.weight || 900,
-                      fontSize: '18px',
+                      fontSize: isMobile ? '24px' : '18px',
                       textShadow: TEMPLATES.find(t => t.id === selectedTemplate)?.textShadow || 'none',
                       fontStyle: TEMPLATES.find(t => t.id === selectedTemplate)?.fontStyle || 'normal',
                       textTransform: 'uppercase',
@@ -1292,7 +1295,7 @@ function ResultsContent() {
 
               {/* Caption Edit — below phone */}
               <div style={{ width: '100%', maxWidth: 'min(320px, 45vh)', marginTop: '16px' }}>
-                <div style={{ fontSize: '9px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '8px', textAlign: 'center' }}>EDIT CAPTION</div>
+                <div style={{ fontSize: '17px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '8px', textAlign: 'center' }}>EDIT CAPTION</div>
                 <textarea
                   value={captionOverrides[selectedClip?.index] ?? (selectedClip?.suggested_captions?.[0] || selectedClip?.main_quote || '')}
                   onChange={e => setCaptionOverrides(prev => ({ ...prev, [selectedClip.index]: e.target.value }))}
@@ -1300,7 +1303,7 @@ function ResultsContent() {
                   style={{
                     width: '100%', background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px',
-                    padding: '12px 14px', color: '#fff', fontSize: '12px',
+                    padding: '12px 14px', color: '#fff', fontSize: '17px',
                     lineHeight: 1.5, resize: 'none', fontFamily: 'inherit',
                     outline: 'none',
                   }}
@@ -1311,7 +1314,7 @@ function ResultsContent() {
               {/* Format badges below phone */}
               <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
                 {['9:16 Vertical', '1080p', 'MP4'].map(label => (
-                  <div key={label} style={{ padding: '5px 12px', borderRadius: '99px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '9px', fontWeight: 800, color: '#71717A', letterSpacing: '0.1em' }}>
+                  <div key={label} style={{ padding: '5px 12px', borderRadius: '99px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '17px', fontWeight: 800, color: '#71717A', letterSpacing: '0.1em' }}>
                     {label}
                   </div>
                 ))}
@@ -1320,37 +1323,38 @@ function ResultsContent() {
 
             {/* PANEL 3: RIGHT SIDEBAR — Social Kit & Export */}
             <div style={{ 
-              width: isMobile ? '100%' : '320px', 
+              width: isMobile ? '100%' : '340px', 
               flexShrink: 0, 
               background: '#0A0A0F', 
               borderLeft: isMobile ? 'none' : '1px solid rgba(255,255,255,0.05)', 
-              display: isMobile ? (mobileTab === 'strategy' ? 'flex' : 'none') : 'flex', 
+              display: isMobile ? ((mobileTab === 'social' || mobileTab === 'export') ? 'flex' : 'none') : 'flex', 
               flexDirection: 'column', 
-              overflow: 'hidden' 
+              overflow: 'hidden',
+              flex: isMobile ? 1 : undefined,
             }}>
 
               {/* Clip Metadata Strip */}
-              <div style={{ padding: '16px 20px 0', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '13px', fontWeight: 900, lineHeight: 1.3, color: '#fff', margin: 0 }}>{selectedClip.hook_title}</h3>
-                  <div style={{ fontSize: '11px', fontWeight: 900, fontFamily: 'monospace', color: '#C4B5FD', flexShrink: 0 }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')} · {trimEnd - trimStart}s</div>
+              <div style={{ padding: '24px 20px 12px', flexShrink: 0, borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 900, lineHeight: 1.3, color: '#fff', margin: 0 }}>{selectedClip.hook_title}</h3>
+                  <div style={{ fontSize: '18px', fontWeight: 900, fontFamily: 'monospace', color: '#C4B5FD', flexShrink: 0 }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')} · {trimEnd - trimStart}s</div>
                 </div>
               </div>
 
               {/* Scrollable content: Social Kit + Engagement */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px', display: isMobile && mobileTab === 'export' ? 'none' : 'flex', flexDirection: 'column', gap: '10px' }}>
 
                 {selectedClip.engagement_hook && (
                   <div style={{ padding: '12px', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.15)' }}>
-                    <div style={{ fontSize: '8px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '4px' }}>ENGAGEMENT HOOK</div>
-                    <p style={{ fontSize: '11px', color: '#A78BFA', lineHeight: 1.4, margin: 0 }}>&ldquo;{selectedClip.engagement_hook}&rdquo;</p>
+                    <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '4px' }}>ENGAGEMENT HOOK</div>
+                    <p style={{ fontSize: '17px', color: '#A78BFA', lineHeight: 1.4, margin: 0 }}>&ldquo;{selectedClip.engagement_hook}&rdquo;</p>
                   </div>
                 )}
 
                 {/* Social Kit header + disclaimer */}
                 <div style={{ padding: '10px 12px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '8px', fontWeight: 900, color: '#34D399', letterSpacing: '0.2em', marginBottom: '4px' }}>📋 CAPTION KIT</div>
-                  <p style={{ fontSize: '10px', color: '#A1A1AA', lineHeight: 1.5, margin: 0 }}>
+                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#34D399', letterSpacing: '0.2em', marginBottom: '4px' }}>📋 CAPTION KIT</div>
+                  <p style={{ fontSize: '17px', color: '#A1A1AA', lineHeight: 1.5, margin: 0 }}>
                     AI-generated captions for each platform. Copy, paste into your post, then upload your downloaded reel directly to the app.
                   </p>
                 </div>
@@ -1367,23 +1371,23 @@ function ResultsContent() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{ fontSize: '18px' }}>{p.icon}</span>
                           <div>
-                            <div style={{ fontSize: '11px', fontWeight: 900, color: '#fff' }}>{p.label}</div>
-                            <div style={{ fontSize: '9px', color: '#52525B' }}>{p.format} · copy &amp; paste caption</div>
+                            <div style={{ fontSize: '18px', fontWeight: 900, color: '#fff' }}>{p.label}</div>
+                            <div style={{ fontSize: '17px', color: '#52525B' }}>{p.format} · copy &amp; paste caption</div>
                           </div>
                         </div>
-                        <div style={{ fontSize: '10px', fontWeight: 700, color: overLimit ? '#F87171' : '#52525B', fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: '17px', fontWeight: 700, color: overLimit ? '#F87171' : '#52525B', fontFamily: 'monospace' }}>
                           {charCount}{p.limit ? `/${p.limit}` : ''}
                         </div>
                       </div>
                       {/* Caption preview */}
-                      <div style={{ padding: '10px 14px', fontSize: '12px', color: '#E4E4E7', lineHeight: 1.5 }}>
+                      <div style={{ padding: '10px 14px', fontSize: '17px', color: '#E4E4E7', lineHeight: 1.5 }}>
                         {fullText || <span style={{ color: '#3F3F46', fontStyle: 'italic' }}>No caption available</span>}
                       </div>
                       {/* Copy button */}
                       <div style={{ padding: '8px 14px 12px' }}>
                         <button
                           onClick={() => { navigator.clipboard.writeText(fullText); toast.success(`${p.label} caption copied! Paste it when uploading your reel.`); }}
-                          style={{ width: '100%', padding: '8px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', color: '#C4B5FD', fontSize: '10px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.08em', transition: 'all 0.2s' }}
+                          style={{ width: '100%', padding: '8px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', color: '#C4B5FD', fontSize: '17px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.08em', transition: 'all 0.2s' }}
                         >
                           📋 COPY {p.label.toUpperCase()} CAPTION
                         </button>
@@ -1393,19 +1397,19 @@ function ResultsContent() {
                 })}
               </div>
               {/* Export Footer */}
-              <div style={{ padding: '16px 20px 20px', flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ padding: '10px 12px', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.12)', marginBottom: '12px' }}>
-                  <div style={{ fontSize: '8px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.12em', marginBottom: '4px' }}>ACTIVE PROFILE</div>
-                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
+              <div style={{ padding: '24px 20px 32px', flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.05)', display: isMobile && mobileTab === 'social' ? 'none' : 'block' }}>
+                <div style={{ padding: '16px', background: 'rgba(139,92,246,0.06)', borderRadius: '14px', border: '1px solid rgba(139,92,246,0.12)', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.12em', marginBottom: '8px' }}>ACTIVE PROFILE</div>
+                  <div style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
                     <b style={{ color: '#C4B5FD' }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</b>
                     {' · '}<b style={{ color: '#C4B5FD' }}>{FONTS.find(f => f.id === selectedFont)?.name}</b>
                   </div>
                 </div>
                 {isYouTubeSource ? (
-                  <div style={{ padding: '12px', background: 'rgba(251,146,60,0.06)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '10px', textAlign: 'center' }}>
-                    <p style={{ fontSize: '10px', color: '#FB923C', fontWeight: 800, marginBottom: '4px' }}>EXPORT UNAVAILABLE</p>
-                    <p style={{ fontSize: '9px', color: '#A1A1AA', lineHeight: 1.4 }}>Upload the MP4 directly to enable cloud rendering.</p>
+                  <div style={{ padding: '16px', background: 'rgba(251,146,60,0.06)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '12px', textAlign: 'center' }}>
+                    <p style={{ fontSize: '17px', color: '#FB923C', fontWeight: 800, marginBottom: '6px' }}>EXPORT UNAVAILABLE</p>
+                    <p style={{ fontSize: '18px', color: '#A1A1AA', lineHeight: 1.4 }}>Upload the MP4 directly to enable cloud rendering.</p>
                   </div>
                 ) : (
                   <button
@@ -1418,7 +1422,7 @@ function ResultsContent() {
                     }}
                     className="shimmer-btn"
                     disabled={!!(selectedClip && rendering[selectedClip.index]?.status === 'loading')}
-                    style={{ width: '100%', padding: '16px', fontSize: '13px', opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1, background: (selectedClip && rendering[selectedClip.index]?.status === 'complete') ? 'linear-gradient(90deg,#10B981,#059669)' : undefined }}
+                    style={{ width: '100%', padding: '20px', fontSize: '17px', opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1, background: (selectedClip && rendering[selectedClip.index]?.status === 'complete') ? 'linear-gradient(90deg,#10B981,#059669)' : undefined }}
                   >
                     {selectedClip && rendering[selectedClip.index]?.status === 'loading'
                       ? `⏳ RENDERING... ${renderProgress[selectedClip.index] || 0}%`
@@ -1431,24 +1435,29 @@ function ResultsContent() {
             </div>
           </div>
 
-            {/* Mobile Bottom Tab Bar */}
+            {/* Mobile Bottom Tab Bar — 4 tabs for Studio */}
             {isMobile && (
-              <div style={{ position: 'sticky', bottom: 0, left: 0, right: 0, height: '72px', background: '#0A0A0F', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', zIndex: 100, backdropFilter: 'blur(20px)', flexShrink: 0 }}>
+              <div style={{ height: '68px', background: 'rgba(10,10,15,0.98)', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', zIndex: 100, backdropFilter: 'blur(20px)', flexShrink: 0 }}>
                 {[
-                  { id: 'studio', label: 'STUDIO', icon: '🎨' },
-                  { id: 'strategy', label: 'STRATEGY', icon: '📈' },
+                  { id: 'style', label: 'STYLE', icon: '🎨' },
+                  { id: 'preview', label: 'PREVIEW', icon: '📱' },
+                  { id: 'social', label: 'SOCIAL', icon: '📋' },
+                  { id: 'export', label: 'EXPORT', icon: '🚀' },
                 ].map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setMobileTab(tab.id)}
                     style={{
-                      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                      background: 'none', border: 'none', color: mobileTab === tab.id ? '#8B5CF6' : '#52525B',
-                      transition: 'all 0.2s'
+                      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px',
+                      background: mobileTab === tab.id ? 'rgba(139,92,246,0.1)' : 'none',
+                      border: 'none',
+                      borderTop: mobileTab === tab.id ? '2px solid #8B5CF6' : '2px solid transparent',
+                      color: mobileTab === tab.id ? '#A78BFA' : '#52525B',
+                      transition: 'all 0.2s', cursor: 'pointer',
                     }}
                   >
-                    <span style={{ fontSize: '18px' }}>{tab.icon}</span>
-                    <span style={{ fontSize: '9px', fontWeight: 900, letterSpacing: '0.1em' }}>{tab.label}</span>
+                    <span style={{ fontSize: '18px', lineHeight: 1 }}>{tab.icon}</span>
+                    <span style={{ fontSize: '12px', fontWeight: 900, letterSpacing: '0.06em' }}>{tab.label}</span>
                   </button>
                 ))}
               </div>
@@ -1475,10 +1484,10 @@ function ResultsContent() {
             {/* Header */}
             <div style={{ padding: '24px 32px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 900, color: '#F4B942', letterSpacing: '0.2em', marginBottom: '4px' }}>NEURAL ASSET GENERATOR</div>
+                <div style={{ fontSize: '15px', fontWeight: 900, color: '#F4B942', letterSpacing: '0.2em', marginBottom: '4px' }}>NEURAL ASSET GENERATOR</div>
                 <h2 style={{ fontSize: '20px', fontWeight: 900 }}>THUMBNAIL STUDIO</h2>
               </div>
-              <button onClick={() => setActiveThumbnailClip(null)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '8px 20px', borderRadius: '99px', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>✕ CLOSE STUDIO</button>
+              <button onClick={() => setActiveThumbnailClip(null)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '8px 20px', borderRadius: '99px', fontSize: '16px', fontWeight: 800, cursor: 'pointer' }}>✕ CLOSE STUDIO</button>
             </div>
 
             <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
@@ -1488,7 +1497,7 @@ function ResultsContent() {
                    {isGeneratingThumb ? (
                      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)' }}>
                         <div style={{ width: '40px', height: '40px', border: '3px solid rgba(244,185,66,0.2)', borderTopColor: '#F4B942', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' }} />
-                        <div style={{ fontSize: '11px', fontWeight: 900, color: '#F4B942', letterSpacing: '0.2em' }}>RENDERING CINEMATIC ASSET...</div>
+                        <div style={{ fontSize: '16px', fontWeight: 900, color: '#F4B942', letterSpacing: '0.2em' }}>RENDERING CINEMATIC ASSET...</div>
                      </div>
                    ) : thumbnails[activeThumbnailClip.index]?.variants && thumbnails[activeThumbnailClip.index].variants!.length > 0 ? (
                      <img 
@@ -1499,7 +1508,7 @@ function ResultsContent() {
                    ) : (
                      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
                         <div style={{ fontSize: '48px', marginBottom: '10px' }}>🖼</div>
-                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#A1A1AA' }}>AWAITING NEURAL RENDER</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#A1A1AA' }}>AWAITING NEURAL RENDER</div>
                      </div>
                    )}
                 </div>
@@ -1524,7 +1533,7 @@ function ResultsContent() {
                 )}
 
                 {thumbnails[activeThumbnailClip.index]?.status === 'done' && (
-                  <button onClick={handleGenerateThumbnail} style={{ marginTop: '24px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', padding: '10px 24px', borderRadius: '99px', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>
+                  <button onClick={handleGenerateThumbnail} style={{ marginTop: '24px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', padding: '10px 24px', borderRadius: '99px', fontSize: '16px', fontWeight: 800, cursor: 'pointer' }}>
                     🔄 REGENERATE VARIANTS
                   </button>
                 )}
@@ -1533,17 +1542,17 @@ function ResultsContent() {
               {/* Right: Controls Panel */}
               <div style={{ flex: 1, padding: '40px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
                 <div style={{ marginBottom: '32px' }}>
-                  <label style={{ fontSize: '10px', fontWeight: 900, color: '#52525B', letterSpacing: '0.1em', display: 'block', marginBottom: '12px' }}>TEXT OVERLAY (HOOK TITLE)</label>
+                  <label style={{ fontSize: '15px', fontWeight: 900, color: '#52525B', letterSpacing: '0.1em', display: 'block', marginBottom: '12px' }}>TEXT OVERLAY (HOOK TITLE)</label>
                   <textarea 
                     value={thumbPrompt}
                     onChange={(e) => setThumbPrompt(e.target.value)}
                     placeholder="Enter the main hook for your thumbnail..."
-                    style={{ width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px', color: '#fff', fontSize: '14px', lineHeight: 1.5, minHeight: '100px', resize: 'none', fontFamily: 'inherit' }}
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px', color: '#fff', fontSize: '16px', lineHeight: 1.5, minHeight: '100px', resize: 'none', fontFamily: 'inherit' }}
                   />
                 </div>
 
                 <div style={{ marginBottom: '40px' }}>
-                  <label style={{ fontSize: '10px', fontWeight: 900, color: '#52525B', letterSpacing: '0.1em', display: 'block', marginBottom: '16px' }}>CINEMATIC STYLE</label>
+                  <label style={{ fontSize: '15px', fontWeight: 900, color: '#52525B', letterSpacing: '0.1em', display: 'block', marginBottom: '16px' }}>CINEMATIC STYLE</label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
                     {THUMB_STYLES.map(s => (
                       <div 
@@ -1558,8 +1567,8 @@ function ResultsContent() {
                       >
                         <div style={{ fontSize: '20px' }}>{s.icon}</div>
                         <div>
-                          <div style={{ fontSize: '13px', fontWeight: 900, color: thumbStyle === s.id ? '#F4B942' : '#fff' }}>{s.name}</div>
-                          <div style={{ fontSize: '10px', color: '#52525B' }}>Preset neural instructions</div>
+                          <div style={{ fontSize: '15px', fontWeight: 900, color: thumbStyle === s.id ? '#F4B942' : '#fff' }}>{s.name}</div>
+                          <div style={{ fontSize: '15px', color: '#52525B' }}>Preset neural instructions</div>
                         </div>
                       </div>
                     ))}
@@ -1573,7 +1582,7 @@ function ResultsContent() {
                        download 
                        target="_blank"
                        className="shimmer-btn" 
-                       style={{ width: '100%', padding: '20px', fontSize: '12px', textAlign: 'center', textDecoration: 'none', display: 'block', background: 'linear-gradient(90deg, #F59E0B, #FBBF24)' }}
+                       style={{ width: '100%', padding: '20px', fontSize: '15px', textAlign: 'center', textDecoration: 'none', display: 'block', background: 'linear-gradient(90deg, #F59E0B, #FBBF24)' }}
                      >
                        DOWNLOAD 16:9 ASSET
                      </a>
@@ -1582,7 +1591,7 @@ function ResultsContent() {
                        onClick={handleGenerateThumbnail}
                        disabled={isGeneratingThumb}
                        className="shimmer-btn" 
-                       style={{ width: '100%', padding: '20px', fontSize: '12px', opacity: isGeneratingThumb ? 0.5 : 1 }}
+                       style={{ width: '100%', padding: '20px', fontSize: '15px', opacity: isGeneratingThumb ? 0.5 : 1 }}
                      >
                        {isGeneratingThumb ? 'RENDERING...' : 'START NEURAL RENDER'}
                      </button>
@@ -1604,12 +1613,12 @@ function ToolCard({ title, desc, onClick, loading }: { title: string; desc: stri
   return (
     <div className="glass-panel" style={{ padding: '36px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '16px', transition: 'all 0.3s', cursor: onClick ? 'pointer' : 'default' }}>
       <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#fff' }}>{title}</h3>
-      <p style={{ fontSize: '14px', color: '#A1A1AA', lineHeight: 1.6, flex: 1 }}>{desc}</p>
+      <p style={{ fontSize: '16px', color: '#A1A1AA', lineHeight: 1.6, flex: 1 }}>{desc}</p>
       <button
         onClick={onClick}
         disabled={loading || !onClick}
         className="shimmer-btn"
-        style={{ width: '100%', padding: '12px', fontSize: '11px', opacity: (loading || !onClick) ? 0.5 : 1, cursor: onClick ? 'pointer' : 'not-allowed' }}
+        style={{ width: '100%', padding: '12px', fontSize: '16px', opacity: (loading || !onClick) ? 0.5 : 1, cursor: onClick ? 'pointer' : 'not-allowed' }}
       >
         {loading ? 'GENERATING...' : `ACTIVATE ${title.toUpperCase()}`}
       </button>
@@ -1628,17 +1637,17 @@ function CarouselModal({ data, onClose }: { data: { slides: { slide_number: numb
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '40px' }}>
           {data.slides.map((slide) => (
             <div key={slide.slide_number} className="glass-panel" style={{ padding: '28px', background: 'rgba(255,255,255,0.03)' }}>
-              <div style={{ fontSize: '9px', color: '#8B5CF6', fontWeight: 900, marginBottom: '12px', letterSpacing: '0.2em' }}>SLIDE {slide.slide_number}</div>
+              <div style={{ fontSize: '15px', color: '#8B5CF6', fontWeight: 900, marginBottom: '12px', letterSpacing: '0.2em' }}>SLIDE {slide.slide_number}</div>
               <h4 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '12px', lineHeight: 1.2 }}>{slide.heading}</h4>
-              <p style={{ fontSize: '13px', color: '#A1A1AA', lineHeight: 1.6 }}>{slide.content}</p>
+              <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.6 }}>{slide.content}</p>
             </div>
           ))}
         </div>
         <div className="glass-panel" style={{ padding: '32px', background: 'rgba(139, 92, 246, 0.05)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-          <h4 style={{ fontSize: '11px', fontWeight: 900, marginBottom: '14px', color: '#8B5CF6', letterSpacing: '0.2em' }}>OPTIMIZED CAPTION</h4>
-          <p style={{ fontSize: '14px', color: '#fff', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.post_caption}</p>
+          <h4 style={{ fontSize: '16px', fontWeight: 900, marginBottom: '14px', color: '#8B5CF6', letterSpacing: '0.2em' }}>OPTIMIZED CAPTION</h4>
+          <p style={{ fontSize: '16px', color: '#fff', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.post_caption}</p>
           <button onClick={() => { navigator.clipboard.writeText(data.post_caption); toast.success('Caption copied!'); }}
-            className="shimmer-btn" style={{ marginTop: '24px', padding: '14px 28px', fontSize: '11px' }}>
+            className="shimmer-btn" style={{ marginTop: '24px', padding: '14px 28px', fontSize: '16px' }}>
             COPY CAPTION
           </button>
         </div>
@@ -1662,13 +1671,13 @@ class ResultsErrorBoundary extends React.Component<{ children: React.ReactNode }
           <div style={{ maxWidth: '500px' }}>
             <div style={{ fontSize: '48px', marginBottom: '24px' }}>⚠️</div>
             <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '16px' }}>Something went wrong</h2>
-            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6, marginBottom: '32px' }}>
+            <p style={{ color: '#A1A1AA', fontSize: '16px', lineHeight: 1.6, marginBottom: '32px' }}>
               {this.state.error || 'An unexpected error occurred while loading your media kit.'}
             </p>
             <button
               onClick={() => window.location.reload()}
               className="shimmer-btn"
-              style={{ padding: '14px 32px', fontSize: '12px' }}
+              style={{ padding: '14px 32px', fontSize: '15px' }}
             >
               RELOAD PAGE
             </button>

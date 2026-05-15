@@ -286,13 +286,13 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
         <div style={{ width: '100%', maxWidth: '500px', textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>✂️</div>
           <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>Video Trimmer</h2>
-          <p style={{ color: '#A1A1AA', fontSize: '14px', marginBottom: '32px' }}>Select a large sermon video. We&apos;ll help you split it into uploadable segments.</p>
+          <p style={{ color: '#A1A1AA', fontSize: '16px', marginBottom: '32px' }}>Select a large sermon video. We&apos;ll help you split it into uploadable segments.</p>
           <div onClick={() => document.getElementById('trimmer-input')?.click()} style={{ padding: '48px', border: '2px dashed rgba(139,92,246,0.3)', borderRadius: '20px', cursor: 'pointer', background: 'rgba(139,92,246,0.03)' }}>
             <p style={{ color: '#C4B5FD', fontSize: '15px', fontWeight: 700 }}>Click to select video</p>
-            <p style={{ color: '#52525B', fontSize: '12px', marginTop: '8px' }}>Any size — stays on your device</p>
+            <p style={{ color: '#52525B', fontSize: '15px', marginTop: '8px' }}>Any size — stays on your device</p>
           </div>
           <input id="trimmer-input" type="file" accept="video/*" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); }} />
-          <button onClick={onCancel} style={{ marginTop: '20px', padding: '10px 20px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#71717A', fontSize: '12px', cursor: 'pointer' }}>← Back</button>
+          <button onClick={onCancel} style={{ marginTop: '20px', padding: '10px 20px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#71717A', fontSize: '15px', cursor: 'pointer' }}>← Back</button>
         </div>
       </div>
     );
@@ -306,7 +306,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>✂️</div>
             <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '8px' }}>Your sermon is {Math.round(file.size / (1024 * 1024))}MB</h2>
-            <p style={{ color: '#A1A1AA', fontSize: '14px', lineHeight: 1.6 }}>
+            <p style={{ color: '#A1A1AA', fontSize: '16px', lineHeight: 1.6 }}>
               We&apos;ve split it into {segments.length} segments of ~{formatTime(segments[0]?.end - segments[0]?.start)} each.<br />
               Click <b style={{ color: '#C4B5FD' }}>✂️ USE THIS</b> to trim & upload that segment instantly, or <b style={{ color: '#A1A1AA' }}>⚙</b> to fine-tune the in/out points.
             </p>
@@ -338,13 +338,13 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
                     opacity: isTrimming && !isActive ? 0.4 : 1,
                   }}
                 >
-                  <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '6px' }}>SEGMENT {i + 1}</div>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>{formatTime(seg.start)} → {formatTime(seg.end)}</div>
-                  <div style={{ fontSize: '11px', color: '#71717A', marginBottom: '12px' }}>~{seg.sizeMB}MB · {formatTime(seg.end - seg.start)} long</div>
+                  <div style={{ fontSize: '15px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '6px' }}>SEGMENT {i + 1}</div>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>{formatTime(seg.start)} → {formatTime(seg.end)}</div>
+                  <div style={{ fontSize: '16px', color: '#71717A', marginBottom: '12px' }}>~{seg.sizeMB}MB · {formatTime(seg.end - seg.start)} long</div>
 
                   {isProcessing ? (
                     <div>
-                      <div style={{ fontSize: '10px', color: '#C4B5FD', fontWeight: 800, marginBottom: '6px' }}>TRIMMING... {trimProgress}%</div>
+                      <div style={{ fontSize: '15px', color: '#C4B5FD', fontWeight: 800, marginBottom: '6px' }}>TRIMMING... {trimProgress}%</div>
                       <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '99px', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${trimProgress}%`, background: 'linear-gradient(90deg, #8B5CF6, #D8B4FE)', transition: 'width 0.3s' }} />
                       </div>
@@ -356,7 +356,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
                         disabled={isTrimming || !ffmpegLoaded}
                         style={{
                           flex: 1, padding: '8px', background: '#8B5CF6', border: 'none', borderRadius: '8px',
-                          color: '#fff', fontSize: '11px', fontWeight: 900, letterSpacing: '0.05em',
+                          color: '#fff', fontSize: '16px', fontWeight: 900, letterSpacing: '0.05em',
                           cursor: (isTrimming || !ffmpegLoaded) ? 'not-allowed' : 'pointer',
                           opacity: (isTrimming || !ffmpegLoaded) ? 0.5 : 1,
                         }}
@@ -369,7 +369,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
                         style={{
                           padding: '8px 10px', background: 'rgba(255,255,255,0.05)',
                           border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px',
-                          color: '#A1A1AA', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                          color: '#A1A1AA', fontSize: '16px', fontWeight: 700, cursor: 'pointer',
                         }}
                         title="Fine-tune in/out points"
                       >
@@ -384,15 +384,15 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={() => setMode('manual')} style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#A1A1AA', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+            <button onClick={() => setMode('manual')} style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#A1A1AA', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
               Manual Trim Instead
             </button>
-            <button onClick={onCancel} style={{ padding: '14px 20px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', color: '#52525B', fontSize: '12px', cursor: 'pointer' }}>
+            <button onClick={onCancel} style={{ padding: '14px 20px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', color: '#52525B', fontSize: '15px', cursor: 'pointer' }}>
               Cancel
             </button>
           </div>
 
-          {ffmpegLoading && <p style={{ textAlign: 'center', marginTop: '20px', color: '#8B5CF6', fontSize: '11px' }}>Loading video engine...</p>}
+          {ffmpegLoading && <p style={{ textAlign: 'center', marginTop: '20px', color: '#8B5CF6', fontSize: '16px' }}>Loading video engine...</p>}
         </div>
       </div>
     );
@@ -408,15 +408,15 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
       {/* Header */}
       <div style={{ height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', background: '#0D0D12', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '14px' }}>✂️</span>
-          <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.25em' }}>TRIMMER</span>
+          <span style={{ fontSize: '16px' }}>✂️</span>
+          <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '0.25em' }}>TRIMMER</span>
           {segments.length > 1 && (
-            <button onClick={() => setMode('segments')} style={{ marginLeft: '12px', padding: '4px 10px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '6px', color: '#C4B5FD', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}>
+            <button onClick={() => setMode('segments')} style={{ marginLeft: '12px', padding: '4px 10px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '6px', color: '#C4B5FD', fontSize: '15px', fontWeight: 800, cursor: 'pointer' }}>
               ← SEGMENTS
             </button>
           )}
         </div>
-        <button onClick={onCancel} style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#A1A1AA', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>CANCEL</button>
+        <button onClick={onCancel} style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#A1A1AA', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>CANCEL</button>
       </div>
 
       {/* Video */}
@@ -429,12 +429,12 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
         {/* Info row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <span style={{ fontSize: '11px', color: '#34D399', fontWeight: 800, fontFamily: 'monospace' }}>IN {formatTime(inPoint)}</span>
-            <span style={{ fontSize: '11px', color: '#F87171', fontWeight: 800, fontFamily: 'monospace' }}>OUT {formatTime(outPoint)}</span>
+            <span style={{ fontSize: '16px', color: '#34D399', fontWeight: 800, fontFamily: 'monospace' }}>IN {formatTime(inPoint)}</span>
+            <span style={{ fontSize: '16px', color: '#F87171', fontWeight: 800, fontFamily: 'monospace' }}>OUT {formatTime(outPoint)}</span>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', color: '#71717A' }}>Duration: <b style={{ color: '#C4B5FD' }}>{formatTime(outPoint - inPoint)}</b></span>
-            <span style={{ fontSize: '11px', color: isOverLimit() ? '#F87171' : '#71717A' }}>
+            <span style={{ fontSize: '16px', color: '#71717A' }}>Duration: <b style={{ color: '#C4B5FD' }}>{formatTime(outPoint - inPoint)}</b></span>
+            <span style={{ fontSize: '16px', color: isOverLimit() ? '#F87171' : '#71717A' }}>
               Size: <b style={{ color: isOverLimit() ? '#F87171' : '#C4B5FD' }}>{getEstimatedSize()}</b>
               {isOverLimit() && <span style={{ color: '#F87171' }}> (over limit)</span>}
             </span>
@@ -460,7 +460,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
           onClick={handleTrim}
           disabled={isTrimming || !ffmpegLoaded || isOverLimit()}
           className="shimmer-btn"
-          style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '13px', fontWeight: 900, opacity: (isTrimming || !ffmpegLoaded || isOverLimit()) ? 0.5 : 1, cursor: (isTrimming || !ffmpegLoaded || isOverLimit()) ? 'not-allowed' : 'pointer' }}
+          style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '15px', fontWeight: 900, opacity: (isTrimming || !ffmpegLoaded || isOverLimit()) ? 0.5 : 1, cursor: (isTrimming || !ffmpegLoaded || isOverLimit()) ? 'not-allowed' : 'pointer' }}
         >
           {isTrimming ? `TRIMMING... ${trimProgress}%` : !ffmpegLoaded ? 'Loading Engine...' : isOverLimit() ? `TOO LARGE (${getEstimatedSize()}) — Shorten Range` : `✂️ TRIM & UPLOAD (${getEstimatedSize()})`}
         </button>
