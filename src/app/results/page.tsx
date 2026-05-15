@@ -458,8 +458,7 @@ function ResultsContent() {
       if (data.status === 'done') {
         setRendering(prev => ({ ...prev, [index]: { status: 'complete', url: data.url } }));
         setRenderProgress(prev => ({ ...prev, [index]: 100 }));
-        toast.success('Reel successfully rendered!', { id: toastId });
-        setSelectedClip(null);
+        toast.success('Reel rendered! Click DOWNLOAD REEL to save it.', { id: toastId, duration: 6000 });
       } else if (data.status === 'failed') {
         setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
         toast.error('Cloud render failed.', { id: toastId });
@@ -1210,9 +1209,12 @@ function ResultsContent() {
                   <button
                     onClick={() => startExport(selectedClip)}
                     className="shimmer-btn"
-                    style={{ flex: 1, padding: '16px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}
+                    disabled={!!(selectedClip && rendering[selectedClip.index]?.status === 'loading')}
+                    style={{ flex: 1, padding: '16px', borderRadius: '12px', fontSize: '12px', fontWeight: 800, opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1 }}
                   >
-                    CONFIRM & EXPORT
+                    {selectedClip && rendering[selectedClip.index]?.status === 'loading'
+                      ? `⏳ RENDERING... ${renderProgress[selectedClip.index] || 0}%`
+                      : 'CONFIRM & EXPORT'}
                   </button>
                 </div>
               </div>
@@ -1392,8 +1394,17 @@ function ResultsContent() {
                     <p style={{ fontSize: '9px', color: '#A1A1AA', lineHeight: 1.4 }}>Upload the MP4 directly to enable cloud rendering.</p>
                   </div>
                 ) : (
-                  <button onClick={() => startExport(selectedClip)} className="shimmer-btn" style={{ width: '100%', padding: '16px', fontSize: '12px' }}>
-                    CONFIRM & EXPORT
+                  <button
+                    onClick={() => startExport(selectedClip)}
+                    className="shimmer-btn"
+                    disabled={!!(selectedClip && rendering[selectedClip.index]?.status === 'loading')}
+                    style={{ width: '100%', padding: '16px', fontSize: '12px', opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1 }}
+                  >
+                    {selectedClip && rendering[selectedClip.index]?.status === 'loading'
+                      ? `⏳ RENDERING... ${renderProgress[selectedClip.index] || 0}%`
+                      : selectedClip && rendering[selectedClip.index]?.status === 'complete'
+                      ? '✅ RENDERED — CLOSE STUDIO'
+                      : 'CONFIRM & EXPORT'}
                   </button>
                 )}
               </div>
