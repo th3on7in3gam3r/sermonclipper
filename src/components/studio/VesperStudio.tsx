@@ -515,24 +515,44 @@ export default function VesperStudio({
           {/* Subtle Background Glows */}
           <div style={{ position: 'absolute', top: '20%', left: '20%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }} />
           
-          {/* Phone Mockup Frame */}
-          <div className="premium-border" style={{ 
-            width: 'min(360px, 50vh)', 
-            aspectRatio: '9/19.5', 
-            background: '#000', 
-            borderRadius: '48px', 
-            border: '12px solid #1A1A1F', 
-            boxShadow: '0 50px 120px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
-            position: 'relative',
-            overflow: 'hidden',
-            zIndex: 10,
-            transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
-          }}>
-            {/* Camera / Dynamic Island */}
-            <div style={{ position: 'absolute', top: '14px', left: '50%', transform: 'translateX(-50%)', width: '90px', height: '28px', background: '#000', borderRadius: '14px', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#111' }} />
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#080815' }} />
-            </div>
+          {/* Real-Phone Mockup Container */}
+          <div style={{ position: 'relative', zIndex: 10 }}>
+            {/* Side Buttons (Left: Action + Volume) */}
+            <div style={{ position: 'absolute', left: '-14px', top: '100px', width: '3px', height: '24px', background: '#27272A', borderRadius: '2px 0 0 2px' }} />
+            <div style={{ position: 'absolute', left: '-14px', top: '140px', width: '3px', height: '48px', background: '#27272A', borderRadius: '2px 0 0 2px' }} />
+            <div style={{ position: 'absolute', left: '-14px', top: '196px', width: '3px', height: '48px', background: '#27272A', borderRadius: '2px 0 0 2px' }} />
+            
+            {/* Side Buttons (Right: Power) */}
+            <div style={{ position: 'absolute', right: '-14px', top: '160px', width: '3px', height: '80px', background: '#27272A', borderRadius: '0 2px 2px 0' }} />
+
+            {/* Phone Body */}
+            <div className="premium-border" style={{ 
+              width: 'min(380px, 55vh)', 
+              aspectRatio: '9/19.5', 
+              background: '#000', 
+              borderRadius: '54px', 
+              border: '8px solid #18181B', 
+              boxShadow: `
+                0 50px 100px -20px rgba(0,0,0,0.8),
+                0 0 0 1px rgba(255,255,255,0.05),
+                inset 0 0 20px rgba(255,255,255,0.05)
+              `,
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}>
+              {/* Internal Screen Bezel (Super Slim) */}
+              <div style={{ position: 'absolute', inset: '4px', borderRadius: '48px', border: '1px solid rgba(255,255,255,0.08)', pointerEvents: 'none', zIndex: 5 }} />
+
+              {/* Dynamic Island (Interactive Style) */}
+              <div style={{ 
+                position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)', 
+                width: '100px', height: '30px', background: '#000', borderRadius: '20px', 
+                zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '12px', gap: '6px' 
+              }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#09090B', border: '1px solid #18181B' }} />
+                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#111' }} />
+              </div>
 
             {/* Video Container */}
             <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
@@ -638,6 +658,7 @@ export default function VesperStudio({
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.4) 100%)', pointerEvents: 'none' }} />
             </div>
           </div>
+        </div>
 
           {/* Quick Caption Edit Overlay */}
           <div style={{ width: '100%', maxWidth: '330px', marginTop: '24px', position: 'relative', zIndex: 20 }}>

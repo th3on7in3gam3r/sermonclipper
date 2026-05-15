@@ -732,10 +732,22 @@ function ResultsContent() {
                       ) : (
                         <button
                           onClick={() => { setActiveThumbnailClip({ ...clip, index: i }); setThumbPrompt(clip.hook_title); }}
-                          className="vesper-btn-outline"
-                          style={{ width: '100%', color: 'var(--accent)', borderColor: 'rgba(244,185,66,0.2)', fontSize: '13px' }}
+                          className="vesper-btn-outline shimmer-effect"
+                          style={{ 
+                            width: '100%', 
+                            background: 'linear-gradient(135deg, rgba(244,185,66,0.1), rgba(244,185,66,0.05))',
+                            color: '#F4B942', 
+                            borderColor: 'rgba(244,185,66,0.3)', 
+                            fontSize: '13px',
+                            fontWeight: 900,
+                            letterSpacing: '0.05em',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                          }}
                         >
-                          🖼 THUMBNAIL STUDIO
+                          <span style={{ fontSize: '18px' }}>🎨</span> THUMBNAIL STUDIO
                         </button>
                       )}
 
