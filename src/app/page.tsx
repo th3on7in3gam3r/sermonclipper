@@ -137,7 +137,7 @@ export default function Home() {
     return (
       <main style={{ minHeight: '100vh', padding: '20px', background: '#0A0A0F', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         <div className="spiritual-rays" />
-        <div className="animate-up" style={{ width: '100%', maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div className="animate-up" style={{ width: '100%', maxWidth: '600px', position: 'relative', zIndex: 1 }}>
           <ProcessingView 
             steps={[
               { id: 'engine', label: 'Extracting Audio track' },
