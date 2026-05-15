@@ -945,17 +945,17 @@ function ResultsContent() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     style={{
-                      padding: '12px 4px',
+                      padding: isMobile ? '14px 4px' : '12px 4px',
                       background: activeTab === tab.id ? 'rgba(139,92,246,0.08)' : 'transparent',
                       border: 'none',
                       borderBottom: activeTab === tab.id ? '2px solid #8B5CF6' : '2px solid transparent',
                       cursor: 'pointer',
                       transition: 'all 0.15s',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
                     }}
                   >
-                    <span style={{ fontSize: '14px', color: activeTab === tab.id ? '#A78BFA' : '#52525B', lineHeight: 1 }}>{tab.icon}</span>
-                    <span style={{ fontSize: '8px', fontWeight: 800, letterSpacing: '0.05em', color: activeTab === tab.id ? '#A78BFA' : '#3F3F46' }}>{tab.label}</span>
+                    <span style={{ fontSize: isMobile ? '18px' : '16px', color: activeTab === tab.id ? '#A78BFA' : '#52525B', lineHeight: 1 }}>{tab.icon}</span>
+                    <span style={{ fontSize: isMobile ? '10px' : '9px', fontWeight: 800, letterSpacing: '0.05em', color: activeTab === tab.id ? '#A78BFA' : '#3F3F46' }}>{tab.label}</span>
                   </button>
                 ))}
               </div>
@@ -980,8 +980,8 @@ function ResultsContent() {
                       <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: t.color }} />
                     </div>
                     <div>
-                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#fff', marginBottom: '3px' }}>{t.name}</div>
-                      <div style={{ fontSize: '10px', color: '#71717A', lineHeight: 1.4 }}>{t.desc}</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '3px' }}>{t.name}</div>
+                      <div style={{ fontSize: '12px', color: '#71717A', lineHeight: 1.4 }}>{t.desc}</div>
                     </div>
                     {selectedTemplate === t.id && (
                       <div style={{ marginLeft: 'auto', width: '18px', height: '18px', borderRadius: '50%', background: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -1207,13 +1207,21 @@ function ResultsContent() {
                     ↺
                   </button>
                   <button
-                    onClick={() => startExport(selectedClip)}
+                    onClick={() => {
+                      if (selectedClip && rendering[selectedClip.index]?.status === 'complete') {
+                        setSelectedClip(null);
+                      } else {
+                        startExport(selectedClip);
+                      }
+                    }}
                     className="shimmer-btn"
                     disabled={!!(selectedClip && rendering[selectedClip.index]?.status === 'loading')}
-                    style={{ flex: 1, padding: '16px', borderRadius: '12px', fontSize: '12px', fontWeight: 800, opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1 }}
+                    style={{ flex: 1, padding: '16px', borderRadius: '12px', fontSize: '13px', fontWeight: 800, opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1, background: (selectedClip && rendering[selectedClip.index]?.status === 'complete') ? 'linear-gradient(90deg,#10B981,#059669)' : undefined }}
                   >
                     {selectedClip && rendering[selectedClip.index]?.status === 'loading'
                       ? `⏳ RENDERING... ${renderProgress[selectedClip.index] || 0}%`
+                      : selectedClip && rendering[selectedClip.index]?.status === 'complete'
+                      ? '✅ DONE — CLOSE STUDIO'
                       : 'CONFIRM & EXPORT'}
                   </button>
                 </div>
@@ -1401,15 +1409,21 @@ function ResultsContent() {
                   </div>
                 ) : (
                   <button
-                    onClick={() => startExport(selectedClip)}
+                    onClick={() => {
+                      if (selectedClip && rendering[selectedClip.index]?.status === 'complete') {
+                        setSelectedClip(null);
+                      } else {
+                        startExport(selectedClip);
+                      }
+                    }}
                     className="shimmer-btn"
                     disabled={!!(selectedClip && rendering[selectedClip.index]?.status === 'loading')}
-                    style={{ width: '100%', padding: '16px', fontSize: '12px', opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1 }}
+                    style={{ width: '100%', padding: '16px', fontSize: '13px', opacity: (selectedClip && rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1, background: (selectedClip && rendering[selectedClip.index]?.status === 'complete') ? 'linear-gradient(90deg,#10B981,#059669)' : undefined }}
                   >
                     {selectedClip && rendering[selectedClip.index]?.status === 'loading'
                       ? `⏳ RENDERING... ${renderProgress[selectedClip.index] || 0}%`
                       : selectedClip && rendering[selectedClip.index]?.status === 'complete'
-                      ? '✅ RENDERED — CLOSE STUDIO'
+                      ? '✅ DONE — CLOSE STUDIO'
                       : 'CONFIRM & EXPORT'}
                   </button>
                 )}
