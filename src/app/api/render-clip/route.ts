@@ -115,7 +115,6 @@ export async function POST(req: NextRequest) {
     const captionColor = TEMPLATE_COLORS[template] || '#FFFFFF';
     const fontFamily = FONT_FAMILIES[font] || 'Montserrat';
     const transitionIn = ANIMATION_MAP[animation] || 'fade';
-    const colorEffect = FILTER_EFFECTS[filter] || null;
 
     const captions = clip.suggested_captions || [];
     const captionDuration = captions.length > 0 ? duration / captions.length : duration;
@@ -128,29 +127,38 @@ export async function POST(req: NextRequest) {
         font: {
           family: fontFamily,
           size: 52,
-          weight: 'black',
           color: captionColor,
         },
-        alignment: { horizontal: 'center', vertical: 'bottom' },
-        offset: { y: 0.15 },
         width: 0.85,
+        height: 0.3,
+        alignment: { horizontal: 'center', vertical: 'bottom' },
       },
       start: i * captionDuration,
       length: captionDuration,
+      position: 'bottom',
+      offset: { y: 0.15 },
       transition: { in: transitionIn, out: 'fade' },
     }));
 
-    // Build video clip with optional color correction
+    // Build video clip
     const videoClip: Record<string, unknown> = {
       asset: { type: 'video', src: shotstackVideoUrl, trim: start },
       start: 0,
       length: duration,
       fit: 'cover',
-      scale: 1,
     };
 
-    if (colorEffect) {
-      videoClip.effect = colorEffect;
+    // Apply color filter if selected (Shotstack filter property on clip)
+    if (filter && filter !== 'none') {
+      const filterMap: Record<string, string> = {
+        vintage: 'contrast',
+        cold: 'muted',
+        warm: 'boost',
+        noir: 'greyscale',
+        glory: 'enhance',
+      };
+      const shotstackFilter = filterMap[filter];
+      if (shotstackFilter) videoClip.filter = shotstackFilter;
     }
 
     const shotstackEdit = {
@@ -189,6 +197,7 @@ export async function POST(req: NextRequest) {
       });
     } else {
       console.error('[Shotstack] API Error:', JSON.stringify(data));
+      console.error('[Shotstack] Payload sent:', JSON.stringify(shotstackEdit));
       return NextResponse.json({ error: data.message || data.error || JSON.stringify(data) }, { status: 500 });
     }
   } catch (e: unknown) {
