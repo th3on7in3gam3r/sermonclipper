@@ -83,6 +83,8 @@ export default function VesperStudio({
   const [captionOverrides, setCaptionOverrides] = useState<Record<number, string>>({});
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const [selectedPlatform, setSelectedPlatform] = useState('tiktok');
+  const [isUploadingYT, setIsUploadingYT] = useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
   // Sync video state with controls
@@ -124,6 +126,34 @@ export default function VesperStudio({
       caption: captionOverrides[selectedClip.index] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote
     };
     startExport(selectedClip, settings);
+  };
+
+  const handleYouTubeSync = async () => {
+    if (!rendering[selectedClip.index]?.url) return toast.error('Render required first');
+    if (!userStatus?.youtubeConnected) return toast.error('Connect YouTube in settings first');
+    
+    setIsUploadingYT(true);
+    const toastId = toast.loading('Syncing with YouTube...');
+    
+    try {
+      const res = await fetch('/api/youtube/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoUrl: rendering[selectedClip.index].url,
+          title: selectedClip.hook_title || 'Sermon Clip',
+          description: captionOverrides[selectedClip.index] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote
+        })
+      });
+      
+      if (!res.ok) throw new Error(await res.text());
+      
+      toast.success('Successfully published to YouTube Shorts!', { id: toastId });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to upload', { id: toastId });
+    } finally {
+      setIsUploadingYT(false);
+    }
   };
 
   const isYouTubeSource = !!videoId;
@@ -578,6 +608,32 @@ export default function VesperStudio({
                 </div>
               </div>
 
+              {/* Platform Mockup Overlay */}
+              <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none', opacity: 0.8 }}>
+                {selectedPlatform === 'tiktok' && (
+                  <div style={{ position: 'absolute', right: '12px', bottom: '100px', display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center' }}>
+                    <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👤</div>
+                    <div style={{ textAlign: 'center' }}><span style={{ fontSize: '24px' }}>❤️</span><div style={{ fontSize: '10px', fontWeight: 900 }}>12.4K</div></div>
+                    <div style={{ textAlign: 'center' }}><span style={{ fontSize: '24px' }}>💬</span><div style={{ fontSize: '10px', fontWeight: 900 }}>842</div></div>
+                    <div style={{ textAlign: 'center' }}><span style={{ fontSize: '24px' }}>🔖</span><div style={{ fontSize: '10px', fontWeight: 900 }}>5.1K</div></div>
+                    <div style={{ textAlign: 'center' }}><span style={{ fontSize: '24px' }}>↗️</span><div style={{ fontSize: '10px', fontWeight: 900 }}>SHARE</div></div>
+                  </div>
+                )}
+                {selectedPlatform === 'insta' && (
+                  <div style={{ position: 'absolute', left: '16px', bottom: '24px', display: 'flex', gap: '16px' }}>
+                    <span style={{ fontSize: '20px' }}>❤️</span>
+                    <span style={{ fontSize: '20px' }}>💬</span>
+                    <span style={{ fontSize: '20px' }}>↗️</span>
+                  </div>
+                )}
+                <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '80px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 900, marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>@yourministry</div>
+                  <div style={{ fontSize: '12px', color: '#fff', opacity: 0.9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {captionOverrides[selectedClip.index] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote}
+                  </div>
+                </div>
+              </div>
+
               {/* Video Overlay Polish */}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.4) 100%)', pointerEvents: 'none' }} />
             </div>
@@ -634,46 +690,86 @@ export default function VesperStudio({
           {/* Social Platforms List */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
-            {/* Engagement Hook Card */}
-            <div className="glass-card premium-border" style={{ padding: '20px', background: 'var(--primary-glow)', borderColor: 'rgba(139,92,246,0.3)' }}>
-              <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--secondary)', letterSpacing: '0.15em', marginBottom: '10px', textTransform: 'uppercase' }}>Engagement Hook</div>
-              <p style={{ fontSize: '17px', color: '#fff', lineHeight: 1.5, margin: 0, fontWeight: 700 }}>
-                &ldquo;{selectedClip.engagement_hook || 'Dynamic theological insight captured.'}&rdquo;
-              </p>
+            {/* Action Toggles */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+              {PLATFORMS.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => setSelectedPlatform(p.id)}
+                  style={{
+                    flex: 1, padding: '12px 0', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+                    background: selectedPlatform === p.id ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.03)',
+                    borderColor: selectedPlatform === p.id ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                    cursor: 'pointer', transition: 'all 0.2s'
+                  }}
+                >
+                  <span style={{ fontSize: '18px' }}>{p.icon}</span>
+                </button>
+              ))}
             </div>
 
-            {PLATFORMS.map((p, pi) => {
+            {PLATFORMS.filter(p => p.id === selectedPlatform).map((p, pi) => {
               const caption = selectedClip.suggested_captions?.[pi] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote || '';
               const fullText = `${p.prefix}${caption}`;
               const charCount = fullText.length;
               const overLimit = p.limit ? charCount > p.limit : false;
               
               return (
-                <div key={p.id} className="glass-card" style={{ overflow: 'hidden', padding: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div key={p.id} className="glass-card animate-in" style={{ padding: 0, border: '1px solid var(--primary)', background: 'rgba(139,92,246,0.05)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '20px' }}>{p.icon}</span>
-                      <span style={{ fontSize: '15px', fontWeight: 800, color: '#fff' }}>{p.label}</span>
-                    </div>
-                    <div style={{ fontSize: '12px', fontWeight: 900, color: overLimit ? 'var(--error)' : 'var(--text-dim)', fontFamily: 'monospace' }}>
-                      {charCount}{p.limit ? `/${p.limit}` : ''}
+                      <span style={{ fontSize: '24px' }}>{p.icon}</span>
+                      <span style={{ fontSize: '16px', fontWeight: 900, color: '#fff' }}>{p.label} STRATEGY</span>
                     </div>
                   </div>
-                  <div style={{ padding: '16px 20px', fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6, maxHeight: '140px', overflowY: 'auto' }}>
-                    {fullText}
-                  </div>
-                  <div style={{ padding: '12px 16px 16px' }}>
-                    <button
-                      onClick={() => { navigator.clipboard.writeText(fullText); toast.success(`${p.label} Copied`); }}
-                      className="vesper-btn-outline shimmer-effect"
-                      style={{ width: '100%', padding: '10px', fontSize: '12px', borderRadius: '10px' }}
-                    >
-                      COPY CAPTION
-                    </button>
+                  <div style={{ padding: '24px 20px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '12px' }}>SUGGESTED CAPTION</div>
+                    <div style={{ padding: '16px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', fontSize: '14px', lineHeight: 1.6, color: '#E4E4E7', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      {fullText}
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(fullText); toast.success(`${p.label} Kit Copied`); }}
+                        className="vesper-btn vesper-btn-outline shimmer-effect"
+                        style={{ width: '100%', padding: '14px', fontSize: '13px' }}
+                      >
+                        COPY MEDIA KIT
+                      </button>
+                      
+                      {p.id === 'youtube' && (
+                        <button
+                          onClick={handleYouTubeSync}
+                          disabled={isUploadingYT || rendering[selectedClip.index]?.status !== 'complete'}
+                          className="vesper-btn vesper-btn-primary shimmer-effect"
+                          style={{ width: '100%', padding: '14px', fontSize: '13px', background: 'linear-gradient(90deg, #FF0000, #CC0000)', opacity: (isUploadingYT || rendering[selectedClip.index]?.status !== 'complete') ? 0.6 : 1 }}
+                        >
+                          {isUploadingYT ? 'PUBLISHING...' : 'PUBLISH AS YT SHORT'}
+                        </button>
+                      )}
+                      
+                      {p.id !== 'youtube' && (
+                        <button
+                          onClick={() => window.open(p.id === 'tiktok' ? 'https://tiktok.com' : p.id === 'insta' ? 'https://instagram.com' : 'https://x.com')}
+                          className="vesper-btn-outline"
+                          style={{ width: '100%', padding: '14px', fontSize: '13px', borderColor: 'rgba(255,255,255,0.1)' }}
+                        >
+                          OPEN {p.label.toUpperCase()}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
             })}
+
+            {/* Engagement Hook Card */}
+            <div className="glass-card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)' }}>
+              <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--primary)', letterSpacing: '0.15em', marginBottom: '10px', textTransform: 'uppercase' }}>Neural Hook</div>
+              <p style={{ fontSize: '16px', color: '#fff', lineHeight: 1.5, margin: 0, fontWeight: 700, opacity: 0.8 }}>
+                &ldquo;{selectedClip.engagement_hook || 'High-impact theological insight.'}&rdquo;
+              </p>
+            </div>
           </div>
 
           {/* Final Export Action on Mobile only */}
