@@ -86,6 +86,28 @@ export async function generatePresignedUploadUrl(key: string, contentType = 'vid
 
 
 
+/**
+ * Generate a presigned GET URL so external services (e.g. Shotstack) can
+ * fetch a private R2 object without needing credentials.
+ */
+export async function generatePresignedGetUrl(key: string, expiresIn = 7200) {
+  if (!accountId || !bucket || !accessKeyId || !secretAccessKey) {
+    throw new Error('Missing Cloudflare R2 credentials');
+  }
+
+  const presignClient = new S3Client({
+    endpoint,
+    region: 'auto',
+    credentials: { accessKeyId, secretAccessKey },
+    forcePathStyle: true,
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
+  });
+
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  return getSignedUrl(presignClient, command, { expiresIn });
+}
+
 export async function uploadStreamToR2(key: string, stream: Readable, contentType = 'application/octet-stream') {
   const client = getR2Client();
   if (!client) throw new Error('Missing Cloudflare R2 credentials');

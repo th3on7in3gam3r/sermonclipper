@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { progressManager } from '../../../lib/progress';
+import { generatePresignedGetUrl } from '../../../lib/r2';
 
 const SHOTSTACK_SANDBOX_KEY = process.env.SHOTSTACK_SANDBOX_KEY;
 const SHOTSTACK_PRODUCTION_KEY = process.env.SHOTSTACK_PRODUCTION_KEY;
@@ -74,8 +75,25 @@ export async function POST(req: NextRequest) {
 
     const videoUrl = state.finalPath;
 
-    // Shotstack cannot render from YouTube URLs directly — needs a direct MP4/video file URL
-    const isYouTubeUrl = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be');
+    // If the video is stored in R2 (private), generate a presigned GET URL
+    // so Shotstack can fetch it. R2 objects are private by default.
+    let shotstackVideoUrl = videoUrl;
+    if (videoUrl.includes('.r2.cloudflarestorage.com')) {
+      try {
+        // Extract the key from the R2 URL
+        // URL format: https://account.r2.cloudflarestorage.com/bucket/key
+        const urlObj = new URL(videoUrl);
+        const pathParts = urlObj.pathname.split('/').filter(Boolean);
+        // pathParts[0] = bucket name, rest = key
+        const key = pathParts.slice(1).map(decodeURIComponent).join('/');
+        shotstackVideoUrl = await generatePresignedGetUrl(key, 7200);
+        console.log('[Render] Generated presigned GET URL for Shotstack');
+      } catch (e) {
+        console.warn('[Render] Could not generate presigned URL, using original:', e);
+        shotstackVideoUrl = videoUrl;
+      }
+    }
+    const isYouTubeUrl = shotstackVideoUrl.includes('youtube.com') || shotstackVideoUrl.includes('youtu.be');
     if (isYouTubeUrl) {
       return NextResponse.json({ 
         error: 'Video rendering requires a direct MP4 file. The YouTube download did not complete successfully. Please try uploading the video file directly instead.' 
@@ -121,7 +139,7 @@ export async function POST(req: NextRequest) {
 
     // Build video clip with optional color correction
     const videoClip: Record<string, unknown> = {
-      asset: { type: 'video', src: videoUrl, trim: start },
+      asset: { type: 'video', src: shotstackVideoUrl, trim: start },
       start: 0,
       length: duration,
       fit: 'cover',
