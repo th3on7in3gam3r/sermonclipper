@@ -55,45 +55,58 @@ export default function Dashboard() {
   ) : null;
 
   return (
-    <main style={{ minHeight: '100vh', padding: '60px 20px', position: 'relative', background: '#0A0A0F' }}>
-      <div className="vesper-bg" />
+    <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div className="vesper-mesh-bg" />
       
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 60px', zIndex: 1000 }}>
+      {/* Navigation */}
+      <header className="glass-card" style={{ 
+        position: 'fixed', top: '16px', left: '50%', transform: 'translateX(-50%)', 
+        width: 'calc(100% - 32px)', maxWidth: '1400px', height: '72px', 
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+        padding: '0 32px', zIndex: 1000, borderRadius: '20px'
+      }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <div style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff', opacity: 0.8 }}>
-            VESPER
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 15px var(--primary)' }} />
+            <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
           </div>
         </Link>
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-          {statusBar}
-          <Link href="/" style={{ textDecoration: 'none', fontSize: '15px', fontWeight: 800, color: '#A1A1AA', letterSpacing: '0.1em' }}>HOME</Link>
-          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
-            <UserButton />
-          </div>
+          {userData && (
+            <div className="vesper-badge badge-violet" style={{ padding: '8px 16px', gap: '12px' }}>
+              <span style={{ fontWeight: 900 }}>{userData.plan?.replace('_', ' ')}</span>
+              <span style={{ opacity: 0.5 }}>|</span>
+              <span style={{ opacity: 0.8 }}>{userData.usageCount || 0}/{userData.limit === 999999 ? '∞' : userData.limit}</span>
+            </div>
+          )}
+          <Link href="/" className="vesper-btn-outline" style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-muted)' }}>HOME</Link>
+          <UserButton />
         </div>
       </header>
 
-      <div style={{ maxWidth: '1200px', margin: '80px auto 0', position: 'relative', zIndex: 10 }}>
+      <div style={{ maxWidth: '1400px', margin: '140px auto 0', padding: '0 40px', position: 'relative', zIndex: 10 }}>
         <div style={{ marginBottom: '64px' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', marginBottom: '8px' }}>
-            YOUR <span style={{ color: '#8B5CF6' }}>HARVEST</span>
+          <div className="vesper-badge badge-violet" style={{ marginBottom: '16px' }}>NEURAL ARCHIVE</div>
+          <h1 className="title-xl gradient-text" style={{ fontSize: 'clamp(32px, 6vw, 64px)', marginBottom: '16px' }}>
+            YOUR <span className="accent-text">HARVEST</span>
           </h1>
-          <p style={{ color: '#A1A1AA', fontSize: '18px' }}>
-            Manage your cinematic ministry assets and social media reels.
+          <p style={{ color: 'var(--text-muted)', fontSize: '18px', maxWidth: '600px' }}>
+            Manage your cinematic ministry assets and social media reels across all series.
           </p>
         </div>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '100px 0' }}>
-            <div className="spiritual-rays" style={{ position: 'static', margin: '0 auto 24px' }} />
-            <p style={{ color: '#666', fontSize: '16px', letterSpacing: '0.2em' }}>SYNCHRONIZING NEURAL ARCHIVES...</p>
+            <div style={{ fontSize: '40px', marginBottom: '24px', animation: 'pulse 2s infinite' }}>◈</div>
+            <p style={{ color: 'var(--text-dim)', fontSize: '16px', fontWeight: 900, letterSpacing: '0.2em' }}>SYNCHRONIZING NEURAL ARCHIVES...</p>
           </div>
         ) : sermons.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '100px 40px', background: 'rgba(255,255,255,0.02)', borderRadius: '32px', border: '1px dashed rgba(255,255,255,0.1)' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>No Sermons Harvested Yet</h2>
-            <p style={{ color: '#A1A1AA', marginBottom: '32px' }}>Start your first cinematic harvest to populate your dashboard.</p>
+          <div className="glass-card premium-border animate-in" style={{ textAlign: 'center', padding: '100px 40px', borderStyle: 'dashed' }}>
+            <div style={{ fontSize: '48px', marginBottom: '24px', opacity: 0.3 }}>🌾</div>
+            <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '16px' }}>No Sermons Harvested Yet</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '40px', fontSize: '16px' }}>Start your first cinematic harvest to populate your dashboard.</p>
             <Link href="/">
-              <button className="shimmer-btn" style={{ padding: '16px 40px', borderRadius: '14px' }}>New Harvest Session</button>
+              <button className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: '16px 40px' }}>NEW HARVEST SESSION</button>
             </Link>
           </div>
         ) : (
@@ -117,33 +130,32 @@ export default function Dashboard() {
                       href={`/results?jobId=${sermon.jobId}&videoUrl=${encodeURIComponent(sermon.videoUrl)}`}
                       style={{ textDecoration: 'none', color: 'inherit' }}
                     >
-                      <div className="clip-card animate-up" style={{ height: '100%', transition: 'transform 0.3s ease' }}>
-                        <div className="clip-preview" style={{ height: '200px', background: 'rgba(139, 92, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+                      <div className="glass-card premium-border animate-in" style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ height: '200px', background: '#000', position: 'relative', overflow: 'hidden' }}>
                           {getYoutubeId(sermon.videoUrl || '') ? (
                             <img 
                               src={`https://img.youtube.com/vi/${getYoutubeId(sermon.videoUrl || '')}/maxresdefault.jpg`}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }}
                               alt="Sermon Thumbnail"
-                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             />
                           ) : (
-                            <div style={{ fontSize: '40px', opacity: 0.2, fontWeight: 900 }}>VESPER</div>
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 900, color: 'rgba(255,255,255,0.1)', letterSpacing: '0.4em' }}>VESPER</div>
                           )}
-                          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #111114, transparent)' }} />
-                          <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: '99px', fontSize: '14px', color: '#8B5CF6', fontWeight: 800 }}>
+                          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,15,1), transparent)' }} />
+                          <div className="vesper-badge badge-violet" style={{ position: 'absolute', top: '16px', right: '16px', backdropFilter: 'blur(8px)' }}>
                             {sermon.analysis?.clips?.length || 0} CLIPS
                           </div>
                         </div>
-                        <div className="clip-info" style={{ padding: '24px' }}>
-                          <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px', lineBreak: 'anywhere' }}>{sermon.title}</h3>
-                          <p style={{ color: '#A1A1AA', fontSize: '17px', lineHeight: 1.5, height: '4.5em', overflow: 'hidden' }}>
+                        <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                          <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>{sermon.title}</h3>
+                          <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.5, height: '3em', overflow: 'hidden' }}>
                             {sermon.mainTheme || 'Neural analysis complete.'}
                           </p>
-                          <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '14px', fontWeight: 900, color: '#666' }}>
+                          <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-dim)' }}>
                               {new Date(sermon.createdAt).toLocaleDateString()}
                             </span>
-                            <span style={{ color: '#8B5CF6', fontSize: '16px', fontWeight: 700 }}>VIEW ASSETS →</span>
+                            <span style={{ color: 'var(--primary)', fontSize: '14px', fontWeight: 900 }}>VIEW ASSETS →</span>
                           </div>
                         </div>
                       </div>
@@ -157,14 +169,14 @@ export default function Dashboard() {
       </div>
 
       {/* Footer */}
-      <footer style={{ position: 'relative', zIndex: 10, padding: '80px 20px', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '100px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '15px', fontWeight: 700, letterSpacing: '0.2em', opacity: 0.4, marginBottom: '16px' }}>
+      <footer className="glass-card" style={{ padding: '80px 20px', borderRadius: '48px 48px 0 0', borderBottom: 'none', borderLeft: 'none', borderRight: 'none', textAlign: 'center', background: 'rgba(0,0,0,0.5)', marginTop: '100px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.3em', opacity: 0.6, marginBottom: '24px' }}>
           <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>PRIVACY POLICY</Link>
           <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>TERMS OF SERVICE</Link>
           <span style={{ color: '#fff' }}>© 2026 VESPER</span>
         </div>
-        <p style={{ fontSize: '15px', color: '#52525B', fontWeight: 600 }}>
-          Made by <a href="https://biblefunland.com" target="_blank" rel="noreferrer" style={{ color: '#8B5CF6', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
+        <p style={{ fontSize: '14px', color: 'var(--text-dim)', fontWeight: 600 }}>
+          Made by <a href="https://biblefunland.com" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
         </p>
       </footer>
     </main>

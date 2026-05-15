@@ -109,41 +109,54 @@ export default function VesperStudio({
   const isYouTubeSource = !!videoId;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#050508', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+    <div className="vesper-mesh-bg-container" style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#050508', display: 'flex', flexDirection: 'column', animation: 'slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+      <div className="vesper-mesh-bg" />
       
       {/* Top Bar — Global Controls */}
-      <div style={{ height: '72px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', background: 'rgba(10,10,15,0.98)', borderBottom: '1px solid rgba(255,255,255,0.06)', zIndex: 50 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#8B5CF6', boxShadow: '0 0 15px #8B5CF6' }} />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff', textTransform: 'uppercase' }}>VESPER STUDIO</span>
-            <span style={{ fontSize: '15px', color: '#52525B', letterSpacing: '0.1em', fontWeight: 700 }}>NEURAL EDITING SUITE V2.0</span>
+      <div className="glass-card" style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', borderRadius: 0, borderTop: 'none', borderLeft: 'none', borderRight: 'none', zIndex: 100 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 15px var(--primary)' }} />
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '0.3em', color: '#fff' }}>VESPER STUDIO</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.1em', fontWeight: 700 }}>NEURAL EDITING SUITE V2.5</div>
+            </div>
           </div>
+          
+          {!isMobile && (
+            <div style={{ height: '32px', width: '1px', background: 'rgba(255,255,255,0.1)' }} />
+          )}
+
+          {!isMobile && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="vesper-badge badge-violet" style={{ fontSize: '11px' }}>4K UPSCALE</div>
+              <div className="vesper-badge badge-green" style={{ fontSize: '11px' }}>AI SYNC ACTIVE</div>
+            </div>
+          )}
         </div>
+
         <button
           onClick={onClose}
-          style={{ padding: '10px 24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer', fontSize: '15px', fontWeight: 900, letterSpacing: '0.1em', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
+          className="vesper-btn-outline shimmer-effect"
+          style={{ padding: '10px 20px', borderRadius: '12px', fontSize: '13px' }}
         >
-          <span style={{ opacity: 0.6 }}>✕</span> CLOSE
+          <span style={{ opacity: 0.6, marginRight: '8px' }}>✕</span> CLOSE EDITOR
         </button>
       </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
         
         {/* LEFT PANEL — Style tools */}
-        <div style={{ 
-          width: isMobile ? '100%' : '320px', 
-          flexShrink: 0, 
-          background: '#0A0A0F', 
-          borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.05)', 
+        <div className="studio-panel" style={{ 
+          width: isMobile ? '100%' : '340px', 
+          borderRight: '1px solid rgba(255,255,255,0.05)', 
           display: isMobile ? (mobileTab === 'style' ? 'flex' : 'none') : 'flex', 
-          flexDirection: 'column',
-          overflow: 'hidden',
-          flex: isMobile ? 1 : undefined,
+          borderRadius: 0, borderTop: 'none', borderBottom: 'none', borderLeft: 'none',
+          background: 'rgba(10, 10, 15, 0.4)'
         }}>
 
           {/* Navigation Bar */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
             {[
               { id: 'templates', icon: '◈', label: 'Style' },
               { id: 'filters', icon: '◐', label: 'Filter' },
@@ -155,18 +168,20 @@ export default function VesperStudio({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
+                className={activeTab === tab.id ? 'studio-tab-active' : ''}
                 style={{
+                  position: 'relative',
                   padding: '16px 4px',
-                  background: activeTab === tab.id ? 'rgba(139,92,246,0.08)' : 'transparent',
+                  background: 'transparent',
                   border: 'none',
-                  borderBottom: activeTab === tab.id ? '2px solid #8B5CF6' : '2px solid transparent',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                  color: 'var(--text-dim)'
                 }}
               >
-                <span style={{ fontSize: '20px', color: activeTab === tab.id ? '#A78BFA' : '#52525B', lineHeight: 1 }}>{tab.icon}</span>
-                <span style={{ fontSize: '13px', fontWeight: 900, letterSpacing: '0.08em', color: activeTab === tab.id ? '#A78BFA' : '#52525B', textTransform: 'uppercase' }}>{tab.label}</span>
+                <span style={{ fontSize: '20px', lineHeight: 1 }}>{tab.icon}</span>
+                <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{tab.label}</span>
               </button>
             ))}
           </div>
@@ -185,19 +200,24 @@ export default function VesperStudio({
               <div
                 key={t.id}
                 onClick={() => setSelectedTemplate(t.id)}
+                className="glass-card"
                 style={{
-                  padding: '20px', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.2s',
-                  background: selectedTemplate === t.id ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
-                  border: selectedTemplate === t.id ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
+                  padding: '16px', borderRadius: '16px', cursor: 'pointer',
+                  background: selectedTemplate === t.id ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.02)',
+                  borderColor: selectedTemplate === t.id ? 'var(--primary)' : 'var(--card-border)',
                   display: 'flex', alignItems: 'center', gap: '16px',
                 }}
               >
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0, background: `linear-gradient(135deg, ${t.color}33, ${t.color}88)`, border: `1px solid ${t.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: t.color, boxShadow: `0 0 10px ${t.color}` }} />
+                <div style={{ 
+                  width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0, 
+                  background: `linear-gradient(135deg, ${t.color}22, ${t.color}66)`, 
+                  border: `1px solid ${t.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center' 
+                }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: t.color, boxShadow: `0 0 10px ${t.color}` }} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#fff', marginBottom: '2px' }}>{t.name}</div>
-                  <div style={{ fontSize: '14px', color: '#71717A', lineHeight: 1.4 }}>{t.desc}</div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>{t.name}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{t.desc}</div>
                 </div>
               </div>
             ))}
@@ -209,21 +229,22 @@ export default function VesperStudio({
                   <div
                     key={f.id}
                     onClick={() => setSelectedFilter(f.id)}
+                    className="glass-card"
                     style={{
-                      borderRadius: '16px', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s',
-                      border: selectedFilter === f.id ? '2px solid #8B5CF6' : '1px solid rgba(255,255,255,0.06)',
-                      background: 'rgba(255,255,255,0.02)'
+                      borderRadius: '16px', cursor: 'pointer', overflow: 'hidden',
+                      borderColor: selectedFilter === f.id ? 'var(--primary)' : 'var(--card-border)',
+                      padding: 0
                     }}
                   >
-                    <div style={{ height: '60px', background: f.preview.includes('bg-gradient') ? undefined : '#111', position: 'relative' }} className={f.preview}>
+                    <div style={{ height: '64px', background: f.preview.includes('bg-gradient') ? undefined : '#111', position: 'relative' }} className={f.preview}>
                       {selectedFilter === f.id && (
-                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(139,92,246,0.4)', backdropFilter: 'blur(2px)' }}>
-                          <span style={{ fontSize: '18px' }}>✓</span>
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--primary-glow)', backdropFilter: 'blur(2px)' }}>
+                          <span style={{ fontSize: '20px' }}>✓</span>
                         </div>
                       )}
                     </div>
-                    <div style={{ padding: '10px 12px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '14px', fontWeight: 900, color: selectedFilter === f.id ? '#C4B5FD' : '#71717A', letterSpacing: '0.05em' }}>{f.name}</div>
+                    <div style={{ padding: '8px 4px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: selectedFilter === f.id ? 'var(--secondary)' : 'var(--text-muted)', letterSpacing: '0.05em' }}>{f.name}</div>
                     </div>
                   </div>
                 ))}
@@ -235,19 +256,20 @@ export default function VesperStudio({
               <div
                 key={f.id}
                 onClick={() => setSelectedFont(f.id)}
+                className="glass-card"
                 style={{
-                  padding: '16px', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.2s',
-                  background: selectedFont === f.id ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
-                  border: selectedFont === f.id ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
+                  padding: '14px', borderRadius: '16px', cursor: 'pointer',
+                  background: selectedFont === f.id ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.02)',
+                  borderColor: selectedFont === f.id ? 'var(--primary)' : 'var(--card-border)',
                   display: 'flex', alignItems: 'center', gap: '16px',
                 }}
               >
-                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontFamily: f.family, fontWeight: f.weight, fontSize: '20px', color: selectedFont === f.id ? '#C4B5FD' : '#fff' }}>Aa</span>
+                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ fontFamily: f.family, fontWeight: f.weight, fontSize: '18px', color: selectedFont === f.id ? 'var(--secondary)' : '#fff' }}>Aa</span>
                 </div>
                 <div>
-                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#fff', marginBottom: '2px', fontFamily: f.family }}>{f.name}</div>
-                  <div style={{ fontSize: '14px', color: '#71717A' }}>{f.desc}</div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '2px', fontFamily: f.family }}>{f.name}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{f.desc}</div>
                 </div>
               </div>
             ))}
@@ -257,19 +279,20 @@ export default function VesperStudio({
               <div
                 key={a.id}
                 onClick={() => setSelectedAnimation(a.id)}
+                className="glass-card"
                 style={{
-                  padding: '18px', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.2s',
-                  background: selectedAnimation === a.id ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
-                  border: selectedAnimation === a.id ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
+                  padding: '14px', borderRadius: '16px', cursor: 'pointer',
+                  background: selectedAnimation === a.id ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.02)',
+                  borderColor: selectedAnimation === a.id ? 'var(--primary)' : 'var(--card-border)',
                   display: 'flex', alignItems: 'center', gap: '16px',
                 }}
               >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
                   {a.id === 'fade' ? '✦' : a.id === 'slideUp' ? '↑' : a.id === 'zoom' ? '⊕' : '▶'}
                 </div>
                 <div>
-                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#fff', marginBottom: '2px' }}>{a.name}</div>
-                  <div style={{ fontSize: '14px', color: '#71717A' }}>{a.desc}</div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>{a.name}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{a.desc}</div>
                 </div>
               </div>
             ))}
@@ -369,10 +392,10 @@ export default function VesperStudio({
           </div>
 
           {/* Export Panel at bottom of Left Sidebar */}
-          <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0, background: 'rgba(0,0,0,0.2)' }}>
-            <div style={{ marginBottom: '16px', padding: '14px', background: 'rgba(139,92,246,0.04)', borderRadius: '14px', border: '1px solid rgba(139,92,246,0.1)' }}>
-              <div style={{ fontSize: '11px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '6px', textTransform: 'uppercase' }}>Active Profile</div>
-              <div style={{ fontSize: '14px', color: '#A1A1AA', lineHeight: 1.4, display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          <div style={{ padding: '24px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0, background: 'rgba(0,0,0,0.3)' }}>
+            <div style={{ marginBottom: '20px', padding: '16px', background: 'rgba(139,92,246,0.05)', borderRadius: '16px', border: '1px solid rgba(139,92,246,0.1)' }}>
+              <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--primary)', letterSpacing: '0.15em', marginBottom: '8px', textTransform: 'uppercase' }}>Active Profile</div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.4, display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 <span style={{ color: '#fff', fontWeight: 800 }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</span>
                 <span style={{ opacity: 0.3 }}>•</span>
                 <span style={{ color: '#fff', fontWeight: 800 }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</span>
@@ -380,27 +403,24 @@ export default function VesperStudio({
                 <span style={{ color: '#fff', fontWeight: 800 }}>{FONTS.find(f => f.id === selectedFont)?.name}</span>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={() => toast.success('Profile Saved')}
-                style={{ width: '52px', flexShrink: 0, padding: '16px 0', borderRadius: '14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: '#A1A1AA', cursor: 'pointer', fontSize: '18px' }}
+                className="vesper-btn-outline"
+                style={{ width: '56px', flexShrink: 0, padding: 0, borderRadius: '14px', fontSize: '20px' }}
                 title="Save Profile"
               >
                 💾
               </button>
               <button
                 onClick={handleStartExport}
-                className="shimmer-btn"
+                className="vesper-btn vesper-btn-primary shimmer-effect"
                 disabled={!!(rendering[selectedClip.index]?.status === 'loading')}
                 style={{ 
                   flex: 1, 
-                  padding: '16px', 
-                  borderRadius: '14px', 
-                  fontSize: '16px', 
-                  fontWeight: 900, 
                   opacity: (rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1, 
                   background: (rendering[selectedClip.index]?.status === 'complete') ? 'linear-gradient(90deg,#10B981,#059669)' : undefined,
-                  letterSpacing: '0.05em'
+                  fontSize: '14px'
                 }}
               >
                 {rendering[selectedClip.index]?.status === 'loading'
@@ -416,9 +436,8 @@ export default function VesperStudio({
         {/* PANEL 2: CENTER (Cinematic Preview) */}
         <div style={{ 
           flex: 1, 
-          flexShrink: 0,
           position: 'relative', 
-          background: '#050508', 
+          background: 'transparent', 
           display: isMobile ? (mobileTab === 'preview' ? 'flex' : 'none') : 'flex',
           flexDirection: 'column', 
           alignItems: 'center', 
@@ -427,26 +446,25 @@ export default function VesperStudio({
           overflow: 'hidden',
         }}>
           {/* Subtle Background Glows */}
-          <div style={{ position: 'absolute', top: '10%', left: '10%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: '20%', left: '20%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }} />
           
           {/* Phone Mockup Frame */}
-          <div style={{ 
-            width: 'min(330px, 48vh)', 
+          <div className="premium-border" style={{ 
+            width: 'min(360px, 50vh)', 
             aspectRatio: '9/19.5', 
-            background: '#08080A', 
+            background: '#000', 
             borderRadius: '48px', 
-            border: '10px solid #1A1A1F', 
-            boxShadow: '0 50px 120px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05)',
+            border: '12px solid #1A1A1F', 
+            boxShadow: '0 50px 120px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
             position: 'relative',
             overflow: 'hidden',
             zIndex: 10,
             transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
           }}>
             {/* Camera / Dynamic Island */}
-            <div style={{ position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '24px', background: '#000', borderRadius: '12px', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#111' }} />
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#050510' }} />
+            <div style={{ position: 'absolute', top: '14px', left: '50%', transform: 'translateX(-50%)', width: '90px', height: '28px', background: '#000', borderRadius: '14px', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#111' }} />
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#080815' }} />
             </div>
 
             {/* Video Container */}
@@ -525,30 +543,27 @@ export default function VesperStudio({
         </div>
 
         {/* PANEL 3: RIGHT SIDEBAR — Social Kit */}
-        <div style={{ 
-          width: isMobile ? '100%' : '360px', 
-          flexShrink: 0, 
-          background: '#0A0A0F', 
-          borderLeft: isMobile ? 'none' : '1px solid rgba(255,255,255,0.05)', 
+        <div className="studio-panel" style={{ 
+          width: isMobile ? '100%' : '380px', 
+          borderLeft: '1px solid rgba(255,255,255,0.05)', 
           display: isMobile ? ((mobileTab === 'social' || mobileTab === 'export') ? 'flex' : 'none') : 'flex', 
-          flexDirection: 'column', 
-          overflow: 'hidden',
-          flex: isMobile ? 1 : undefined,
+          borderRadius: 0, borderTop: 'none', borderBottom: 'none', borderRight: 'none',
+          background: 'rgba(10, 10, 15, 0.4)'
         }}>
 
           {/* Header */}
           <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-            <div style={{ fontSize: '12px', fontWeight: 900, color: '#10B981', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '4px' }}>MEDIA KIT</div>
+            <div className="vesper-badge badge-green" style={{ marginBottom: '8px' }}>MEDIA KIT GENERATED</div>
             <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#fff' }}>Social Distribution</h3>
           </div>
 
           {/* Social Platforms List */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
             {/* Engagement Hook Card */}
-            <div style={{ padding: '20px', background: 'rgba(139,92,246,0.04)', borderRadius: '16px', border: '1px solid rgba(139,92,246,0.15)' }}>
-              <div style={{ fontSize: '12px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', marginBottom: '8px', textTransform: 'uppercase' }}>Engagement Hook</div>
-              <p style={{ fontSize: '16px', color: '#C4B5FD', lineHeight: 1.5, margin: 0, fontWeight: 700 }}>
+            <div className="glass-card premium-border" style={{ padding: '20px', background: 'var(--primary-glow)', borderColor: 'rgba(139,92,246,0.3)' }}>
+              <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--secondary)', letterSpacing: '0.15em', marginBottom: '10px', textTransform: 'uppercase' }}>Engagement Hook</div>
+              <p style={{ fontSize: '17px', color: '#fff', lineHeight: 1.5, margin: 0, fontWeight: 700 }}>
                 &ldquo;{selectedClip.engagement_hook || 'Dynamic theological insight captured.'}&rdquo;
               </p>
             </div>
@@ -560,25 +575,24 @@ export default function VesperStudio({
               const overLimit = p.limit ? charCount > p.limit : false;
               
               return (
-                <div key={p.id} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '18px', overflow: 'hidden', transition: 'all 0.2s' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <div key={p.id} className="glass-card" style={{ overflow: 'hidden', padding: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <span style={{ fontSize: '20px' }}>{p.icon}</span>
-                      <span style={{ fontSize: '15px', fontWeight: 900, color: '#fff' }}>{p.label}</span>
+                      <span style={{ fontSize: '15px', fontWeight: 800, color: '#fff' }}>{p.label}</span>
                     </div>
-                    <div style={{ fontSize: '12px', fontWeight: 900, color: overLimit ? '#EF4444' : '#52525B', fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 900, color: overLimit ? 'var(--error)' : 'var(--text-dim)', fontFamily: 'monospace' }}>
                       {charCount}{p.limit ? `/${p.limit}` : ''}
                     </div>
                   </div>
-                  <div style={{ padding: '16px 20px', fontSize: '15px', color: '#A1A1AA', lineHeight: 1.6, maxHeight: '120px', overflowY: 'auto' }}>
+                  <div style={{ padding: '16px 20px', fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6, maxHeight: '140px', overflowY: 'auto' }}>
                     {fullText}
                   </div>
-                  <div style={{ padding: '0 16px 16px' }}>
+                  <div style={{ padding: '12px 16px 16px' }}>
                     <button
                       onClick={() => { navigator.clipboard.writeText(fullText); toast.success(`${p.label} Copied`); }}
-                      style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', color: '#fff', fontSize: '13px', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s' }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                      className="vesper-btn-outline shimmer-effect"
+                      style={{ width: '100%', padding: '10px', fontSize: '12px', borderRadius: '10px' }}
                     >
                       COPY CAPTION
                     </button>
@@ -593,8 +607,8 @@ export default function VesperStudio({
             <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <button 
                 onClick={handleStartExport}
-                className="shimmer-btn"
-                style={{ width: '100%', padding: '20px', borderRadius: '16px', fontSize: '16px', fontWeight: 900 }}
+                className="vesper-btn vesper-btn-primary shimmer-effect"
+                style={{ width: '100%', padding: '20px', fontSize: '16px' }}
               >
                 RENDER FINAL REEL
               </button>
@@ -605,7 +619,10 @@ export default function VesperStudio({
 
       {/* Mobile Bottom Navigation */}
       {isMobile && (
-        <div style={{ height: '76px', background: '#0A0A0F', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', zIndex: 100, paddingBottom: '10px' }}>
+        <div className="glass-card" style={{ 
+          height: '84px', borderRadius: '24px 24px 0 0', borderBottom: 'none', borderLeft: 'none', borderRight: 'none',
+          display: 'flex', zIndex: 100, paddingBottom: '12px' 
+        }}>
           {[
             { id: 'style', label: 'STYLE', icon: '🎨' },
             { id: 'preview', label: 'PREVIEW', icon: '📱' },
@@ -618,11 +635,11 @@ export default function VesperStudio({
               style={{
                 flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px',
                 background: 'none', border: 'none',
-                color: mobileTab === tab.id ? '#8B5CF6' : '#52525B',
+                color: mobileTab === tab.id ? 'var(--primary)' : 'var(--text-dim)',
                 transition: 'all 0.2s'
               }}
             >
-              <span style={{ fontSize: '22px' }}>{tab.icon}</span>
+              <span style={{ fontSize: '24px', filter: mobileTab === tab.id ? 'drop-shadow(0 0 8px var(--primary-glow))' : 'none' }}>{tab.icon}</span>
               <span style={{ fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em' }}>{tab.label}</span>
             </button>
           ))}

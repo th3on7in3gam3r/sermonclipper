@@ -135,95 +135,98 @@ export default function Home() {
 
   if (isProcessing) {
     return (
-      <main style={{ minHeight: '100vh', padding: '20px', background: '#0A0A0F', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-        <div className="spiritual-rays" />
-        <div className="animate-up" style={{ width: '100%', maxWidth: '600px', position: 'relative', zIndex: 1 }}>
-          <ProcessingView 
-            steps={[
-              { id: 'engine', label: 'Extracting Audio track' },
-              { id: 'transcribe', label: 'Neural Transcription' },
-              { id: 'analysis', label: 'Analyzing moments' },
-              { id: 'visuals', label: 'Generating Reels' }
-            ]}
-            currentStepIndex={status?.step === 'Uploading' ? 0 : status?.step === 'Transcribing' ? 1 : 2}
-            statusMessage={status?.message || 'Initializing Neural Engine...'}
-          />
+      <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="vesper-mesh-bg" />
+        <div className="animate-in" style={{ width: '100%', maxWidth: '640px', position: 'relative', zIndex: 10, padding: '24px' }}>
+          <div className="glass-card premium-border" style={{ padding: '48px', textAlign: 'center' }}>
+            <ProcessingView 
+              steps={[
+                { id: 'engine', label: 'Extracting Audio track' },
+                { id: 'transcribe', label: 'Neural Transcription' },
+                { id: 'analysis', label: 'Analyzing moments' },
+                { id: 'visuals', label: 'Generating Reels' }
+              ]}
+              currentStepIndex={status?.step === 'Uploading' ? 0 : status?.step === 'Transcribing' ? 1 : 2}
+              statusMessage={status?.message || 'Initializing Neural Engine...'}
+            />
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <div className="spiritual-rays" />
-      <div className="cross-motif" />
+    <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div className="vesper-mesh-bg" />
       
       {/* Navigation */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', zIndex: 1000, background: 'rgba(10, 10, 15, 0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/vesper-logo-icon.png" alt="Logo" style={{ height: '36px', width: 'auto', mixBlendMode: 'screen', display: 'block' }} />
-          <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff', display: 'flex', alignItems: 'center' }}>VESPER</div>
+      <header className="glass-card" style={{ 
+        position: 'fixed', top: '16px', left: '50%', transform: 'translateX(-50%)', 
+        width: 'calc(100% - 32px)', maxWidth: '1400px', height: '72px', 
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+        padding: '0 32px', zIndex: 1000, borderRadius: '20px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 15px var(--primary)' }} />
+          <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.4em', color: '#fff' }}>VESPER</div>
         </div>
 
-        <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
-          <Link href="/#features" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA' }}>Vision</Link>
-          <Link href="/#pricing" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#A1A1AA' }}>Pricing</Link>
+        <nav style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
+          <Link href="/#features" className="vesper-btn-outline" style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-muted)' }}>VISION</Link>
+          <Link href="/#pricing" className="vesper-btn-outline" style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-muted)' }}>PRICING</Link>
           {isLoaded && userId ? (
-            <>
-              <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: 600, color: '#fff' }}>Dashboard</Link>
-              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <UserButton />
-              </div>
-            </>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <Link href="/dashboard" className="vesper-btn-outline" style={{ padding: '8px 20px', fontSize: '13px' }}>DASHBOARD</Link>
+              <UserButton />
+            </div>
           ) : (
             <SignInButton mode="modal">
-              <button style={{ background: '#8B5CF6', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>Sign In</button>
+              <button className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: '10px 24px', fontSize: '13px' }}>SIGN IN</button>
             </SignInButton>
           )}
-        </div>
+        </nav>
       </header>
 
       {/* Hero Section */}
-      <section style={{ padding: '200px 20px 100px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-        <div className="animate-up">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2em', marginBottom: '60px' }}>
-            <img 
-              src="/vesper-logo-icon.png" 
-              alt="VESPER Icon" 
-              style={{ 
-                height: 'clamp(64px, 15vw, 180px)', 
-                width: 'auto', 
-                objectFit: 'contain', 
-                mixBlendMode: 'screen',
-                display: 'block'
-              }}
-            />
-            <h1 className="hero-title" style={{ 
-              margin: 0, 
-              fontSize: 'clamp(48px, 10vw, 140px)',
-              lineHeight: 1,
-              display: 'flex',
-              alignItems: 'center'
-            }}>VESPER</h1>
+      <section style={{ padding: '180px 20px 80px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <div className="animate-in" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div className="vesper-badge badge-violet" style={{ marginBottom: '40px', padding: '12px 24px' }}>
+            <span style={{ fontSize: '16px', marginRight: '8px' }}>✨</span> THE NEXT EVOLUTION OF MINISTRY MEDIA
           </div>
           
-          <p className="hero-tagline">
-            Turn powerful sermons into short-form content that reaches more hearts. Our Neural Engine finds the most impactful moments automatically.
+          <h1 className="title-xl" style={{ fontSize: 'clamp(48px, 12vw, 160px)', marginBottom: '40px' }}>
+            <span className="gradient-text">VESPER</span>
+          </h1>
+          
+          <p className="title-xl" style={{ fontSize: 'clamp(24px, 5vw, 48px)', fontWeight: 300, marginBottom: '48px', color: 'var(--text-muted)' }}>
+            Cinematic Reels. <span className="accent-text">Neural Precision.</span>
           </p>
 
-          <div className="input-wrapper animate-up" style={{ animationDelay: '0.2s' }}>
-            <input 
-              type="text" 
-              placeholder="Paste YouTube sermon link here..."
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleProcess()}
-            />
-            <button onClick={handleProcess} className="primary-btn">Process Sermon</button>
+          <p style={{ color: 'var(--text-muted)', fontSize: '20px', maxWidth: '720px', margin: '0 auto 64px', lineHeight: 1.6, fontWeight: 400 }}>
+            Automatically distill your powerful sermons into high-impact cinematic reels that reach more hearts on every platform.
+          </p>
+
+          <div className="glass-card premium-border" style={{ maxWidth: '800px', margin: '0 auto 40px', padding: '8px', borderRadius: '24px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input 
+                type="text" 
+                placeholder="Paste YouTube sermon link here..."
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleProcess()}
+                style={{ 
+                  flex: 1, background: 'transparent', border: 'none', padding: '16px 24px', 
+                  color: '#fff', fontSize: '16px', outline: 'none' 
+                }}
+              />
+              <button onClick={handleProcess} className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: '0 32px' }}>HARVEST NOW</button>
+            </div>
           </div>
 
-          <div className="luxury-divider animate-up" style={{ animationDelay: '0.4s' }}>
-            <span>OR UPLOAD VIDEO FILE</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', marginBottom: '40px', opacity: 0.4 }}>
+            <div style={{ height: '1px', width: '60px', background: 'currentColor' }} />
+            <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.2em' }}>OR UPLOAD CINEMATIC SOURCE</span>
+            <div style={{ height: '1px', width: '60px', background: 'currentColor' }} />
           </div>
 
           <input 
@@ -269,42 +272,47 @@ export default function Home() {
           />
 
           <div 
-            className="glass-panel animate-up" 
+            className="glass-card premium-border animate-in" 
             onClick={() => document.getElementById('video-upload')?.click()}
-            style={{ animationDelay: '0.6s', maxWidth: '800px', margin: '0 auto', padding: '60px', borderStyle: 'dashed', borderWidth: '2px', cursor: 'pointer' }}
+            style={{ 
+              animationDelay: '0.4s', maxWidth: '800px', margin: '0 auto', padding: '64px', 
+              borderStyle: 'dashed', borderWidth: '2px', cursor: 'pointer',
+              background: 'rgba(255,255,255,0.02)'
+            }}
           >
-             <div style={{ fontSize: '40px', marginBottom: '16px' }}>📁</div>
-             <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>Drag & Drop Your Sermon Video</h3>
-             <p style={{ color: '#52525B', fontSize: '14px' }}>MP4, MOV, or WEBM</p>
-             <div style={{ marginTop: '12px', padding: '8px 16px', background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '10px', display: 'inline-block' }}>
-               <p style={{ color: '#FB923C', fontSize: '12px', fontWeight: 700, margin: 0 }}>⚠️ Maximum file size: 500 MB</p>
-               <p style={{ color: '#71717A', fontSize: '10px', marginTop: '4px' }}>Larger files? We&apos;ll auto-open the trimmer to split it into uploadable segments.</p>
+             <div style={{ fontSize: '48px', marginBottom: '24px', filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.3))' }}>📁</div>
+             <h3 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '12px' }}>Drag & Drop Master Session</h3>
+             <p style={{ color: 'var(--text-muted)', fontSize: '16px', marginBottom: '24px' }}>MP4, MOV, or WEBM (Max 500MB)</p>
+             <div className="vesper-badge badge-gold" style={{ padding: '10px 20px', borderRadius: '12px' }}>
+                SEGMENTED UPLOAD ACTIVE FOR LARGER FILES
              </div>
           </div>
         </div>
       </section>
 
       {/* Vision Section */}
-      <section id="features" style={{ padding: '120px 20px', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+      <section id="features" style={{ padding: '160px 20px', position: 'relative' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-            <span className="section-subtitle">THE VISION</span>
-            <h2 className="section-title">Beyond Technology: Our Ministry</h2>
-            <p style={{ color: '#A1A1AA', fontSize: '18px', maxWidth: '700px', margin: '0 auto', lineHeight: 1.6 }}>
-              Vesper was born from a simple conviction: the Gospel should be shared with the same cinematic excellence that the world uses to capture attention. We build tools that empower pastors to reach the harvest.
+          <div style={{ textAlign: 'center', marginBottom: '100px' }}>
+            <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>THE VISION</div>
+            <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 5vw, 64px)', marginBottom: '32px' }}>
+              Beyond Technology: <span className="accent-text">Our Ministry</span>
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '20px', maxWidth: '800px', margin: '0 auto', lineHeight: 1.6 }}>
+              Vesper was born from a simple conviction: the Gospel should be shared with the same cinematic excellence that the world uses to capture attention.
             </p>
           </div>
           
-          <div className="features-grid">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '32px' }}>
             {[
               { title: 'Neural Selection', icon: '🧠', desc: "Our AI doesn't just clip video; it understands theological context to find the moments that will change lives." },
               { title: 'Social Stewardship', icon: '📱', desc: 'Direct-to-platform publishing ensures your ministry stays consistent without overwhelming your team.' },
               { title: 'Global Impact', icon: '🌎', desc: 'By optimizing for short-form, we help your church message cross borders and reach a digital generation.' }
             ].map((f, i) => (
-              <div key={i} className="glass-panel feature-card" style={{ padding: '40px' }}>
-                <div style={{ fontSize: '48px', marginBottom: '24px' }}>{f.icon}</div>
-                <h3 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '16px' }}>{f.title}</h3>
-                <p style={{ color: '#A1A1AA', lineHeight: 1.6 }}>{f.desc}</p>
+              <div key={i} className="glass-card premium-border animate-in" style={{ padding: '48px', animationDelay: `${i * 0.1}s` }}>
+                <div style={{ fontSize: '56px', marginBottom: '32px', filter: 'drop-shadow(0 0 15px rgba(139,92,246,0.2))' }}>{f.icon}</div>
+                <h3 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '20px' }}>{f.title}</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '17px', lineHeight: 1.6 }}>{f.desc}</p>
               </div>
             ))}
           </div>
@@ -342,23 +350,23 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section style={{ padding: '100px 20px', textAlign: 'center' }}>
-        <div className="glass-panel" style={{ maxWidth: '900px', margin: '0 auto', padding: '80px 40px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(244, 185, 66, 0.05))' }}>
-           <h2 style={{ fontSize: '36px', fontWeight: 900, marginBottom: '24px' }}>Ready to amplify your message?</h2>
-           <p style={{ color: '#A1A1AA', fontSize: '18px', marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>Join 500+ churches using Vesper to reach more people with the Gospel.</p>
-           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="primary-btn">Get Started Now</button>
+      <section style={{ padding: '120px 20px', textAlign: 'center' }}>
+        <div className="glass-card premium-border animate-in" style={{ maxWidth: '1000px', margin: '0 auto', padding: '100px 48px', background: 'var(--primary-glow)' }}>
+           <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 6vw, 56px)', marginBottom: '32px' }}>Ready to amplify your message?</h2>
+           <p style={{ color: 'var(--text-muted)', fontSize: '20px', marginBottom: '48px', maxWidth: '700px', margin: '0 auto 48px' }}>Join 500+ churches using Vesper to reach more people with the Gospel.</p>
+           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: '16px 48px', fontSize: '18px' }}>GET STARTED NOW</button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer style={{ padding: '80px 20px', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.2em', opacity: 0.4, marginBottom: '16px' }}>
+      <footer className="glass-card" style={{ padding: '80px 20px', borderRadius: '48px 48px 0 0', borderBottom: 'none', borderLeft: 'none', borderRight: 'none', textAlign: 'center', background: 'rgba(0,0,0,0.5)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.3em', opacity: 0.6, marginBottom: '24px' }}>
           <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>PRIVACY POLICY</Link>
           <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>TERMS OF SERVICE</Link>
           <span style={{ color: '#fff' }}>© 2026 VESPER</span>
         </div>
-        <p style={{ fontSize: '12px', color: '#52525B', fontWeight: 600 }}>
-          Made by <a href="https://biblefunland.com" target="_blank" rel="noreferrer" style={{ color: '#8B5CF6', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
+        <p style={{ fontSize: '14px', color: 'var(--text-dim)', fontWeight: 600 }}>
+          Made by <a href="https://biblefunland.com" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
         </p>
       </footer>
 

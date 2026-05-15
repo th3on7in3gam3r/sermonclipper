@@ -22,57 +22,63 @@ export default function SermonBrief({ summaries, main_theme, tone, summaryTab, s
   ];
 
   return (
-    <div className="glass-card h-full flex flex-col gap-6">
+    <div className="glass-card premium-border h-full flex flex-col gap-8" style={{ padding: '40px' }}>
       {/* Header */}
-      <div className="space-y-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">Sermon Brief</p>
-        <h3 className="text-2xl font-extrabold text-white leading-tight tracking-tighter">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="vesper-badge badge-violet">SERMON BRIEF</div>
+        <h3 className="title-xl" style={{ fontSize: '28px', lineHeight: 1.2 }}>
           {main_theme || 'Sermon Insight'}
         </h3>
         {tone && (
-          <span className="inline-block px-3 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full">
-            {tone}
-          </span>
+          <div style={{ fontSize: '12px', fontWeight: 900, color: 'var(--primary)', letterSpacing: '0.1em', opacity: 0.8 }}>
+            TONE: {tone.toUpperCase()}
+          </div>
         )}
       </div>
-
+ 
       {/* Tab nav */}
-      <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/5">
+      <div style={{ display: 'flex', gap: '8px', padding: '6px', background: 'rgba(255,255,255,0.03)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)' }}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setSummaryTab(tab.id)}
-            className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
-              summaryTab === tab.id
-                ? 'bg-primary text-white shadow-lg'
-                : 'text-white/40 hover:text-white/60'
-            }`}
+            className="vesper-btn"
+            style={{
+              flex: 1,
+              padding: '10px',
+              fontSize: '11px',
+              letterSpacing: '0.1em',
+              background: summaryTab === tab.id ? 'var(--primary)' : 'transparent',
+              border: 'none',
+              boxShadow: summaryTab === tab.id ? '0 4px 15px rgba(139,92,246,0.3)' : 'none',
+              color: summaryTab === tab.id ? '#fff' : 'var(--text-dim)'
+            }}
           >
-            {tab.label}
+            {tab.label.toUpperCase()}
           </button>
         ))}
       </div>
-
+ 
       {/* Content */}
-      <div className="flex-1 min-h-[200px] overflow-y-auto pr-2 scrollbar-hide">
-        <div key={summaryTab} className="animate-fade">
+      <div style={{ flex: 1, minHeight: '200px', overflowY: 'auto' }} className="scrollbar-hide">
+        <div key={summaryTab} className="animate-in">
           {summaryTab === 'one' && (
-            <p className="text-white/60 text-base leading-relaxed italic border-l-4 border-primary pl-6">
+            <p style={{ color: 'var(--text-muted)', fontSize: '17px', lineHeight: 1.8, fontStyle: 'italic', borderLeft: '3px solid var(--primary)', paddingLeft: '24px' }}>
               &quot;{summaries?.one_minute_summary || 'Summary loading…'}&quot;
             </p>
           )}
           {summaryTab === 'bullets' && (
-            <ul className="space-y-5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {(summaries?.bullet_points || []).slice(0, 5).map((point, i) => (
-                <li key={i} className="flex gap-4 text-white/70 text-sm">
-                  <span className="text-primary font-black shrink-0 mt-0.5">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="leading-relaxed font-medium">{point}</span>
-                </li>
+                <div key={i} style={{ display: 'flex', gap: '16px' }}>
+                  <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '14px', marginTop: '2px' }}>{String(i + 1).padStart(2, '0')}</span>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: 1.6, fontWeight: 500 }}>{point}</p>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
           {summaryTab === 'detailed' && (
-            <p className="text-white/60 text-sm leading-relaxed font-medium">
+            <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: 1.8, fontWeight: 500 }}>
               {summaries?.detailed_summary || 'Detailed summary loading…'}
             </p>
           )}

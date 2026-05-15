@@ -49,34 +49,34 @@ export default function FAQ() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   return (
-    <section id="faq" style={{ padding: '80px 20px', maxWidth: '800px', margin: '0 auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-        <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.3em', marginBottom: '12px' }}>SUPPORT</div>
-        <h2 style={{ fontSize: '32px', fontWeight: 900, letterSpacing: '-0.03em' }}>Frequently Asked Questions</h2>
+    <section id="faq" style={{ padding: '120px 20px', maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+        <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>SUPPORT</div>
+        <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 5vw, 48px)', marginBottom: '16px' }}>Frequently Asked Questions</h2>
       </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+ 
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {FAQ_DATA.map((item, i) => (
           <div
             key={i}
+            className="glass-card premium-border"
             style={{
-              background: openIdx === i ? 'rgba(139,92,246,0.05)' : 'rgba(255,255,255,0.02)',
-              border: openIdx === i ? '1px solid rgba(139,92,246,0.2)' : '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '16px',
-              overflow: 'hidden',
-              transition: 'all 0.2s',
+              padding: 0,
+              background: openIdx === i ? 'rgba(255,255,255,0.02)' : 'transparent',
+              borderColor: openIdx === i ? 'var(--primary)' : 'var(--card-border)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           >
             <button
               onClick={() => setOpenIdx(openIdx === i ? null : i)}
               style={{
                 width: '100%',
-                padding: '20px 24px',
+                padding: '24px 32px',
                 background: 'none',
                 border: 'none',
                 color: '#fff',
-                fontSize: '15px',
-                fontWeight: 700,
+                fontSize: '16px',
+                fontWeight: 800,
                 textAlign: 'left',
                 cursor: 'pointer',
                 display: 'flex',
@@ -85,11 +85,15 @@ export default function FAQ() {
                 gap: '16px',
               }}
             >
-              <span>{item.q}</span>
-              <span style={{ fontSize: '18px', color: '#8B5CF6', flexShrink: 0, transition: 'transform 0.2s', transform: openIdx === i ? 'rotate(45deg)' : 'rotate(0deg)' }}>+</span>
+              <span style={{ opacity: openIdx === i ? 1 : 0.8 }}>{item.q}</span>
+              <span style={{ 
+                fontSize: '24px', color: 'var(--primary)', flexShrink: 0, transition: 'all 0.3s', 
+                transform: openIdx === i ? 'rotate(135deg)' : 'rotate(0deg)',
+                opacity: 0.6
+              }}>+</span>
             </button>
             {openIdx === i && (
-              <div style={{ padding: '0 24px 20px', fontSize: '14px', color: '#A1A1AA', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
+              <div style={{ padding: '0 32px 32px', fontSize: '15px', color: 'var(--text-muted)', lineHeight: 1.8, whiteSpace: 'pre-line', animation: 'fadeIn 0.3s ease' }}>
                 {item.a}
               </div>
             )}
