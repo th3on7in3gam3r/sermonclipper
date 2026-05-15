@@ -24,9 +24,10 @@ export async function GET(req: NextRequest) {
     // Extract the key from the R2 URL
     // Format: https://account.r2.cloudflarestorage.com/bucket/key
     const urlObj = new URL(rawUrl);
-    const pathParts = urlObj.pathname.split('/').filter(Boolean);
+    const decodedPath = decodeURIComponent(urlObj.pathname);
+    const pathParts = decodedPath.split('/').filter(Boolean);
     // pathParts[0] = bucket, rest = key
-    const key = pathParts.slice(1).map(decodeURIComponent).join('/');
+    const key = pathParts.slice(1).join('/');
 
     const presignedUrl = await generatePresignedGetUrl(key, 3600);
     return NextResponse.json({ url: presignedUrl });

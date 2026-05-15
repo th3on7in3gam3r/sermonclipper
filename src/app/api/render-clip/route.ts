@@ -83,12 +83,14 @@ export async function POST(req: NextRequest) {
       try {
         // Extract the key from the R2 URL
         // URL format: https://account.r2.cloudflarestorage.com/bucket/key
+        // Use decodeURIComponent on the full pathname to handle any encoding
         const urlObj = new URL(videoUrl);
-        const pathParts = urlObj.pathname.split('/').filter(Boolean);
+        const decodedPath = decodeURIComponent(urlObj.pathname);
+        const pathParts = decodedPath.split('/').filter(Boolean);
         // pathParts[0] = bucket name, rest = key
-        const key = pathParts.slice(1).map(decodeURIComponent).join('/');
+        const key = pathParts.slice(1).join('/');
         shotstackVideoUrl = await generatePresignedGetUrl(key, 7200);
-        console.log('[Render] Generated presigned GET URL for Shotstack');
+        console.log('[Render] Generated presigned GET URL for Shotstack, key:', key);
       } catch (e) {
         console.warn('[Render] Could not generate presigned URL, using original:', e);
         shotstackVideoUrl = videoUrl;

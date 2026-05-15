@@ -36,7 +36,9 @@ export function getR2ObjectUrl(key: string) {
   if (!accountId || !bucket) {
     throw new Error('Missing Cloudflare R2 configuration');
   }
-  return `${endpoint}/${bucket}/${encodeURIComponent(key)}`;
+  // Do NOT encodeURIComponent — slashes in the key must remain as literal /
+  // encodeURIComponent would produce %2F which then gets double-encoded when stored/retrieved
+  return `${endpoint}/${bucket}/${key}`;
 }
 
 export async function uploadBufferToR2(key: string, buffer: Uint8Array, contentType = 'application/octet-stream') {
