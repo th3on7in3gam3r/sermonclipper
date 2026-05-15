@@ -432,23 +432,40 @@ export default function VesperStudio({
               >
                 💾
               </button>
-              <button
-                onClick={handleStartExport}
-                className="vesper-btn vesper-btn-primary shimmer-effect"
-                disabled={!!(rendering[selectedClip.index]?.status === 'loading')}
-                style={{ 
-                  flex: 1, 
-                  opacity: (rendering[selectedClip.index]?.status === 'loading') ? 0.6 : 1, 
-                  background: (rendering[selectedClip.index]?.status === 'complete') ? 'linear-gradient(90deg,#10B981,#059669)' : undefined,
-                  fontSize: '14px'
-                }}
-              >
-                {rendering[selectedClip.index]?.status === 'loading'
-                  ? `RENDERING... ${renderProgress[selectedClip.index] || 0}%`
-                  : rendering[selectedClip.index]?.status === 'complete'
-                  ? 'EXPORT READY — RE-RENDER?'
-                  : 'GENERATE CINEMATIC REEL'}
-              </button>
+              {rendering[selectedClip.index]?.status === 'complete' ? (
+                <div style={{ flex: 1, display: 'flex', gap: '12px' }}>
+                  <button
+                    onClick={() => window.open(rendering[selectedClip.index]?.url)}
+                    className="vesper-btn vesper-btn-primary shimmer-effect"
+                    style={{ flex: 1, background: 'linear-gradient(90deg, #10B981, #059669)', fontSize: '14px' }}
+                  >
+                    📥 DOWNLOAD REEL
+                  </button>
+                  <button
+                    onClick={handleStartExport}
+                    className="vesper-btn-outline"
+                    style={{ padding: '0 16px', fontSize: '12px', whiteSpace: 'nowrap' }}
+                    title="Render with current settings"
+                  >
+                    RE-RENDER
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleStartExport}
+                  className="vesper-btn vesper-btn-primary shimmer-effect"
+                  disabled={rendering[selectedClip.index]?.status === 'loading'}
+                  style={{ 
+                    flex: 1, 
+                    opacity: rendering[selectedClip.index]?.status === 'loading' ? 0.6 : 1, 
+                    fontSize: '14px'
+                  }}
+                >
+                  {rendering[selectedClip.index]?.status === 'loading'
+                    ? `RENDERING... ${renderProgress[selectedClip.index] || 0}%`
+                    : 'GENERATE CINEMATIC REEL'}
+                </button>
+              )}
             </div>
           </div>
         </div>
