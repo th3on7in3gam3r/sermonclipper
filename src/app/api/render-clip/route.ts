@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
     }
 
     const state = await progressManager.get(jobId);
+    console.log('[Render] State finalPath:', state?.finalPath);
     if (!state || !state.finalPath) {
       return NextResponse.json({ error: 'Master video not ready. Please wait for the download to complete.' }, { status: 404 });
     }
@@ -81,18 +82,15 @@ export async function POST(req: NextRequest) {
     let shotstackVideoUrl = videoUrl;
     if (videoUrl.includes('.r2.cloudflarestorage.com')) {
       try {
-        // Extract the key from the R2 URL
-        // URL format: https://account.r2.cloudflarestorage.com/bucket/key
-        // Use decodeURIComponent on the full pathname to handle any encoding
         const urlObj = new URL(videoUrl);
         const decodedPath = decodeURIComponent(urlObj.pathname);
         const pathParts = decodedPath.split('/').filter(Boolean);
-        // pathParts[0] = bucket name, rest = key
         const key = pathParts.slice(1).join('/');
+        console.log('[Render] Extracted R2 key:', key);
         shotstackVideoUrl = await generatePresignedGetUrl(key, 7200);
-        console.log('[Render] Generated presigned GET URL for Shotstack, key:', key);
+        console.log('[Render] Presigned URL generated OK');
       } catch (e) {
-        console.warn('[Render] Could not generate presigned URL, using original:', e);
+        console.error('[Render] Presigned URL generation failed:', e);
         shotstackVideoUrl = videoUrl;
       }
     }
@@ -129,10 +127,10 @@ export async function POST(req: NextRequest) {
           size: 52,
           color: captionColor,
         },
-        width: 0.85,
-        height: 0.3,
         alignment: { horizontal: 'center', vertical: 'bottom' },
       },
+      width: 0.85,
+      height: 0.3,
       start: i * captionDuration,
       length: captionDuration,
       position: 'bottom',
