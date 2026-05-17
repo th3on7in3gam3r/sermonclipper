@@ -83,11 +83,22 @@ export default function Home() {
   // Handle trimmed file upload
   // Upload directly to R2 using presigned URL (bypasses server size limits)
   const uploadDirectToR2 = async (file: File, jobId: string): Promise<string> => {
+    // Normalize empty Content-Types (extremely common in iOS/Safari audio and video recordings)
+    let contentType = file.type;
+    if (!contentType) {
+      const nameLower = file.name.toLowerCase();
+      if (nameLower.endsWith('.m4a')) contentType = 'audio/mp4';
+      else if (nameLower.endsWith('.mp3')) contentType = 'audio/mpeg';
+      else if (nameLower.endsWith('.wav')) contentType = 'audio/wav';
+      else if (nameLower.endsWith('.mov')) contentType = 'video/quicktime';
+      else contentType = 'video/mp4';
+    }
+
     // Step 1: get presigned URL from server
     const urlRes = await fetch('/api/upload-url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fileName: file.name, contentType: file.type || 'video/mp4', jobId }),
+      body: JSON.stringify({ fileName: file.name, contentType, jobId }),
     });
     if (!urlRes.ok) {
       const err = await urlRes.json();
@@ -98,7 +109,7 @@ export default function Home() {
     // Step 2: PUT file directly to R2 (no server in middle, no size limit)
     const putRes = await fetch(uploadUrl, {
       method: 'PUT',
-      headers: { 'Content-Type': file.type || 'video/mp4' },
+      headers: { 'Content-Type': contentType },
       body: file,
     });
     if (!putRes.ok) throw new Error(`R2 upload failed: ${putRes.status}`);
@@ -262,7 +273,7 @@ export default function Home() {
           <input 
             type="file" 
             id="video-upload" 
-            accept="video/*" 
+            accept="video/*,audio/*" 
             style={{ display: 'none' }} 
             onChange={async (e) => {
               const file = e.target.files?.[0];
@@ -271,10 +282,16 @@ export default function Home() {
               // Files over 500MB → open trimmer to split into segments
               const TRIMMER_THRESHOLD = 500 * 1024 * 1024; // 500MB
               if (file.size > TRIMMER_THRESHOLD) {
-                toast(`File is ${Math.round(file.size / 1024 / 1024)}MB — opening trimmer to split it down.`, { icon: '✂️' });
-                setLargeFile(file);
-                setShowTrimmer(true);
-                return;
+                // Prevent browser crashes due to client-side WASM memory limits on mobile
+                const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (isMobileBrowser) {
+                  toast(`Large file (${Math.round(file.size / 1024 / 1024)}MB) detected. Streaming directly to cloud Sanctum...`, { icon: '☁️', duration: 6000 });
+                } else {
+                  toast(`File is ${Math.round(file.size / 1024 / 1024)}MB — opening trimmer to split it down.`, { icon: '✂️' });
+                  setLargeFile(file);
+                  setShowTrimmer(true);
+                  return;
+                }
               }
 
               // Direct browser-to-R2 upload via presigned URL (bypasses proxy limits)

@@ -40,6 +40,15 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
   const timelineRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef<'in' | 'out' | 'playhead' | null>(null);
 
+  // Cleanup object URL on unmount to prevent massive memory leaks
+  useEffect(() => {
+    return () => {
+      if (videoUrl) {
+        URL.revokeObjectURL(videoUrl);
+      }
+    };
+  }, [videoUrl]);
+
   // Load FFmpeg from local static files — completely bypasses webpack/turbopack
   useEffect(() => {
     const loadFFmpeg = async () => {

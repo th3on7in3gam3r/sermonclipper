@@ -566,16 +566,87 @@ export default function VesperStudio({
                   src={`https://www.youtube.com/embed/${videoId}?start=${previewStart}&end=${previewEnd}&autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`}
                   allow="autoplay; encrypted-media"
                 />
-              ) : videoUrl && (
-                <video 
-                  ref={videoRef}
-                  src={`${playableVideoUrl || ''}#t=${previewStart},${previewEnd}`}
-                  loop playsInline autoPlay muted={isMuted}
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
-                />
-              )}
+              ) : videoUrl && (() => {
+                const isAudio = (playableVideoUrl || videoUrl || '').match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) || 
+                                (playableVideoUrl || videoUrl || '').toLowerCase().includes('audio');
+                
+                return (
+                  <div style={{ width: '100%', height: '100%', position: 'relative', background: '#050508' }}>
+                    {isAudio && (
+                      <div style={{ 
+                        position: 'absolute', inset: 0, 
+                        backgroundImage: 'url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&q=80")', 
+                        backgroundSize: 'cover', backgroundPosition: 'center',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        padding: '20px', textAlign: 'center', zIndex: 1
+                      }}>
+                        <style>{`
+                          @keyframes audioWaveBar {
+                            0% { transform: scaleY(0.25); }
+                            100% { transform: scaleY(1.3); }
+                          }
+                          @keyframes spinGlow {
+                            0% { transform: rotate(0deg) scale(1); filter: drop-shadow(0 0 15px rgba(139,92,246,0.4)); }
+                            50% { transform: rotate(180deg) scale(1.05); filter: drop-shadow(0 0 25px rgba(236,72,153,0.6)); }
+                            100% { transform: rotate(360deg) scale(1); filter: drop-shadow(0 0 15px rgba(139,92,246,0.4)); }
+                          }
+                        `}</style>
+                        {/* Vesper branding glassmorphic card for audio reels! */}
+                        <div className="glass-card premium-border" style={{ 
+                          padding: '24px 16px', borderRadius: '24px', 
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
+                          background: 'rgba(5, 5, 8, 0.75)', backdropFilter: 'blur(16px)',
+                          width: '100%', maxWidth: '240px', boxShadow: '0 20px 40px rgba(0,0,0,0.6)'
+                        }}>
+                          <div style={{ 
+                            width: '64px', height: '64px', borderRadius: '50%', 
+                            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            animation: isPlaying ? 'spinGlow 8s linear infinite' : 'none'
+                          }}>
+                            <span style={{ fontSize: '28px' }}>🎙️</span>
+                          </div>
+                          <div style={{ width: '100%' }}>
+                            <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '4px' }}>AUDIO REEL</div>
+                            <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
+                              {selectedClip.hook_title || 'Sermon Harvest'}
+                            </div>
+                          </div>
+                          {/* Animated Waveform Visualizer */}
+                          <div style={{ display: 'flex', gap: '4px', height: '32px', alignItems: 'center', justifyContent: 'center' }}>
+                            {[0.5, 0.9, 0.6, 1.2, 0.7, 1.4, 0.8, 1.1, 0.6, 0.9, 0.5].map((speed, idx) => (
+                              <div 
+                                key={idx} 
+                                style={{ 
+                                  width: '3px', 
+                                  height: '18px', 
+                                  background: 'linear-gradient(to top, #8B5CF6, #EC4899)', 
+                                  borderRadius: '99px',
+                                  transformOrigin: 'center',
+                                  animation: isPlaying ? `audioWaveBar ${0.4 + speed * 0.3}s ease-in-out infinite alternate` : 'none',
+                                  animationDelay: `${idx * 0.04}s`
+                                }} 
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <video 
+                      ref={videoRef}
+                      src={`${playableVideoUrl || ''}#t=${previewStart},${previewEnd}`}
+                      loop playsInline autoPlay muted={isMuted}
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                      style={{ 
+                        width: '100%', height: '100%', objectFit: 'cover', 
+                        opacity: isAudio ? 0 : 1,
+                        filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' 
+                      }}
+                    />
+                  </div>
+                );
+              })()}
 
               {/* Playback Controls Overlay */}
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 50, display: 'flex', gap: '20px' }}>

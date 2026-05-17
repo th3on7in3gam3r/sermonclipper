@@ -136,34 +136,114 @@ export async function POST(req: NextRequest) {
       transition: { in: transitionIn, out: 'fade' },
     }));
 
-    // Build video clip
-    const videoClip: Record<string, unknown> = {
-      asset: { type: 'video', src: shotstackVideoUrl, trim: start },
-      start: 0,
-      length: duration,
-      fit: 'cover',
-    };
+    const isAudio = videoUrl.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) || 
+                    videoUrl.toLowerCase().includes('audio');
 
-    // Apply color filter if selected (Shotstack filter property on clip)
-    if (filter && filter !== 'none') {
-      const filterMap: Record<string, string> = {
-        vintage: 'contrast',
-        cold: 'muted',
-        warm: 'boost',
-        noir: 'greyscale',
-        glory: 'enhance',
+    let tracks: any[] = [];
+
+    if (isAudio) {
+      // Build title overlay clip at the top
+      const titleClip = {
+        asset: {
+          type: 'text',
+          text: (clip.hook_title || 'SERMON FOCUS').toUpperCase(),
+          font: {
+            family: fontFamily,
+            size: 32,
+            color: '#8B5CF6', // Purple brand accent
+          },
+        },
+        width: 900,
+        height: 100,
+        start: 0,
+        length: duration,
+        position: 'top',
+        transition: { in: 'fade', out: 'fade' },
       };
-      const shotstackFilter = filterMap[filter];
-      if (shotstackFilter) videoClip.filter = shotstackFilter;
+
+      // Caption clips positioned centered for gorgeous podcast reel aesthetic
+      const audioCaptionClips = captions.map((text: string, i: number) => ({
+        asset: {
+          type: 'text',
+          text: text.toUpperCase(),
+          font: {
+            family: fontFamily,
+            size: 56,
+            color: captionColor,
+          },
+        },
+        width: 1000,
+        height: 300,
+        start: i * captionDuration,
+        length: captionDuration,
+        position: 'center',
+        transition: { in: transitionIn, out: 'fade' },
+      }));
+
+      // Background Image Clip - beautiful deep violet abstract 3D artwork from Unsplash
+      const bgClip = {
+        asset: {
+          type: 'image',
+          src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&q=80',
+        },
+        start: 0,
+        length: duration,
+        fit: 'cover',
+      };
+
+      // Audio track clip
+      const audioClip = {
+        asset: {
+          type: 'audio',
+          src: shotstackVideoUrl,
+          trim: start,
+        },
+        start: 0,
+        length: duration,
+      };
+
+      tracks = [
+        // Layer 1: Captions (Topmost)
+        ...(audioCaptionClips.length > 0 ? [{ clips: audioCaptionClips }] : []),
+        // Layer 2: Sermon Title Accent
+        { clips: [titleClip] },
+        // Layer 3: Main background card
+        { clips: [bgClip] },
+        // Layer 4: Audio track
+        { clips: [audioClip] },
+      ];
+    } else {
+      // Build video clip
+      const videoClip: Record<string, unknown> = {
+        asset: { type: 'video', src: shotstackVideoUrl, trim: start },
+        start: 0,
+        length: duration,
+        fit: 'cover',
+      };
+
+      // Apply color filter if selected (Shotstack filter property on clip)
+      if (filter && filter !== 'none') {
+        const filterMap: Record<string, string> = {
+          vintage: 'contrast',
+          cold: 'muted',
+          warm: 'boost',
+          noir: 'greyscale',
+          glory: 'enhance',
+        };
+        const shotstackFilter = filterMap[filter];
+        if (shotstackFilter) videoClip.filter = shotstackFilter;
+      }
+
+      tracks = [
+        // Captions on top (first track = topmost layer in Shotstack)
+        ...(captionClips.length > 0 ? [{ clips: captionClips }] : []),
+        { clips: [videoClip] },
+      ];
     }
 
     const shotstackEdit = {
       timeline: {
-        tracks: [
-          // Captions on top (first track = topmost layer in Shotstack)
-          ...(captionClips.length > 0 ? [{ clips: captionClips }] : []),
-          { clips: [videoClip] },
-        ],
+        tracks,
       },
       output: {
         format: 'mp4',

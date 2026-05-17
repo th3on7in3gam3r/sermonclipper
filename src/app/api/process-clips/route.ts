@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
     console.log(`[Process] Source video: duration=${sourceInfo.duration}s, hasVideo=${sourceInfo.hasVideo}, hasAudio=${sourceInfo.hasAudio}`);
 
     if (!sourceInfo.hasVideo) {
-      return NextResponse.json({ error: 'Source video has no video stream' }, { status: 400 });
+      console.warn('[Process] Source video has no video stream, running in audio-only optimization mode');
     }
 
     const clipsDir = join(TMP_DIR, 'clips', jobId);
@@ -191,7 +191,10 @@ export async function POST(req: NextRequest) {
         console.log(`[Process] Source streams for clip ${i + 1}: video=${streams.hasVideo}, audio=${streams.hasAudio}`);
 
         let cutCmd: string;
-        if (streams.hasAudio) {
+        if (!streams.hasVideo) {
+          // Audio-only cut: extract audio stream directly and output to mp4 container (AAC audio stream with blank video generation or copy)
+          cutCmd = `"${finalFfmpegPath}" -ss ${clip.start_time} -i "${filePath}" -t ${clipDuration} -f lavfi -i color=c=black:s=1080x1920:r=25 -map 1:v:0 -map 0:a:0 -c:v libx264 -preset veryfast -pix_fmt yuv420p -c:a aac -b:a 128k -shortest -y "${outputPath}"`;
+        } else if (streams.hasAudio) {
           cutCmd = `"${finalFfmpegPath}" -ss ${clip.start_time} -i "${filePath}" -t ${clipDuration} -vf "${filter}" -map 0:v:0 -map 0:a:0 -c:v libx264 -profile:v main -level:v 3.0 -pix_fmt yuv420p -preset veryfast -crf 23 -tune fastdecode -movflags +faststart -c:a aac -b:a 128k -ac 2 -f mp4 -y "${outputPath}"`;
         } else {
           cutCmd = `"${finalFfmpegPath}" -ss ${clip.start_time} -i "${filePath}" -t ${clipDuration} -vf "${filter}" -f lavfi -i anullsrc=r=44100:cl=stereo -map 0:v:0 -map 1:a:0 -c:v libx264 -profile:v main -level:v 3.0 -pix_fmt yuv420p -preset veryfast -crf 23 -tune fastdecode -movflags +faststart -c:a aac -b:a 128k -ac 2 -shortest -f mp4 -y "${outputPath}"`;
