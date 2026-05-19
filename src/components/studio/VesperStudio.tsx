@@ -202,8 +202,10 @@ export default function VesperStudio({
         {/* LEFT PANEL — Style tools */}
         <div className="studio-panel" style={{ 
           width: isMobile ? '100%' : '340px', 
+          height: '100%',
           borderRight: '1px solid rgba(255,255,255,0.05)', 
           display: isMobile ? (mobileTab === 'style' ? 'flex' : 'none') : 'flex', 
+          flexDirection: 'column',
           borderRadius: 0, borderTop: 'none', borderBottom: 'none', borderLeft: 'none',
           background: 'rgba(10, 10, 15, 0.4)'
         }}>
@@ -240,7 +242,7 @@ export default function VesperStudio({
           </div>
 
           {/* Tab Content */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 40px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             
             {/* Header for current tab */}
             <div style={{ marginBottom: '8px' }}>
@@ -516,7 +518,7 @@ export default function VesperStudio({
           overflow: 'hidden',
         }}>
           {/* Centered content wrapper */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 10, width: '100%', height: '100%' }}>
           {/* Subtle Background Glows */}
           <div style={{ position: 'absolute', top: '20%', left: '20%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
           
@@ -532,7 +534,8 @@ export default function VesperStudio({
 
             {/* Phone Body */}
             <div className="premium-border" style={{ 
-              width: 'min(320px, 42vh)', 
+              height: 'min(640px, 60vh)',
+              width: 'auto', 
               aspectRatio: '9/19.5', 
               background: '#000', 
               borderRadius: '48px', 
@@ -775,8 +778,10 @@ export default function VesperStudio({
         {/* PANEL 3: RIGHT SIDEBAR — Social Kit */}
         <div className="studio-panel" style={{ 
           width: isMobile ? '100%' : '380px', 
+          height: '100%',
           borderLeft: '1px solid rgba(255,255,255,0.05)', 
           display: isMobile ? ((mobileTab === 'social' || mobileTab === 'export') ? 'flex' : 'none') : 'flex', 
+          flexDirection: 'column',
           borderRadius: 0, borderTop: 'none', borderBottom: 'none', borderRight: 'none',
           background: 'rgba(10, 10, 15, 0.4)'
         }}>
