@@ -515,11 +515,13 @@ export default function VesperStudio({
           padding: isMobile ? '20px 16px' : '40px',
           overflow: 'hidden',
         }}>
+          {/* Centered content wrapper */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 10 }}>
           {/* Subtle Background Glows */}
-          <div style={{ position: 'absolute', top: '20%', left: '20%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: '20%', left: '20%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
           
           {/* Real-Phone Mockup Container */}
-          <div style={{ position: 'relative', zIndex: 10 }}>
+          <div style={{ position: 'relative' }}>
             {/* Side Buttons (Left: Action + Volume) */}
             <div style={{ position: 'absolute', left: '-14px', top: '100px', width: '3px', height: '24px', background: '#27272A', borderRadius: '2px 0 0 2px' }} />
             <div style={{ position: 'absolute', left: '-14px', top: '140px', width: '3px', height: '48px', background: '#27272A', borderRadius: '2px 0 0 2px' }} />
@@ -661,7 +663,7 @@ export default function VesperStudio({
               </div>
 
               {/* Bottom Controls Bar */}
-              <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', height: '100px', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', zIndex: 40, display: 'flex', alignItems: 'flex-end', padding: '0 24px 24px', justifyContent: 'space-between' }}>
+              <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', height: '100px', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', zIndex: 60, display: 'flex', alignItems: 'flex-end', padding: '0 24px 24px', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <button 
                     onClick={() => setIsPlaying(!isPlaying)}
@@ -706,7 +708,7 @@ export default function VesperStudio({
               {/* Platform Mockup Overlay */}
               <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none', opacity: 0.8 }}>
                 {selectedPlatform === 'tiktok' && (
-                  <div style={{ position: 'absolute', right: '12px', bottom: '100px', display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center' }}>
+                  <div style={{ position: 'absolute', right: '12px', bottom: '160px', display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center' }}>
                     <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👤</div>
                     <div style={{ textAlign: 'center' }}><span style={{ fontSize: '24px' }}>❤️</span><div style={{ fontSize: '10px', fontWeight: 900 }}>12.4K</div></div>
                     <div style={{ textAlign: 'center' }}><span style={{ fontSize: '24px' }}>💬</span><div style={{ fontSize: '10px', fontWeight: 900 }}>842</div></div>
@@ -733,7 +735,7 @@ export default function VesperStudio({
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.4) 100%)', pointerEvents: 'none' }} />
             </div>
           </div>
-        </div>
+          </div>{/* end phone container */}
 
           {/* Quick Caption Edit Overlay */}
           <div style={{ width: '100%', maxWidth: '330px', marginTop: '24px', position: 'relative', zIndex: 20 }}>
@@ -766,7 +768,9 @@ export default function VesperStudio({
               </div>
             ))}
           </div>
-        </div>
+
+          </div>{/* end centered content wrapper */}
+        </div>{/* end center panel */}
 
         {/* PANEL 3: RIGHT SIDEBAR — Social Kit */}
         <div className="studio-panel" style={{ 
