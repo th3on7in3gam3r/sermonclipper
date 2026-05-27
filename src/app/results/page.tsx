@@ -9,6 +9,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import VesperTour from '@/components/VesperTour';
 import VesperStudio from '@/components/studio/VesperStudio';
+import SermonContextCard from '@/components/results/SermonContextCard';
 import { parseTime } from '@/lib/parseTime';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
@@ -479,44 +480,32 @@ function ResultsContent() {
                   </p>
                 </div>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: isMobile ? '100%' : '280px' }}>
-                  <button onClick={handleBatchExport} className="vesper-btn vesper-btn-primary shimmer-effect" style={{ width: '100%', background: 'linear-gradient(135deg, #10B981, #059669)' }}>
-                    BATCH EXPORT ALL
-                  </button>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <button onClick={handleCopy} className="vesper-btn vesper-btn-outline" style={{ padding: '12px' }} title="Copy Link">
-                      🔗
+                {!isYouTubeSource && (
+                  <div style={{ width: isMobile ? '100%' : '280px' }}>
+                    <button
+                      type="button"
+                      onClick={handleBatchExport}
+                      className="vesper-btn vesper-btn-primary shimmer-effect"
+                      style={{ width: '100%', background: 'linear-gradient(135deg, #10B981, #059669)', padding: '14px 20px', fontSize: '13px' }}
+                    >
+                      BATCH EXPORT ALL CLIPS
                     </button>
-                    <a href={videoUrl || '#'} download className="vesper-btn vesper-btn-outline" style={{ padding: '12px', textDecoration: 'none' }} title="Download Master">
-                      📥
-                    </a>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(400px, 1fr))', gap: '32px' }}>
-            {/* Master Sermon Card */}
-            <div className="glass-card premium-border animate-in" style={{ overflow: 'hidden' }}>
-              <div style={{ position: 'relative', aspectRatio: '16/9', background: '#000' }}>
-                {videoId ? (
-                  <iframe
-                    style={{ width: '100%', height: '100%', border: 'none' }}
-                    src={`https://www.youtube.com/embed/${videoId}`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
-                ) : videoUrl && (
-                  <video src={playableVideoUrl || ''} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                )}
-                <div className="vesper-badge badge-violet" style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 10, backdropFilter: 'blur(8px)', background: 'rgba(139,92,246,0.8)', color: '#fff' }}>MASTER SESSION</div>
-              </div>
-              <div style={{ padding: '32px' }}>
-                <h3 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '12px' }}>Full Sermon Context</h3>
-                <p style={{ fontSize: '16px', lineHeight: 1.6, color: 'var(--text-muted)' }}>{analysis?.summary || 'The complete cinematic capture of your ministry session.'}</p>
-              </div>
-            </div>
+            <SermonContextCard
+              summary={analysis?.summary}
+              videoUrl={videoUrl}
+              playableVideoUrl={playableVideoUrl}
+              videoId={videoId}
+              isMobile={isMobile}
+              onCopyLink={handleCopy}
+              onOpenDescription={() => setShowYTDesc(true)}
+            />
 
             {/* Generated Clips */}
             {analysis?.clips && analysis.clips.length > 0 ? (

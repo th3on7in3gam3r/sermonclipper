@@ -114,14 +114,15 @@ export default function DashboardAccountPanel({ userData, isMobile = false }: Da
             border: '1px solid rgba(139, 92, 246, 0.2)',
             textAlign: 'center',
             flex: isMobile ? 1 : undefined,
+            minWidth: isMobile ? 0 : '160px',
           }}
         >
-          <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', display: 'block' }}>
-            PLAN
+          <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', display: 'block', marginBottom: '6px' }}>
+            PLAN & USAGE
           </span>
-          <span style={{ fontSize: '15px', fontWeight: 900, display: 'block', marginTop: '4px' }}>{planLabel}</span>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
-            {usage} / {limit} harvests
+          <span style={{ fontSize: '15px', fontWeight: 900, display: 'block', lineHeight: 1.3 }}>{planLabel}</span>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, display: 'block', marginTop: '4px' }}>
+            {usage}/{limit} harvests
           </span>
         </div>
         <Link

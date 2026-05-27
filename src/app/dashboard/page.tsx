@@ -119,15 +119,6 @@ export default function Dashboard() {
           )}
         </Link>
         <div style={{ display: 'flex', gap: isPhone ? '6px' : isMobile ? '10px' : '20px', alignItems: 'center', flexShrink: 0 }}>
-          {!isMobile && userData && (
-            <div className="vesper-badge badge-violet" style={{ padding: '8px 16px', gap: '12px' }}>
-              <span style={{ fontWeight: 900 }}>{userData.plan?.replace(/_/g, ' ')}</span>
-              <span style={{ opacity: 0.5 }}>|</span>
-              <span style={{ opacity: 0.8 }}>
-                {userData.usageCount || 0}/{userData.limit === 999999 ? '∞' : userData.limit}
-              </span>
-            </div>
-          )}
           <Link
             href="/"
             className="vesper-btn-outline"
