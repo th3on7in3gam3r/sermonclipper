@@ -34,11 +34,13 @@ const TEMPLATE_COLORS: Record<string, string> = {
 
 // Map font id → Shotstack font family
 const FONT_FAMILIES: Record<string, string> = {
-  outfit: 'Montserrat',
-  impact: 'Anton',
-  georgia: 'Merriweather',
-  mono: 'Source Code Pro',
-  serif: 'Playfair Display',
+  // Shotstack text asset supports a limited set of built-in fonts.
+  // Use exact names to avoid silent fallback to the default font.
+  outfit: 'Montserrat ExtraBold',
+  impact: 'Montserrat SemiBold',
+  georgia: 'Open Sans Bold',
+  mono: 'Open Sans Regular',
+  serif: 'Clear Sans',
 };
 
 // Map animation id → Shotstack transition

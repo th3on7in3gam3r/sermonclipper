@@ -24,10 +24,22 @@ export async function GET(req: NextRequest) {
       const status = data.response.status;
       const url = data.response.url;
 
+      const rawPercent =
+        data.response.completion ??
+        data.response.progress ??
+        data.response.percentage ??
+        data.response.percent ??
+        0;
+
+      // Shotstack sometimes reports completion as 0..1; normalize to 0..100.
+      let percent = Number(rawPercent) || 0;
+      if (percent > 0 && percent <= 1) percent = percent * 100;
+      percent = Math.max(0, Math.min(100, percent));
+
       return NextResponse.json({ 
         status, 
         url,
-        percent: data.response.completion || 0
+        percent
       });
     } else {
       return NextResponse.json({ error: 'Failed to fetch status' }, { status: 500 });

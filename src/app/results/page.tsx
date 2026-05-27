@@ -382,7 +382,7 @@ function ResultsContent() {
       const res = await fetch(`/api/render-status?id=${id}`);
       const data = await res.json();
 
-      if (data.percent) {
+      if (typeof data.percent === 'number') {
         setRenderProgress(prev => ({ ...prev, [index]: Math.round(data.percent) }));
       }
 
