@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import Sermon from '@/models/Sermon';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -15,7 +15,19 @@ export async function GET() {
       return NextResponse.json([]);
     }
 
+    const { searchParams } = new URL(req.url);
+    const jobId = searchParams.get('jobId');
+
     await connectDB();
+
+    if (jobId) {
+      const sermon = await Sermon.findOne({ userId, jobId });
+      if (!sermon) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      }
+      return NextResponse.json(sermon);
+    }
+
     const sermons = await Sermon.find({ userId }).sort({ createdAt: -1 });
 
     return NextResponse.json(sermons);

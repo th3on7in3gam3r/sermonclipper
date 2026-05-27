@@ -110,6 +110,35 @@ export async function generatePresignedGetUrl(key: string, expiresIn = 7200) {
   return getSignedUrl(presignClient, command, { expiresIn });
 }
 
+/** Presigned GET URL that prompts the browser to save as an attachment. */
+export async function generatePresignedDownloadUrl(
+  key: string,
+  filename = 'vesper-master.mp4',
+  expiresIn = 3600
+) {
+  if (!accountId || !bucket || !accessKeyId || !secretAccessKey) {
+    throw new Error('Missing Cloudflare R2 credentials');
+  }
+
+  const presignClient = new S3Client({
+    endpoint,
+    region: 'auto',
+    credentials: { accessKeyId, secretAccessKey },
+    forcePathStyle: true,
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
+  });
+
+  const command = new GetObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ResponseContentDisposition: `attachment; filename="${filename}"`,
+    ResponseContentType: 'video/mp4',
+  });
+
+  return getSignedUrl(presignClient, command, { expiresIn });
+}
+
 export async function uploadStreamToR2(key: string, stream: Readable, contentType = 'application/octet-stream') {
   const client = getR2Client();
   if (!client) throw new Error('Missing Cloudflare R2 credentials');

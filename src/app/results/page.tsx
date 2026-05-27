@@ -10,8 +10,12 @@ import toast from 'react-hot-toast';
 import VesperTour from '@/components/VesperTour';
 import VesperStudio from '@/components/studio/VesperStudio';
 import SermonContextCard from '@/components/results/SermonContextCard';
+import ClipActionBar from '@/components/results/ClipActionBar';
+import ThumbnailStudioModal from '@/components/results/ThumbnailStudioModal';
+import { THUMB_STYLES, type ThumbStyleId } from '@/lib/thumbnailStyles';
 import { parseTime } from '@/lib/parseTime';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
+import { isDownloadableMasterUrl, isR2StorageUrl } from '@/lib/videoSource';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
 const GOOGLE_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap';
 
@@ -27,28 +31,78 @@ function ResultsContent() {
   }, []);
   const searchParams = useSearchParams();
   const videoUrl = searchParams.get('videoUrl');
+  const finalPathParam = searchParams.get('finalPath');
   const jobId = searchParams.get('jobId');
   const [analysis, setAnalysis] = useState<any>(null);
   const [rendering, setRendering] = useState<{ [key: number]: { status: string, url?: string } }>({});
   const [userStatus, setUserStatus] = useState<any>(null);
   const [playableVideoUrl, setPlayableVideoUrl] = useState<string | null>(null);
+  const [masterPath, setMasterPath] = useState<string | null>(null);
+  const [isDownloadingMaster, setIsDownloadingMaster] = useState(false);
   const { isLoaded, userId } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
 
+  const masterDownloadUrl =
+    (masterPath && isDownloadableMasterUrl(masterPath) ? masterPath : null) ||
+    (finalPathParam && isDownloadableMasterUrl(finalPathParam) ? finalPathParam : null) ||
+    (videoUrl && isDownloadableMasterUrl(videoUrl) ? videoUrl : null);
+
+  const resolvePlayableUrl = async (url: string) => {
+    if (!isR2StorageUrl(url) || url.includes('X-Amz-Signature')) return url;
+    const res = await fetch(`/api/video-url?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+    return data.url || url;
+  };
+
   // Resolve private R2 URL → presigned GET URL so the browser can play it
   useEffect(() => {
-    if (!videoUrl) return;
-    let cancelled = false;
-    if (!videoUrl.includes('.r2.cloudflarestorage.com') || videoUrl.includes('X-Amz-Signature')) {
-      setPlayableVideoUrl(videoUrl);
+    const source = masterDownloadUrl || videoUrl;
+    if (!source) {
+      setPlayableVideoUrl(null);
       return;
     }
-    fetch(`/api/video-url?url=${encodeURIComponent(videoUrl)}`)
-      .then(r => r.json())
-      .then(d => { if (!cancelled) setPlayableVideoUrl(d.url || videoUrl); })
-      .catch(() => { if (!cancelled) setPlayableVideoUrl(videoUrl); });
-    return () => { cancelled = true; };
-  }, [videoUrl]);
+    let cancelled = false;
+    resolvePlayableUrl(source)
+      .then((resolved) => {
+        if (!cancelled) setPlayableVideoUrl(resolved);
+      })
+      .catch(() => {
+        if (!cancelled) setPlayableVideoUrl(source);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [videoUrl, masterDownloadUrl]);
+
+  // Load harvested master path from archive (dashboard) or job progress
+  useEffect(() => {
+    if (!jobId || !userId) return;
+
+    let cancelled = false;
+
+    const applyPath = (path: string | undefined) => {
+      if (cancelled || !path || !isDownloadableMasterUrl(path)) return;
+      setMasterPath(path);
+    };
+
+    fetch(`/api/sermons?jobId=${encodeURIComponent(jobId)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((sermon) => {
+        if (sermon?.finalPath) applyPath(sermon.finalPath);
+      })
+      .catch(() => {});
+
+    fetch(`/api/progress?jobId=${encodeURIComponent(jobId)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((progress) => {
+        if (progress?.finalPath) applyPath(progress.finalPath);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [jobId, userId]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -125,14 +179,14 @@ function ResultsContent() {
   // Thumbnail Studio state
   const [activeThumbnailClip, setActiveThumbnailClip] = useState<any>(null);
   const [thumbPrompt, setThumbPrompt] = useState('');
-  const [thumbStyle, setThumbStyle] = useState('cinematic');
+  const [thumbStyle, setThumbStyle] = useState<ThumbStyleId>('cinematic');
   const [isGeneratingThumb, setIsGeneratingThumb] = useState(false);
 
-  const THUMB_STYLES = [
-    { id: 'cinematic', name: 'Cinematic', icon: '🎬', prompt: 'cinematic lighting, dramatic shadows, epic atmosphere, professional photography' },
-    { id: 'bold', name: 'Bold Impact', icon: '⚡', prompt: 'bright vibrant colors, high contrast, massive bold typography, energetic feel' },
-    { id: 'minimal', name: 'Minimalist', icon: '⚪', prompt: 'clean white space, soft lighting, modern minimalist design, light and airy' }
-  ];
+  const openThumbnailStudio = (clip: { hook_title?: string; main_quote?: string }, index: number) => {
+    setActiveThumbnailClip({ ...clip, index });
+    setThumbPrompt(clip.hook_title || '');
+    setSelectedVariantIdx(0);
+  };
 
   const handleGenerateThumbnail = async () => {
     if (!activeThumbnailClip) return;
@@ -143,11 +197,10 @@ function ResultsContent() {
     
     const baseText = `YouTube thumbnail, 16:9 aspect ratio, text overlay saying "${thumbPrompt || activeThumbnailClip.hook_title}", church/faith theme, professional quality, no watermarks`;
     
-    const prompts = [
-      `${baseText}, ${THUMB_STYLES[0].prompt}`,
-      `${baseText}, ${THUMB_STYLES[1].prompt}`,
-      `${baseText}, ${THUMB_STYLES[2].prompt}`
-    ];
+    const primary = THUMB_STYLES.find((s) => s.id === thumbStyle) || THUMB_STYLES[0];
+    const others = THUMB_STYLES.filter((s) => s.id !== primary.id);
+    const styleOrder = [primary, ...others];
+    const prompts = styleOrder.map((s) => `${baseText}, ${s.prompt}`);
     
     try {
       const promises = prompts.map(p => fetch('/api/generate-image', {
@@ -360,6 +413,9 @@ function ResultsContent() {
         const res = await fetch(`/api/progress?jobId=${jobId}`);
         const data = await res.json();
 
+        if (data?.finalPath && isDownloadableMasterUrl(data.finalPath)) {
+          setMasterPath(data.finalPath);
+        }
         if (data?.analysis) {
           setAnalysis(data.analysis);
           return true; // done
@@ -397,6 +453,41 @@ function ResultsContent() {
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success('Session link copied to clipboard!');
+  };
+
+  const handleMasterDownload = async () => {
+    if (!masterDownloadUrl) {
+      toast.error('Master MP4 is not available for this session yet.');
+      return;
+    }
+
+    setIsDownloadingMaster(true);
+    const loadToast = toast.loading('Preparing master download…');
+
+    try {
+      const res = await fetch(`/api/master-download?url=${encodeURIComponent(masterDownloadUrl)}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Download failed');
+      }
+
+      const link = document.createElement('a');
+      link.href = data.url;
+      link.download = data.filename || 'vesper-master.mp4';
+      link.rel = 'noopener';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      toast.success('Master download started', { id: loadToast });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Could not download master video';
+      toast.error(msg, { id: loadToast });
+    } finally {
+      setIsDownloadingMaster(false);
+    }
   };
 
   return (
@@ -502,9 +593,12 @@ function ResultsContent() {
               videoUrl={videoUrl}
               playableVideoUrl={playableVideoUrl}
               videoId={videoId}
+              masterDownloadUrl={masterDownloadUrl}
               isMobile={isMobile}
+              isDownloadingMaster={isDownloadingMaster}
               onCopyLink={handleCopy}
               onOpenDescription={() => setShowYTDesc(true)}
+              onDownloadMaster={handleMasterDownload}
             />
 
             {/* Generated Clips */}
@@ -549,100 +643,20 @@ function ResultsContent() {
                     <h4 style={{ color: 'var(--primary)', fontSize: '18px', fontWeight: 900, marginBottom: '12px', letterSpacing: '0.02em' }}>{clip.hook_title}</h4>
                     <p style={{ fontStyle: 'italic', color: '#fff', fontSize: '15px', lineHeight: 1.5, marginBottom: '24px', opacity: 0.9 }}>&ldquo;{clip.main_quote}&rdquo;</p>
                     
-                    <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {/* Caption Dropdown */}
-                      <div style={{ position: 'relative' }}>
-                        <button
-                          onClick={() => setOpenCaptionIdx(openCaptionIdx === i ? null : i)}
-                          className="vesper-btn-outline"
-                          style={{ width: '100%', justifyContent: 'space-between', padding: '12px 16px', fontSize: '13px' }}
-                        >
-                          <span>COPY CAPTION</span>
-                          <span style={{ opacity: 0.5, fontSize: '10px' }}>{openCaptionIdx === i ? '▲' : '▼'}</span>
-                        </button>
-                        {openCaptionIdx === i && (
-                          <div className="glass-card" style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, zIndex: 100, marginBottom: '8px', padding: '8px', overflow: 'hidden' }}>
-                            {PLATFORMS.map((p, pi) => {
-                              const caption = clip.suggested_captions?.[pi] || clip.suggested_captions?.[0] || clip.main_quote || '';
-                              const text = `${p.prefix}${caption}`;
-                              return (
-                                <button
-                                  key={p.id}
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(text);
-                                    toast.success(`${p.label} copied!`);
-                                    setOpenCaptionIdx(null);
-                                  }}
-                                  className="vesper-btn-outline"
-                                  style={{ width: '100%', border: 'none', background: 'transparent', justifyContent: 'flex-start', padding: '10px' }}
-                                >
-                                  <span style={{ fontSize: '16px' }}>{p.icon}</span>
-                                  <span style={{ fontSize: '12px' }}>{p.label}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Thumbnail Studio */}
-                      {thumbnails[i]?.status === 'done' && thumbnails[i]?.url ? (
-                        <div 
-                          onClick={() => { setActiveThumbnailClip({ ...clip, index: i }); setThumbPrompt(clip.hook_title); }}
-                          style={{ cursor: 'pointer', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--card-border)', height: '60px' }}
-                        >
-                          <img 
-                            src={`/api/proxy-image?url=${encodeURIComponent(thumbnails[i]?.url || '')}`} 
-                            alt="Neural Thumbnail" 
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                          />
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => { setActiveThumbnailClip({ ...clip, index: i }); setThumbPrompt(clip.hook_title); }}
-                          className="vesper-btn-outline shimmer-effect"
-                          style={{ 
-                            width: '100%', 
-                            background: 'linear-gradient(135deg, rgba(244,185,66,0.1), rgba(244,185,66,0.05))',
-                            color: '#F4B942', 
-                            borderColor: 'rgba(244,185,66,0.3)', 
-                            fontSize: '13px',
-                            fontWeight: 900,
-                            letterSpacing: '0.05em',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px'
-                          }}
-                        >
-                          <span style={{ fontSize: '18px' }}>🎨</span> THUMBNAIL STUDIO
-                        </button>
-                      )}
-
-                      {/* Render Progress */}
-                      {rendering[i]?.status === 'loading' && (
-                        <div style={{ marginTop: '4px' }}>
-                          <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '99px', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${renderProgress[i] || 0}%`, background: 'var(--primary)', boxShadow: '0 0 10px var(--primary)', transition: 'width 0.5s ease' }} />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Action Button */}
-                      {rendering[i]?.status === 'complete' ? (
-                        <a href={rendering[i].url} download target="_blank" className="vesper-btn vesper-btn-primary shimmer-effect" style={{ width: '100%', background: 'linear-gradient(135deg, #10B981, #059669)', textDecoration: 'none' }}>
-                          DOWNLOAD REEL
-                        </a>
-                      ) : isYouTubeSource ? (
-                        <button onClick={() => handleCustomize(clip, i)} className="vesper-btn-outline" style={{ width: '100%', color: 'var(--primary)', borderColor: 'var(--primary-glow)' }}>
-                          PREVIEW IN STUDIO
-                        </button>
-                      ) : (
-                        <button onClick={() => handleCustomize(clip, i)} className="vesper-btn vesper-btn-primary shimmer-effect" style={{ width: '100%' }}>
-                          CUSTOMIZE REEL
-                        </button>
-                      )}
-                    </div>
+                    <ClipActionBar
+                      clip={clip}
+                      isMobile={isMobile}
+                      isYouTubeSource={isYouTubeSource}
+                      platforms={PLATFORMS}
+                      captionOpen={openCaptionIdx === i}
+                      onToggleCaption={() => setOpenCaptionIdx(openCaptionIdx === i ? null : i)}
+                      thumbnail={thumbnails[i]}
+                      renderStatus={rendering[i]?.status}
+                      renderProgress={renderProgress[i]}
+                      renderUrl={rendering[i]?.url}
+                      onOpenThumbnail={() => openThumbnailStudio(clip, i)}
+                      onCustomize={() => handleCustomize(clip, i)}
+                    />
                   </div>
                 </div>
               ))
@@ -729,21 +743,20 @@ function ResultsContent() {
       )}
 
       {activeThumbnailClip && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(30px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '0' : '40px' }}>
-          <div className="glass-card animate-in premium-border" style={{ width: '100%', maxWidth: '1200px', height: isMobile ? '100%' : 'auto', maxHeight: '90vh', display: 'flex', flexDirection: 'column', borderRadius: isMobile ? '0' : '32px', overflow: 'hidden' }}>
-            <div style={{ padding: '40px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div className="vesper-badge badge-violet" style={{ marginBottom: '8px' }}>VISUAL HARVEST</div>
-                <h2 style={{ fontSize: '28px', fontWeight: 900 }}>Thumbnail Studio</h2>
-              </div>
-              <button onClick={() => setActiveThumbnailClip(null)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '44px', height: '44px', borderRadius: '50%', cursor: 'pointer', fontSize: '20px' }}>✕</button>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '40px' }}>
-               {/* Thumbnail content goes here - simplified for fix */}
-               <p>Thumbnail studio active for: {activeThumbnailClip.hook_title}</p>
-            </div>
-          </div>
-        </div>
+        <ThumbnailStudioModal
+          clip={activeThumbnailClip}
+          isMobile={isMobile}
+          thumbPrompt={thumbPrompt}
+          onThumbPromptChange={setThumbPrompt}
+          thumbStyle={thumbStyle}
+          onThumbStyleChange={setThumbStyle}
+          isGenerating={isGeneratingThumb}
+          thumbnail={thumbnails[activeThumbnailClip.index]}
+          selectedVariantIdx={selectedVariantIdx}
+          onSelectVariant={setSelectedVariantIdx}
+          onClose={() => setActiveThumbnailClip(null)}
+          onGenerate={handleGenerateThumbnail}
+        />
       )}
 
       {selectedClip && (

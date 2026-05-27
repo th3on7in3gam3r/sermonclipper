@@ -14,9 +14,21 @@ type SermonRecord = {
   title: string;
   mainTheme?: string;
   videoUrl: string;
+  finalPath?: string;
   createdAt: string;
   analysis?: { clips?: unknown[] };
 };
+
+function buildResultsHref(sermon: SermonRecord) {
+  const params = new URLSearchParams({
+    jobId: sermon.jobId,
+    videoUrl: sermon.videoUrl,
+  });
+  if (sermon.finalPath) {
+    params.set('finalPath', sermon.finalPath);
+  }
+  return `/results?${params.toString()}`;
+}
 
 export default function Dashboard() {
   const { isLoaded, userId } = useAuth();
@@ -207,7 +219,7 @@ export default function Dashboard() {
                   {monthSermons.map((sermon) => (
                     <Link
                       key={sermon._id}
-                      href={`/results?jobId=${sermon.jobId}&videoUrl=${encodeURIComponent(sermon.videoUrl)}`}
+                      href={buildResultsHref(sermon)}
                       style={{ textDecoration: 'none', color: 'inherit' }}
                     >
                       <div className="glass-card premium-border animate-in" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

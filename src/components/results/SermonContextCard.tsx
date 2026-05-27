@@ -5,9 +5,12 @@ interface SermonContextCardProps {
   videoUrl: string | null;
   playableVideoUrl?: string | null;
   videoId: string | null;
+  masterDownloadUrl?: string | null;
   isMobile: boolean;
+  isDownloadingMaster?: boolean;
   onCopyLink: () => void;
   onOpenDescription: () => void;
+  onDownloadMaster?: () => void;
 }
 
 export default function SermonContextCard({
@@ -15,13 +18,17 @@ export default function SermonContextCard({
   videoUrl,
   playableVideoUrl,
   videoId,
+  masterDownloadUrl,
   isMobile,
+  isDownloadingMaster = false,
   onCopyLink,
   onOpenDescription,
+  onDownloadMaster,
 }: SermonContextCardProps) {
   const playbackSrc = playableVideoUrl || videoUrl;
   const isYouTube = Boolean(videoId);
   const sourceHref = isYouTube ? `https://www.youtube.com/watch?v=${videoId}` : videoUrl || '#';
+  const canDownloadMaster = Boolean(masterDownloadUrl && onDownloadMaster);
 
   return (
     <div className="glass-card premium-border animate-in" style={{ overflow: 'hidden' }}>
@@ -94,7 +101,24 @@ export default function SermonContextCard({
             COPY SESSION LINK
           </button>
 
-          {isYouTube ? (
+          {canDownloadMaster ? (
+            <button
+              type="button"
+              onClick={onDownloadMaster}
+              disabled={isDownloadingMaster}
+              className="vesper-btn vesper-btn-outline"
+              style={{
+                flex: isMobile ? undefined : '1 1 140px',
+                padding: '12px 16px',
+                fontSize: '12px',
+                fontWeight: 800,
+                letterSpacing: '0.08em',
+                opacity: isDownloadingMaster ? 0.6 : 1,
+              }}
+            >
+              {isDownloadingMaster ? 'PREPARING…' : 'DOWNLOAD MASTER'}
+            </button>
+          ) : isYouTube ? (
             <a
               href={sourceHref}
               target="_blank"
@@ -112,24 +136,7 @@ export default function SermonContextCard({
             >
               OPEN ON YOUTUBE
             </a>
-          ) : (
-            <a
-              href={videoUrl || '#'}
-              download
-              className="vesper-btn vesper-btn-outline"
-              style={{
-                flex: isMobile ? undefined : '1 1 140px',
-                padding: '12px 16px',
-                fontSize: '12px',
-                fontWeight: 800,
-                letterSpacing: '0.08em',
-                textDecoration: 'none',
-                textAlign: 'center',
-              }}
-            >
-              DOWNLOAD MASTER
-            </a>
-          )}
+          ) : null}
 
           <button
             type="button"
