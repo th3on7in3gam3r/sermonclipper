@@ -8,12 +8,12 @@ export const vesperClerkAppearance = {
     colorDanger: '#EF4444',
     colorSuccess: '#10B981',
     colorWarning: '#F4B942',
-    colorBackground: '#0A0A0F',
-    colorInputBackground: '#1A1A24',
+    colorBackground: '#14141D',
+    colorInputBackground: '#212130',
     colorInputText: '#FFFFFF',
     colorText: '#FFFFFF',
-    colorTextSecondary: '#A1A1AA',
-    colorNeutral: '#71717A',
+    colorTextSecondary: '#E5E7EB',
+    colorNeutral: '#D1D5DB',
     borderRadius: '12px',
     fontFamily: 'var(--font-outfit), Outfit, sans-serif',
     fontSize: '14px',
@@ -21,16 +21,16 @@ export const vesperClerkAppearance = {
   elements: {
     rootBox: { width: '100%' },
     card: {
-      background: '#1A1A24',
+      background: '#20202D',
       border: '1px solid rgba(139, 92, 246, 0.25)',
       boxShadow: '0 40px 120px rgba(0, 0, 0, 0.85), 0 0 80px rgba(139, 92, 246, 0.12)',
     },
     modalContent: {
-      background: '#1A1A24',
+      background: '#20202D',
       border: '1px solid rgba(139, 92, 246, 0.2)',
     },
     modalCloseButton: {
-      color: '#A1A1AA',
+      color: '#D4D4D8',
     },
     headerTitle: {
       fontWeight: '800',
@@ -38,7 +38,7 @@ export const vesperClerkAppearance = {
       color: '#FFFFFF',
     },
     headerSubtitle: {
-      color: '#A1A1AA',
+      color: '#E5E7EB',
     },
     socialButtonsBlockButton: {
       border: '1px solid rgba(255, 255, 255, 0.15)',
@@ -53,14 +53,14 @@ export const vesperClerkAppearance = {
       background: 'rgba(255, 255, 255, 0.12)',
     },
     dividerText: {
-      color: '#71717A',
+      color: '#D4D4D8',
     },
     formFieldLabel: {
       color: '#E4E4E7',
       fontWeight: '700',
     },
     formFieldInput: {
-      background: '#1A1A24',
+      background: '#242436',
       border: '1px solid rgba(255, 255, 255, 0.22)',
       boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.25)',
       '&:focus-within': {
@@ -71,7 +71,7 @@ export const vesperClerkAppearance = {
     formFieldInput__input: {
       color: '#FFFFFF',
       '&::placeholder': {
-        color: '#71717A',
+        color: '#C4C4CF',
       },
     },
     formButtonPrimary: {
@@ -90,7 +90,7 @@ export const vesperClerkAppearance = {
       fontWeight: '700',
     },
     footerActionText: {
-      color: '#A1A1AA',
+      color: '#E5E7EB',
     },
     footer: {
       background: 'transparent',
@@ -100,7 +100,7 @@ export const vesperClerkAppearance = {
       border: '1px solid rgba(139, 92, 246, 0.2)',
     },
     userButtonPopoverCard: {
-      background: '#1A1A24',
+      background: '#20202D',
       border: '1px solid rgba(255, 255, 255, 0.1)',
       boxShadow: '0 24px 60px rgba(0, 0, 0, 0.6)',
     },
@@ -118,27 +118,54 @@ export const vesperClerkAppearance = {
       borderTop: '1px solid rgba(255, 255, 255, 0.08)',
     },
     userButtonPopoverMain: {
-      background: '#1A1A24',
+      background: '#20202D',
     },
     userPreviewMainIdentifier: {
       color: '#FFFFFF',
       fontWeight: '800',
     },
     userPreviewSecondaryIdentifier: {
-      color: '#A1A1AA',
+      color: '#E5E7EB',
     },
     navbar: {
-      background: '#0A0A0F',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+      background: '#1A1A24',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
     },
     navbarButton: {
-      color: '#A1A1AA',
+      color: '#E5E7EB',
       '&:hover': {
         color: '#FFFFFF',
       },
     },
+    navbarButtonIcon: {
+      color: '#E5E7EB',
+    },
+    navbarButtonText: {
+      color: '#FFFFFF',
+      fontWeight: '700',
+    },
+    profileSectionTitleText: {
+      color: '#FFFFFF',
+      fontWeight: '800',
+    },
+    profileSectionContent: {
+      color: '#F3F4F6',
+    },
+    accordionTriggerButton: {
+      color: '#FFFFFF',
+    },
+    badge: {
+      color: '#FFFFFF',
+      background: 'rgba(139, 92, 246, 0.2)',
+    },
+    tableHead: {
+      color: '#FFFFFF',
+    },
+    tableRow: {
+      color: '#F3F4F6',
+    },
     pageScrollBox: {
-      background: '#0A0A0F',
+      background: '#14141D',
     },
   },
 } as const;
