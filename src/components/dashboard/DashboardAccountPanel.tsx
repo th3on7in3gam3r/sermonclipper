@@ -9,9 +9,10 @@ interface DashboardAccountPanelProps {
     usageCount?: number;
     limit?: number;
   } | null;
+  isMobile?: boolean;
 }
 
-export default function DashboardAccountPanel({ userData }: DashboardAccountPanelProps) {
+export default function DashboardAccountPanel({ userData, isMobile = false }: DashboardAccountPanelProps) {
   const { user, isLoaded } = useUser();
 
   const planLabel = userData?.plan?.replace(/_/g, ' ').toUpperCase() || 'FREE';
@@ -25,16 +26,16 @@ export default function DashboardAccountPanel({ userData }: DashboardAccountPane
     <section
       className="glass-card premium-border animate-in"
       style={{
-        padding: '24px',
+        padding: isMobile ? '18px' : '24px',
         marginBottom: '48px',
         display: 'flex',
-        flexWrap: 'wrap',
-        gap: '20px',
-        alignItems: 'center',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? '14px' : '20px',
+        alignItems: isMobile ? 'stretch' : 'center',
         justifyContent: 'space-between',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0, width: '100%' }}>
         {isLoaded && user?.imageUrl ? (
           <img
             src={user.imageUrl}
@@ -68,7 +69,7 @@ export default function DashboardAccountPanel({ userData }: DashboardAccountPane
           </div>
           <h2
             style={{
-              fontSize: '20px',
+              fontSize: isMobile ? '18px' : '20px',
               fontWeight: 900,
               marginBottom: '4px',
               letterSpacing: '-0.02em',
@@ -82,7 +83,7 @@ export default function DashboardAccountPanel({ userData }: DashboardAccountPane
           {email && (
             <p
               style={{
-                fontSize: '14px',
+                fontSize: isMobile ? '13px' : '14px',
                 color: 'var(--text-muted)',
                 margin: 0,
                 overflow: 'hidden',
@@ -96,7 +97,15 @@ export default function DashboardAccountPanel({ userData }: DashboardAccountPane
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'stretch' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: isMobile ? 'row' : 'column',
+          gap: '10px',
+          alignItems: 'stretch',
+          width: isMobile ? '100%' : 'auto',
+        }}
+      >
         <div
           style={{
             padding: '12px 16px',
@@ -104,6 +113,7 @@ export default function DashboardAccountPanel({ userData }: DashboardAccountPane
             background: 'rgba(139, 92, 246, 0.08)',
             border: '1px solid rgba(139, 92, 246, 0.2)',
             textAlign: 'center',
+            flex: isMobile ? 1 : undefined,
           }}
         >
           <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', display: 'block' }}>
@@ -123,6 +133,7 @@ export default function DashboardAccountPanel({ userData }: DashboardAccountPane
             textAlign: 'center',
             textDecoration: 'none',
             whiteSpace: 'nowrap',
+            flex: isMobile ? 1 : undefined,
           }}
         >
           UPGRADE PLAN

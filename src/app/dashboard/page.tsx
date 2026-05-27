@@ -27,7 +27,7 @@ export default function Dashboard() {
     limit?: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(1280);
 
   const getYoutubeId = (url: string) => {
     try {
@@ -57,11 +57,13 @@ export default function Dashboard() {
   }, [userId]);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const onResize = () => setViewportWidth(window.innerWidth);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
+  const isMobile = viewportWidth < 1024;
+  const isPhone = viewportWidth < 640;
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -95,24 +97,28 @@ export default function Dashboard() {
           top: '16px',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 'calc(100% - 32px)',
+          width: isPhone ? 'calc(100% - 16px)' : 'calc(100% - 32px)',
           maxWidth: '1400px',
-          height: '72px',
+          minHeight: isPhone ? '60px' : '72px',
+          height: 'auto',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: isMobile ? '0 16px' : '0 32px',
+          padding: isPhone ? '8px 10px' : isMobile ? '0 16px' : '0 32px',
           zIndex: 1000,
           borderRadius: '20px',
+          gap: '8px',
         }}
       >
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '32px', width: 'auto' }} />
-          <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
-            <span style={{ color: '#8B5CF6' }}>VES</span>PER
-          </div>
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: isPhone ? '8px' : '12px', minWidth: 0 }}>
+          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: isPhone ? '26px' : '32px', width: 'auto', flexShrink: 0 }} />
+          {!isPhone && (
+            <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
+              <span style={{ color: '#8B5CF6' }}>VES</span>PER
+            </div>
+          )}
         </Link>
-        <div style={{ display: 'flex', gap: isMobile ? '10px' : '20px', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: isPhone ? '6px' : isMobile ? '10px' : '20px', alignItems: 'center', flexShrink: 0 }}>
           {!isMobile && userData && (
             <div className="vesper-badge badge-violet" style={{ padding: '8px 16px', gap: '12px' }}>
               <span style={{ fontWeight: 900 }}>{userData.plan?.replace(/_/g, ' ')}</span>
@@ -130,7 +136,7 @@ export default function Dashboard() {
               background: 'transparent',
               fontSize: '13px',
               color: 'var(--text-muted)',
-              padding: isMobile ? '8px 10px' : undefined,
+              padding: isPhone ? '6px 8px' : isMobile ? '8px 10px' : undefined,
             }}
           >
             HOME
@@ -143,20 +149,20 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div style={{ maxWidth: '1400px', margin: '140px auto 0', padding: isMobile ? '0 16px' : '0 40px', position: 'relative', zIndex: 10, width: '100%' }}>
-        <div style={{ marginBottom: '32px' }}>
+      <div style={{ maxWidth: '1400px', margin: isPhone ? '96px auto 0' : '140px auto 0', padding: isMobile ? '0 12px' : '0 40px', position: 'relative', zIndex: 10, width: '100%' }}>
+        <div style={{ marginBottom: isPhone ? '20px' : '32px' }}>
           <div className="vesper-badge badge-violet" style={{ marginBottom: '16px' }}>
             NEURAL ARCHIVE
           </div>
-          <h1 className="title-xl gradient-text" style={{ fontSize: 'clamp(32px, 6vw, 64px)', marginBottom: '16px' }}>
+          <h1 className="title-xl gradient-text" style={{ fontSize: isPhone ? '40px' : 'clamp(32px, 6vw, 64px)', marginBottom: '12px' }}>
             YOUR <span className="accent-text">HARVEST</span>
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '18px', maxWidth: '600px' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: isPhone ? '15px' : '18px', maxWidth: '600px' }}>
             Manage your cinematic ministry assets and social media reels across all series.
           </p>
         </div>
 
-        <DashboardAccountPanel userData={userData} />
+        <DashboardAccountPanel userData={userData} isMobile={isPhone} />
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '100px 0' }}>
@@ -166,7 +172,7 @@ export default function Dashboard() {
             </p>
           </div>
         ) : sermons.length === 0 ? (
-          <div className="glass-card premium-border animate-in" style={{ textAlign: 'center', padding: '100px 40px', borderStyle: 'dashed' }}>
+          <div className="glass-card premium-border animate-in" style={{ textAlign: 'center', padding: isPhone ? '56px 20px' : '100px 40px', borderStyle: 'dashed' }}>
             <div style={{ fontSize: '48px', marginBottom: '24px', opacity: 0.3 }}>🌾</div>
             <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '16px' }}>No Sermons Harvested Yet</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '40px', fontSize: '16px' }}>
@@ -194,10 +200,10 @@ export default function Dashboard() {
               <div key={month} style={{ marginBottom: '64px' }}>
                 <h2
                   style={{
-                    fontSize: '18px',
+                    fontSize: isPhone ? '14px' : '18px',
                     fontWeight: 900,
                     color: '#A1A1AA',
-                    letterSpacing: '0.2em',
+                    letterSpacing: isPhone ? '0.1em' : '0.2em',
                     textTransform: 'uppercase',
                     marginBottom: '24px',
                     borderBottom: '1px solid rgba(255,255,255,0.05)',
@@ -206,7 +212,7 @@ export default function Dashboard() {
                 >
                   {month} Series
                 </h2>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '800px', margin: '0 auto' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: isPhone ? '16px' : '24px', maxWidth: '800px', margin: '0 auto' }}>
                   {monthSermons.map((sermon) => (
                     <Link
                       key={sermon._id}
@@ -214,7 +220,7 @@ export default function Dashboard() {
                       style={{ textDecoration: 'none', color: 'inherit' }}
                     >
                       <div className="glass-card premium-border animate-in" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ height: '200px', background: '#000', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ height: isPhone ? '156px' : '200px', background: '#000', position: 'relative', overflow: 'hidden' }}>
                           {getYoutubeId(sermon.videoUrl || '') ? (
                             <img
                               src={`https://img.youtube.com/vi/${getYoutubeId(sermon.videoUrl || '')}/maxresdefault.jpg`}
@@ -267,9 +273,9 @@ export default function Dashboard() {
                             🗑️
                           </button>
                         </div>
-                        <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                          <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>{sermon.title}</h3>
-                          <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.5, height: '3em', overflow: 'hidden' }}>
+                        <div style={{ padding: isPhone ? '16px' : '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                          <h3 style={{ fontSize: isPhone ? '16px' : '18px', fontWeight: 800, marginBottom: '8px' }}>{sermon.title}</h3>
+                          <p style={{ color: 'var(--text-muted)', fontSize: isPhone ? '13px' : '14px', lineHeight: 1.5, height: '3em', overflow: 'hidden' }}>
                             {sermon.mainTheme || 'Neural analysis complete.'}
                           </p>
                           <div
@@ -285,7 +291,7 @@ export default function Dashboard() {
                             <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-dim)' }}>
                               {new Date(sermon.createdAt).toLocaleDateString()}
                             </span>
-                            <span style={{ color: 'var(--primary)', fontSize: '14px', fontWeight: 900 }}>VIEW ASSETS →</span>
+                            <span style={{ color: 'var(--primary)', fontSize: isPhone ? '12px' : '14px', fontWeight: 900 }}>VIEW ASSETS →</span>
                           </div>
                         </div>
                       </div>
@@ -301,7 +307,7 @@ export default function Dashboard() {
       <footer
         className="glass-card"
         style={{
-          padding: '80px 20px',
+          padding: isPhone ? '48px 16px' : '80px 20px',
           borderRadius: '48px 48px 0 0',
           borderBottom: 'none',
           borderLeft: 'none',
@@ -317,7 +323,7 @@ export default function Dashboard() {
             margin: '0 auto',
             display: 'flex',
             justifyContent: 'center',
-            gap: '40px',
+            gap: isPhone ? '20px' : '40px',
             fontSize: '11px',
             fontWeight: 900,
             letterSpacing: '0.3em',

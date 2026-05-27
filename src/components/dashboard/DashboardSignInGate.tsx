@@ -1,10 +1,20 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { SignInButton, SignUpButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 
 export default function DashboardSignInGate() {
+  const [isPhone, setIsPhone] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => setIsPhone(window.innerWidth < 640);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   return (
     <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div className="vesper-mesh-bg" />
@@ -16,24 +26,27 @@ export default function DashboardSignInGate() {
           top: '16px',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 'calc(100% - 32px)',
+          width: isPhone ? 'calc(100% - 16px)' : 'calc(100% - 32px)',
           maxWidth: '1400px',
-          height: '72px',
+          minHeight: isPhone ? '60px' : '72px',
+          height: 'auto',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '0 32px',
+          padding: isPhone ? '8px 10px' : '0 32px',
           zIndex: 1000,
           borderRadius: '20px',
         }}
       >
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '32px', width: 'auto' }} />
-          <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
-            <span style={{ color: '#8B5CF6' }}>VES</span>PER
-          </div>
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: isPhone ? '8px' : '12px' }}>
+          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: isPhone ? '26px' : '32px', width: 'auto' }} />
+          {!isPhone && (
+            <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
+              <span style={{ color: '#8B5CF6' }}>VES</span>PER
+            </div>
+          )}
         </Link>
-        <Link href="/" className="vesper-btn-outline" style={{ fontSize: '13px', textDecoration: 'none' }}>
+        <Link href="/" className="vesper-btn-outline" style={{ fontSize: isPhone ? '12px' : '13px', textDecoration: 'none', padding: isPhone ? '6px 8px' : undefined }}>
           BACK HOME
         </Link>
       </header>
@@ -44,7 +57,7 @@ export default function DashboardSignInGate() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '120px 24px 80px',
+          padding: isPhone ? '96px 12px 48px' : '120px 24px 80px',
           position: 'relative',
           zIndex: 10,
         }}
@@ -54,7 +67,7 @@ export default function DashboardSignInGate() {
           style={{
             width: '100%',
             maxWidth: '480px',
-            padding: '48px 40px',
+            padding: isPhone ? '28px 18px' : '48px 40px',
             textAlign: 'center',
           }}
         >
