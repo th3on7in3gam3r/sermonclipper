@@ -16,7 +16,7 @@ const outfit = Outfit({
 
 import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from 'react-hot-toast';
-import { vesperClerkAppearance } from '@/lib/clerkAppearance';
+import { vesperClerkAppearance, vesperClerkLocalization } from '@/lib/clerkAppearance';
 
 let hasWarnedMissingClerkKey = false;
 
@@ -55,9 +55,10 @@ export default function RootLayout({
   }
 
   return (
-    <ClerkProvider 
+    <ClerkProvider
       publishableKey={clerkPublishableKey}
       appearance={vesperClerkAppearance}
+      localization={vesperClerkLocalization}
     >
       <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
         <head>

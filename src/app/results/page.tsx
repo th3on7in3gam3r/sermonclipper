@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import VesperTour from '@/components/VesperTour';
 import VesperStudio from '@/components/studio/VesperStudio';
 import { parseTime } from '@/lib/parseTime';
+import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
 const GOOGLE_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap';
 
@@ -404,9 +405,9 @@ function ResultsContent() {
       {/* Navigation */}
       <header className="glass-card" style={{ 
         position: 'fixed', top: '16px', left: '50%', transform: 'translateX(-50%)', 
-        width: 'calc(100% - 32px)', maxWidth: '1400px', height: '72px', 
+        width: 'calc(100% - 24px)', maxWidth: '1400px', minHeight: '64px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-        padding: '0 32px', zIndex: 1000, borderRadius: '20px'
+        padding: isMobile ? '10px 12px' : '0 32px', zIndex: 1000, borderRadius: '20px'
       }}>
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '32px', width: 'auto' }} />
@@ -432,11 +433,14 @@ function ResultsContent() {
                   padding: 0, fontSize: '16px', fontWeight: 900,
                 }}
               >?</button>
-              <UserButton />
+              <UserButton
+                appearance={vesperClerkAppearance}
+                userProfileProps={{ appearance: vesperClerkAppearance }}
+              />
             </>
           ) : (
-            <SignInButton mode="modal">
-              <button className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: '10px 24px', fontSize: '14px' }}>SIGN IN</button>
+            <SignInButton mode="modal" appearance={vesperClerkAppearance}>
+              <button className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: isMobile ? '8px 14px' : '10px 24px', fontSize: isMobile ? '11px' : '14px' }}>SIGN IN</button>
             </SignInButton>
           )}
         </div>

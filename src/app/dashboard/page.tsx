@@ -112,8 +112,8 @@ export default function Dashboard() {
             <span style={{ color: '#8B5CF6' }}>VES</span>PER
           </div>
         </Link>
-        <div style={{ display: 'flex', gap: isMobile ? '12px' : '20px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          {userData && (
+        <div style={{ display: 'flex', gap: isMobile ? '10px' : '20px', alignItems: 'center', flexShrink: 0 }}>
+          {!isMobile && userData && (
             <div className="vesper-badge badge-violet" style={{ padding: '8px 16px', gap: '12px' }}>
               <span style={{ fontWeight: 900 }}>{userData.plan?.replace(/_/g, ' ')}</span>
               <span style={{ opacity: 0.5 }}>|</span>
@@ -122,7 +122,17 @@ export default function Dashboard() {
               </span>
             </div>
           )}
-          <Link href="/" className="vesper-btn-outline" style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-muted)' }}>
+          <Link
+            href="/"
+            className="vesper-btn-outline"
+            style={{
+              border: 'none',
+              background: 'transparent',
+              fontSize: '13px',
+              color: 'var(--text-muted)',
+              padding: isMobile ? '8px 10px' : undefined,
+            }}
+          >
             HOME
           </Link>
           <UserButton
