@@ -18,6 +18,8 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from 'react-hot-toast';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 
+let hasWarnedMissingClerkKey = false;
+
 export const viewport: Viewport = {
   themeColor: '#0A0A0F',
   width: 'device-width',
@@ -41,9 +43,20 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const isDev = process.env.NODE_ENV === 'development';
+
+  if (isDev && !clerkPublishableKey && !hasWarnedMissingClerkKey) {
+    // Dev-only startup warning to avoid silent auth failures on localhost.
+    console.warn(
+      '[Auth] NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is missing. Clerk auth modals will not initialize in development.'
+    );
+    hasWarnedMissingClerkKey = true;
+  }
+
   return (
     <ClerkProvider 
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_live_Y2xlcmsudmVzcGVyLmJpYmxlZnVubGFuZC5jb20k"}
+      publishableKey={clerkPublishableKey}
       appearance={vesperClerkAppearance}
     >
       <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
