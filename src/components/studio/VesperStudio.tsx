@@ -1,227 +1,243 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import StudioPhonePreview from './StudioPhonePreview';
+import { parseTime, formatTime } from '@/lib/parseTime';
+import { loadBrandKit, migrateStoredBrandKit, saveBrandKit } from '@/lib/studio/brandKit';
+import {
+  STUDIO_TEMPLATES,
+  STUDIO_FILTERS,
+  STUDIO_FONTS,
+  STUDIO_ANIMATIONS,
+  STUDIO_PLATFORMS,
+  STUDIO_TABS,
+  MOBILE_TABS,
+} from '@/lib/studio/constants';
+import type { ExportSettings, RenderState, SermonClip, UserStatus } from '@/lib/studio/types';
 
 interface VesperStudioProps {
-  selectedClip: any;
+  selectedClip: SermonClip & { index: number };
   onClose: () => void;
   videoId: string | null;
   videoUrl: string | null;
   playableVideoUrl: string | null;
-  rendering: Record<number, { status: string; url?: string }>;
+  rendering: Record<number, RenderState>;
   renderProgress: Record<number, number>;
-  startExport: (clip: any, settings: any) => void;
+  startExport: (clip: SermonClip & { index: number }, settings: ExportSettings) => void;
   isMobile: boolean;
-  userStatus: any;
-  parseTime: (timeStr: string) => number;
+  userStatus: UserStatus | null;
+  isYouTubeSource: boolean;
 }
 
-const TEMPLATES = [
-  { id: 'professional', name: 'Professional', desc: 'Clean, centered, minimal text shadows.', color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)', fontStyle: 'normal' },
-  { id: 'impact', name: 'Impact', desc: 'Bold violet color, heavy shadows, high visibility.', color: '#C4B5FD', textShadow: '0 4px 20px rgba(139,92,246,0.6)', fontStyle: 'italic' },
-  { id: 'luxury', name: 'Luxury', desc: 'Gold/Amber hues, elegant spacing, premium feel.', color: '#FCD34D', textShadow: '0 2px 15px rgba(217,119,6,0.4)', fontStyle: 'normal' },
-  { id: 'minimal', name: 'Minimal', desc: 'Pure white, no shadows, modern aesthetic.', color: '#ffffff', textShadow: 'none', fontStyle: 'normal' },
-];
+function getDefaultCaption(clip: SermonClip, overrides: Record<number, string>): string {
+  return overrides[clip.index] ?? clip.suggested_captions?.[0] ?? clip.main_quote ?? '';
+}
 
-const FILTERS = [
-  { id: 'none', name: 'RAW', css: 'none', preview: 'bg-zinc-900' },
-  { id: 'cinema', name: 'CINEMA', css: 'contrast(1.1) saturate(1.1) brightness(0.95)', preview: 'bg-gradient-to-br from-gray-900 to-blue-900' },
-  { id: 'warm', name: 'WARMTH', css: 'sepia(0.2) saturate(1.2) contrast(1.05)', preview: 'bg-gradient-to-br from-orange-900 to-red-900' },
-  { id: 'vibrant', name: 'VIBRANT', css: 'saturate(1.5) contrast(1.1)', preview: 'bg-gradient-to-br from-purple-900 to-pink-900' },
-  { id: 'noir', name: 'NOIR', css: 'grayscale(1) contrast(1.2)', preview: 'bg-gradient-to-br from-zinc-800 to-black' },
-];
+function getInitialStyleState() {
+  const kit = loadBrandKit();
+  return {
+    template: kit?.template ?? 'minimal',
+    filter: kit?.filter ?? 'none',
+    font: kit?.font ?? 'outfit',
+    animation: kit?.animation ?? 'fade',
+  };
+}
 
-const FONTS = [
-  { id: 'outfit', name: 'Outfit', family: 'Outfit, sans-serif', weight: 900, desc: 'Geometric & modern.' },
-  { id: 'inter', name: 'Inter', family: 'Inter, sans-serif', weight: 800, desc: 'Neutral & readable.' },
-  { id: 'roboto', name: 'Roboto', family: 'Roboto, sans-serif', weight: 900, desc: 'Classic industrial.' },
-  { id: 'serif', name: 'Playfair', family: 'serif', weight: 900, desc: 'Elegant & traditional.' },
-];
-
-const ANIMATIONS = [
-  { id: 'pop', name: 'KINETIC POP', desc: 'High-energy scale entrance.', class: 'animate-hook-pop' },
-  { id: 'pulse', name: 'BREATHING', desc: 'Subtle rhythmic scaling.', class: 'animate-hook-pulse' },
-  { id: 'shake', name: 'VIBRATE', desc: 'Intense word emphasis.', class: 'animate-hook-shake' },
-  { id: 'glitch', name: 'NEURAL GLITCH', desc: 'Digital distortion effect.', class: 'animate-hook-glitch' },
-  { id: 'fade', name: 'SOFT FADE', desc: 'Gentle opacity transition.', class: 'animate-in' },
-];
-
-const PLATFORMS = [
-  { id: 'tiktok', icon: '📱', label: 'TikTok', format: '9:16 Vertical', limit: 2200, prefix: '#ministry #shorts ' },
-  { id: 'insta', icon: '📸', label: 'Instagram', format: '9:16 Reel', limit: 2200, prefix: 'Reel from today: ' },
-  { id: 'youtube', icon: '▶️', label: 'YT Shorts', format: '9:16 Vertical', limit: 500, prefix: '' },
-  { id: 'x', icon: '𝕏', label: 'X', format: '1:1 / 9:16', limit: 280, prefix: 'Powerful moment: ' },
-];
-
-export default function VesperStudio({ 
-  selectedClip, 
-  onClose, 
-  videoId, 
-  videoUrl, 
-  playableVideoUrl, 
-  rendering, 
-  renderProgress, 
-  startExport, 
-  isMobile, 
+export default function VesperStudio({
+  selectedClip,
+  onClose,
+  videoId,
+  videoUrl,
+  playableVideoUrl,
+  rendering,
+  renderProgress,
+  startExport,
+  isMobile,
   userStatus,
-  parseTime
+  isYouTubeSource,
 }: VesperStudioProps) {
-  
-  const [activeTab, setActiveTab] = useState('templates');
+  const clipStart = parseTime(selectedClip.start);
+  const clipEnd = parseTime(selectedClip.end);
+  const initialStyle = getInitialStyleState();
+
+  const [activeTab, setActiveTab] = useState<string>('templates');
   const [mobileTab, setMobileTab] = useState('style');
-  
-  const [selectedTemplate, setSelectedTemplate] = useState('minimal');
-  const [selectedFilter, setSelectedFilter] = useState('none');
-  const [selectedFont, setSelectedFont] = useState('outfit');
-  const [selectedAnimation, setSelectedAnimation] = useState('fade');
-  
-  const [trimStart, setTrimStart] = useState(0);
-  const [trimEnd, setTrimEnd] = useState(0);
-  const [previewStart, setPreviewStart] = useState(0);
-  const [previewEnd, setPreviewEnd] = useState(0);
-  
+
+  const [selectedTemplate, setSelectedTemplate] = useState(initialStyle.template);
+  const [selectedFilter, setSelectedFilter] = useState(initialStyle.filter);
+  const [selectedFont, setSelectedFont] = useState(initialStyle.font);
+  const [selectedAnimation, setSelectedAnimation] = useState(initialStyle.animation);
+
+  const [trimStart, setTrimStart] = useState(clipStart);
+  const [trimEnd, setTrimEnd] = useState(clipEnd);
+  const [previewStart, setPreviewStart] = useState(clipStart);
+  const [previewEnd, setPreviewEnd] = useState(clipEnd);
+
   const [captionOverrides, setCaptionOverrides] = useState<Record<number, string>>({});
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [selectedPlatform, setSelectedPlatform] = useState('tiktok');
   const [isUploadingYT, setIsUploadingYT] = useState(false);
-  const videoRef = React.useRef<HTMLVideoElement>(null);
 
-  // Sync video state with controls
-  useEffect(() => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
-      } else {
-        videoRef.current.pause();
-      }
-    }
-  }, [isPlaying]);
+  const clipIndex = selectedClip.index;
+  const renderState = rendering[clipIndex];
+  const caption = useMemo(
+    () => getDefaultCaption(selectedClip, captionOverrides),
+    [selectedClip, captionOverrides]
+  );
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = isMuted;
-    }
-  }, [isMuted]);
+    migrateStoredBrandKit();
+  }, []);
 
-  useEffect(() => {
-    if (selectedClip) {
-      const start = parseTime(selectedClip.start);
-      const end = parseTime(selectedClip.end);
-      setTrimStart(start);
-      setTrimEnd(end);
-      setPreviewStart(start);
-      setPreviewEnd(end);
-    }
-  }, [selectedClip, parseTime]);
+  const applyTrimPreview = useCallback(() => {
+    setPreviewStart(trimStart);
+    setPreviewEnd(trimEnd);
+  }, [trimStart, trimEnd]);
+
+  const handleSaveProfile = () => {
+    saveBrandKit({
+      template: selectedTemplate,
+      filter: selectedFilter,
+      font: selectedFont,
+      animation: selectedAnimation,
+    });
+    toast.success('Profile saved — your defaults are kept for next session');
+  };
 
   const handleStartExport = () => {
-    const settings = {
+    if (isYouTubeSource) {
+      toast.error('Export requires a direct MP4 upload. YouTube links can be previewed only.');
+      return;
+    }
+    const settings: ExportSettings = {
       template: selectedTemplate,
       filter: selectedFilter,
       font: selectedFont,
       animation: selectedAnimation,
       trimStart,
       trimEnd,
-      caption: captionOverrides[selectedClip.index] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote
+      caption,
     };
     startExport(selectedClip, settings);
   };
 
   const handleYouTubeSync = async () => {
-    if (!rendering[selectedClip.index]?.url) return toast.error('Render required first');
-    if (!userStatus?.youtubeConnected) return toast.error('Connect YouTube in settings first');
-    
+    if (!renderState?.url) return toast.error('Render the reel first');
+    if (isYouTubeSource) return toast.error('YouTube source clips cannot be exported from Vesper');
+
     setIsUploadingYT(true);
     const toastId = toast.loading('Syncing with YouTube...');
-    
+
     try {
+      if (!userStatus?.youtubeConnected) {
+        const authRes = await fetch('/api/youtube/auth');
+        const authData = await authRes.json();
+        if (authData.url) {
+          window.location.href = authData.url;
+          return;
+        }
+      }
+
       const res = await fetch('/api/youtube/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          videoUrl: rendering[selectedClip.index].url,
+          videoUrl: renderState.url,
           title: selectedClip.hook_title || 'Sermon Clip',
-          description: captionOverrides[selectedClip.index] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote
-        })
+          description: caption,
+        }),
       });
-      
+
       if (!res.ok) throw new Error(await res.text());
-      
-      toast.success('Successfully published to YouTube Shorts!', { id: toastId });
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to upload', { id: toastId });
+      toast.success('Published to YouTube Shorts', { id: toastId });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Upload failed';
+      toast.error(message, { id: toastId });
     } finally {
       setIsUploadingYT(false);
     }
   };
 
-  const isYouTubeSource = !!videoId;
+  const selectedPlatformConfig = STUDIO_PLATFORMS.find((p) => p.id === selectedPlatform);
+  const platformCaption = `${selectedPlatformConfig?.prefix ?? ''}${caption}`;
+  const charCount = platformCaption.length;
+  const overLimit = selectedPlatformConfig?.limit ? charCount > selectedPlatformConfig.limit : false;
+  const trimDuration = trimEnd - trimStart;
 
   return (
-    <div className="vesper-mesh-bg-container" style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#050508', display: 'flex', flexDirection: 'column', animation: 'slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+    <div
+      className="vesper-mesh-bg-container"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 10000,
+        background: '#050508',
+        display: 'flex',
+        flexDirection: 'column',
+        animation: 'slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+      }}
+    >
       <div className="vesper-mesh-bg" />
-      
-      {/* Top Bar — Global Controls */}
-      <div className="glass-card" style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', borderRadius: 0, borderTop: 'none', borderLeft: 'none', borderRight: 'none', zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '32px', width: 'auto' }} />
-            <div style={{ marginLeft: '8px' }}>
-              <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
-                <span style={{ color: '#8B5CF6' }}>VES</span>PER <span style={{ opacity: 0.5, fontWeight: 300, fontSize: '16px', letterSpacing: '0.1em' }}>STUDIO</span>
-              </div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', fontWeight: 700 }}>NEURAL EDITING SUITE V2.5</div>
+
+      <header
+        className="glass-card"
+        style={{
+          height: '80px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 32px',
+          borderRadius: 0,
+          borderTop: 'none',
+          borderLeft: 'none',
+          borderRight: 'none',
+          zIndex: 100,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '32px', width: 'auto' }} />
+          <div>
+            <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
+              <span style={{ color: '#8B5CF6' }}>VES</span>PER{' '}
+              <span style={{ opacity: 0.5, fontWeight: 300, fontSize: '16px' }}>STUDIO</span>
+            </div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', fontWeight: 700 }}>
+              NEURAL EDITING SUITE
             </div>
           </div>
-          
-          {!isMobile && (
-            <div style={{ height: '32px', width: '1px', background: 'rgba(255,255,255,0.1)' }} />
-          )}
-
-          {!isMobile && (
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <div className="vesper-badge badge-violet" style={{ fontSize: '11px' }}>4K UPSCALE</div>
-              <div className="vesper-badge badge-green" style={{ fontSize: '11px' }}>AI SYNC ACTIVE</div>
+          {isYouTubeSource && !isMobile && (
+            <div className="vesper-badge badge-gold" style={{ marginLeft: '16px', fontSize: '11px' }}>
+              PREVIEW ONLY
             </div>
           )}
         </div>
-
-        <button
-          onClick={onClose}
-          className="vesper-btn-outline shimmer-effect"
-          style={{ padding: '10px 20px', borderRadius: '12px', fontSize: '13px' }}
-        >
-          <span style={{ opacity: 0.6, marginRight: '8px' }}>✕</span> CLOSE EDITOR
+        <button type="button" onClick={onClose} className="vesper-btn-outline shimmer-effect" style={{ padding: '10px 20px' }}>
+          ✕ CLOSE
         </button>
-      </div>
+      </header>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
-        
-        {/* LEFT PANEL — Style tools */}
-        <div className="studio-panel" style={{ 
-          width: isMobile ? '100%' : '340px', 
-          height: '100%',
-          borderRight: '1px solid rgba(255,255,255,0.05)', 
-          display: isMobile ? (mobileTab === 'style' ? 'flex' : 'none') : 'flex', 
-          flexDirection: 'column',
-          borderRadius: 0, borderTop: 'none', borderBottom: 'none', borderLeft: 'none',
-          background: 'rgba(10, 10, 15, 0.4)'
-        }}>
-
-          {/* Navigation Bar */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-            {[
-              { id: 'templates', icon: '◈', label: 'Style' },
-              { id: 'filters', icon: '◐', label: 'Filter' },
-              { id: 'fonts', icon: 'Aa', label: 'Font' },
-              { id: 'motion', icon: '▷', label: 'Motion' },
-              { id: 'trim', icon: '✂', label: 'Trim' },
-              { id: 'publish', icon: '↗', label: 'Sync' },
-            ].map(tab => (
+        {/* Left: style tools */}
+        <aside
+          className="studio-panel"
+          style={{
+            width: isMobile ? '100%' : '340px',
+            display: isMobile ? (mobileTab === 'style' ? 'flex' : 'none') : 'flex',
+            flexDirection: 'column',
+            borderRadius: 0,
+            borderTop: 'none',
+            borderBottom: 'none',
+            borderLeft: 'none',
+            background: 'rgba(10, 10, 15, 0.4)',
+          }}
+        >
+          <nav style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            {STUDIO_TABS.map((tab) => (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id)}
                 className={activeTab === tab.id ? 'studio-tab-active' : ''}
                 style={{
@@ -230,718 +246,467 @@ export default function VesperStudio({
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-                  color: 'var(--text-dim)'
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: 'var(--text-dim)',
                 }}
               >
-                <span style={{ fontSize: '20px', lineHeight: 1 }}>{tab.icon}</span>
-                <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{tab.label}</span>
+                <span style={{ fontSize: '20px' }}>{tab.icon}</span>
+                <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.08em' }}>{tab.label}</span>
               </button>
             ))}
-          </div>
+          </nav>
 
-          {/* Tab Content */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 40px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            
-            {/* Header for current tab */}
-            <div style={{ marginBottom: '8px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '4px' }}>EDITOR</div>
-              <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#fff' }}>{activeTab.toUpperCase()}</h3>
-            </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {activeTab === 'templates' &&
+              STUDIO_TEMPLATES.map((t) => (
+                <OptionCard
+                  key={t.id}
+                  selected={selectedTemplate === t.id}
+                  onSelect={() => setSelectedTemplate(t.id)}
+                  title={t.name}
+                  desc={t.desc}
+                  swatch={t.color}
+                />
+              ))}
 
-            {/* TEMPLATES */}
-            {activeTab === 'templates' && TEMPLATES.map(t => (
-              <div
-                key={t.id}
-                onClick={() => setSelectedTemplate(t.id)}
-                className="glass-card"
-                style={{
-                  padding: '16px', borderRadius: '16px', cursor: 'pointer',
-                  background: selectedTemplate === t.id ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.02)',
-                  borderColor: selectedTemplate === t.id ? 'var(--primary)' : 'var(--card-border)',
-                  display: 'flex', alignItems: 'center', gap: '16px',
-                }}
-              >
-                <div style={{ 
-                  width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0, 
-                  background: `linear-gradient(135deg, ${t.color}22, ${t.color}66)`, 
-                  border: `1px solid ${t.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center' 
-                }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: t.color, boxShadow: `0 0 10px ${t.color}` }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>{t.name}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{t.desc}</div>
-                </div>
-              </div>
-            ))}
-
-            {/* FILTERS */}
             {activeTab === 'filters' && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                {FILTERS.map(f => (
-                  <div
+                {STUDIO_FILTERS.map((f) => (
+                  <button
                     key={f.id}
+                    type="button"
                     onClick={() => setSelectedFilter(f.id)}
                     className="glass-card"
                     style={{
-                      borderRadius: '16px', cursor: 'pointer', overflow: 'hidden',
+                      padding: 0,
+                      borderRadius: '16px',
+                      cursor: 'pointer',
                       borderColor: selectedFilter === f.id ? 'var(--primary)' : 'var(--card-border)',
-                      padding: 0
+                      overflow: 'hidden',
                     }}
                   >
-                    <div style={{ height: '64px', background: f.preview.includes('bg-gradient') ? undefined : '#111', position: 'relative' }} className={f.preview}>
-                      {selectedFilter === f.id && (
-                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--primary-glow)', backdropFilter: 'blur(2px)' }}>
-                          <span style={{ fontSize: '20px' }}>✓</span>
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ padding: '8px 4px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 800, color: selectedFilter === f.id ? 'var(--secondary)' : 'var(--text-muted)', letterSpacing: '0.05em' }}>{f.name}</div>
-                    </div>
-                  </div>
+                    <div className={f.preview} style={{ height: '64px' }} />
+                    <div style={{ padding: '8px', textAlign: 'center', fontSize: '12px', fontWeight: 800 }}>{f.name}</div>
+                  </button>
                 ))}
               </div>
             )}
 
-            {/* FONTS */}
-            {activeTab === 'fonts' && FONTS.map(f => (
-              <div
-                key={f.id}
-                onClick={() => setSelectedFont(f.id)}
-                className="glass-card"
-                style={{
-                  padding: '14px', borderRadius: '16px', cursor: 'pointer',
-                  background: selectedFont === f.id ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.02)',
-                  borderColor: selectedFont === f.id ? 'var(--primary)' : 'var(--card-border)',
-                  display: 'flex', alignItems: 'center', gap: '16px',
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontFamily: f.family, fontWeight: f.weight, fontSize: '18px', color: selectedFont === f.id ? 'var(--secondary)' : '#fff' }}>Aa</span>
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '2px', fontFamily: f.family }}>{f.name}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{f.desc}</div>
-                </div>
-              </div>
-            ))}
+            {activeTab === 'fonts' &&
+              STUDIO_FONTS.map((f) => (
+                <OptionCard
+                  key={f.id}
+                  selected={selectedFont === f.id}
+                  onSelect={() => setSelectedFont(f.id)}
+                  title={f.name}
+                  desc={f.desc}
+                  fontFamily={f.family}
+                />
+              ))}
 
-            {/* MOTION */}
-            {activeTab === 'motion' && ANIMATIONS.map(a => (
-              <div
-                key={a.id}
-                onClick={() => setSelectedAnimation(a.id)}
-                className="glass-card"
-                style={{
-                  padding: '14px', borderRadius: '16px', cursor: 'pointer',
-                  background: selectedAnimation === a.id ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.02)',
-                  borderColor: selectedAnimation === a.id ? 'var(--primary)' : 'var(--card-border)',
-                  display: 'flex', alignItems: 'center', gap: '16px',
-                }}
-              >
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
-                  {a.id === 'fade' ? '✦' : a.id === 'slideUp' ? '↑' : a.id === 'zoom' ? '⊕' : '▶'}
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>{a.name}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{a.desc}</div>
-                </div>
-              </div>
-            ))}
+            {activeTab === 'motion' &&
+              STUDIO_ANIMATIONS.map((a) => (
+                <OptionCard
+                  key={a.id}
+                  selected={selectedAnimation === a.id}
+                  onSelect={() => setSelectedAnimation(a.id)}
+                  title={a.name}
+                  desc={a.desc}
+                />
+              ))}
 
-            {/* TRIM TAB */}
             {activeTab === 'trim' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                <div style={{ padding: '24px', background: 'rgba(139, 92, 246, 0.04)', borderRadius: '20px', border: '1px solid rgba(139, 92, 246, 0.15)' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '20px', textTransform: 'uppercase' }}>Precision Boundaries</div>
-                  
-                  <div style={{ marginBottom: '28px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                      <span style={{ fontSize: '13px', color: '#71717A', fontWeight: 800 }}>START POINT</span>
-                      <span style={{ fontSize: '16px', color: '#fff', fontWeight: 900, fontFamily: 'monospace' }}>{Math.floor(trimStart/60)}:{String(trimStart%60).padStart(2,'0')}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={Math.max(0, parseTime(selectedClip.start) - 60)}
-                      max={trimEnd - 1}
-                      value={trimStart}
-                      onChange={e => setTrimStart(Number(e.target.value))}
-                      onMouseUp={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
-                      style={{ width: '100%', accentColor: '#8B5CF6', height: '6px', cursor: 'pointer' }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: '28px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                      <span style={{ fontSize: '13px', color: '#71717A', fontWeight: 800 }}>END POINT</span>
-                      <span style={{ fontSize: '16px', color: '#fff', fontWeight: 900, fontFamily: 'monospace' }}>{Math.floor(trimEnd/60)}:{String(trimEnd%60).padStart(2,'0')}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={trimStart + 1}
-                      max={parseTime(selectedClip.end) + 60}
-                      value={trimEnd}
-                      onChange={e => setTrimEnd(Number(e.target.value))}
-                      onMouseUp={() => { setPreviewStart(trimStart); setPreviewEnd(trimEnd); }}
-                      style={{ width: '100%', accentColor: '#8B5CF6', height: '6px', cursor: 'pointer' }}
-                    />
-                  </div>
-
-                  <div style={{ padding: '16px', background: 'rgba(0,0,0,0.3)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '11px', color: '#52525B', fontWeight: 900, textTransform: 'uppercase' }}>Total Length</span>
-                      <span style={{ fontSize: '18px', color: '#fff', fontWeight: 900 }}>{trimEnd - trimStart}s</span>
-                    </div>
-                    <div style={{ padding: '6px 12px', borderRadius: '8px', background: trimEnd - trimStart > 60 ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', border: `1px solid ${trimEnd - trimStart > 60 ? '#EF444433' : '#10B98133'}`, color: trimEnd - trimStart > 60 ? '#EF4444' : '#10B981', fontSize: '12px', fontWeight: 900 }}>
-                      {trimEnd - trimStart > 60 ? '⚠️ OVER LIMIT' : '✓ READY'}
-                    </div>
-                  </div>
+              <div style={{ padding: '20px', background: 'rgba(139,92,246,0.04)', borderRadius: '20px', border: '1px solid rgba(139,92,246,0.15)' }}>
+                <label style={{ display: 'block', marginBottom: '20px' }}>
+                  <span style={{ fontSize: '13px', color: '#71717A', fontWeight: 800 }}>START</span>
+                  <span style={{ float: 'right', fontFamily: 'monospace', fontWeight: 900 }}>{formatTime(trimStart)}</span>
+                  <input
+                    type="range"
+                    min={Math.max(0, parseTime(selectedClip.start) - 60)}
+                    max={trimEnd - 1}
+                    value={trimStart}
+                    onChange={(e) => setTrimStart(Number(e.target.value))}
+                    onMouseUp={applyTrimPreview}
+                    onTouchEnd={applyTrimPreview}
+                    style={{ width: '100%', accentColor: '#8B5CF6', marginTop: '8px' }}
+                  />
+                </label>
+                <label style={{ display: 'block', marginBottom: '20px' }}>
+                  <span style={{ fontSize: '13px', color: '#71717A', fontWeight: 800 }}>END</span>
+                  <span style={{ float: 'right', fontFamily: 'monospace', fontWeight: 900 }}>{formatTime(trimEnd)}</span>
+                  <input
+                    type="range"
+                    min={trimStart + 1}
+                    max={parseTime(selectedClip.end) + 60}
+                    value={trimEnd}
+                    onChange={(e) => setTrimEnd(Number(e.target.value))}
+                    onMouseUp={applyTrimPreview}
+                    onTouchEnd={applyTrimPreview}
+                    style={{ width: '100%', accentColor: '#8B5CF6', marginTop: '8px' }}
+                  />
+                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 900 }}>{trimDuration}s</span>
+                  <span style={{ color: trimDuration > 60 ? '#EF4444' : '#10B981', fontSize: '12px', fontWeight: 900 }}>
+                    {trimDuration > 60 ? 'OVER 60s LIMIT' : 'READY'}
+                  </span>
                 </div>
               </div>
             )}
 
-            {/* PUBLISH TAB */}
             {activeTab === 'publish' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '44px', marginBottom: '16px' }}>▶️</div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>Push to YouTube</h3>
-                  <p style={{ fontSize: '14px', color: '#71717A', marginBottom: '24px', lineHeight: 1.5 }}>
-                    Instantly broadcast this cinematic clip as a YouTube Short.
-                  </p>
-                  
-                  {rendering[selectedClip.index]?.status === 'complete' ? (
-                    <button 
-                      onClick={() => toast.success('Syncing with YouTube...')}
-                      className="shimmer-btn"
-                      style={{ width: '100%', padding: '16px', borderRadius: '14px', fontSize: '15px', fontWeight: 900 }}
-                    >
-                      {userStatus?.youtubeConnected ? 'INSTANT PUBLISH' : 'CONNECT CHANNEL'}
-                    </button>
-                  ) : (
-                    <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '14px', fontSize: '14px', color: '#52525B', fontWeight: 800 }}>
-                      RENDER REQUIRED
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '44px', marginBottom: '16px' }}>📸</div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>Instagram / TikTok</h3>
-                  <p style={{ fontSize: '14px', color: '#71717A', marginBottom: '24px', lineHeight: 1.5 }}>
-                    Download the reel asset and use the pre-generated social kit to post.
-                  </p>
-                  <button 
-                    onClick={() => window.open(rendering[selectedClip.index]?.url)}
-                    disabled={rendering[selectedClip.index]?.status !== 'complete'}
-                    style={{ width: '100%', padding: '16px', borderRadius: '14px', fontSize: '15px', fontWeight: 900, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }}
-                  >
-                    DOWNLOAD MP4
-                  </button>
-                </div>
+                <PublishCard
+                  title="YouTube Shorts"
+                  icon="▶️"
+                  desc="Publish rendered reel to your connected channel."
+                  actionLabel={userStatus?.youtubeConnected ? 'PUBLISH SHORT' : 'CONNECT CHANNEL'}
+                  disabled={renderState?.status !== 'complete' || isUploadingYT}
+                  onAction={handleYouTubeSync}
+                />
+                <PublishCard
+                  title="Download MP4"
+                  icon="📥"
+                  desc="Save the rendered file for TikTok or Instagram."
+                  actionLabel="DOWNLOAD"
+                  disabled={renderState?.status !== 'complete'}
+                  onAction={() => renderState?.url && window.open(renderState.url)}
+                />
               </div>
             )}
           </div>
 
-          {/* Export Panel at bottom of Left Sidebar */}
-          <div style={{ padding: '24px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0, background: 'rgba(0,0,0,0.3)' }}>
-            <div style={{ marginBottom: '20px', padding: '16px', background: 'rgba(139,92,246,0.05)', borderRadius: '16px', border: '1px solid rgba(139,92,246,0.1)' }}>
-              <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--primary)', letterSpacing: '0.15em', marginBottom: '8px', textTransform: 'uppercase' }}>Active Profile</div>
-              <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.4, display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                <span style={{ color: '#fff', fontWeight: 800 }}>{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</span>
-                <span style={{ opacity: 0.3 }}>•</span>
-                <span style={{ color: '#fff', fontWeight: 800 }}>{FILTERS.find(f => f.id === selectedFilter)?.name}</span>
-                <span style={{ opacity: 0.3 }}>•</span>
-                <span style={{ color: '#fff', fontWeight: 800 }}>{FONTS.find(f => f.id === selectedFont)?.name}</span>
-              </div>
+          <div style={{ padding: '24px', borderTop: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.3)' }}>
+            <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
+              <strong style={{ color: '#fff' }}>{STUDIO_TEMPLATES.find((t) => t.id === selectedTemplate)?.name}</strong>
+              {' · '}
+              {STUDIO_FILTERS.find((f) => f.id === selectedFilter)?.name}
+              {' · '}
+              {STUDIO_FONTS.find((f) => f.id === selectedFont)?.name}
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
-                onClick={() => toast.success('Profile Saved')}
+                type="button"
+                onClick={handleSaveProfile}
                 className="vesper-btn-outline"
-                style={{ width: '56px', flexShrink: 0, padding: 0, borderRadius: '14px', fontSize: '20px' }}
-                title="Save Profile"
+                style={{ width: '56px', padding: 0 }}
+                title="Save as default brand profile"
               >
                 💾
               </button>
-              {rendering[selectedClip.index]?.status === 'complete' ? (
-                <div style={{ flex: 1, display: 'flex', gap: '12px' }}>
+              {renderState?.status === 'complete' ? (
+                <>
                   <button
-                    onClick={() => window.open(rendering[selectedClip.index]?.url)}
+                    type="button"
+                    onClick={() => renderState.url && window.open(renderState.url)}
                     className="vesper-btn vesper-btn-primary shimmer-effect"
-                    style={{ flex: 1, background: 'linear-gradient(90deg, #10B981, #059669)', fontSize: '14px' }}
+                    style={{ flex: 1, background: 'linear-gradient(90deg, #10B981, #059669)' }}
                   >
-                    📥 DOWNLOAD REEL
+                    DOWNLOAD REEL
                   </button>
-                  <button
-                    onClick={handleStartExport}
-                    className="vesper-btn-outline"
-                    style={{ padding: '0 16px', fontSize: '12px', whiteSpace: 'nowrap' }}
-                    title="Render with current settings"
-                  >
-                    RE-RENDER
-                  </button>
-                </div>
+                  {!isYouTubeSource && (
+                    <button type="button" onClick={handleStartExport} className="vesper-btn-outline" style={{ padding: '0 16px' }}>
+                      RE-RENDER
+                    </button>
+                  )}
+                </>
               ) : (
                 <button
+                  type="button"
                   onClick={handleStartExport}
                   className="vesper-btn vesper-btn-primary shimmer-effect"
-                  disabled={rendering[selectedClip.index]?.status === 'loading'}
-                  style={{ 
-                    flex: 1, 
-                    opacity: rendering[selectedClip.index]?.status === 'loading' ? 0.6 : 1, 
-                    fontSize: '14px'
-                  }}
+                  disabled={renderState?.status === 'loading' || isYouTubeSource}
+                  style={{ flex: 1, opacity: renderState?.status === 'loading' || isYouTubeSource ? 0.6 : 1 }}
                 >
-                  {rendering[selectedClip.index]?.status === 'loading'
-                    ? `RENDERING... ${renderProgress[selectedClip.index] || 0}%`
-                    : 'GENERATE CINEMATIC REEL'}
+                  {renderState?.status === 'loading'
+                    ? `RENDERING… ${renderProgress[clipIndex] ?? 0}%`
+                    : isYouTubeSource
+                      ? 'UPLOAD MP4 TO EXPORT'
+                      : 'GENERATE REEL'}
                 </button>
               )}
             </div>
           </div>
-        </div>
+        </aside>
 
-        {/* PANEL 2: CENTER (Cinematic Preview) */}
-        <div style={{ 
-          flex: 1, 
-          position: 'relative', 
-          background: 'transparent', 
-          display: isMobile ? (mobileTab === 'preview' ? 'flex' : 'none') : 'flex',
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          padding: isMobile ? '20px 16px' : '40px',
-          overflow: 'hidden',
-        }}>
-          {/* Centered content wrapper */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 10, width: '100%', height: '100%' }}>
-          {/* Subtle Background Glows */}
-          <div style={{ position: 'absolute', top: '20%', left: '20%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
-          
-          {/* Real-Phone Mockup Container */}
-          <div style={{ position: 'relative' }}>
-            {/* Side Buttons (Left: Action + Volume) */}
-            <div style={{ position: 'absolute', left: '-14px', top: '100px', width: '3px', height: '24px', background: '#27272A', borderRadius: '2px 0 0 2px' }} />
-            <div style={{ position: 'absolute', left: '-14px', top: '140px', width: '3px', height: '48px', background: '#27272A', borderRadius: '2px 0 0 2px' }} />
-            <div style={{ position: 'absolute', left: '-14px', top: '196px', width: '3px', height: '48px', background: '#27272A', borderRadius: '2px 0 0 2px' }} />
-            
-            {/* Side Buttons (Right: Power) */}
-            <div style={{ position: 'absolute', right: '-14px', top: '160px', width: '3px', height: '80px', background: '#27272A', borderRadius: '0 2px 2px 0' }} />
+        {/* Center: preview */}
+        <section
+          style={{
+            flex: 1,
+            display: isMobile ? (mobileTab === 'preview' ? 'flex' : 'none') : 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: isMobile ? '20px 16px' : '40px',
+            overflow: 'hidden',
+          }}
+        >
+          <StudioPhonePreview
+            videoId={videoId}
+            videoUrl={videoUrl}
+            playableVideoUrl={playableVideoUrl}
+            selectedClip={selectedClip}
+            previewStart={previewStart}
+            previewEnd={previewEnd}
+            selectedTemplate={selectedTemplate}
+            selectedFilter={selectedFilter}
+            selectedFont={selectedFont}
+            selectedAnimation={selectedAnimation}
+            caption={caption}
+            selectedPlatform={selectedPlatform}
+            isPlaying={isPlaying}
+            isMuted={isMuted}
+            isMobile={isMobile}
+            onPlayingChange={setIsPlaying}
+            onMutedChange={setIsMuted}
+          />
 
-            {/* Phone Body */}
-            <div className="premium-border" style={{ 
-              height: 'min(640px, 60vh)',
-              width: 'auto', 
-              aspectRatio: '9/19.5', 
-              background: '#000', 
-              borderRadius: '48px', 
-              border: '8px solid #18181B', 
-              boxShadow: `
-                0 30px 60px -12px rgba(0,0,0,0.8),
-                0 0 0 1px rgba(255,255,255,0.05),
-                inset 0 0 15px rgba(255,255,255,0.05)
-              `,
-              position: 'relative',
-              overflow: 'hidden',
-              transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-              maxHeight: 'calc(100vh - 240px)'
-            }}>
-              {/* Internal Screen Bezel (Super Slim) */}
-              <div style={{ position: 'absolute', inset: '4px', borderRadius: '48px', border: '1px solid rgba(255,255,255,0.08)', pointerEvents: 'none', zIndex: 5 }} />
-
-              {/* Dynamic Island (Interactive Style) */}
-              <div style={{ 
-                position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)', 
-                width: '100px', height: '30px', background: '#000', borderRadius: '20px', 
-                zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '12px', gap: '6px' 
-              }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#09090B', border: '1px solid #18181B' }} />
-                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#111' }} />
-              </div>
-
-            {/* Video Container */}
-            <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
-              {videoId ? (
-                <iframe
-                  style={{ width: '100%', height: '100%', border: 'none', transform: 'scale(1.05)', filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' }}
-                  src={`https://www.youtube.com/embed/${videoId}?start=${previewStart}&end=${previewEnd}&autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`}
-                  allow="autoplay; encrypted-media"
-                />
-              ) : videoUrl && (() => {
-                const isAudio = (playableVideoUrl || videoUrl || '').match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) || 
-                                (playableVideoUrl || videoUrl || '').toLowerCase().includes('audio');
-                
-                return (
-                  <div style={{ width: '100%', height: '100%', position: 'relative', background: '#050508' }}>
-                    {isAudio && (
-                      <div style={{ 
-                        position: 'absolute', inset: 0, 
-                        backgroundImage: 'url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&q=80")', 
-                        backgroundSize: 'cover', backgroundPosition: 'center',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                        padding: '20px', textAlign: 'center', zIndex: 1
-                      }}>
-                        <style>{`
-                          @keyframes audioWaveBar {
-                            0% { transform: scaleY(0.25); }
-                            100% { transform: scaleY(1.3); }
-                          }
-                          @keyframes spinGlow {
-                            0% { transform: rotate(0deg) scale(1); filter: drop-shadow(0 0 15px rgba(139,92,246,0.4)); }
-                            50% { transform: rotate(180deg) scale(1.05); filter: drop-shadow(0 0 25px rgba(236,72,153,0.6)); }
-                            100% { transform: rotate(360deg) scale(1); filter: drop-shadow(0 0 15px rgba(139,92,246,0.4)); }
-                          }
-                        `}</style>
-                        {/* Vesper branding glassmorphic card for audio reels! */}
-                        <div className="glass-card premium-border" style={{ 
-                          padding: '24px 16px', borderRadius: '24px', 
-                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
-                          background: 'rgba(5, 5, 8, 0.75)', backdropFilter: 'blur(16px)',
-                          width: '100%', maxWidth: '240px', boxShadow: '0 20px 40px rgba(0,0,0,0.6)'
-                        }}>
-                          <div style={{ 
-                            width: '64px', height: '64px', borderRadius: '50%', 
-                            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            animation: isPlaying ? 'spinGlow 8s linear infinite' : 'none'
-                          }}>
-                            <span style={{ fontSize: '28px' }}>🎙️</span>
-                          </div>
-                          <div style={{ width: '100%' }}>
-                            <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '4px' }}>AUDIO REEL</div>
-                            <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
-                              {selectedClip.hook_title || 'Sermon Harvest'}
-                            </div>
-                          </div>
-                          {/* Animated Waveform Visualizer */}
-                          <div style={{ display: 'flex', gap: '4px', height: '32px', alignItems: 'center', justifyContent: 'center' }}>
-                            {[0.5, 0.9, 0.6, 1.2, 0.7, 1.4, 0.8, 1.1, 0.6, 0.9, 0.5].map((speed, idx) => (
-                              <div 
-                                key={idx} 
-                                style={{ 
-                                  width: '3px', 
-                                  height: '18px', 
-                                  background: 'linear-gradient(to top, #8B5CF6, #EC4899)', 
-                                  borderRadius: '99px',
-                                  transformOrigin: 'center',
-                                  animation: isPlaying ? `audioWaveBar ${0.4 + speed * 0.3}s ease-in-out infinite alternate` : 'none',
-                                  animationDelay: `${idx * 0.04}s`
-                                }} 
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    <video 
-                      ref={videoRef}
-                      src={`${playableVideoUrl || ''}#t=${previewStart},${previewEnd}`}
-                      loop playsInline autoPlay muted={isMuted}
-                      onPlay={() => setIsPlaying(true)}
-                      onPause={() => setIsPlaying(false)}
-                      style={{ 
-                        width: '100%', height: '100%', objectFit: 'cover', 
-                        opacity: isAudio ? 0 : 1,
-                        filter: FILTERS.find(f => f.id === selectedFilter)?.css || 'none' 
-                      }}
-                    />
-                  </div>
-                );
-              })()}
-
-              {/* Playback Controls Overlay */}
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 50, display: 'flex', gap: '20px' }}>
-                {!isPlaying && (
-                  <button 
-                    onClick={() => setIsPlaying(true)}
-                    style={{ background: 'rgba(139,92,246,0.8)', border: 'none', color: '#fff', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(10px)', boxShadow: '0 0 30px rgba(139,92,246,0.4)' }}
-                  >
-                    <span style={{ fontSize: '24px', marginLeft: '4px' }}>▶</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Bottom Controls Bar */}
-              <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', height: '100px', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', zIndex: 60, display: 'flex', alignItems: 'flex-end', padding: '0 24px 24px', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button 
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '40px', height: '40px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}
-                  >
-                    <span style={{ fontSize: '18px' }}>{isPlaying ? '⏸' : '▶'}</span>
-                  </button>
-                  <button 
-                    onClick={() => setIsMuted(!isMuted)}
-                    style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '40px', height: '40px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}
-                  >
-                    <span style={{ fontSize: '18px' }}>{isMuted ? '🔇' : '🔊'}</span>
-                  </button>
-                </div>
-                
-                <div style={{ fontSize: '12px', fontWeight: 900, color: '#fff', letterSpacing: '0.1em', opacity: 0.8, marginBottom: '10px' }}>
-                  PREVIEW MODE
-                </div>
-              </div>
-
-              {/* Caption Overlay Preview */}
-              <div style={{ position: 'absolute', bottom: '22%', left: '8%', right: '8%', zIndex: 20 }}>
-                <div
-                  key={`${selectedAnimation}-${selectedClip.index}`}
-                  className={ANIMATIONS.find(a => a.id === selectedAnimation)?.class || 'animate-in'}
-                  style={{
-                    textAlign: 'center',
-                    color: TEMPLATES.find(t => t.id === selectedTemplate)?.color || '#fff',
-                    fontFamily: FONTS.find(f => f.id === selectedFont)?.family || 'inherit',
-                    fontWeight: FONTS.find(f => f.id === selectedFont)?.weight || 900,
-                    fontSize: isMobile ? '22px' : '20px',
-                    textShadow: TEMPLATES.find(t => t.id === selectedTemplate)?.textShadow || 'none',
-                    fontStyle: TEMPLATES.find(t => t.id === selectedTemplate)?.fontStyle || 'normal',
-                    textTransform: 'uppercase',
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {captionOverrides[selectedClip.index] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote}
-                </div>
-              </div>
-
-              {/* Platform Mockup Overlay */}
-              <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none', opacity: 0.8 }}>
-                {selectedPlatform === 'tiktok' && (
-                  <div style={{ position: 'absolute', right: '12px', bottom: '160px', display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👤</div>
-                    <div style={{ textAlign: 'center' }}><span style={{ fontSize: '24px' }}>❤️</span><div style={{ fontSize: '10px', fontWeight: 900 }}>12.4K</div></div>
-                    <div style={{ textAlign: 'center' }}><span style={{ fontSize: '24px' }}>💬</span><div style={{ fontSize: '10px', fontWeight: 900 }}>842</div></div>
-                    <div style={{ textAlign: 'center' }}><span style={{ fontSize: '24px' }}>🔖</span><div style={{ fontSize: '10px', fontWeight: 900 }}>5.1K</div></div>
-                    <div style={{ textAlign: 'center' }}><span style={{ fontSize: '24px' }}>↗️</span><div style={{ fontSize: '10px', fontWeight: 900 }}>SHARE</div></div>
-                  </div>
-                )}
-                {selectedPlatform === 'insta' && (
-                  <div style={{ position: 'absolute', left: '16px', bottom: '24px', display: 'flex', gap: '16px' }}>
-                    <span style={{ fontSize: '20px' }}>❤️</span>
-                    <span style={{ fontSize: '20px' }}>💬</span>
-                    <span style={{ fontSize: '20px' }}>↗️</span>
-                  </div>
-                )}
-                <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '80px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 900, marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>@yourministry</div>
-                  <div style={{ fontSize: '12px', color: '#fff', opacity: 0.9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {captionOverrides[selectedClip.index] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote}
-                  </div>
-                </div>
-              </div>
-
-              {/* Video Overlay Polish */}
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.4) 100%)', pointerEvents: 'none' }} />
-            </div>
-          </div>
-          </div>{/* end phone container */}
-
-          {/* Quick Caption Edit Overlay */}
-          <div style={{ width: '100%', maxWidth: '330px', marginTop: '24px', position: 'relative', zIndex: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', padding: '0 10px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em' }}>LIVE CAPTION EDITOR</span>
-              <span style={{ fontSize: '11px', color: '#8B5CF6', fontWeight: 800 }}>AUTO-SAVED</span>
-            </div>
+          <div style={{ width: '100%', maxWidth: '330px', marginTop: '24px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em' }}>
+              LIVE CAPTION
+            </label>
             <textarea
-              value={captionOverrides[selectedClip?.index] ?? (selectedClip?.suggested_captions?.[0] || selectedClip?.main_quote || '')}
-              onChange={e => setCaptionOverrides(prev => ({ ...prev, [selectedClip.index]: e.target.value }))}
+              value={captionOverrides[clipIndex] ?? caption}
+              onChange={(e) => setCaptionOverrides((prev) => ({ ...prev, [clipIndex]: e.target.value }))}
               rows={2}
               style={{
-                width: '100%', background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px',
-                padding: '16px', color: '#fff', fontSize: '15px',
-                lineHeight: 1.4, resize: 'none', fontFamily: 'inherit',
-                outline: 'none', transition: 'all 0.2s',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                width: '100%',
+                marginTop: '8px',
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '16px',
+                padding: '16px',
+                color: '#fff',
+                fontSize: '15px',
+                resize: 'none',
+                outline: 'none',
               }}
-              onFocus={(e) => e.target.style.border = '1px solid rgba(139,92,246,0.4)'}
-              onBlur={(e) => e.target.style.border = '1px solid rgba(255,255,255,0.08)'}
             />
           </div>
-          
-          {/* Hardware Specs Display */}
-          <div style={{ display: 'flex', gap: '12px', marginTop: '24px', opacity: 0.5 }}>
-            {['1080x1920', '60 FPS', 'HEVC'].map(spec => (
-              <div key={spec} style={{ fontSize: '10px', fontWeight: 900, letterSpacing: '0.2em', color: '#fff', background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '99px' }}>
-                {spec}
-              </div>
-            ))}
+        </section>
+
+        {/* Right: social kit */}
+        <aside
+          className="studio-panel"
+          style={{
+            width: isMobile ? '100%' : '380px',
+            display: isMobile ? (mobileTab === 'social' || mobileTab === 'export' ? 'flex' : 'none') : 'flex',
+            flexDirection: 'column',
+            borderRadius: 0,
+            borderTop: 'none',
+            borderBottom: 'none',
+            borderRight: 'none',
+            background: 'rgba(10, 10, 15, 0.4)',
+          }}
+        >
+          <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="vesper-badge badge-green" style={{ marginBottom: '8px' }}>MEDIA KIT</div>
+            <h3 style={{ fontSize: '20px', fontWeight: 900 }}>Social Distribution</h3>
           </div>
 
-          </div>{/* end centered content wrapper */}
-        </div>{/* end center panel */}
-
-        {/* PANEL 3: RIGHT SIDEBAR — Social Kit */}
-        <div className="studio-panel" style={{ 
-          width: isMobile ? '100%' : '380px', 
-          height: '100%',
-          borderLeft: '1px solid rgba(255,255,255,0.05)', 
-          display: isMobile ? ((mobileTab === 'social' || mobileTab === 'export') ? 'flex' : 'none') : 'flex', 
-          flexDirection: 'column',
-          borderRadius: 0, borderTop: 'none', borderBottom: 'none', borderRight: 'none',
-          background: 'rgba(10, 10, 15, 0.4)'
-        }}>
-
-          {/* Header */}
-          <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-            <div className="vesper-badge badge-green" style={{ marginBottom: '8px' }}>MEDIA KIT GENERATED</div>
-            <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#fff' }}>Social Distribution</h3>
-          </div>
-
-          {/* Social Platforms List */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* Action Toggles */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-              {PLATFORMS.map(p => (
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+              {STUDIO_PLATFORMS.map((p) => (
                 <button
                   key={p.id}
+                  type="button"
                   onClick={() => setSelectedPlatform(p.id)}
                   style={{
-                    flex: 1, padding: '12px 0', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+                    flex: 1,
+                    padding: '12px 0',
+                    borderRadius: '12px',
+                    border: `1px solid ${selectedPlatform === p.id ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}`,
                     background: selectedPlatform === p.id ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.03)',
-                    borderColor: selectedPlatform === p.id ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                    cursor: 'pointer', transition: 'all 0.2s'
+                    cursor: 'pointer',
                   }}
                 >
-                  <span style={{ fontSize: '18px' }}>{p.icon}</span>
+                  {p.icon}
                 </button>
               ))}
             </div>
 
-            {PLATFORMS.filter(p => p.id === selectedPlatform).map((p, pi) => {
-              const caption = selectedClip.suggested_captions?.[pi] || selectedClip.suggested_captions?.[0] || selectedClip.main_quote || '';
-              const fullText = `${p.prefix}${caption}`;
-              const charCount = fullText.length;
-              const overLimit = p.limit ? charCount > p.limit : false;
-              
-              return (
-                <div key={p.id} className="glass-card animate-in" style={{ padding: 0, border: '1px solid var(--primary)', background: 'rgba(139,92,246,0.05)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '24px' }}>{p.icon}</span>
-                      <span style={{ fontSize: '16px', fontWeight: 900, color: '#fff' }}>{p.label} STRATEGY</span>
-                    </div>
-                  </div>
-                  <div style={{ padding: '24px 20px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em', marginBottom: '12px' }}>SUGGESTED CAPTION</div>
-                    <div style={{ padding: '16px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', fontSize: '14px', lineHeight: 1.6, color: '#E4E4E7', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      {fullText}
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <button
-                        onClick={() => { navigator.clipboard.writeText(fullText); toast.success(`${p.label} Kit Copied`); }}
-                        className="vesper-btn vesper-btn-outline shimmer-effect"
-                        style={{ width: '100%', padding: '14px', fontSize: '13px' }}
-                      >
-                        COPY MEDIA KIT
-                      </button>
-                      
-                      {p.id === 'youtube' && (
-                        <button
-                          onClick={handleYouTubeSync}
-                          disabled={isUploadingYT || rendering[selectedClip.index]?.status !== 'complete'}
-                          className="vesper-btn vesper-btn-primary shimmer-effect"
-                          style={{ width: '100%', padding: '14px', fontSize: '13px', background: 'linear-gradient(90deg, #FF0000, #CC0000)', opacity: (isUploadingYT || rendering[selectedClip.index]?.status !== 'complete') ? 0.6 : 1 }}
-                        >
-                          {isUploadingYT ? 'PUBLISHING...' : 'PUBLISH AS YT SHORT'}
-                        </button>
-                      )}
-                      
-                      {p.id !== 'youtube' && (
-                        <button
-                          onClick={() => window.open(p.id === 'tiktok' ? 'https://tiktok.com' : p.id === 'insta' ? 'https://instagram.com' : 'https://x.com')}
-                          className="vesper-btn-outline"
-                          style={{ width: '100%', padding: '14px', fontSize: '13px', borderColor: 'rgba(255,255,255,0.1)' }}
-                        >
-                          OPEN {p.label.toUpperCase()}
-                        </button>
-                      )}
-                    </div>
-                  </div>
+            {selectedPlatformConfig && (
+              <div className="glass-card" style={{ padding: '20px', borderColor: 'var(--primary)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                  <span style={{ fontSize: '24px' }}>{selectedPlatformConfig.icon}</span>
+                  <span style={{ fontWeight: 900 }}>{selectedPlatformConfig.label}</span>
                 </div>
-              );
-            })}
+                <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#E4E4E7', marginBottom: '12px' }}>{platformCaption}</p>
+                <p style={{ fontSize: '11px', color: overLimit ? '#EF4444' : '#52525B', marginBottom: '16px', fontWeight: 800 }}>
+                  {charCount}
+                  {selectedPlatformConfig.limit ? ` / ${selectedPlatformConfig.limit}` : ''} chars
+                  {overLimit ? ' — over limit' : ''}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(platformCaption);
+                    toast.success(`${selectedPlatformConfig.label} caption copied`);
+                  }}
+                  className="vesper-btn vesper-btn-outline shimmer-effect"
+                  style={{ width: '100%', marginBottom: '12px' }}
+                >
+                  COPY CAPTION
+                </button>
+                {selectedPlatform === 'youtube' && (
+                  <button
+                    type="button"
+                    onClick={handleYouTubeSync}
+                    disabled={isUploadingYT || renderState?.status !== 'complete'}
+                    className="vesper-btn vesper-btn-primary shimmer-effect"
+                    style={{
+                      width: '100%',
+                      background: 'linear-gradient(90deg, #FF0000, #CC0000)',
+                      opacity: isUploadingYT || renderState?.status !== 'complete' ? 0.6 : 1,
+                    }}
+                  >
+                    {isUploadingYT ? 'PUBLISHING…' : 'PUBLISH YT SHORT'}
+                  </button>
+                )}
+              </div>
+            )}
 
-            {/* Engagement Hook Card */}
-            <div className="glass-card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)' }}>
-              <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--primary)', letterSpacing: '0.15em', marginBottom: '10px', textTransform: 'uppercase' }}>Neural Hook</div>
-              <p style={{ fontSize: '16px', color: '#fff', lineHeight: 1.5, margin: 0, fontWeight: 700, opacity: 0.8 }}>
+            <div className="glass-card" style={{ padding: '20px', marginTop: '20px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--primary)', marginBottom: '8px' }}>NEURAL HOOK</div>
+              <p style={{ fontSize: '16px', color: '#fff', lineHeight: 1.5, fontWeight: 700 }}>
                 &ldquo;{selectedClip.engagement_hook || 'High-impact theological insight.'}&rdquo;
               </p>
             </div>
           </div>
 
-          {/* Final Export Action on Mobile only */}
           {isMobile && mobileTab === 'export' && (
-            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <button 
-                onClick={handleStartExport}
-                className="vesper-btn vesper-btn-primary shimmer-effect"
-                style={{ width: '100%', padding: '20px', fontSize: '16px' }}
-              >
+            <div style={{ padding: '24px' }}>
+              <button type="button" onClick={handleStartExport} className="vesper-btn vesper-btn-primary shimmer-effect" style={{ width: '100%' }}>
                 RENDER FINAL REEL
               </button>
             </div>
           )}
-        </div>
+        </aside>
       </div>
 
-      {/* Mobile Bottom Navigation */}
       {isMobile && (
-        <div className="glass-card" style={{ 
-          height: '84px', borderRadius: '24px 24px 0 0', borderBottom: 'none', borderLeft: 'none', borderRight: 'none',
-          display: 'flex', zIndex: 100, paddingBottom: '12px' 
-        }}>
-          {[
-            { id: 'style', label: 'STYLE', icon: '🎨' },
-            { id: 'preview', label: 'PREVIEW', icon: '📱' },
-            { id: 'social', label: 'SOCIAL', icon: '📋' },
-            { id: 'export', label: 'FINISH', icon: '🚀' },
-          ].map(tab => (
+        <nav
+          className="glass-card"
+          style={{
+            height: '84px',
+            borderRadius: '24px 24px 0 0',
+            display: 'flex',
+            borderBottom: 'none',
+            paddingBottom: '12px',
+          }}
+        >
+          {MOBILE_TABS.map((tab) => (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setMobileTab(tab.id)}
               style={{
-                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                background: 'none', border: 'none',
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                background: 'none',
+                border: 'none',
                 color: mobileTab === tab.id ? 'var(--primary)' : 'var(--text-dim)',
-                transition: 'all 0.2s'
               }}
             >
-              <span style={{ fontSize: '24px', filter: mobileTab === tab.id ? 'drop-shadow(0 0 8px var(--primary-glow))' : 'none' }}>{tab.icon}</span>
-              <span style={{ fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em' }}>{tab.label}</span>
+              <span style={{ fontSize: '24px' }}>{tab.icon}</span>
+              <span style={{ fontSize: '10px', fontWeight: 900 }}>{tab.label}</span>
             </button>
           ))}
-        </div>
+        </nav>
       )}
+    </div>
+  );
+}
 
-      {/* Global CSS for Vesper Animations */}
-      <style jsx global>{`
-        @keyframes vesper-fade {
-          0%, 100% { opacity: 0; transform: translateY(5px); }
-          10%, 90% { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes vesper-slideUp {
-          0% { transform: translateY(40px); opacity: 0; }
-          15%, 85% { transform: translateY(0); opacity: 1; }
-          100% { transform: translateY(-20px); opacity: 0; }
-        }
-        @keyframes vesper-zoom {
-          0%, 100% { transform: scale(0.9); opacity: 0.5; }
-          50% { transform: scale(1.1); opacity: 1; }
-        }
-        @keyframes vesper-reveal {
-          0% { clip-path: inset(0 100% 0 0); }
-          20%, 80% { clip-path: inset(0 0 0 0); }
-          100% { clip-path: inset(0 0 0 100%); }
-        }
-      `}</style>
+function OptionCard({
+  selected,
+  onSelect,
+  title,
+  desc,
+  swatch,
+  fontFamily,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  title: string;
+  desc: string;
+  swatch?: string;
+  fontFamily?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className="glass-card"
+      style={{
+        padding: '16px',
+        borderRadius: '16px',
+        cursor: 'pointer',
+        width: '100%',
+        textAlign: 'left',
+        background: selected ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.02)',
+        borderColor: selected ? 'var(--primary)' : 'var(--card-border)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+      }}
+    >
+      {swatch && (
+        <div
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '10px',
+            flexShrink: 0,
+            background: `linear-gradient(135deg, ${swatch}22, ${swatch}66)`,
+            border: `1px solid ${swatch}44`,
+          }}
+        />
+      )}
+      <div>
+        <div style={{ fontSize: '15px', fontWeight: 800, color: '#fff', fontFamily }}>{title}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{desc}</div>
+      </div>
+    </button>
+  );
+}
+
+function PublishCard({
+  title,
+  icon,
+  desc,
+  actionLabel,
+  disabled,
+  onAction,
+}: {
+  title: string;
+  icon: string;
+  desc: string;
+  actionLabel: string;
+  disabled?: boolean;
+  onAction: () => void;
+}) {
+  return (
+    <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+      <div style={{ fontSize: '44px', marginBottom: '12px' }}>{icon}</div>
+      <h3 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '8px' }}>{title}</h3>
+      <p style={{ fontSize: '14px', color: '#71717A', marginBottom: '20px', lineHeight: 1.5 }}>{desc}</p>
+      <button
+        type="button"
+        onClick={onAction}
+        disabled={disabled}
+        className="vesper-btn vesper-btn-primary shimmer-effect"
+        style={{ width: '100%', opacity: disabled ? 0.5 : 1 }}
+      >
+        {actionLabel}
+      </button>
     </div>
   );
 }

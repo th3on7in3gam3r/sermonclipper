@@ -9,6 +9,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import VesperTour from '@/components/VesperTour';
 import VesperStudio from '@/components/studio/VesperStudio';
+import { parseTime } from '@/lib/parseTime';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
 const GOOGLE_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap';
 
@@ -31,7 +32,6 @@ function ResultsContent() {
   const [playableVideoUrl, setPlayableVideoUrl] = useState<string | null>(null);
   const { isLoaded, userId } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
-  const [mobileTab, setMobileTab] = useState('style'); // 'style', 'preview', 'social', 'export'
 
   // Resolve private R2 URL → presigned GET URL so the browser can play it
   useEffect(() => {
@@ -104,50 +104,10 @@ function ResultsContent() {
   // If the source is YouTube (not a direct upload), Shotstack can't render from it
   const isYouTubeSource = !!videoId;
 
-  // Robust time parser to handle cases where AI returns 'MM:SS' instead of raw seconds
-  const parseTime = (timeVal: any): number => {
-    if (typeof timeVal === 'number') return Math.floor(timeVal);
-    if (!timeVal) return 0;
-    const str = String(timeVal);
-    if (str.includes(':')) {
-      const parts = str.split(':').map(Number);
-      if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
-      if (parts.length === 2) return parts[0]*60 + parts[1];
-    }
-    return Math.floor(Number(str)) || 0;
-  };
-
   const [selectedClip, setSelectedClip] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState('templates');
   const [showYTDesc, setShowYTDesc] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [showQuoteVault, setShowQuoteVault] = useState(false);
-
-  const TEMPLATES = [
-    { id: 'minimal', name: 'Minimalist Prophet', desc: 'Clean white subtitles, no background', color: '#FFFFFF', fontStyle: 'normal', textShadow: '0 2px 8px rgba(0,0,0,0.8)' },
-    { id: 'cinematic', name: 'Cinematic Glory', desc: 'Bold yellow, deep shadow overlay', color: '#FFFF00', fontStyle: 'italic', textShadow: '0 4px 20px rgba(0,0,0,1)' },
-    { id: 'modern', name: 'Modern Apostle', desc: 'Violet gradient, dynamic weight', color: '#C4B5FD', fontStyle: 'normal', textShadow: '0 0 30px rgba(139,92,246,0.6)' },
-    { id: 'fire', name: 'Holy Fire', desc: 'Amber glow, bold impact style', color: '#FCD34D', fontStyle: 'normal', textShadow: '0 0 20px rgba(251,146,60,0.8)' },
-  ];
-
-  const FILTERS = [
-    { id: 'none', name: 'Original', css: 'none', preview: 'bg-gradient-to-br from-zinc-700 to-zinc-900' },
-    { id: 'vintage', name: 'Vintage Grace', css: 'sepia(0.55) contrast(1.15) brightness(0.95)', preview: 'bg-gradient-to-br from-amber-900 to-yellow-800' },
-    { id: 'cold', name: 'Cold Truth', css: 'saturate(0.4) brightness(1.1) hue-rotate(200deg)', preview: 'bg-gradient-to-br from-blue-900 to-slate-700' },
-    { id: 'warm', name: 'Warm Spirit', css: 'sepia(0.3) saturate(1.4) hue-rotate(15deg)', preview: 'bg-gradient-to-br from-orange-900 to-red-800' },
-    { id: 'noir', name: 'Noir Prophet', css: 'grayscale(0.9) contrast(1.3)', preview: 'bg-gradient-to-br from-zinc-900 to-zinc-600' },
-    { id: 'glory', name: 'Glory Light', css: 'brightness(1.15) saturate(1.3) contrast(0.95)', preview: 'bg-gradient-to-br from-violet-800 to-purple-600' },
-  ];
-
-  const FONTS = [
-    { id: 'outfit', name: 'Outfit', desc: 'Modern & clean', family: "'Outfit', sans-serif", weight: 900 },
-    { id: 'impact', name: 'Impact', desc: 'Bold & powerful', family: "Impact, 'Arial Narrow', sans-serif", weight: 900 },
-    { id: 'georgia', name: 'Georgia', desc: 'Classic & reverent', family: "Georgia, serif", weight: 700 },
-    { id: 'mono', name: 'Mono', desc: 'Technical & precise', family: "'Courier New', monospace", weight: 700 },
-    { id: 'serif', name: 'Playfair', desc: 'Elegant & editorial', family: "'Playfair Display', Georgia, serif", weight: 900 },
-  ];
-
-  const [selectedFont, setSelectedFont] = useState('outfit');
 
   // Caption dropdown state per clip
   const [openCaptionIdx, setOpenCaptionIdx] = useState<number | null>(null);
@@ -157,32 +117,9 @@ function ResultsContent() {
 
 
 
-  // Brand Kit — persisted in localStorage
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const loadBrandKit = () => {
-    try {
-      const saved = localStorage.getItem('vesper-brand-kit');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return null;
-  };
-  const saveBrandKit = (kit: { template: string; filter: string; font: string; animation: string }) => {
-    localStorage.setItem('vesper-brand-kit', JSON.stringify(kit));
-    toast.success('Brand kit saved as default! ✦');
-  };
-
-
-
   // Core Asset State
   const [thumbnails, setThumbnails] = useState<{ [key: number]: { status: string; url?: string; variants?: string[] } }>({});
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
-  const ANIMATIONS = [
-    { id: 'fade', name: 'Fade', desc: 'Smooth dissolve in/out' },
-    { id: 'slideUp', name: 'Slide Up', desc: 'Text rises from below' },
-    { id: 'zoom', name: 'Zoom', desc: 'Scale in from center' },
-    { id: 'carve', name: 'Carve', desc: 'Wipe reveal left to right' },
-  ];
-
   // Thumbnail Studio state
   const [activeThumbnailClip, setActiveThumbnailClip] = useState<any>(null);
   const [thumbPrompt, setThumbPrompt] = useState('');
@@ -245,66 +182,6 @@ function ResultsContent() {
     { id: 'x', label: 'X / Twitter', icon: '🐦', prefix: '', format: 'Post', limit: 280 },
     { id: 'facebook', label: 'Facebook', icon: '📘', prefix: '', format: 'Post / Reel', limit: 63206 },
   ];
-
-  const buildYouTubeDescription = () => {
-    if (!analysis) return '';
-    const lines: string[] = [];
-    lines.push(analysis.sermon_title || 'Sermon');
-    lines.push('');
-    lines.push(analysis.summary || analysis.main_theme || '');
-    lines.push('');
-    lines.push('⏱ TIMESTAMPS');
-    (analysis.clips || []).forEach((clip: any, i: number) => {
-      const t = parseTime(clip.start);
-      const mm = String(Math.floor(t / 60)).padStart(2, '0');
-      const ss = String(t % 60).padStart(2, '0');
-      lines.push(`${mm}:${ss} — ${clip.hook_title || `Clip ${i + 1}`}`);
-    });
-    lines.push('');
-    lines.push('#sermon #church #faith #christianity #worship #bible #jesus #ministry #gospel #holyspirit');
-    return lines.join('\n');
-  };
-
-  const handleYouTubeUpload = async (clip: any) => {
-    const i = clip.index;
-    const exportUrl = rendering[i]?.url;
-    if (!exportUrl) return toast.error('Please render the reel first!');
-
-    const loadToast = toast.loading('Preparing YouTube Harvest...');
-    
-    try {
-      // 1. Check if connected, else redirect to auth
-      const authRes = await fetch('/api/youtube/auth');
-      const authData = await authRes.json();
-      
-      // If the backend says we need to authorize, redirect
-      if (authData.url) {
-        window.location.href = authData.url;
-        return;
-      }
-
-      // 2. Upload
-      const uploadRes = await fetch('/api/youtube/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          videoUrl: exportUrl,
-          title: clip.hook_title || 'Sermon Highlight',
-          description: buildYouTubeDescription()
-        })
-      });
-
-      const uploadData = await uploadRes.json();
-      if (uploadData.success) {
-        toast.success('Successfully uploaded to YouTube Shorts! 🚀', { id: loadToast });
-      } else {
-        throw new Error(uploadData.error || 'Upload failed');
-      }
-    } catch (e: any) {
-      toast.error(e.message || 'YouTube integration requires setup.', { id: loadToast });
-    }
-  };
-
 
   const startExport = async (clip: any, settings: any = {}) => {
     // Guard: prevent export attempts when source is YouTube (no direct MP4)
@@ -880,6 +757,7 @@ function ResultsContent() {
 
       {selectedClip && (
         <VesperStudio
+          key={selectedClip.index}
           selectedClip={selectedClip}
           onClose={() => setSelectedClip(null)}
           videoId={videoId}
@@ -890,7 +768,7 @@ function ResultsContent() {
           startExport={startExport}
           isMobile={isMobile}
           userStatus={userStatus}
-          parseTime={parseTime}
+          isYouTubeSource={isYouTubeSource}
         />
       )}
       <VesperTour forceOpen={showTour} onClose={() => setShowTour(false)} />

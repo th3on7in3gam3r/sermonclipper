@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const ONBOARDING_KEY = 'vesper-onboarding-v2-acknowledged';
 
@@ -211,14 +211,10 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
 export function useOnboarding() {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
-  // Check on mount (client-side only)
-  if (typeof window !== 'undefined') {
+  useEffect(() => {
     const seen = localStorage.getItem(ONBOARDING_KEY);
-    if (!seen && !needsOnboarding) {
-      // Use setTimeout to avoid setState during render
-      setTimeout(() => setNeedsOnboarding(true), 0);
-    }
-  }
+    setNeedsOnboarding(!seen);
+  }, []);
 
   return { needsOnboarding, setNeedsOnboarding };
 }

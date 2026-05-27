@@ -15,8 +15,8 @@ const outfit = Outfit({
 });
 
 import { ClerkProvider } from '@clerk/nextjs';
-import { dark } from '@clerk/themes';
 import { Toaster } from 'react-hot-toast';
+import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 
 export const viewport: Viewport = {
   themeColor: '#0A0A0F',
@@ -44,7 +44,7 @@ export default function RootLayout({
   return (
     <ClerkProvider 
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_live_Y2xlcmsudmVzcGVyLmJpYmxlZnVubGFuZC5jb20k"}
-      appearance={{ baseTheme: dark }}
+      appearance={vesperClerkAppearance}
     >
       <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
         <head>
