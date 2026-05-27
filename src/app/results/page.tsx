@@ -604,8 +604,8 @@ function ResultsContent() {
             {/* Generated Clips */}
             {analysis?.clips && analysis.clips.length > 0 ? (
               analysis.clips.map((clip: any, i: number) => (
-                <div key={i} className="glass-card premium-border animate-in" style={{ animationDelay: `${(i + 1) * 0.1}s`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ position: 'relative', aspectRatio: '16/9', background: '#000' }}>
+                <div key={i} className="glass-card premium-border animate-in" style={{ animationDelay: `${(i + 1) * 0.1}s`, overflow: 'visible', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ position: 'relative', aspectRatio: '16/9', background: '#000', overflow: 'hidden', borderRadius: 'inherit' }}>
                     {videoId ? (
                       <iframe
                         style={{ width: '100%', height: '100%', border: 'none' }}

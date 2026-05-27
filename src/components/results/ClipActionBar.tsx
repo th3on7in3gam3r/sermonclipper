@@ -64,20 +64,22 @@ export default function ClipActionBar({
   };
 
   return (
-    <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative' }}>
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
           gap: '10px',
+          position: 'relative',
+          zIndex: captionOpen ? 40 : 1,
         }}
       >
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', zIndex: captionOpen ? 50 : 'auto' }}>
           <button
             type="button"
             onClick={onToggleCaption}
             className="vesper-btn-outline"
-            style={{ ...btnBase, width: '100%', justifyContent: 'space-between' }}
+            style={{ ...btnBase, width: '100%', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}
           >
             <span>CAPTION</span>
             <span style={{ opacity: 0.5, fontSize: '10px' }}>{captionOpen ? '▲' : '▼'}</span>
@@ -87,13 +89,15 @@ export default function ClipActionBar({
               className="glass-card"
               style={{
                 position: 'absolute',
-                top: 'calc(100% + 8px)',
+                bottom: 'calc(100% + 8px)',
                 left: 0,
                 right: 0,
-                zIndex: 100,
+                zIndex: 200,
                 padding: '6px',
                 borderRadius: '14px',
-                boxShadow: '0 16px 40px rgba(0,0,0,0.5)',
+                boxShadow: '0 16px 40px rgba(0,0,0,0.65)',
+                border: '1px solid rgba(139, 92, 246, 0.25)',
+                background: 'rgba(12, 12, 18, 0.98)',
               }}
             >
               {platforms.map((p, pi) => {
@@ -171,40 +175,42 @@ export default function ClipActionBar({
         </div>
       )}
 
-      {renderStatus === 'complete' && renderUrl ? (
-        <a
-          href={renderUrl}
-          download
-          target="_blank"
-          rel="noreferrer"
-          className="vesper-btn vesper-btn-primary shimmer-effect"
-          style={{
-            ...btnBase,
-            width: '100%',
-            textDecoration: 'none',
-            background: 'linear-gradient(135deg, #10B981, #059669)',
-            fontSize: '12px',
-          }}
-        >
-          DOWNLOAD REEL
-        </a>
-      ) : (
-        <button
-          type="button"
-          onClick={onCustomize}
-          className={isYouTubeSource ? 'vesper-btn-outline' : 'vesper-btn vesper-btn-primary shimmer-effect'}
-          style={{
-            ...btnBase,
-            width: '100%',
-            fontSize: '12px',
-            ...(isYouTubeSource
-              ? { color: 'var(--primary)', borderColor: 'var(--primary-glow)' }
-              : {}),
-          }}
-        >
-          {isYouTubeSource ? 'PREVIEW IN STUDIO' : 'CUSTOMIZE REEL'}
-        </button>
-      )}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {renderStatus === 'complete' && renderUrl ? (
+          <a
+            href={renderUrl}
+            download
+            target="_blank"
+            rel="noreferrer"
+            className="vesper-btn vesper-btn-primary shimmer-effect"
+            style={{
+              ...btnBase,
+              width: '100%',
+              textDecoration: 'none',
+              background: 'linear-gradient(135deg, #10B981, #059669)',
+              fontSize: '12px',
+            }}
+          >
+            DOWNLOAD REEL
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={onCustomize}
+            className={isYouTubeSource ? 'vesper-btn-outline' : 'vesper-btn vesper-btn-primary shimmer-effect'}
+            style={{
+              ...btnBase,
+              width: '100%',
+              fontSize: '12px',
+              ...(isYouTubeSource
+                ? { color: 'var(--primary)', borderColor: 'var(--primary-glow)' }
+                : {}),
+            }}
+          >
+            {isYouTubeSource ? 'PREVIEW IN STUDIO' : 'CUSTOMIZE REEL'}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
