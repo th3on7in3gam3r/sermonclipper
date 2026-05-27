@@ -418,12 +418,10 @@ function ResultsContent() {
         <div style={{ display: 'flex', gap: isMobile ? '12px' : '32px', alignItems: 'center' }}>
           {isLoaded && userId ? (
             <>
-              {!isMobile && (
-                <nav style={{ display: 'flex', gap: '24px' }}>
-                  <Link href="/" style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>HOME</Link>
-                  <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>ARCHIVE</Link>
-                </nav>
-              )}
+              <nav style={{ display: 'flex', gap: isMobile ? '12px' : '24px' }}>
+                <Link href="/" style={{ textDecoration: 'none', fontSize: isMobile ? '12px' : '14px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>HOME</Link>
+                <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: isMobile ? '12px' : '14px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>ARCHIVE</Link>
+              </nav>
               <button
                 onClick={() => setShowTour(true)}
                 title="Open tutorial"

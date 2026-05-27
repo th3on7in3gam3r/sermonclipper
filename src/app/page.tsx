@@ -220,11 +220,19 @@ export default function Home() {
           </Link>
           {isLoaded && userId ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
-              {!isMobile && (
-                <Link href="/dashboard" className="vesper-btn-outline" style={{ padding: '8px 20px', fontSize: '13px' }}>
-                  DASHBOARD
-                </Link>
-              )}
+              <Link
+                href="/dashboard"
+                className="vesper-btn-outline"
+                style={{
+                  padding: isMobile ? '6px 8px' : '8px 20px',
+                  fontSize: isMobile ? '12px' : '13px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                DASHBOARD
+              </Link>
               <UserButton appearance={vesperClerkAppearance} userProfileProps={{ appearance: vesperClerkAppearance }} />
             </div>
           ) : (
