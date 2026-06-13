@@ -71,17 +71,82 @@ export function mapShotstackHttpError(
   environment: ShotstackEnvironment
 ): { httpStatus: number; error: string } {
   if (status === 401 || status === 403) {
+    const normalized = message.toLowerCase();
+    if (normalized.includes('invalid or disabled') || normalized.includes('invalid api key')) {
+      return {
+        httpStatus: 502,
+        error:
+          environment === 'production'
+            ? 'Shotstack rejected your production API key (invalid or disabled). In the Shotstack dashboard, copy the Production key into SHOTSTACK_PRODUCTION_KEY on Vercel, then redeploy.'
+            : 'Shotstack rejected your sandbox API key (invalid or disabled). Copy the Stage/Sandbox key into SHOTSTACK_SANDBOX_KEY, or set SHOTSTACK_ENV=production with a valid production key.',
+      };
+    }
+
     return {
       httpStatus: 502,
       error:
         environment === 'production'
-          ? 'Shotstack rejected the production API key. Confirm SHOTSTACK_PRODUCTION_KEY is set correctly in your hosting environment.'
-          : 'Shotstack rejected the sandbox API key. Confirm SHOTSTACK_SANDBOX_KEY is set correctly, or set SHOTSTACK_ENV=production with a valid production key.',
+          ? `Shotstack production error: ${message}`
+          : `Shotstack sandbox error: ${message}`,
     };
   }
 
   return {
     httpStatus: status >= 500 ? 502 : 500,
     error: message || `Shotstack request failed (${status})`,
+  };
+}
+
+/** Extract human-readable error text from Shotstack JSON responses. */
+export function parseShotstackErrorBody(
+  raw: string,
+  data: { message?: string; error?: string; errors?: { detail?: string; title?: string }[] }
+): string {
+  const fromErrors = data.errors?.map((e) => e.detail || e.title).filter(Boolean).join(' — ');
+  if (fromErrors) return fromErrors;
+  if (data.message) return data.message;
+  if (data.error) return data.error;
+  if (raw) return raw.slice(0, 500);
+  return 'Unknown Shotstack error';
+}
+
+/** Ping Shotstack with a minimal payload to verify a key + endpoint pair. */
+export async function verifyShotstackKey(
+  apiKey: string,
+  renderUrl: string
+): Promise<{ ok: boolean; status: number; message: string }> {
+  const response = await fetch(renderUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+    body: JSON.stringify({
+      timeline: { tracks: [] },
+      output: { format: 'mp4', resolution: 'hd', aspectRatio: '9:16' },
+    }),
+  });
+
+  const raw = await response.text();
+  let data: { message?: string; error?: string; errors?: { detail?: string }[] } = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    return { ok: false, status: response.status, message: raw.slice(0, 200) || `HTTP ${response.status}` };
+  }
+
+  if (response.ok && (data as { success?: boolean }).success) {
+    return { ok: true, status: response.status, message: 'Key accepted' };
+  }
+
+  // 400 validation errors mean auth worked — key is valid
+  if (response.status === 400) {
+    return { ok: true, status: response.status, message: 'Key accepted (validation error on empty timeline is expected)' };
+  }
+
+  return {
+    ok: false,
+    status: response.status,
+    message: parseShotstackErrorBody(raw, data),
   };
 }

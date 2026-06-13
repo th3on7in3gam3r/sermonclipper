@@ -5,7 +5,7 @@ import User from '@/models/User';
 import { progressManager } from '../../../lib/progress';
 import { planAllowsExport } from '@/lib/plans';
 import { effectivePlan } from '@/lib/adminBypass';
-import { getShotstackConfig, mapShotstackHttpError } from '@/lib/shotstack';
+import { getShotstackConfig, mapShotstackHttpError, parseShotstackErrorBody } from '@/lib/shotstack';
 import { resolveShotstackVideoUrl } from '../../../lib/shotstackVideoUrl';
 import { isDownloadableMasterUrl, isYouTubeUrl } from '../../../lib/videoSource';
 
@@ -358,11 +358,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const shotstackError =
-      data.message ||
-      data.error ||
-      (typeof data === 'object' ? JSON.stringify(data) : raw) ||
-      `Shotstack request failed (${response.status})`;
+    const shotstackError = parseShotstackErrorBody(raw, data);
 
     console.error('[Shotstack] API Error:', shotstackError);
     console.error('[Shotstack] Payload sent:', JSON.stringify(shotstackEdit));
