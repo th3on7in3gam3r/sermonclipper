@@ -32,6 +32,7 @@ export async function GET() {
       usageCount: dbUser.usageCount,
       limit: 999999,
       youtubeConnected: !!dbUser.youtubeTokens,
+      onboardingComplete: true,
       isAdmin: true
     });
   }
@@ -41,6 +42,7 @@ export async function GET() {
     status: dbUser.status,
     usageCount: dbUser.usageCount,
     limit: dbUser.plan === 'free' ? 2 : dbUser.plan === 'creator' ? 20 : 999999,
-    youtubeConnected: !!dbUser.youtubeTokens
+    youtubeConnected: !!dbUser.youtubeTokens,
+    onboardingComplete: dbUser.onboardingComplete ?? false,
   });
 }

@@ -8,6 +8,7 @@ export interface IUser extends Document {
   status: 'active' | 'canceled' | 'past_due' | 'unpaid';
   usageCount: number;
   lastUsageReset: Date;
+  onboardingComplete: boolean;
   youtubeTokens?: Record<string, unknown>;
   createdAt: Date;
 }
@@ -20,6 +21,7 @@ const UserSchema: Schema = new Schema({
   status: { type: String, default: 'active' },
   usageCount: { type: Number, default: 0 },
   lastUsageReset: { type: Date, default: Date.now },
+  onboardingComplete: { type: Boolean, default: false },
   youtubeTokens: { type: Schema.Types.Mixed },
   createdAt: { type: Date, default: Date.now },
 });

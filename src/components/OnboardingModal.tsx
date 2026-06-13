@@ -1,20 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
-const ONBOARDING_KEY = 'vesper-onboarding-v2-acknowledged';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import {
+  isOnboardingCompleteLocally,
+  markOnboardingCompleteLocally,
+} from '@/lib/onboardingStorage';
+import { MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
 
 const SLIDES = [
   {
-    icon: '🎬',
-    title: 'Welcome to Vesper Studio',
-    body: 'Vesper transforms your sermons into professional short-form content for social media. Here\'s how it works in 4 simple steps.',
-    highlight: 'Let\'s get you started.',
-  },
-  {
     icon: '📤',
     title: 'Step 1: Upload or Paste',
-    body: 'You have two options:\n\n• Upload an MP4 file directly (max 100MB — recommended for full export)\n• Paste a YouTube link (AI analysis only — no reel export)\n\nFor large sermons, compress to 720p MP4 first or use a YouTube link.',
+    body: `Welcome to Vesper Studio — we transform your sermons into professional short-form content for social media.\n\nYou have two options:\n\n• Upload an MP4 file directly (max ${MAX_DIRECT_UPLOAD_LABEL} — recommended for full export)\n• Paste a YouTube link (AI analysis only — no reel export)\n\nImportant: YouTube blocks direct file access from servers, so pasted links cannot be exported as reels. Download the sermon from YouTube first, then re-upload the MP4 for full power.\n\nFor large sermons, compress to 720p MP4 first or use a YouTube link for preview.`,
     highlight: 'Upload MP4 for the complete experience.',
   },
   {
@@ -35,31 +33,40 @@ const SLIDES = [
     body: 'Hit "Confirm & Export" to render your 9:16 vertical reel in the cloud. Download it and post directly to Instagram Reels, TikTok, YouTube Shorts, or any platform.',
     highlight: 'Rendering takes 1-3 minutes.',
   },
-  {
-    icon: '⚠️',
-    title: 'Important: YouTube Limitation',
-    body: 'If you paste a YouTube link, the AI analysis works perfectly — but reel export is disabled. YouTube blocks direct file access from servers.\n\nTo get exportable reels: download the sermon from YouTube, then re-upload the MP4 file to Vesper.',
-    highlight: 'Upload MP4 = Full power. YouTube = Preview only.',
-  },
-];
+] as const;
+
+const TOTAL_STEPS = SLIDES.length;
 
 interface OnboardingModalProps {
-  onComplete: () => void;
+  onComplete: () => void | Promise<void>;
+  onSkip: () => void | Promise<void>;
 }
 
-export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
+export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalProps) {
   const [step, setStep] = useState(0);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const isLast = step === SLIDES.length - 1;
   const current = SLIDES[step];
-  const totalSteps = SLIDES.length;
+  const totalSteps = TOTAL_STEPS;
+
+  const finish = async (handler: () => void | Promise<void>) => {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      await handler();
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleComplete = () => {
     if (!acknowledged) return;
-    localStorage.setItem(ONBOARDING_KEY, '1');
-    onComplete();
+    finish(onComplete);
   };
+
+  const handleSkip = () => finish(onSkip);
 
   return (
     <div style={{
@@ -76,7 +83,37 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
         overflow: 'hidden',
         boxShadow: '0 0 0 1px rgba(139,92,246,0.2), 0 40px 120px rgba(0,0,0,0.8), 0 0 80px rgba(139,92,246,0.15)',
         animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        position: 'relative',
       }}>
+        <button
+          type="button"
+          onClick={handleSkip}
+          disabled={isSaving}
+          aria-label="Skip onboarding for now"
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '24px',
+            background: 'none',
+            border: 'none',
+            color: '#71717A',
+            fontSize: '12px',
+            fontWeight: 600,
+            cursor: isSaving ? 'not-allowed' : 'pointer',
+            padding: 0,
+            zIndex: 2,
+            opacity: isSaving ? 0.5 : 0.85,
+            transition: 'color 0.2s, opacity 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            if (!isSaving) e.currentTarget.style.color = '#A1A1AA';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '#71717A';
+          }}
+        >
+          Skip for now →
+        </button>
         {/* Content */}
         <div style={{ padding: '32px 32px 28px' }}>
           {/* Labeled step bar */}
@@ -163,6 +200,11 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
           </div>
 
           {/* Title */}
+          {step === 0 && (
+            <p style={{ fontSize: '13px', color: '#A78BFA', fontWeight: 800, letterSpacing: '0.04em', marginBottom: '8px' }}>
+              Here&apos;s how it works in {totalSteps} simple steps
+            </p>
+          )}
           <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: '16px', color: '#fff' }}>
             {current.title}
           </h2>
@@ -233,17 +275,17 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
             <button
               type="button"
               onClick={isLast ? handleComplete : () => setStep((s) => s + 1)}
-              disabled={isLast && !acknowledged}
+              disabled={(isLast && !acknowledged) || isSaving}
               className="shimmer-btn"
               style={{
                 flex: 2, padding: '14px',
                 borderRadius: '12px', fontSize: '13px', fontWeight: 900,
                 letterSpacing: '0.06em',
-                opacity: (isLast && !acknowledged) ? 0.4 : 1,
-                cursor: (isLast && !acknowledged) ? 'not-allowed' : 'pointer',
+                opacity: (isLast && !acknowledged) || isSaving ? 0.4 : 1,
+                cursor: (isLast && !acknowledged) || isSaving ? 'not-allowed' : 'pointer',
               }}
             >
-              {isLast ? 'GET STARTED ✦' : 'Next →'}
+              {isSaving ? 'Saving…' : isLast ? 'GET STARTED ✦' : 'Next →'}
             </button>
           </div>
         </div>
@@ -252,14 +294,75 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
   );
 }
 
-/** Hook to check if onboarding has been completed */
+/** Hook to check if onboarding should show for signed-in users only */
 export function useOnboarding() {
+  const { isLoaded, userId } = useAuth();
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+
+  const completeOnboarding = useCallback(async () => {
+    if (userId) {
+      markOnboardingCompleteLocally(userId);
+      try {
+        await fetch('/api/user/onboarding', { method: 'POST' });
+      } catch {
+        // localStorage fallback keeps the wizard dismissed for this browser
+      }
+    }
+    setNeedsOnboarding(false);
+  }, [userId]);
 
   useEffect(() => {
-    const seen = localStorage.getItem(ONBOARDING_KEY);
-    setNeedsOnboarding(!seen);
-  }, []);
+    if (!isLoaded) return;
 
-  return { needsOnboarding, setNeedsOnboarding };
+    if (!userId) {
+      setNeedsOnboarding(false);
+      setIsChecking(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function resolveOnboardingState() {
+      setIsChecking(true);
+
+      if (isOnboardingCompleteLocally(userId!)) {
+        try {
+          await fetch('/api/user/onboarding', { method: 'POST' });
+        } catch {
+          // Already stored locally; server sync can retry on next visit
+        }
+        if (!cancelled) {
+          setNeedsOnboarding(false);
+          setIsChecking(false);
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/user/status');
+        if (!res.ok) {
+          if (!cancelled) setNeedsOnboarding(false);
+          return;
+        }
+        const data = await res.json();
+        if (!cancelled) {
+          setNeedsOnboarding(!data.onboardingComplete);
+        }
+      } catch {
+        if (!cancelled) setNeedsOnboarding(false);
+      } finally {
+        if (!cancelled) setIsChecking(false);
+      }
+    }
+
+    resolveOnboardingState();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded, userId]);
+
+  const showOnboarding = isLoaded && Boolean(userId) && !isChecking && needsOnboarding;
+
+  return { showOnboarding, completeOnboarding };
 }

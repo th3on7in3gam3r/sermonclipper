@@ -18,7 +18,11 @@ interface VideoTrimmerProps {
   onCancel: () => void;
 }
 
-const MAX_OUTPUT_MB = 500; // Presigned URLs bypass proxy — direct browser-to-R2 upload
+import {
+  MAX_DIRECT_UPLOAD_BYTES,
+  MAX_DIRECT_UPLOAD_MB,
+  MAX_DIRECT_UPLOAD_LABEL,
+} from '@/lib/uploadLimits';
 
 export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: VideoTrimmerProps) {
   const [file, setFile] = useState<File | null>(initialFile || null);
@@ -109,10 +113,10 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
     setDuration(dur);
     setOutPoint(dur);
 
-    // Calculate how many segments needed to stay under MAX_OUTPUT_MB
+    // Calculate how many segments needed to stay under MAX_DIRECT_UPLOAD_MB
     const fileSizeMB = file.size / (1024 * 1024);
     const bytesPerSecond = file.size / dur;
-    const maxSecondsPerSegment = (MAX_OUTPUT_MB * 1024 * 1024) / bytesPerSecond;
+    const maxSecondsPerSegment = (MAX_DIRECT_UPLOAD_MB * 1024 * 1024) / bytesPerSecond;
     const numSegments = Math.ceil(dur / maxSecondsPerSegment);
 
     const segs: { start: number; end: number; sizeMB: number }[] = [];
@@ -126,7 +130,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
     setSegments(segs);
 
     // If file is already small enough, go straight to manual mode
-    if (fileSizeMB <= MAX_OUTPUT_MB) {
+    if (fileSizeMB <= MAX_DIRECT_UPLOAD_MB) {
       setMode('manual');
     }
   };
@@ -150,8 +154,8 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
       const blob = new Blob([data as any], { type: 'video/mp4' });
       const trimmedFile = new File([blob], `trimmed_${file.name}`, { type: 'video/mp4' });
 
-      if (trimmedFile.size > MAX_OUTPUT_MB * 1024 * 1024) {
-        toast.error(`Segment is ${Math.round(trimmedFile.size / (1024 * 1024))}MB — over the ${MAX_OUTPUT_MB}MB limit. Try the next segment or use manual trim.`, { id: trimToast });
+      if (trimmedFile.size > MAX_DIRECT_UPLOAD_BYTES) {
+        toast.error(`Segment is ${Math.round(trimmedFile.size / (1024 * 1024))}MB — over the ${MAX_DIRECT_UPLOAD_MB}MB limit. Try the next segment or use manual trim.`, { id: trimToast });
         setIsTrimming(false);
         return;
       }
@@ -245,7 +249,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
   const isOverLimit = () => {
     if (!file || !duration) return false;
     const ratio = (outPoint - inPoint) / duration;
-    return (file.size * ratio) / (1024 * 1024) > MAX_OUTPUT_MB;
+    return (file.size * ratio) / (1024 * 1024) > MAX_DIRECT_UPLOAD_MB;
   };
 
   // Trim
@@ -253,7 +257,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
     if (!ffmpegRef.current || !file) return;
     const trimDuration = outPoint - inPoint;
     if (trimDuration < 3) { toast.error('Clip must be at least 3 seconds.'); return; }
-    if (isOverLimit()) { toast.error(`Selected range is still over ${MAX_OUTPUT_MB}MB. Shorten it.`); return; }
+    if (isOverLimit()) { toast.error(`Selected range is still over ${MAX_DIRECT_UPLOAD_MB}MB. Shorten it.`); return; }
 
     setIsTrimming(true);
     setTrimProgress(0);
@@ -268,7 +272,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
       const blob = new Blob([data as any], { type: 'video/mp4' });
       const trimmedFile = new File([blob], `trimmed_${file.name}`, { type: 'video/mp4' });
 
-      if (trimmedFile.size > MAX_OUTPUT_MB * 1024 * 1024) {
+      if (trimmedFile.size > MAX_DIRECT_UPLOAD_BYTES) {
         toast.error(`Still ${Math.round(trimmedFile.size / (1024 * 1024))}MB. Select a shorter range.`);
         setIsTrimming(false);
         return;

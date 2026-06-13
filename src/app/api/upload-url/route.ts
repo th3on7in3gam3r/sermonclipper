@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { generatePresignedUploadUrl } from '../../../lib/r2';
+import { MAX_DIRECT_UPLOAD_BYTES, MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -14,9 +15,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { fileName, contentType, jobId: incomingJobId } = await req.json();
+    const { fileName, contentType, jobId: incomingJobId, fileSizeBytes } = await req.json();
     if (!fileName) {
       return NextResponse.json({ error: 'Missing fileName' }, { status: 400 });
+    }
+
+    if (typeof fileSizeBytes === 'number') {
+      if (fileSizeBytes <= 0) {
+        return NextResponse.json({ error: 'Invalid file size' }, { status: 400 });
+      }
+      if (fileSizeBytes > MAX_DIRECT_UPLOAD_BYTES) {
+        return NextResponse.json(
+          { error: `File exceeds the ${MAX_DIRECT_UPLOAD_LABEL} direct upload limit` },
+          { status: 413 }
+        );
+      }
     }
 
     const jobId = incomingJobId || uuidv4();

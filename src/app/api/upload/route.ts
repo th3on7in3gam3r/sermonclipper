@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadBufferToR2 } from '../../../lib/r2';
 import { progressManager } from '../../../lib/progress';
+import { MAX_DIRECT_UPLOAD_BYTES, MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -12,6 +13,13 @@ export async function POST(req: NextRequest) {
 
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    }
+
+    if (file.size > MAX_DIRECT_UPLOAD_BYTES) {
+      return NextResponse.json(
+        { error: `File exceeds the ${MAX_DIRECT_UPLOAD_LABEL} upload limit` },
+        { status: 413 }
+      );
     }
 
     const bytes = await file.arrayBuffer();

@@ -1,10 +1,13 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import ProcessingView from '@/components/home/ProcessingView';
 import Pricing from '@/components/home/Pricing';
 import HeroDemo from '@/components/home/HeroDemo';
+import HeroUploadZone from '@/components/home/HeroUploadZone';
+import HeroYouTubeInput from '@/components/home/HeroYouTubeInput';
+import ChurchSocialProof from '@/components/home/ChurchSocialProof';
 import FAQ from '@/components/FAQ';
 import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import VideoTrimmer from '@/components/VideoTrimmer';
@@ -12,10 +15,23 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
+import {
+  MAX_DIRECT_UPLOAD_BYTES,
+  MAX_DIRECT_UPLOAD_LABEL,
+  formatUploadLimitError,
+  isWithinDirectUploadLimit,
+} from '@/lib/uploadLimits';
 import toast from 'react-hot-toast';
 
 export default function Home() {
-  const { needsOnboarding, setNeedsOnboarding } = useOnboarding();
+  const { showOnboarding, completeOnboarding } = useOnboarding();
+
+  const finishOnboarding = useCallback(async () => {
+    await completeOnboarding();
+    requestAnimationFrame(() => {
+      document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }, [completeOnboarding]);
   const [url, setUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTrimmer, setShowTrimmer] = useState(false);
@@ -25,7 +41,6 @@ export default function Home() {
   const router = useRouter();
   const { isLoaded, userId } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -86,6 +101,10 @@ export default function Home() {
   // Handle trimmed file upload
   // Upload directly to R2 using presigned URL (bypasses server size limits)
   const uploadDirectToR2 = async (file: File, jobId: string): Promise<string> => {
+    if (!isWithinDirectUploadLimit(file.size)) {
+      throw new Error(formatUploadLimitError(file.size));
+    }
+
     // Normalize empty Content-Types (extremely common in iOS/Safari audio and video recordings)
     let contentType = file.type;
     if (!contentType) {
@@ -101,7 +120,7 @@ export default function Home() {
     const urlRes = await fetch('/api/upload-url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fileName: file.name, contentType, jobId }),
+      body: JSON.stringify({ fileName: file.name, contentType, jobId, fileSizeBytes: file.size }),
     });
     if (!urlRes.ok) {
       const err = await urlRes.json();
@@ -121,17 +140,16 @@ export default function Home() {
   };
 
   const handleFileUpload = async (file: File) => {
-    const TRIMMER_THRESHOLD = 500 * 1024 * 1024;
-    if (file.size > TRIMMER_THRESHOLD) {
+    if (file.size > MAX_DIRECT_UPLOAD_BYTES) {
       const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       if (isMobileBrowser) {
-        toast(`Large file (${Math.round(file.size / 1024 / 1024)}MB) detected. Streaming directly to cloud…`, { icon: '☁️', duration: 6000 });
-      } else {
-        toast(`File is ${Math.round(file.size / 1024 / 1024)}MB — opening trimmer to split it down.`, { icon: '✂️' });
-        setLargeFile(file);
-        setShowTrimmer(true);
+        toast.error(formatUploadLimitError(file.size));
         return;
       }
+      toast(`File is ${Math.round(file.size / 1024 / 1024)}MB — opening trimmer to split it under ${MAX_DIRECT_UPLOAD_LABEL}.`, { icon: '✂️' });
+      setLargeFile(file);
+      setShowTrimmer(true);
+      return;
     }
 
     const loadToast = toast.loading('Uploading video file…');
@@ -317,7 +335,7 @@ export default function Home() {
             </h1>
           </div>
           
-          <p className="title-xl" style={{ fontSize: 'clamp(24px, 5vw, 48px)', fontWeight: 300, marginBottom: '48px', color: 'var(--text-muted)' }}>
+          <p className="title-xl" style={{ fontSize: 'clamp(24px, 5vw, 48px)', fontWeight: 300, marginBottom: '48px', color: 'var(--text-muted)', textTransform: 'none' }}>
             Cinematic Reels. <span className="accent-text">Neural Precision.</span>
           </p>
 
@@ -327,158 +345,14 @@ export default function Home() {
 
           <HeroDemo isMobile={isMobile} />
 
-          {/* Primary: file upload */}
-          <input
-            type="file"
-            id="video-upload"
-            accept="video/*,audio/*"
-            style={{ display: 'none' }}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileUpload(file);
-              e.target.value = '';
-            }}
+          <HeroUploadZone isMobile={isMobile} onFileSelect={handleFileUpload} />
+
+          <HeroYouTubeInput
+            isMobile={isMobile}
+            url={url}
+            onUrlChange={setUrl}
+            onSubmit={handleProcess}
           />
-
-          <div
-            className="glass-card premium-border animate-in"
-            role="button"
-            tabIndex={0}
-            onClick={() => document.getElementById('video-upload')?.click()}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                document.getElementById('video-upload')?.click();
-              }
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={(e) => {
-              e.preventDefault();
-              setIsDragging(false);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              setIsDragging(false);
-              const file = e.dataTransfer.files?.[0];
-              if (file) handleFileUpload(file);
-            }}
-            style={{
-              animationDelay: '0.2s',
-              maxWidth: '920px',
-              margin: '0 auto 32px',
-              padding: isMobile ? '48px 24px' : '72px 48px',
-              borderRadius: '28px',
-              borderStyle: 'dashed',
-              borderWidth: isDragging ? '3px' : '2px',
-              borderColor: isDragging ? '#A78BFA' : 'rgba(139, 92, 246, 0.55)',
-              cursor: 'pointer',
-              background: isDragging
-                ? 'linear-gradient(180deg, rgba(139,92,246,0.18) 0%, rgba(139,92,246,0.06) 100%)'
-                : 'linear-gradient(180deg, rgba(139,92,246,0.12) 0%, rgba(255,255,255,0.02) 100%)',
-              boxShadow: isDragging
-                ? '0 0 0 4px rgba(139,92,246,0.15), 0 24px 60px rgba(0,0,0,0.35)'
-                : '0 20px 50px rgba(0,0,0,0.25)',
-              transition: 'border-color 0.2s, background 0.2s, box-shadow 0.2s',
-              textAlign: 'center',
-            }}
-          >
-            <div
-              style={{
-                width: isMobile ? '72px' : '88px',
-                height: isMobile ? '72px' : '88px',
-                margin: '0 auto 28px',
-                borderRadius: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: isMobile ? '36px' : '44px',
-                background: 'rgba(139, 92, 246, 0.2)',
-                border: '1px solid rgba(139, 92, 246, 0.45)',
-                boxShadow: '0 0 30px rgba(139, 92, 246, 0.25)',
-              }}
-            >
-              ⬆️
-            </div>
-            <h3 style={{ fontSize: isMobile ? '26px' : '32px', fontWeight: 900, marginBottom: '12px', letterSpacing: '-0.02em' }}>
-              Upload Video File
-            </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: isMobile ? '15px' : '17px', marginBottom: '24px', maxWidth: '520px', marginInline: 'auto', lineHeight: 1.5 }}>
-              Drag and drop your sermon MP4 here, or click to browse. Best for full-quality reel exports.
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
-              <span className="vesper-badge badge-violet">MP4 · MOV · WEBM</span>
-              <span className="vesper-badge badge-gold">Up to 500MB direct</span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '28px', opacity: 0.5 }}>
-            <div style={{ height: '1px', width: isMobile ? '40px' : '80px', background: 'currentColor' }} />
-            <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.2em' }}>OR</span>
-            <div style={{ height: '1px', width: isMobile ? '40px' : '80px', background: 'currentColor' }} />
-          </div>
-
-          {/* Secondary: YouTube link */}
-          <div
-            className="glass-card premium-border"
-            style={{
-              maxWidth: '920px',
-              margin: '0 auto 40px',
-              padding: isMobile ? '20px' : '24px',
-              borderRadius: '24px',
-            }}
-          >
-            <label
-              htmlFor="youtube-url-input"
-              style={{
-                display: 'block',
-                fontSize: '11px',
-                fontWeight: 900,
-                letterSpacing: '0.15em',
-                color: '#8B5CF6',
-                marginBottom: '12px',
-              }}
-            >
-              Paste YouTube Link
-            </label>
-            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '10px' }}>
-              <input
-                id="youtube-url-input"
-                type="text"
-                placeholder="https://youtube.com/watch?v=…"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleProcess()}
-                style={{
-                  flex: 1,
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '14px',
-                  padding: isMobile ? '14px 16px' : '16px 20px',
-                  color: '#fff',
-                  fontSize: '16px',
-                  outline: 'none',
-                }}
-              />
-              <button
-                type="button"
-                onClick={handleProcess}
-                className="vesper-btn vesper-btn-outline shimmer-effect"
-                style={{
-                  padding: isMobile ? '14px 20px' : '0 28px',
-                  whiteSpace: 'nowrap',
-                  fontSize: '13px',
-                }}
-              >
-                Analyze from YouTube
-              </button>
-            </div>
-            <p style={{ margin: '12px 0 0', fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.5 }}>
-              Preview and clip discovery only — upload a video file above to export rendered reels.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -553,8 +427,11 @@ export default function Home() {
       <section style={{ padding: '120px 20px', textAlign: 'center' }}>
         <div className="glass-card premium-border animate-in" style={{ maxWidth: '1000px', margin: '0 auto', padding: '100px 48px', background: 'var(--primary-glow)' }}>
            <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 6vw, 56px)', marginBottom: '32px' }}>Ready to amplify your message?</h2>
-           <p style={{ color: 'var(--text-muted)', fontSize: '20px', marginBottom: '48px', maxWidth: '700px', margin: '0 auto 48px' }}>Turn your next sermon into shareable reels in minutes — upload a file or paste a YouTube link to begin.</p>
-           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: '16px 48px', fontSize: '18px' }}>GET STARTED</button>
+           <p style={{ color: 'var(--text-muted)', fontSize: '20px', marginBottom: '32px', maxWidth: '700px', margin: '0 auto 32px' }}>
+             Join a growing community of churches using Vesper to reach more people with the Gospel.
+           </p>
+           <ChurchSocialProof />
+           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: '16px 48px', fontSize: '18px', marginTop: '40px' }}>GET STARTED</button>
         </div>
       </section>
 
@@ -572,8 +449,8 @@ export default function Home() {
       </footer>
 
       {/* Onboarding Modal — shows on first visit */}
-      {needsOnboarding && (
-        <OnboardingModal onComplete={() => setNeedsOnboarding(false)} />
+      {showOnboarding && (
+        <OnboardingModal onComplete={finishOnboarding} onSkip={finishOnboarding} />
       )}
     </main>
   );

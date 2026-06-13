@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
 
 const FAQ_DATA = [
   {
@@ -21,7 +22,7 @@ const FAQ_DATA = [
   },
   {
     q: 'What are the file size limits?',
-    a: 'Uploaded videos can be up to 100MB. For best results, use MP4 format at 720p resolution. If your sermon file is larger, you can:\n\n• Compress it using HandBrake (free) or similar tools\n• Use a YouTube link for AI analysis (clips, captions, Social Kit)\n• Split longer sermons into parts\n\nWe recommend 720p MP4 which typically keeps a 60-minute sermon under 80MB.',
+    a: `Uploaded videos can be up to ${MAX_DIRECT_UPLOAD_LABEL} via direct cloud upload. For best results, use MP4 format at 720p resolution. If your sermon file is larger, you can:\n\n• Use the built-in trimmer on desktop to split it into segments under ${MAX_DIRECT_UPLOAD_LABEL}\n• Compress it using HandBrake (free) or similar tools\n• Use a YouTube link for AI analysis (clips, captions, Social Kit)\n\nWe recommend 720p MP4 which typically keeps a 60-minute sermon under 80MB.`,
   },
   {
     q: 'What does the Studio do?',
