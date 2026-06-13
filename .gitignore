@@ -42,3 +42,9 @@ next-env.d.ts
 
 # YouTube cookies — contains session credentials, never commit
 youtube_cookies.txt
+
+# Ad-hoc local scratch scripts at repo root (use .env, never hardcode secrets)
+/check_mongo.js
+/test_openai.js
+/check_*.js
+/test_*.js
