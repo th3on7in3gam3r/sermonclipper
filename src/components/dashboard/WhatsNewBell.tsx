@@ -27,7 +27,13 @@ export default function WhatsNewBell() {
 
   return (
     <>
-      <button type="button" className="whats-new-btn" onClick={openPanel} aria-label="What's new">
+      <button
+        type="button"
+        className="whats-new-btn"
+        onClick={openPanel}
+        aria-label="What's new — changelog"
+        title="What's new"
+      >
         ✦{hasUnread && <span className="whats-new-badge" />}
       </button>
       {open && (

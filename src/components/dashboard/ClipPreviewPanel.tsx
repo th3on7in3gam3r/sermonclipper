@@ -86,7 +86,7 @@ export default function ClipPreviewPanel({
             Download
           </button>
           <Link href={resultsHref} className="vesper-btn-outline clip-preview-action-link">
-            Open in Editor
+            Open in Studio
           </Link>
           <button type="button" className="vesper-btn-outline" onClick={() => onShare(item)}>
             Share

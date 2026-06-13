@@ -192,19 +192,6 @@ function DashboardContent() {
           <HelpNavButton />
           <ThemeToggle />
           <Link
-            href="/changelog"
-            className="vesper-btn-outline"
-            style={{
-              border: 'none',
-              background: 'transparent',
-              fontSize: '13px',
-              color: 'var(--text-muted)',
-              padding: isPhone ? '6px 8px' : undefined,
-            }}
-          >
-            Changelog
-          </Link>
-          <Link
             href="/"
             className="vesper-btn-outline"
             style={{

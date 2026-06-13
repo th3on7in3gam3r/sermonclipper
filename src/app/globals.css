@@ -2262,6 +2262,11 @@ select:focus-visible,
   padding: 0;
 }
 
+.clip-library-card-main {
+  cursor: pointer;
+  flex: 1;
+}
+
 .clip-library-card-select {
   position: absolute;
   top: 12px;
@@ -2305,7 +2310,7 @@ select:focus-visible,
 }
 
 .clip-library-body {
-  padding: 16px;
+  padding: 16px 16px 0;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -2334,6 +2339,7 @@ select:focus-visible,
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 12px;
+  padding: 0 16px 16px;
 }
 
 .clip-library-action {

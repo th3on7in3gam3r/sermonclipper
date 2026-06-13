@@ -43,6 +43,7 @@ function ResultsContent() {
   const videoUrl = searchParams.get('videoUrl');
   const finalPathParam = searchParams.get('finalPath');
   const jobId = searchParams.get('jobId');
+  const clipParam = searchParams.get('clip');
   const [analysis, setAnalysis] = useState<any>(null);
   const [rendering, setRendering] = useState<{ [key: number]: { status: string; url?: string } }>({});
   const [userStatus, setUserStatus] = useState<any>(null);
@@ -487,11 +488,26 @@ function ResultsContent() {
         }
         if (data?.analysis) {
           setAnalysis(data.analysis);
-          return true; // done
-        } else if (data?.clips) {
-          setAnalysis(data);
-          return true; // done
+          return true;
         }
+        if (data?.clips) {
+          setAnalysis(data);
+          return true;
+        }
+
+        // Dashboard "Studio" opens archived sermons — progress may not have analysis anymore
+        const sermonRes = await fetch(`/api/sermons?jobId=${encodeURIComponent(jobId!)}`);
+        if (sermonRes.ok) {
+          const sermon = await sermonRes.json();
+          if (sermon?.finalPath && isDownloadableMasterUrl(sermon.finalPath)) {
+            setMasterPath(sermon.finalPath);
+          }
+          if (sermon?.analysis) {
+            setAnalysis(sermon.analysis);
+            return true;
+          }
+        }
+
         return false;
       } catch (e) {
         console.error('Failed to fetch results:', e);
@@ -518,6 +534,14 @@ function ResultsContent() {
 
     return () => clearInterval(interval);
   }, [jobId, userId]);
+
+  // Open Vesper Studio when arriving from dashboard with ?clip=N
+  useEffect(() => {
+    if (!analysis?.clips?.length || clipParam == null) return;
+    const idx = Number.parseInt(clipParam, 10);
+    if (Number.isNaN(idx) || idx < 0 || !analysis.clips[idx]) return;
+    setSelectedClip({ ...analysis.clips[idx], index: idx });
+  }, [analysis, clipParam]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);

@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import EmptyState from '@/components/shared/EmptyState';
 import ExportFlowModal from '@/components/dashboard/ExportFlowModal';
@@ -145,6 +145,7 @@ export default function ClipLibrary({
   isPhone = false,
   registerActions,
 }: ClipLibraryProps) {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'date-desc' | 'date-asc' | 'sermon' | 'export'>('date-desc');
   const [sermonFilter, setSermonFilter] = useState('');
@@ -206,6 +207,14 @@ export default function ClipLibrary({
     await onDelete(sermonIds);
     setSelected(new Set());
     toast.success('Deleted selected clips');
+  };
+
+  const openStudio = (item: LibraryItem) => {
+    router.push(buildResultsHref(item));
+  };
+
+  const openPreview = (item: LibraryItem) => {
+    setPreviewItem(item);
   };
 
   const deleteOne = async (item: LibraryItem) => {
@@ -320,10 +329,6 @@ export default function ClipLibrary({
             <article
               key={item.key}
               className={`clip-library-card glass-card premium-border${focusedIndex === index ? ' clip-library-card--focused' : ''}`}
-              onClick={() => setPreviewItem(item)}
-              onKeyDown={(e) => e.key === 'Enter' && setPreviewItem(item)}
-              role="button"
-              tabIndex={0}
             >
               <div className="clip-library-card-select" onClick={(e) => e.stopPropagation()}>
                 <input
@@ -333,54 +338,66 @@ export default function ClipLibrary({
                   aria-label={`Select ${item.title}`}
                 />
               </div>
-              <div className="clip-library-thumb">
-                {thumb ? (
-                  <img src={thumb} alt="" />
-                ) : (
-                  <span className="clip-library-thumb-fallback">VESPER</span>
-                )}
-                <span className="clip-library-duration">{formatDuration(item.durationSec)}</span>
-              </div>
-              <div className="clip-library-body">
-                <h3>
-                  {item.title}
-                  {item.isAudio && (
-                    <span title="Audio sermon" style={{ marginLeft: 6 }}>
-                      🎙️
-                    </span>
+              <div
+                className="clip-library-card-main"
+                role="button"
+                tabIndex={0}
+                onClick={() => openPreview(item)}
+                onKeyDown={(e) => e.key === 'Enter' && openPreview(item)}
+              >
+                <div className="clip-library-thumb">
+                  {thumb ? (
+                    <img src={thumb} alt="" />
+                  ) : (
+                    <span className="clip-library-thumb-fallback">VESPER</span>
                   )}
-                </h3>
-                <p className="clip-library-sermon">{item.sermonTitle}</p>
-                <div className="clip-library-meta">
-                  <span>{new Date(item.createdAt).toLocaleDateString()}</span>
-                  {item.createdByName && <span>· {item.createdByName}</span>}
+                  <span className="clip-library-duration">{formatDuration(item.durationSec)}</span>
                 </div>
-                <div className="clip-library-actions" onClick={(e) => e.stopPropagation()}>
-                  <button
-                    type="button"
-                    className="vesper-btn-outline clip-library-action"
-                    onClick={() => setExportItem(item)}
-                  >
-                    Download
-                  </button>
-                  <Link href={buildResultsHref(item)} className="vesper-btn-outline clip-library-action">
-                    Studio
-                  </Link>
-                  <button
-                    type="button"
-                    className="vesper-btn-outline clip-library-action"
-                    onClick={() => setShareItem({ item, renderUrl: '' })}
-                  >
-                    Share
-                  </button>
-                  <button
-                    type="button"
-                    className="vesper-btn-outline clip-library-action clip-library-action-danger"
-                    onClick={() => deleteOne(item)}
-                  >
-                    Delete
-                  </button>
+                <div className="clip-library-body">
+                  <h3>
+                    {item.title}
+                    {item.isAudio && (
+                      <span title="Audio sermon" style={{ marginLeft: 6 }}>
+                        🎙️
+                      </span>
+                    )}
+                  </h3>
+                  <p className="clip-library-sermon">{item.sermonTitle}</p>
+                  <div className="clip-library-meta">
+                    <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                    {item.createdByName && <span>· {item.createdByName}</span>}
+                  </div>
                 </div>
+              </div>
+              <div className="clip-library-actions">
+                <button
+                  type="button"
+                  className="vesper-btn-outline clip-library-action"
+                  onClick={() => setExportItem(item)}
+                >
+                  Download
+                </button>
+                <button
+                  type="button"
+                  className="vesper-btn-outline clip-library-action"
+                  onClick={() => openStudio(item)}
+                >
+                  Studio
+                </button>
+                <button
+                  type="button"
+                  className="vesper-btn-outline clip-library-action"
+                  onClick={() => setShareItem({ item, renderUrl: '' })}
+                >
+                  Share
+                </button>
+                <button
+                  type="button"
+                  className="vesper-btn-outline clip-library-action clip-library-action-danger"
+                  onClick={() => deleteOne(item)}
+                >
+                  Delete
+                </button>
               </div>
             </article>
           );
