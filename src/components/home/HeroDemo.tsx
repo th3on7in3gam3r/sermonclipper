@@ -1,5 +1,12 @@
 'use client';
 
+import HeroDemoVideo from '@/components/home/HeroDemoVideo';
+
+// TODO: Replace with real full-sermon footage (15–20s clip) when available.
+const DEMO_SERMON_SRC = '/demo/sermon-before.mp4';
+// TODO: Replace with a real Vesper-exported 9:16 reel when available.
+const DEMO_REEL_SRC = '/demo/reel-after.mp4';
+
 const CAPTIONS = [
   'Your breakthrough is closer than you think.',
   'God is still writing your story.',
@@ -13,11 +20,12 @@ export default function HeroDemo() {
         <div className="hero-demo-before-wrap">
           <div className="hero-demo-label hero-demo-label--muted">Before · Full sermon</div>
           <div className="hero-demo-before">
-            <div className="hero-demo-waveform">
-              {Array.from({ length: 14 }).map((_, i) => (
-                <div key={i} className="hero-demo-bar" style={{ animationDelay: `${i * 0.09}s` }} />
-              ))}
-            </div>
+            <HeroDemoVideo
+              src={DEMO_SERMON_SRC}
+              className="hero-demo-video--before"
+              controlClassName="hero-demo-video-control--before"
+              ariaLabel="full sermon preview video"
+            />
             <div className="hero-demo-before-caption">
               <span>45:00 sermon · single platform</span>
             </div>
@@ -31,13 +39,18 @@ export default function HeroDemo() {
         <div className="hero-demo-after-wrap">
           <div className="hero-demo-label hero-demo-label--accent">After · Cinematic reel</div>
           <div className="hero-demo-phone">
-            <div className="hero-demo-reel-bg" />
-            <div className="hero-demo-scanline" />
+            <HeroDemoVideo
+              src={DEMO_REEL_SRC}
+              className="hero-demo-video--after"
+              ariaLabel="cinematic reel preview video"
+            />
+            <div className="hero-demo-scanline" aria-hidden="true" />
             {CAPTIONS.map((caption, i) => (
               <div
                 key={caption}
                 className="hero-demo-caption"
                 style={{ animationDelay: `${i * 2.4}s` }}
+                aria-hidden="true"
               >
                 {caption}
               </div>

@@ -81,6 +81,9 @@ export default function FAQ() {
               <button
                 type="button"
                 onClick={() => setOpenIdx(isOpen ? null : i)}
+                aria-expanded={isOpen}
+                aria-controls={`faq-panel-${i}`}
+                id={`faq-trigger-${i}`}
                 style={{
                   width: '100%',
                   padding: '24px 32px',
@@ -129,7 +132,7 @@ export default function FAQ() {
                 </span>
               </button>
               {isOpen && (
-                <div style={{ padding: '0 32px 32px', fontSize: '15px', color: 'var(--text-muted)', lineHeight: 1.8, whiteSpace: 'pre-line', animation: 'fadeIn 0.3s ease' }}>
+                <div id={`faq-panel-${i}`} role="region" aria-labelledby={`faq-trigger-${i}`} style={{ padding: '0 32px 32px', fontSize: '15px', color: 'var(--text-muted)', lineHeight: 1.8, whiteSpace: 'pre-line', animation: 'fadeIn 0.3s ease' }}>
                   {item.a}
                 </div>
               )}

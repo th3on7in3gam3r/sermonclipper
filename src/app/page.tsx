@@ -13,7 +13,6 @@ import FAQ from '@/components/FAQ';
 import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import VideoTrimmer from '@/components/VideoTrimmer';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
 import {
   MAX_DIRECT_UPLOAD_BYTES,
@@ -21,7 +20,40 @@ import {
   formatUploadLimitError,
   isWithinDirectUploadLimit,
 } from '@/lib/uploadLimits';
+import SiteFooter from '@/components/layout/SiteFooter';
+import { isValidYouTubeUrl } from '@/lib/youtubeValidation';
 import toast from 'react-hot-toast';
+
+const PROCESSING_STEPS = [
+  { id: 'upload', label: 'Uploading…' },
+  { id: 'analyze', label: 'Analyzing sermon…' },
+  { id: 'moments', label: 'Finding key moments…' },
+  { id: 'ready', label: 'Almost ready…' },
+];
+
+function getProcessingStepIndex(step?: string): number {
+  if (!step) return 0;
+  const normalized = step.toLowerCase();
+  if (normalized.includes('upload')) return 0;
+  if (normalized.includes('transcrib') || normalized.includes('engine')) return 1;
+  if (normalized.includes('analy')) return 2;
+  return 3;
+}
+
+async function validateYoutubeUrl(inputUrl: string): Promise<string | null> {
+  const trimmed = inputUrl.trim();
+  if (!trimmed) return 'Please enter a YouTube link';
+  if (!isValidYouTubeUrl(trimmed)) return 'Please enter a valid YouTube video URL';
+
+  try {
+    const res = await fetch(`/api/youtube/validate?url=${encodeURIComponent(trimmed)}`);
+    const data = await res.json();
+    if (!data.ok) return data.message as string;
+    return null;
+  } catch {
+    return 'Could not verify this YouTube link. Check your connection and try again.';
+  }
+}
 
 export default function Home() {
   const { showOnboarding, completeOnboarding } = useOnboarding();
@@ -33,11 +65,16 @@ export default function Home() {
     });
   }, [completeOnboarding]);
   const [url, setUrl] = useState('');
+  const [youtubeError, setYoutubeError] = useState<string | null>(null);
+  const [youtubeValidating, setYoutubeValidating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingError, setProcessingError] = useState<string | null>(null);
+  const [processingStartedAt, setProcessingStartedAt] = useState<number | null>(null);
   const [showTrimmer, setShowTrimmer] = useState(false);
   const [largeFile, setLargeFile] = useState<File | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [status, setStatus] = useState<Record<string, string> | null>(null);
+  const [lastSubmitUrl, setLastSubmitUrl] = useState('');
   const router = useRouter();
   const { userId } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
@@ -49,31 +86,61 @@ export default function Home() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const resetProcessing = () => {
+    setIsProcessing(false);
+    setProcessingError(null);
+    setProcessingStartedAt(null);
+    setStatus(null);
+    setJobId(null);
+  };
+
   const handleProcess = async () => {
-    if (!url) return;
+    setYoutubeError(null);
+    setYoutubeValidating(true);
+    const validationError = await validateYoutubeUrl(url);
+    setYoutubeValidating(false);
+    if (validationError) {
+      setYoutubeError(validationError);
+      return;
+    }
+
     const newJobId = Math.random().toString(36).substring(7);
+    setLastSubmitUrl(url.trim());
     setJobId(newJobId);
+    setProcessingError(null);
+    setProcessingStartedAt(Date.now());
+    setStatus(null);
     setIsProcessing(true);
 
     try {
       const res = await fetch('/api/download-youtube', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, jobId: newJobId, userId }),
+        body: JSON.stringify({ url: url.trim(), jobId: newJobId, userId }),
       });
-      
+      const errorData = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const errorData = await res.json();
-        toast.error(`Neural Engine Error: ${errorData.details || 'Unknown system failure'}`);
-        setIsProcessing(false);
+        const message =
+          errorData.details ||
+          errorData.error ||
+          (errorData.code === 'LIMIT_REACHED'
+            ? 'You have used all your clips this month. Upgrade to get more.'
+            : 'Analysis failed. Please try again.');
+        setProcessingError(message);
         return;
       }
+
+      router.push(`/results?jobId=${newJobId}&videoUrl=${encodeURIComponent(url.trim())}`);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'Connection failed';
-      console.error('Failed to start job:', error);
-      toast.error(`Connection failed: ${msg}`);
-      setIsProcessing(false);
+      setProcessingError(msg);
     }
+  };
+
+  const handleUrlChange = (nextUrl: string) => {
+    setUrl(nextUrl);
+    if (youtubeError) setYoutubeError(null);
   };
 
   useEffect(() => {
@@ -85,6 +152,10 @@ export default function Home() {
         const data = await res.json();
         if (data) {
           setStatus(data);
+          if (data.status === 'error') {
+            setProcessingError(data.message?.replace(/^\[Neural Error\]\s*/, '') || 'Analysis failed. Please try again.');
+            return;
+          }
           if (data.status === 'completed' && data.finalPath) {
             router.push(`/results?jobId=${jobId}&videoUrl=${encodeURIComponent(data.finalPath)}`);
             clearInterval(interval);
@@ -155,46 +226,71 @@ export default function Home() {
     const loadToast = toast.loading('Uploading video file…');
     const newJobId = Math.random().toString(36).substring(7);
     setJobId(newJobId);
+    setProcessingError(null);
+    setProcessingStartedAt(Date.now());
+    setStatus(null);
     setIsProcessing(true);
 
     try {
       const r2Url = await uploadDirectToR2(file, newJobId);
 
-      await fetch('/api/download-youtube', {
+      const res = await fetch('/api/download-youtube', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: r2Url, jobId: newJobId, userId }),
       });
+      const errorData = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        toast.dismiss(loadToast);
+        setProcessingError(
+          errorData.details ||
+            errorData.error ||
+            'Upload succeeded but analysis failed. Please try again.'
+        );
+        return;
+      }
 
       toast.success('Upload complete. Neural analysis started!', { id: loadToast });
+      router.push(`/results?jobId=${newJobId}&videoUrl=${encodeURIComponent(r2Url)}`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Upload failed';
       toast.error(msg, { id: loadToast });
-      setIsProcessing(false);
+      resetProcessing();
     }
   };
 
   const handleTrimComplete = async (trimmedFile: File, trimJobId: string) => {
     setShowTrimmer(false);
     setJobId(trimJobId);
+    setProcessingError(null);
+    setProcessingStartedAt(Date.now());
+    setStatus(null);
     setIsProcessing(true);
 
     const loadToast = toast.loading('Uploading trimmed video...');
     try {
-      // Direct browser-to-R2 upload (no proxy size limits)
       const r2Url = await uploadDirectToR2(trimmedFile, trimJobId);
 
-      await fetch('/api/download-youtube', {
+      const res = await fetch('/api/download-youtube', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: r2Url, jobId: trimJobId, userId }),
       });
+      const errorData = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        toast.dismiss(loadToast);
+        setProcessingError(errorData.details || errorData.error || 'Analysis failed after upload.');
+        return;
+      }
 
       toast.success('Trimmed video uploaded! Processing started.', { id: loadToast });
+      router.push(`/results?jobId=${trimJobId}&videoUrl=${encodeURIComponent(r2Url)}`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Upload failed';
       toast.error(msg, { id: loadToast });
-      setIsProcessing(false);
+      resetProcessing();
     }
   };
 
@@ -211,19 +307,25 @@ export default function Home() {
 
   if (isProcessing) {
     return (
-      <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main className="vesper-mesh-bg-container processing-screen">
         <div className="vesper-mesh-bg" />
-        <div className="animate-in" style={{ width: '100%', maxWidth: '640px', position: 'relative', zIndex: 10, padding: '24px' }}>
-          <div className="glass-card premium-border" style={{ padding: '48px', textAlign: 'center' }}>
-            <ProcessingView 
-              steps={[
-                { id: 'engine', label: 'Extracting Audio track' },
-                { id: 'transcribe', label: 'Neural Transcription' },
-                { id: 'analysis', label: 'Analyzing moments' },
-                { id: 'visuals', label: 'Generating Reels' }
-              ]}
-              currentStepIndex={status?.step === 'Uploading' ? 0 : status?.step === 'Transcribing' ? 1 : 2}
-              statusMessage={status?.message || 'Initializing Neural Engine...'}
+        <div className="processing-screen-inner animate-in">
+          <div className="glass-card premium-border processing-screen-card">
+            <ProcessingView
+              steps={PROCESSING_STEPS}
+              currentStepIndex={getProcessingStepIndex(status?.step)}
+              statusMessage={status?.message || PROCESSING_STEPS[0].label}
+              startedAt={processingStartedAt ?? undefined}
+              error={processingError}
+              onRetry={() => {
+                resetProcessing();
+                if (lastSubmitUrl) {
+                  setUrl(lastSubmitUrl);
+                  void handleProcess();
+                } else {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              }}
             />
           </div>
         </div>
@@ -252,7 +354,7 @@ export default function Home() {
             gap: isMobile ? '24px' : 'clamp(16px, 4vw, 48px)', 
             marginBottom: '48px'
           }}>
-            <img src="/vesper-logo-icon.png" alt="VESPER" style={{ 
+            <img src="/vesper-logo-icon.png" alt="Vesper Studio logo" style={{
               height: isMobile ? '120px' : 'clamp(64px, 15vw, 200px)', 
               width: 'auto', 
               filter: 'drop-shadow(0 0 30px rgba(139,92,246,0.3))' 
@@ -283,7 +385,9 @@ export default function Home() {
           <HeroYouTubeInput
             isMobile={isMobile}
             url={url}
-            onUrlChange={setUrl}
+            error={youtubeError}
+            isValidating={youtubeValidating}
+            onUrlChange={handleUrlChange}
             onSubmit={handleProcess}
           />
         </div>
@@ -369,17 +473,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="glass-card" style={{ padding: '80px 20px', borderRadius: '48px 48px 0 0', borderBottom: 'none', borderLeft: 'none', borderRight: 'none', textAlign: 'center', background: 'rgba(0,0,0,0.5)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.3em', opacity: 0.6, marginBottom: '24px' }}>
-          <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>Privacy Policy</Link>
-          <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>Terms of Service</Link>
-          <Link href="/sitemap.xml" style={{ color: '#fff', textDecoration: 'none' }}>Sitemap</Link>
-          <span style={{ color: '#fff' }}>© 2026 Vesper</span>
-        </div>
-        <p style={{ fontSize: '14px', color: 'var(--text-dim)', fontWeight: 600 }}>
-          Made by <a href="https://www.biblefunlandstudios.com/" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 800 }}>Biblefunland</a> Studios
-        </p>
-      </footer>
+      <SiteFooter />
 
       {/* Onboarding Modal — shows on first visit */}
       {showOnboarding && (

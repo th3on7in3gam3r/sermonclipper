@@ -145,7 +145,7 @@ export default function ThumbnailStudioModal({
             </p>
           )}
 
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.12em', color: '#8B5CF6' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.12em', color: '#C4B5FD' }}>
             HEADLINE ON THUMBNAIL
           </label>
           <input
@@ -166,7 +166,7 @@ export default function ThumbnailStudioModal({
             }}
           />
 
-          <label style={{ display: 'block', marginBottom: '10px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.12em', color: '#8B5CF6' }}>
+          <label style={{ display: 'block', marginBottom: '10px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.12em', color: '#C4B5FD' }}>
             VISUAL STYLE
           </label>
           <div
@@ -230,9 +230,13 @@ export default function ThumbnailStudioModal({
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <p style={{ color: 'var(--text-dim)', fontSize: '14px', padding: '24px', textAlign: 'center' }}>
-                Choose a style and generate your 16:9 YouTube billboard.
-              </p>
+              <div style={{ padding: '24px', width: '100%' }}>
+                <div style={{ fontSize: '40px', marginBottom: '12px' }} aria-hidden="true">🖼️</div>
+                <p style={{ color: '#fff', fontSize: '16px', fontWeight: 800, marginBottom: '8px' }}>No thumbnails generated</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.5 }}>
+                  Choose a style below and generate your first 16:9 YouTube billboard.
+                </p>
+              </div>
             )}
           </div>
 
@@ -254,7 +258,7 @@ export default function ThumbnailStudioModal({
                     opacity: selectedVariantIdx === idx ? 1 : 0.65,
                   }}
                 >
-                  <img src={proxyImageUrl(url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={proxyImageUrl(url)} alt={`Thumbnail variant ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </button>
               ))}
             </div>

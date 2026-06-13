@@ -26,4 +26,8 @@ export interface RenderState {
 
 export interface UserStatus {
   youtubeConnected?: boolean;
+  plan?: string | null;
+  usageCount?: number;
+  limit?: number;
+  lastUsageReset?: string;
 }

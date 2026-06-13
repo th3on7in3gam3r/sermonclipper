@@ -16,6 +16,11 @@ import { THUMB_STYLES, type ThumbStyleId } from '@/lib/thumbnailStyles';
 import { parseTime } from '@/lib/parseTime';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 import { isDownloadableMasterUrl, isR2StorageUrl } from '@/lib/videoSource';
+import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
+import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
+import SiteFooter from '@/components/layout/SiteFooter';
+import EmptyState from '@/components/shared/EmptyState';
+import { planAllowsExport, UPGRADE_COPY } from '@/lib/plans';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
 const GOOGLE_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap';
 
@@ -36,6 +41,7 @@ function ResultsContent() {
   const [analysis, setAnalysis] = useState<any>(null);
   const [rendering, setRendering] = useState<{ [key: number]: { status: string, url?: string } }>({});
   const [userStatus, setUserStatus] = useState<any>(null);
+  const [upgradePrompt, setUpgradePrompt] = useState<keyof typeof UPGRADE_COPY | null>(null);
   const [playableVideoUrl, setPlayableVideoUrl] = useState<string | null>(null);
   const [masterPath, setMasterPath] = useState<string | null>(null);
   const [isDownloadingMaster, setIsDownloadingMaster] = useState(false);
@@ -239,9 +245,13 @@ function ResultsContent() {
   ];
 
   const startExport = async (clip: any, settings: any = {}) => {
-    // Guard: prevent export attempts when source is YouTube (no direct MP4)
     if (isYouTubeSource) {
       toast.error('Export requires a direct MP4 upload. YouTube streaming cannot be rendered.');
+      return;
+    }
+
+    if (!planAllowsExport(userStatus?.plan)) {
+      setUpgradePrompt('export');
       return;
     }
 
@@ -490,6 +500,10 @@ function ResultsContent() {
     }
   };
 
+  const completedExportCount = Object.values(rendering).filter((r) => r.status === 'complete').length;
+  const hasAnyThumbnail = Object.values(thumbnails).some((t) => t.status === 'done' && t.url);
+  const clipCount = analysis?.clips?.length ?? 0;
+
   return (
     <div className="vesper-mesh-bg-container" style={{ width: '100%', minHeight: '100vh', position: 'relative' }}>
       <div className="vesper-mesh-bg" />
@@ -502,7 +516,7 @@ function ResultsContent() {
         padding: isMobile ? '10px 12px' : '0 32px', zIndex: 1000, borderRadius: '20px'
       }}>
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '32px', width: 'auto' }} />
+          <img src="/vesper-logo-icon.png" alt="Vesper Studio logo" style={{ height: '32px', width: 'auto' }} />
           <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
             <span style={{ color: '#8B5CF6' }}>VES</span>PER
           </div>
@@ -527,6 +541,14 @@ function ResultsContent() {
                 appearance={vesperClerkAppearance}
                 userProfileProps={{ appearance: vesperClerkAppearance }}
               />
+              {!isMobile && userStatus && (
+                <QuotaDisplay
+                  compact
+                  usageCount={userStatus.usageCount}
+                  limit={userStatus.limit}
+                  lastUsageReset={userStatus.lastUsageReset}
+                />
+              )}
             </>
           ) : (
             <SignInButton mode="modal" appearance={vesperClerkAppearance}>
@@ -667,7 +689,26 @@ function ResultsContent() {
               </div>
             )}
           </div>
-      </div>
+
+          {clipCount > 0 && !hasAnyThumbnail && (
+            <EmptyState
+              icon="🖼️"
+              headline="No thumbnails generated"
+              subtext="Open Thumbnail Studio on any clip to create a 16:9 YouTube billboard with AI."
+              ctaLabel="Create Thumbnail"
+              onCtaClick={() => openThumbnailStudio(analysis.clips[0], 0)}
+            />
+          )}
+
+          {!isYouTubeSource && clipCount > 0 && completedExportCount === 0 && (
+            <EmptyState
+              icon="📥"
+              headline="No exports yet"
+              subtext="Customize a clip in Studio and render your first cinematic 9:16 reel for social media."
+              ctaLabel="Customize Your First Reel"
+              onCtaClick={() => handleCustomize(analysis.clips[0], 0)}
+            />
+          )}
 
           {/* Pro Tools Section */}
           <div className="animate-in" style={{ marginTop: "120px", marginBottom: "100px", textAlign: "center" }}>
@@ -680,16 +721,16 @@ function ResultsContent() {
               <ToolCard title="YouTube Description" desc="AI-optimized metadata." onClick={() => setShowYTDesc(true)} icon="📝" />
             </div>
           </div>
-      <footer className="glass-card" style={{ padding: '64px 0', borderRadius: '48px 48px 0 0', borderBottom: 'none', borderLeft: 'none', borderRight: 'none', marginTop: '100px', textAlign: 'center', background: 'rgba(0,0,0,0.5)' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', fontSize: '13px', fontWeight: 900, letterSpacing: '0.2em', opacity: 0.6, marginBottom: '24px' }}>
-          <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>PRIVACY</Link>
-          <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>TERMS</Link>
-          <span style={{ color: '#fff' }}>© 2026 VESPER</span>
+          <SiteFooter />
         </div>
-        <p style={{ fontSize: '16px', color: 'var(--text-dim)', fontWeight: 600 }}>
-          Made by <a href="https://www.biblefunlandstudios.com/" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
-        </p>
-      </footer>
+
+      <UpgradePromptModal
+        open={upgradePrompt !== null}
+        feature={upgradePrompt ? UPGRADE_COPY[upgradePrompt].feature : ''}
+        planName={upgradePrompt ? UPGRADE_COPY[upgradePrompt].plan : ''}
+        price={upgradePrompt ? UPGRADE_COPY[upgradePrompt].price : ''}
+        onClose={() => setUpgradePrompt(null)}
+      />
 
       {showCarouselModal && carouselData && (
         <CarouselModal data={carouselData} onClose={() => setShowCarouselModal(false)} />

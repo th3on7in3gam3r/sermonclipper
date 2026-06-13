@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import SiteFooter from '@/components/layout/SiteFooter';
 
 export default function PrivacyPolicy() {
   return (
@@ -42,6 +43,7 @@ export default function PrivacyPolicy() {
           </section>
         </div>
       </div>
+      <SiteFooter />
     </main>
   );
 }

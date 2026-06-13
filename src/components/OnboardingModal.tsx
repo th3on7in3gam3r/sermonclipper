@@ -7,6 +7,7 @@ import {
   markOnboardingCompleteLocally,
 } from '@/lib/onboardingStorage';
 import { MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
+import { useFocusTrap } from '@/lib/useFocusTrap';
 
 const SLIDES = [
   {
@@ -67,10 +68,11 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
   };
 
   const handleSkip = () => finish(onSkip);
+  const trapRef = useFocusTrap(true);
 
   return (
-    <div className="onboarding-overlay">
-      <div className="onboarding-card">
+    <div className="onboarding-overlay" role="presentation">
+      <div className="onboarding-card" ref={trapRef} role="dialog" aria-modal="true" aria-labelledby="onboarding-step-title">
         <button
           type="button"
           onClick={handleSkip}
@@ -87,11 +89,12 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
             aria-valuenow={step + 1}
             aria-valuemin={1}
             aria-valuemax={totalSteps}
-            aria-label={`Step ${step + 1} of ${totalSteps}`}
+            aria-label="Onboarding progress"
+            aria-labelledby="onboarding-progress-label"
             style={{ marginBottom: '28px' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
-              <span style={{ fontSize: '15px', fontWeight: 900, color: '#fff', letterSpacing: '-0.01em' }}>
+              <span id="onboarding-progress-label" style={{ fontSize: '15px', fontWeight: 900, color: '#fff', letterSpacing: '-0.01em' }}>
                 Step {step + 1} of {totalSteps}
               </span>
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#A78BFA' }}>
@@ -170,7 +173,7 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
               Here&apos;s how it works in {totalSteps} simple steps
             </p>
           )}
-          <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: '16px', color: '#fff' }}>
+          <h2 id="onboarding-step-title" style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: '16px', color: '#fff' }}>
             {current.title}
           </h2>
 

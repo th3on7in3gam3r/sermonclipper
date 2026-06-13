@@ -6,6 +6,9 @@ import { useAuth, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import DashboardAccountPanel from '@/components/dashboard/DashboardAccountPanel';
 import DashboardSignInGate from '@/components/dashboard/DashboardSignInGate';
+import EmptyState from '@/components/shared/EmptyState';
+import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
+import SiteFooter from '@/components/layout/SiteFooter';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 
 type SermonRecord = {
@@ -37,6 +40,7 @@ export default function Dashboard() {
     plan?: string;
     usageCount?: number;
     limit?: number;
+    lastUsageReset?: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewportWidth, setViewportWidth] = useState(1280);
@@ -123,7 +127,7 @@ export default function Dashboard() {
         }}
       >
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: isPhone ? '8px' : '12px', minWidth: 0 }}>
-          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: isPhone ? '26px' : '32px', width: 'auto', flexShrink: 0 }} />
+          <img src="/vesper-logo-icon.png" alt="Vesper Studio logo" style={{ height: isPhone ? '26px' : '32px', width: 'auto', flexShrink: 0 }} />
           {!isPhone && (
             <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
               <span style={{ color: '#8B5CF6' }}>VES</span>PER
@@ -131,6 +135,14 @@ export default function Dashboard() {
           )}
         </Link>
         <div style={{ display: 'flex', gap: isPhone ? '6px' : isMobile ? '10px' : '20px', alignItems: 'center', flexShrink: 0 }}>
+          {!isPhone && userData && (
+            <QuotaDisplay
+              compact
+              usageCount={userData.usageCount}
+              limit={userData.limit}
+              lastUsageReset={userData.lastUsageReset}
+            />
+          )}
           <Link
             href="/"
             className="vesper-btn-outline"
@@ -167,6 +179,16 @@ export default function Dashboard() {
 
         <DashboardAccountPanel userData={userData} isMobile={isPhone} />
 
+        {isPhone && userData && (
+          <div style={{ marginBottom: '24px' }}>
+            <QuotaDisplay
+              usageCount={userData.usageCount}
+              limit={userData.limit}
+              lastUsageReset={userData.lastUsageReset}
+            />
+          </div>
+        )}
+
         {loading ? (
           <div style={{ textAlign: 'center', padding: '100px 0' }}>
             <div style={{ fontSize: '40px', marginBottom: '24px', animation: 'pulse 2s infinite' }}>◈</div>
@@ -175,18 +197,13 @@ export default function Dashboard() {
             </p>
           </div>
         ) : sermons.length === 0 ? (
-          <div className="glass-card premium-border animate-in" style={{ textAlign: 'center', padding: isPhone ? '56px 20px' : '100px 40px', borderStyle: 'dashed' }}>
-            <div style={{ fontSize: '48px', marginBottom: '24px', opacity: 0.3 }}>🌾</div>
-            <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '16px' }}>No Sermons Harvested Yet</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '40px', fontSize: '16px' }}>
-              Start your first cinematic harvest to populate your dashboard.
-            </p>
-            <Link href="/">
-              <button type="button" className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: '16px 40px' }}>
-                NEW HARVEST SESSION
-              </button>
-            </Link>
-          </div>
+          <EmptyState
+            icon="🎬"
+            headline="No clips yet"
+            subtext="Upload a sermon or paste a YouTube link to generate your first cinematic reel."
+            ctaLabel="Create Your First Clip"
+            ctaHref="/#upload"
+          />
         ) : (
           <div>
             {Object.entries(
@@ -307,50 +324,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      <footer
-        className="glass-card"
-        style={{
-          padding: isPhone ? '48px 16px' : '80px 20px',
-          borderRadius: '48px 48px 0 0',
-          borderBottom: 'none',
-          borderLeft: 'none',
-          borderRight: 'none',
-          textAlign: 'center',
-          background: 'rgba(0,0,0,0.5)',
-          marginTop: '100px',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            display: 'flex',
-            justifyContent: 'center',
-            gap: isPhone ? '20px' : '40px',
-            fontSize: '11px',
-            fontWeight: 900,
-            letterSpacing: '0.3em',
-            opacity: 0.6,
-            marginBottom: '24px',
-            flexWrap: 'wrap',
-          }}
-        >
-          <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>
-            PRIVACY POLICY
-          </Link>
-          <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>
-            TERMS OF SERVICE
-          </Link>
-          <span style={{ color: '#fff' }}>© 2026 VESPER</span>
-        </div>
-        <p style={{ fontSize: '14px', color: 'var(--text-dim)', fontWeight: 600 }}>
-          Made by{' '}
-          <a href="https://www.biblefunlandstudios.com/" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 800 }}>
-            BIBLEFUNLAND
-          </a>{' '}
-          STUDIOS
-        </p>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

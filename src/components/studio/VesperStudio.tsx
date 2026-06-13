@@ -3,8 +3,11 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import StudioPhonePreview from './StudioPhonePreview';
+import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
+import EmptyState from '@/components/shared/EmptyState';
 import { parseTime, formatTime } from '@/lib/parseTime';
 import { loadBrandKit, migrateStoredBrandKit, saveBrandKit } from '@/lib/studio/brandKit';
+import { planAllowsTemplate, UPGRADE_COPY, type UpgradeFeature } from '@/lib/plans';
 import {
   STUDIO_TEMPLATES,
   STUDIO_FILTERS,
@@ -79,6 +82,7 @@ export default function VesperStudio({
   const [isMuted, setIsMuted] = useState(true);
   const [selectedPlatform, setSelectedPlatform] = useState('tiktok');
   const [isUploadingYT, setIsUploadingYT] = useState(false);
+  const [upgradePrompt, setUpgradePrompt] = useState<UpgradeFeature | null>(null);
 
   const clipIndex = selectedClip.index;
   const renderState = rendering[clipIndex];
@@ -97,6 +101,10 @@ export default function VesperStudio({
   }, [trimStart, trimEnd]);
 
   const handleSaveProfile = () => {
+    if (userStatus?.plan === 'free' || userStatus?.plan === null || userStatus?.plan === undefined) {
+      setUpgradePrompt('custom_branding');
+      return;
+    }
     saveBrandKit({
       template: selectedTemplate,
       filter: selectedFilter,
@@ -104,6 +112,14 @@ export default function VesperStudio({
       animation: selectedAnimation,
     });
     toast.success('Profile saved — your defaults are kept for next session');
+  };
+
+  const handleSelectTemplate = (templateId: string) => {
+    if (!planAllowsTemplate(userStatus?.plan, templateId)) {
+      setUpgradePrompt('caption_templates');
+      return;
+    }
+    setSelectedTemplate(templateId);
   };
 
   const handleStartExport = () => {
@@ -165,6 +181,11 @@ export default function VesperStudio({
   const charCount = platformCaption.length;
   const overLimit = selectedPlatformConfig?.limit ? charCount > selectedPlatformConfig.limit : false;
   const trimDuration = trimEnd - trimStart;
+  const hasSocialCaption = Boolean(
+    selectedClip.suggested_captions?.some((c) => c?.trim()) ||
+      captionOverrides[clipIndex]?.trim()
+  );
+  const hasExport = renderState?.status === 'complete' && renderState?.url;
 
   return (
     <div
@@ -197,7 +218,7 @@ export default function VesperStudio({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: '32px', width: 'auto' }} />
+          <img src="/vesper-logo-icon.png" alt="Vesper Studio logo" style={{ height: '32px', width: 'auto' }} />
           <div>
             <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
               <span style={{ color: '#8B5CF6' }}>VES</span>PER{' '}
@@ -265,10 +286,11 @@ export default function VesperStudio({
                 <OptionCard
                   key={t.id}
                   selected={selectedTemplate === t.id}
-                  onSelect={() => setSelectedTemplate(t.id)}
+                  onSelect={() => handleSelectTemplate(t.id)}
                   title={t.name}
                   desc={t.desc}
                   swatch={t.color}
+                  locked={!planAllowsTemplate(userStatus?.plan, t.id)}
                 />
               ))}
 
@@ -359,22 +381,35 @@ export default function VesperStudio({
 
             {activeTab === 'publish' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <PublishCard
-                  title="YouTube Shorts"
-                  icon="▶️"
-                  desc="Publish rendered reel to your connected channel."
-                  actionLabel={userStatus?.youtubeConnected ? 'PUBLISH SHORT' : 'CONNECT CHANNEL'}
-                  disabled={renderState?.status !== 'complete' || isUploadingYT}
-                  onAction={handleYouTubeSync}
-                />
-                <PublishCard
-                  title="Download MP4"
-                  icon="📥"
-                  desc="Save the rendered file for TikTok or Instagram."
-                  actionLabel="DOWNLOAD"
-                  disabled={renderState?.status !== 'complete'}
-                  onAction={() => renderState?.url && window.open(renderState.url)}
-                />
+                {!hasExport ? (
+                  <EmptyState
+                    compact
+                    icon="📥"
+                    headline="No exports yet"
+                    subtext="Customize your reel and hit Generate Reel to render a downloadable 9:16 MP4."
+                    ctaLabel="Generate Reel"
+                    onCtaClick={handleStartExport}
+                  />
+                ) : (
+                  <>
+                    <PublishCard
+                      title="YouTube Shorts"
+                      icon="▶️"
+                      desc="Publish rendered reel to your connected channel."
+                      actionLabel={userStatus?.youtubeConnected ? 'PUBLISH SHORT' : 'CONNECT CHANNEL'}
+                      disabled={renderState?.status !== 'complete' || isUploadingYT}
+                      onAction={handleYouTubeSync}
+                    />
+                    <PublishCard
+                      title="Download MP4"
+                      icon="📥"
+                      desc="Save the rendered file for TikTok or Instagram."
+                      actionLabel="DOWNLOAD"
+                      disabled={renderState?.status !== 'complete'}
+                      onAction={() => renderState?.url && window.open(renderState.url)}
+                    />
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -471,6 +506,7 @@ export default function VesperStudio({
             <textarea
               value={captionOverrides[clipIndex] ?? caption}
               onChange={(e) => setCaptionOverrides((prev) => ({ ...prev, [clipIndex]: e.target.value }))}
+              data-studio-live-caption
               rows={2}
               style={{
                 width: '100%',
@@ -528,7 +564,19 @@ export default function VesperStudio({
               ))}
             </div>
 
-            {selectedPlatformConfig && (
+            {!hasSocialCaption ? (
+              <EmptyState
+                compact
+                icon="💬"
+                headline="No Social Kit captions yet"
+                subtext="Captions are generated during AI analysis. Edit the live caption below or re-run analysis on a new sermon."
+                ctaLabel="Edit Live Caption"
+                onCtaClick={() => {
+                  const textarea = document.querySelector<HTMLTextAreaElement>('[data-studio-live-caption]');
+                  textarea?.focus();
+                }}
+              />
+            ) : selectedPlatformConfig ? (
               <div className="glass-card" style={{ padding: '20px', borderColor: 'var(--primary)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                   <span style={{ fontSize: '24px' }}>{selectedPlatformConfig.icon}</span>
@@ -567,7 +615,7 @@ export default function VesperStudio({
                   </button>
                 )}
               </div>
-            )}
+            ) : null}
 
             <div className="glass-card" style={{ padding: '20px', marginTop: '20px' }}>
               <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--primary)', marginBottom: '8px' }}>NEURAL HOOK</div>
@@ -621,6 +669,14 @@ export default function VesperStudio({
           ))}
         </nav>
       )}
+
+      <UpgradePromptModal
+        open={upgradePrompt !== null}
+        feature={upgradePrompt ? UPGRADE_COPY[upgradePrompt].feature : ''}
+        planName={upgradePrompt ? UPGRADE_COPY[upgradePrompt].plan : ''}
+        price={upgradePrompt ? UPGRADE_COPY[upgradePrompt].price : ''}
+        onClose={() => setUpgradePrompt(null)}
+      />
     </div>
   );
 }
@@ -632,6 +688,7 @@ function OptionCard({
   desc,
   swatch,
   fontFamily,
+  locked,
 }: {
   selected: boolean;
   onSelect: () => void;
@@ -639,6 +696,7 @@ function OptionCard({
   desc: string;
   swatch?: string;
   fontFamily?: string;
+  locked?: boolean;
 }) {
   return (
     <button
@@ -673,6 +731,11 @@ function OptionCard({
       <div>
         <div style={{ fontSize: '15px', fontWeight: 800, color: '#fff', fontFamily }}>{title}</div>
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{desc}</div>
+        {locked && (
+          <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: 900, color: '#FBBF24', letterSpacing: '0.08em' }}>
+            PRO
+          </span>
+        )}
       </div>
     </button>
   );

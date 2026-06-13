@@ -97,6 +97,7 @@ export default function HeroUploadZone({ isMobile, onFileSelect }: HeroUploadZon
         className={zoneClass}
         role="button"
         tabIndex={0}
+        aria-label="Upload sermon video file"
         onClick={openPicker}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {

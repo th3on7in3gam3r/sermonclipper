@@ -100,30 +100,39 @@ export default function ClipActionBar({
                 background: 'rgba(12, 12, 18, 0.98)',
               }}
             >
-              {platforms.map((p, pi) => {
-                const caption = clip.suggested_captions?.[pi] || clip.suggested_captions?.[0] || clip.main_quote || '';
-                const text = `${p.prefix}${caption}`;
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => copyCaption(text, p.label)}
-                    className="vesper-btn-outline"
-                    style={{
-                      width: '100%',
-                      border: 'none',
-                      background: 'transparent',
-                      justifyContent: 'flex-start',
-                      padding: '10px 12px',
-                      fontSize: '12px',
-                      gap: '10px',
-                    }}
-                  >
-                    <span>{p.icon}</span>
-                    <span>{p.label}</span>
-                  </button>
-                );
-              })}
+              {!clip.suggested_captions?.length && !clip.main_quote ? (
+                <div style={{ padding: '16px', textAlign: 'center' }}>
+                  <p style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>No Social Kit captions yet</p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    Captions appear here after AI analysis completes.
+                  </p>
+                </div>
+              ) : (
+                platforms.map((p, pi) => {
+                  const caption = clip.suggested_captions?.[pi] || clip.suggested_captions?.[0] || clip.main_quote || '';
+                  const text = `${p.prefix}${caption}`;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => copyCaption(text, p.label)}
+                      className="vesper-btn-outline"
+                      style={{
+                        width: '100%',
+                        border: 'none',
+                        background: 'transparent',
+                        justifyContent: 'flex-start',
+                        padding: '10px 12px',
+                        fontSize: '12px',
+                        gap: '10px',
+                      }}
+                    >
+                      <span>{p.icon}</span>
+                      <span>{p.label}</span>
+                    </button>
+                  );
+                })
+              )}
             </div>
           )}
         </div>
@@ -147,7 +156,7 @@ export default function ClipActionBar({
           {hasThumbnail ? (
             <img
               src={`/api/proxy-image?url=${encodeURIComponent(thumbnail.url!)}`}
-              alt=""
+              alt="Generated clip thumbnail"
               style={{ width: '100%', height: '44px', objectFit: 'cover' }}
             />
           ) : (
