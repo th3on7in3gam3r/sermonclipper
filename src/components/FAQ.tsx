@@ -56,7 +56,7 @@ export default function FAQ() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   return (
-    <section id="faq" style={{ padding: '120px 20px', maxWidth: '900px', margin: '0 auto' }}>
+    <section id="faq" className="landing-anchor" style={{ padding: '120px 20px', maxWidth: '900px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '80px' }}>
         <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>Support</div>
         <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 5vw, 48px)', marginBottom: '16px' }}>Frequently Asked Questions</h2>

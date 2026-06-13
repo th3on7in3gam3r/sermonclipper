@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 const plans = [
   {
     name: 'Free',
+    bestFor: 'Best for individuals trying Vesper',
     price: '$0',
     desc: 'For individual creators exploring the AI neural engine.',
     features: ['2 Clips / mo', 'Standard Rendering', 'Basic Caption Templates', 'Standard Support'],
@@ -16,6 +17,7 @@ const plans = [
   },
   {
     name: 'Creator',
+    bestFor: 'Best for solo pastors or media leads',
     price: '$19',
     desc: 'Power your ministry with consistent cinematic short-form.',
     features: ['20 Clips / mo', 'High-Priority Rendering', 'All Caption Templates', 'Custom Branding', 'Email Support'],
@@ -25,6 +27,7 @@ const plans = [
   },
   {
     name: 'Church Pro',
+    bestFor: 'Best for full ministry teams',
     price: '$49',
     desc: 'The full Vesper suite for growing churches.',
     features: ['Unlimited Clips', 'Ultra-Fast Dedicated Rendering', 'Multi-User Access', 'White-Label Branding', 'Priority Phone Support'],
@@ -108,7 +111,7 @@ export default function Pricing() {
   };
 
   return (
-    <section id="pricing" style={{ padding: '160px 20px', position: 'relative', overflow: 'hidden' }}>
+    <section id="pricing" className="landing-anchor" style={{ padding: '160px 20px', position: 'relative', overflow: 'hidden' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '80px' }}>
           <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>Investment</div>
@@ -120,7 +123,7 @@ export default function Pricing() {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px', marginTop: '64px', alignItems: 'stretch' }}>
+        <div className="pricing-grid">
           {plans.map((p) => {
             const isSignedIn = Boolean(userId);
             const isCurrent = isSignedIn && p.plan === currentPlan;
@@ -129,33 +132,27 @@ export default function Pricing() {
             return (
               <div
                 key={p.plan}
-                className={`glass-card premium-border animate-in ${p.popular ? 'popular-plan' : ''}`}
-                style={{
-                  padding: '64px 40px',
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  background: p.popular ? 'var(--primary-glow)' : 'rgba(255,255,255,0.02)',
-                  borderColor: p.popular ? 'rgba(139,92,246,0.3)' : 'var(--card-border)',
-                }}
+                className={`pricing-card glass-card premium-border animate-in${p.popular ? ' pricing-card--recommended' : ''}`}
               >
                 {p.popular && (
-                  <div className="vesper-badge badge-violet" style={{ position: 'absolute', top: '24px', right: '24px', padding: '6px 12px', fontSize: '10px' }}>
-                    Most Popular
+                  <div className="pricing-card-badges">
+                    <span className="pricing-badge pricing-badge--recommended">Recommended</span>
+                    <span className="pricing-badge pricing-badge--popular">Most Popular</span>
                   </div>
                 )}
 
-                <h3 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '24px' }}>{p.name}</h3>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '24px' }}>
-                  <span className="title-xl" style={{ fontSize: '56px', lineHeight: 1 }}>{p.price}</span>
-                  <span style={{ color: 'var(--text-dim)', fontWeight: 700, fontSize: '14px' }}>/mo</span>
+                <h3 className="pricing-card-name">{p.name}</h3>
+                <p className="pricing-card-best-for">{p.bestFor}</p>
+                <div className="pricing-card-price-row">
+                  <span className="title-xl pricing-card-price">{p.price}</span>
+                  <span className="pricing-card-period">/mo</span>
                 </div>
-                <p style={{ color: 'var(--text-muted)', fontSize: '15px', marginBottom: '40px', lineHeight: 1.6, flexShrink: 0 }}>{p.desc}</p>
+                <p className="pricing-card-desc">{p.desc}</p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '64px', flex: 1 }}>
-                  {p.features.map((f, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#fff', opacity: 0.9 }}>
-                      <span style={{ color: 'var(--primary)', fontWeight: 900 }}>✓</span> {f}
+                <div className="pricing-card-features">
+                  {p.features.map((f) => (
+                    <div key={f} className="pricing-card-feature">
+                      <span className="pricing-card-check">✓</span> {f}
                     </div>
                   ))}
                 </div>
@@ -164,10 +161,8 @@ export default function Pricing() {
                   type="button"
                   onClick={() => handlePlanClick(p.plan, p.priceId as string | null)}
                   disabled={isCurrent || loading !== null || (isSignedIn && !isCurrent && !p.priceId)}
-                  className={`vesper-btn ${p.popular && !isCurrent ? 'vesper-btn-primary' : 'vesper-btn-outline'} shimmer-effect`}
+                  className={`vesper-btn ${p.popular && !isCurrent ? 'vesper-btn-primary' : 'vesper-btn-outline'} shimmer-effect pricing-card-cta`}
                   style={{
-                    width: '100%',
-                    padding: '16px',
                     opacity: isCurrent || (isSignedIn && !isCurrent && !p.priceId) ? 0.55 : 1,
                   }}
                 >

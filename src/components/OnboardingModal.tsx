@@ -69,53 +69,18 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
   const handleSkip = () => finish(onSkip);
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 99999,
-      background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(16px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '20px',
-    }}>
-      <div style={{
-        width: '100%', maxWidth: '540px',
-        background: '#1A1A24',
-        border: '1px solid rgba(139,92,246,0.4)',
-        borderRadius: '28px',
-        overflow: 'hidden',
-        boxShadow: '0 0 0 1px rgba(139,92,246,0.2), 0 40px 120px rgba(0,0,0,0.8), 0 0 80px rgba(139,92,246,0.15)',
-        animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-        position: 'relative',
-      }}>
+    <div className="onboarding-overlay">
+      <div className="onboarding-card">
         <button
           type="button"
           onClick={handleSkip}
           disabled={isSaving}
           aria-label="Skip onboarding for now"
-          style={{
-            position: 'absolute',
-            top: '20px',
-            right: '24px',
-            background: 'none',
-            border: 'none',
-            color: '#71717A',
-            fontSize: '12px',
-            fontWeight: 600,
-            cursor: isSaving ? 'not-allowed' : 'pointer',
-            padding: 0,
-            zIndex: 2,
-            opacity: isSaving ? 0.5 : 0.85,
-            transition: 'color 0.2s, opacity 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            if (!isSaving) e.currentTarget.style.color = '#A1A1AA';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = '#71717A';
-          }}
+          className="onboarding-skip"
         >
           Skip for now →
         </button>
-        {/* Content */}
-        <div style={{ padding: '32px 32px 28px' }}>
+        <div className="onboarding-scroll">
           {/* Labeled step bar */}
           <div
             role="progressbar"

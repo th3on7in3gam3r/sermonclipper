@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import ProcessingView from '@/components/home/ProcessingView';
 import Pricing from '@/components/home/Pricing';
 import HeroDemo from '@/components/home/HeroDemo';
+import LandingNav from '@/components/home/LandingNav';
 import HeroUploadZone from '@/components/home/HeroUploadZone';
 import HeroYouTubeInput from '@/components/home/HeroYouTubeInput';
 import ChurchSocialProof from '@/components/home/ChurchSocialProof';
@@ -13,8 +14,7 @@ import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import VideoTrimmer from '@/components/VideoTrimmer';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
-import { vesperClerkAppearance } from '@/lib/clerkAppearance';
+import { useAuth } from '@clerk/nextjs';
 import {
   MAX_DIRECT_UPLOAD_BYTES,
   MAX_DIRECT_UPLOAD_LABEL,
@@ -39,7 +39,7 @@ export default function Home() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [status, setStatus] = useState<Record<string, string> | null>(null);
   const router = useRouter();
-  const { isLoaded, userId } = useAuth();
+  const { userId } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -235,77 +235,10 @@ export default function Home() {
     <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div className="vesper-mesh-bg" />
       
-      {/* Navigation */}
-      <header
-        className="glass-card"
-        style={{
-          position: 'fixed',
-          top: '16px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 'calc(100% - 24px)',
-          maxWidth: '1400px',
-          minHeight: '64px',
-          height: 'auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: isMobile ? '10px 12px' : '0 32px',
-          zIndex: 1000,
-          borderRadius: '20px',
-          gap: '8px',
-        }}
-      >
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', minWidth: 0, flexShrink: 1 }}>
-          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: isMobile ? '28px' : '32px', width: 'auto', flexShrink: 0 }} />
-          {!isMobile && (
-            <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
-              <span style={{ color: '#8B5CF6' }}>VES</span>PER
-            </div>
-          )}
-        </Link>
-
-        <nav style={{ display: 'flex', gap: isMobile ? '8px' : '32px', alignItems: 'center', flexShrink: 0 }}>
-          {!isMobile && (
-            <Link href="/#features" className="vesper-btn-outline" style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-muted)' }}>
-              Vision
-            </Link>
-          )}
-          <Link href="/#pricing" className="vesper-btn-outline" style={{ border: 'none', background: 'transparent', fontSize: isMobile ? '12px' : '13px', color: 'var(--text-muted)', padding: isMobile ? '6px 8px' : undefined }}>
-            Pricing
-          </Link>
-          {isLoaded && userId ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
-              <Link
-                href="/dashboard"
-                className="vesper-btn-outline"
-                style={{
-                  padding: isMobile ? '6px 8px' : '8px 20px',
-                  fontSize: isMobile ? '12px' : '13px',
-                  border: 'none',
-                  background: 'transparent',
-                  color: 'var(--text-muted)',
-                }}
-              >
-                Dashboard
-              </Link>
-              <UserButton appearance={vesperClerkAppearance} userProfileProps={{ appearance: vesperClerkAppearance }} />
-            </div>
-          ) : (
-            <SignInButton mode="modal" appearance={vesperClerkAppearance}>
-              <button
-                className="vesper-btn vesper-btn-primary shimmer-effect"
-                style={{ padding: isMobile ? '8px 14px' : '10px 24px', fontSize: isMobile ? '11px' : '13px', whiteSpace: 'nowrap' }}
-              >
-                SIGN IN
-              </button>
-            </SignInButton>
-          )}
-        </nav>
-      </header>
+      <LandingNav />
 
       {/* Hero Section */}
-      <section style={{ padding: isMobile ? '108px 16px 48px' : '180px 20px 80px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+      <section style={{ padding: isMobile ? '48px 16px 48px' : '64px 20px 80px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div className="animate-in" style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div className="vesper-badge badge-violet" style={{ marginBottom: '40px', padding: '12px 24px' }}>
             <span style={{ fontSize: '16px', marginRight: '8px' }}>✨</span> The next evolution of ministry media
@@ -343,7 +276,7 @@ export default function Home() {
             Automatically distill your powerful sermons into high-impact cinematic reels that reach more hearts on every platform.
           </p>
 
-          <HeroDemo isMobile={isMobile} />
+          <HeroDemo />
 
           <HeroUploadZone isMobile={isMobile} onFileSelect={handleFileUpload} />
 
@@ -357,7 +290,7 @@ export default function Home() {
       </section>
 
       {/* Vision Section */}
-      <section id="features" style={{ padding: '160px 20px', position: 'relative' }}>
+      <section id="how-it-works" className="landing-anchor" style={{ padding: '160px 20px', position: 'relative' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '100px' }}>
             <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>The Vision</div>
