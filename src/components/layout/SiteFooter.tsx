@@ -16,7 +16,7 @@ export default function SiteFooter() {
           <Link href="/privacy">Privacy Policy</Link>
           <Link href="/terms">Terms of Service</Link>
           <a href={`mailto:${SUPPORT_EMAIL}`}>Contact / Support</a>
-          <Link href="/sitemap.xml">Sitemap</Link>
+          <a href="/sitemap.xml">Sitemap</a>
         </nav>
 
         <p className="site-footer-copy">© 2025 Vesper Studio. All rights reserved.</p>

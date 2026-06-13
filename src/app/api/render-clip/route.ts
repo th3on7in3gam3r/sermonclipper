@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { progressManager } from '../../../lib/progress';
-import { generatePresignedGetUrl } from '../../../lib/r2';
+import { resolveShotstackVideoUrl } from '../../../lib/shotstackVideoUrl';
+import { isDownloadableMasterUrl, isYouTubeUrl } from '../../../lib/videoSource';
 
 const SHOTSTACK_SANDBOX_KEY = process.env.SHOTSTACK_SANDBOX_KEY;
 const SHOTSTACK_PRODUCTION_KEY = process.env.SHOTSTACK_PRODUCTION_KEY;
@@ -43,71 +44,91 @@ const FONT_FAMILIES: Record<string, string> = {
   serif: 'Clear Sans',
 };
 
-// Map animation id → Shotstack transition
+// Map animation id → Shotstack transition (must match API allowed values)
 const ANIMATION_MAP: Record<string, string> = {
   fade: 'fade',
   slideUp: 'slideUp',
   zoom: 'zoom',
-  carve: 'carve',
+  carve: 'reveal',
 };
 
-// Map filter id → Shotstack effect (lut / color correction)
-// Shotstack doesn't have a direct CSS filter, so we use color correction clips
-const FILTER_EFFECTS: Record<string, Record<string, number> | null> = {
-  none: null,
-  vintage: { brightness: -0.05, contrast: 0.15, saturation: -0.3 },
-  cold: { saturation: -0.6, brightness: 0.1 },
-  warm: { saturation: 0.4, brightness: 0.05 },
-  noir: { saturation: -1, contrast: 0.3 },
-  glory: { brightness: 0.15, saturation: 0.3 },
+// Map filter id → Shotstack filter (must match API allowed values)
+const FILTER_MAP: Record<string, string> = {
+  vintage: 'contrast',
+  cold: 'muted',
+  warm: 'boost',
+  noir: 'greyscale',
+  glory: 'boost',
 };
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { jobId, clip, template, filter, font, animation } = body;
+    const { jobId, clip, template, filter, font, animation, videoUrl: bodyVideoUrl } = body;
 
     if (!jobId || !clip) {
       return NextResponse.json({ error: 'Missing jobId or clip data' }, { status: 400 });
     }
 
     const state = await progressManager.get(jobId);
-    console.log('[Render] State finalPath:', state?.finalPath);
-    if (!state || !state.finalPath) {
-      return NextResponse.json({ error: 'Master video not ready. Please wait for the download to complete.' }, { status: 404 });
+    const resolvedVideoUrl = state?.finalPath || bodyVideoUrl;
+
+    console.log('[Render] State finalPath:', state?.finalPath, 'bodyVideoUrl:', bodyVideoUrl);
+
+    if (!resolvedVideoUrl || !isDownloadableMasterUrl(resolvedVideoUrl)) {
+      return NextResponse.json(
+        {
+          error:
+            'Master video not ready. Wait for upload to finish, then refresh the results page before exporting.',
+        },
+        { status: 404 }
+      );
     }
 
-    const videoUrl = state.finalPath;
-
-    // If the video is stored in R2 (private), generate a presigned GET URL
-    // so Shotstack can fetch it. R2 objects are private by default.
-    let shotstackVideoUrl = videoUrl;
-    if (videoUrl.includes('.r2.cloudflarestorage.com')) {
-      try {
-        const urlObj = new URL(videoUrl);
-        const decodedPath = decodeURIComponent(urlObj.pathname);
-        const pathParts = decodedPath.split('/').filter(Boolean);
-        const key = pathParts.slice(1).join('/');
-        console.log('[Render] Extracted R2 key:', key);
-        shotstackVideoUrl = await generatePresignedGetUrl(key, 7200);
-        console.log('[Render] Presigned URL generated OK');
-      } catch (e) {
-        console.error('[Render] Presigned URL generation failed:', e);
-        shotstackVideoUrl = videoUrl;
-      }
-    }
-    const isYouTubeUrl = shotstackVideoUrl.includes('youtube.com') || shotstackVideoUrl.includes('youtu.be');
-    if (isYouTubeUrl) {
-      return NextResponse.json({ 
-        error: 'Video rendering requires a direct MP4 file. The YouTube download did not complete successfully. Please try uploading the video file directly instead.' 
-      }, { status: 400 });
+    if (isYouTubeUrl(resolvedVideoUrl)) {
+      return NextResponse.json(
+        {
+          error:
+            'Video rendering requires a direct MP4 file. The YouTube download did not complete successfully. Please try uploading the video file directly instead.',
+        },
+        { status: 400 }
+      );
     }
 
     if (!SHOTSTACK_API_KEY) {
-      return NextResponse.json({ 
-        error: 'Video rendering is not configured. Please add SHOTSTACK_SANDBOX_KEY or SHOTSTACK_PRODUCTION_KEY to your environment variables.' 
-      }, { status: 503 });
+      return NextResponse.json(
+        {
+          error:
+            'Video rendering is not configured. Please add SHOTSTACK_SANDBOX_KEY or SHOTSTACK_PRODUCTION_KEY to your environment variables.',
+        },
+        { status: 503 }
+      );
     }
+
+    let shotstackVideoUrl: string;
+    try {
+      shotstackVideoUrl = await resolveShotstackVideoUrl(resolvedVideoUrl);
+      console.log('[Render] Shotstack source URL ready');
+    } catch (urlError) {
+      console.error('[Render] Failed to prepare video URL for Shotstack:', urlError);
+      return NextResponse.json(
+        {
+          error:
+            'Could not prepare your uploaded video for cloud rendering. Check R2 storage credentials and try again.',
+        },
+        { status: 502 }
+      );
+    }
+
+    if (!state?.finalPath && bodyVideoUrl) {
+      await progressManager.update(jobId, {
+        step: 'Render',
+        status: 'loading',
+        finalPath: bodyVideoUrl,
+      });
+    }
+
+    const videoUrl = resolvedVideoUrl;
     const start = parseTime(clip.start);
     const end = parseTime(clip.end);
     const duration = Math.max(end - start, 1);
@@ -116,11 +137,16 @@ export async function POST(req: NextRequest) {
     const fontFamily = FONT_FAMILIES[font] || 'Montserrat';
     const transitionIn = ANIMATION_MAP[animation] || 'fade';
 
-    const captions = clip.suggested_captions || [];
-    const captionDuration = captions.length > 0 ? duration / captions.length : duration;
+    const captions = (clip.suggested_captions || [])
+      .map((text: string) => String(text || '').trim())
+      .filter(Boolean);
+
+    const fallbackCaption = String(clip.main_quote || clip.hook_title || 'SERMON HIGHLIGHT').trim();
+    const captionLines = captions.length > 0 ? captions : [fallbackCaption];
+    const captionDuration = captionLines.length > 0 ? duration / captionLines.length : duration;
 
     // Build caption clips
-    const captionClips = captions.map((text: string, i: number) => ({
+    const captionClips = captionLines.map((text: string, i: number) => ({
       asset: {
         type: 'text',
         text: text.toUpperCase(),
@@ -164,7 +190,7 @@ export async function POST(req: NextRequest) {
       };
 
       // Caption clips positioned centered for gorgeous podcast reel aesthetic
-      const audioCaptionClips = captions.map((text: string, i: number) => ({
+      const audioCaptionClips = captionLines.map((text: string, i: number) => ({
         asset: {
           type: 'text',
           text: text.toUpperCase(),
@@ -225,14 +251,7 @@ export async function POST(req: NextRequest) {
 
       // Apply color filter if selected (Shotstack filter property on clip)
       if (filter && filter !== 'none') {
-        const filterMap: Record<string, string> = {
-          vintage: 'contrast',
-          cold: 'muted',
-          warm: 'boost',
-          noir: 'greyscale',
-          glory: 'enhance',
-        };
-        const shotstackFilter = filterMap[filter];
+        const shotstackFilter = FILTER_MAP[filter];
         if (shotstackFilter) videoClip.filter = shotstackFilter;
       }
 
@@ -265,20 +284,37 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(shotstackEdit),
     });
 
-    const data = await response.json();
+    const raw = await response.text();
+    let data: { success?: boolean; response?: { id?: string }; message?: string; error?: string };
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch {
+      console.error('[Shotstack] Non-JSON response:', raw.slice(0, 500));
+      return NextResponse.json(
+        { error: `Shotstack returned an unexpected response (${response.status}). Check server logs.` },
+        { status: 502 }
+      );
+    }
 
-    if (data.success) {
+    if (data.success && data.response?.id) {
       console.log('[Shotstack] Render queued:', data.response.id);
       return NextResponse.json({
         success: true,
         shotstackId: data.response.id,
         status: 'queued',
       });
-    } else {
-      console.error('[Shotstack] API Error:', JSON.stringify(data));
-      console.error('[Shotstack] Payload sent:', JSON.stringify(shotstackEdit));
-      return NextResponse.json({ error: data.message || data.error || JSON.stringify(data) }, { status: 500 });
     }
+
+    const shotstackError =
+      data.message ||
+      data.error ||
+      (typeof data === 'object' ? JSON.stringify(data) : raw) ||
+      `Shotstack request failed (${response.status})`;
+
+    console.error('[Shotstack] API Error:', shotstackError);
+    console.error('[Shotstack] Payload sent:', JSON.stringify(shotstackEdit));
+
+    return NextResponse.json({ error: shotstackError }, { status: response.ok ? 500 : response.status || 500 });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Render pipeline failed';
     console.error('[Render Engine] Critical Failure:', e);

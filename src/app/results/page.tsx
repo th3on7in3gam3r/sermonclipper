@@ -276,7 +276,8 @@ function ResultsContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          jobId, 
+          jobId,
+          videoUrl: masterDownloadUrl || videoUrl,
           clip: { 
             ...clip, 
             start: tStart || clip.start, 
