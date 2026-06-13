@@ -833,7 +833,6 @@ function ResultsContent() {
           key={selectedClip.index}
           selectedClip={selectedClip}
           onClose={() => setSelectedClip(null)}
-          jobId={jobId}
           videoId={videoId}
           videoUrl={videoUrl}
           playableVideoUrl={playableVideoUrl}

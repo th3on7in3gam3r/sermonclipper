@@ -3,7 +3,6 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import StudioPhonePreview from './StudioPhonePreview';
-import CaptionEditor from './CaptionEditor';
 import StudioExportPanel from './StudioExportPanel';
 import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
 import EmptyState from '@/components/shared/EmptyState';
@@ -24,7 +23,6 @@ import type { ExportSettings, RenderState, SermonClip, UserStatus } from '@/lib/
 interface VesperStudioProps {
   selectedClip: SermonClip & { index: number };
   onClose: () => void;
-  jobId?: string | null;
   videoId: string | null;
   videoUrl: string | null;
   playableVideoUrl: string | null;
@@ -53,7 +51,6 @@ function getInitialStyleState() {
 export default function VesperStudio({
   selectedClip,
   onClose,
-  jobId,
   videoId,
   videoUrl,
   playableVideoUrl,
@@ -82,8 +79,6 @@ export default function VesperStudio({
   const [previewEnd, setPreviewEnd] = useState(clipEnd);
 
   const [captionOverrides, setCaptionOverrides] = useState<Record<number, string>>({});
-  const [captionFontSize, setCaptionFontSize] = useState(20);
-  const [captionColor, setCaptionColor] = useState('#FFFFFF');
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [selectedPlatform, setSelectedPlatform] = useState('tiktok');
@@ -106,10 +101,6 @@ export default function VesperStudio({
     setPreviewEnd(trimEnd);
   }, [trimStart, trimEnd]);
 
-  const handleCaptionChange = (text: string) => {
-    setCaptionOverrides((prev) => ({ ...prev, [clipIndex]: text }));
-  };
-
   const handleSaveProfile = () => {
     if (userStatus?.plan === 'free' || userStatus?.plan === null || userStatus?.plan === undefined) {
       setUpgradePrompt('custom_branding');
@@ -130,14 +121,6 @@ export default function VesperStudio({
       return;
     }
     setSelectedTemplate(templateId);
-  };
-
-  const handleRestyle = () => {
-    setActiveTab('templates');
-    const idx = STUDIO_TEMPLATES.findIndex((t) => t.id === selectedTemplate);
-    const next = STUDIO_TEMPLATES[(idx + 1) % STUDIO_TEMPLATES.length];
-    handleSelectTemplate(next.id);
-    toast.success(`Caption template: ${next.name} — preview updates instantly`);
   };
 
   const handleStartExport = () => {
@@ -463,33 +446,64 @@ export default function VesperStudio({
           </div>
         </aside>
 
-        {/* Center: caption editor + timeline */}
+        {/* Center: preview */}
         <section
           style={{
             flex: 1,
             display: isMobile ? (mobileTab === 'preview' ? 'flex' : 'none') : 'flex',
             flexDirection: 'column',
+            alignItems: 'center',
             justifyContent: 'center',
             padding: isMobile ? '20px 16px' : '40px',
-            overflow: 'auto',
+            overflow: 'hidden',
           }}
         >
-          <CaptionEditor
-            caption={captionOverrides[clipIndex] ?? caption}
-            clipStart={previewStart}
-            clipEnd={previewEnd}
-            jobId={jobId || undefined}
-            clipIndex={clipIndex}
-            onCaptionChange={handleCaptionChange}
-            onRestyle={handleRestyle}
-            captionFontSize={captionFontSize}
-            captionColor={captionColor}
-            onFontSizeChange={setCaptionFontSize}
-            onColorChange={setCaptionColor}
+          <StudioPhonePreview
+            videoId={videoId}
+            videoUrl={videoUrl}
+            playableVideoUrl={playableVideoUrl}
+            selectedClip={selectedClip}
+            previewStart={previewStart}
+            previewEnd={previewEnd}
+            selectedTemplate={selectedTemplate}
+            selectedFilter={selectedFilter}
+            selectedFont={selectedFont}
+            selectedAnimation={selectedAnimation}
+            caption={caption}
+            selectedPlatform={selectedPlatform}
+            isPlaying={isPlaying}
+            isMuted={isMuted}
+            isMobile={isMobile}
+            onPlayingChange={setIsPlaying}
+            onMutedChange={setIsMuted}
           />
+
+          <div style={{ width: '100%', maxWidth: '330px', marginTop: '24px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em' }}>
+              LIVE CAPTION
+            </label>
+            <textarea
+              value={captionOverrides[clipIndex] ?? caption}
+              onChange={(e) => setCaptionOverrides((prev) => ({ ...prev, [clipIndex]: e.target.value }))}
+              data-studio-live-caption
+              rows={2}
+              style={{
+                width: '100%',
+                marginTop: '8px',
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '16px',
+                padding: '16px',
+                color: '#fff',
+                fontSize: '15px',
+                resize: 'none',
+                outline: 'none',
+              }}
+            />
+          </div>
         </section>
 
-        {/* Right: live phone preview + social kit */}
+        {/* Right: social kit */}
         <aside
           className="studio-panel"
           style={{
@@ -503,32 +517,9 @@ export default function VesperStudio({
             background: 'rgba(10, 10, 15, 0.4)',
           }}
         >
-          <div style={{ padding: '24px', display: 'flex', justifyContent: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-            <StudioPhonePreview
-              videoId={videoId}
-              videoUrl={videoUrl}
-              playableVideoUrl={playableVideoUrl}
-              selectedClip={selectedClip}
-              previewStart={previewStart}
-              previewEnd={previewEnd}
-              selectedTemplate={selectedTemplate}
-              selectedFilter={selectedFilter}
-              selectedFont={selectedFont}
-              selectedAnimation={selectedAnimation}
-              caption={captionOverrides[clipIndex] ?? caption}
-              captionFontSize={captionFontSize}
-              captionColor={captionColor}
-              selectedPlatform={selectedPlatform}
-              isPlaying={isPlaying}
-              isMuted={isMuted}
-              isMobile={isMobile}
-              onPlayingChange={setIsPlaying}
-              onMutedChange={setIsMuted}
-            />
-          </div>
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
             <div className="vesper-badge badge-green" style={{ marginBottom: '8px' }}>MEDIA KIT</div>
-            <h3 style={{ fontSize: '18px', fontWeight: 900 }}>Social Distribution</h3>
+            <h3 style={{ fontSize: '20px', fontWeight: 900 }}>Social Distribution</h3>
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
@@ -558,8 +549,11 @@ export default function VesperStudio({
                 icon="💬"
                 headline="No Social Kit captions yet"
                 subtext="Captions are generated during AI analysis. Edit the live caption below or re-run analysis on a new sermon."
-                ctaLabel="Edit caption"
-                onCtaClick={() => setMobileTab('preview')}
+                ctaLabel="Edit Live Caption"
+                onCtaClick={() => {
+                  const textarea = document.querySelector<HTMLTextAreaElement>('[data-studio-live-caption]');
+                  textarea?.focus();
+                }}
               />
             ) : selectedPlatformConfig ? (
               <div className="glass-card" style={{ padding: '20px', borderColor: 'var(--primary)' }}>
