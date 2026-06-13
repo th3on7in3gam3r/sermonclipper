@@ -19,13 +19,15 @@ function AuthActions({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: 
   if (isLoaded && userId) {
     return (
       <div className={wrapClass}>
-        <Link href="/dashboard" className="vesper-btn vesper-btn-primary shimmer-effect landing-nav-cta" onClick={onNavigate}>
-          Go to Studio
-        </Link>
-        <UserButton
-          appearance={vesperClerkAppearance}
-          userProfileProps={{ appearance: vesperClerkAppearance }}
-        />
+        <div className="landing-nav-user-row">
+          <Link href="/dashboard" className="landing-nav-studio-btn" onClick={onNavigate}>
+            Go to Studio
+          </Link>
+          <UserButton
+            appearance={vesperClerkAppearance}
+            userProfileProps={{ appearance: vesperClerkAppearance }}
+          />
+        </div>
       </div>
     );
   }
