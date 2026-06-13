@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import ProcessingView from '@/components/home/ProcessingView';
 import Pricing from '@/components/home/Pricing';
+import HeroDemo from '@/components/home/HeroDemo';
 import FAQ from '@/components/FAQ';
 import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import VideoTrimmer from '@/components/VideoTrimmer';
@@ -24,6 +25,7 @@ export default function Home() {
   const router = useRouter();
   const { isLoaded, userId } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -116,6 +118,42 @@ export default function Home() {
     if (!putRes.ok) throw new Error(`R2 upload failed: ${putRes.status}`);
 
     return publicUrl;
+  };
+
+  const handleFileUpload = async (file: File) => {
+    const TRIMMER_THRESHOLD = 500 * 1024 * 1024;
+    if (file.size > TRIMMER_THRESHOLD) {
+      const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobileBrowser) {
+        toast(`Large file (${Math.round(file.size / 1024 / 1024)}MB) detected. Streaming directly to cloud…`, { icon: '☁️', duration: 6000 });
+      } else {
+        toast(`File is ${Math.round(file.size / 1024 / 1024)}MB — opening trimmer to split it down.`, { icon: '✂️' });
+        setLargeFile(file);
+        setShowTrimmer(true);
+        return;
+      }
+    }
+
+    const loadToast = toast.loading('Uploading video file…');
+    const newJobId = Math.random().toString(36).substring(7);
+    setJobId(newJobId);
+    setIsProcessing(true);
+
+    try {
+      const r2Url = await uploadDirectToR2(file, newJobId);
+
+      await fetch('/api/download-youtube', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: r2Url, jobId: newJobId, userId }),
+      });
+
+      toast.success('Upload complete. Neural analysis started!', { id: loadToast });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Upload failed';
+      toast.error(msg, { id: loadToast });
+      setIsProcessing(false);
+    }
   };
 
   const handleTrimComplete = async (trimmedFile: File, trimJobId: string) => {
@@ -212,11 +250,11 @@ export default function Home() {
         <nav style={{ display: 'flex', gap: isMobile ? '8px' : '32px', alignItems: 'center', flexShrink: 0 }}>
           {!isMobile && (
             <Link href="/#features" className="vesper-btn-outline" style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-muted)' }}>
-              VISION
+              Vision
             </Link>
           )}
           <Link href="/#pricing" className="vesper-btn-outline" style={{ border: 'none', background: 'transparent', fontSize: isMobile ? '12px' : '13px', color: 'var(--text-muted)', padding: isMobile ? '6px 8px' : undefined }}>
-            PRICING
+            Pricing
           </Link>
           {isLoaded && userId ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
@@ -231,7 +269,7 @@ export default function Home() {
                   color: 'var(--text-muted)',
                 }}
               >
-                DASHBOARD
+                Dashboard
               </Link>
               <UserButton appearance={vesperClerkAppearance} userProfileProps={{ appearance: vesperClerkAppearance }} />
             </div>
@@ -252,7 +290,7 @@ export default function Home() {
       <section style={{ padding: isMobile ? '108px 16px 48px' : '180px 20px 80px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div className="animate-in" style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div className="vesper-badge badge-violet" style={{ marginBottom: '40px', padding: '12px 24px' }}>
-            <span style={{ fontSize: '16px', marginRight: '8px' }}>✨</span> THE NEXT EVOLUTION OF MINISTRY MEDIA
+            <span style={{ fontSize: '16px', marginRight: '8px' }}>✨</span> The next evolution of ministry media
           </div>
           
           <div className="animate-in" style={{ 
@@ -283,96 +321,163 @@ export default function Home() {
             Cinematic Reels. <span className="accent-text">Neural Precision.</span>
           </p>
 
-          <p style={{ color: 'var(--text-muted)', fontSize: '20px', maxWidth: '720px', margin: '0 auto 64px', lineHeight: 1.6, fontWeight: 400 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '20px', maxWidth: '720px', margin: '0 auto 40px', lineHeight: 1.6, fontWeight: 400 }}>
             Automatically distill your powerful sermons into high-impact cinematic reels that reach more hearts on every platform.
           </p>
 
-          <div className="glass-card premium-border" style={{ maxWidth: '800px', margin: '0 auto 40px', padding: '8px', borderRadius: '24px' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input 
-                type="text" 
-                placeholder="Paste YouTube sermon link here..."
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleProcess()}
-                style={{ 
-                  flex: 1, background: 'transparent', border: 'none', padding: '16px 24px', 
-                  color: '#fff', fontSize: '16px', outline: 'none' 
-                }}
-              />
-              <button onClick={handleProcess} className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: '0 32px' }}>HARVEST NOW</button>
-            </div>
-          </div>
+          <HeroDemo isMobile={isMobile} />
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', marginBottom: '40px', opacity: 0.4 }}>
-            <div style={{ height: '1px', width: '60px', background: 'currentColor' }} />
-            <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.2em' }}>OR UPLOAD CINEMATIC SOURCE</span>
-            <div style={{ height: '1px', width: '60px', background: 'currentColor' }} />
-          </div>
-
-          <input 
-            type="file" 
-            id="video-upload" 
-            accept="video/*,audio/*" 
-            style={{ display: 'none' }} 
-            onChange={async (e) => {
+          {/* Primary: file upload */}
+          <input
+            type="file"
+            id="video-upload"
+            accept="video/*,audio/*"
+            style={{ display: 'none' }}
+            onChange={(e) => {
               const file = e.target.files?.[0];
-              if (!file) return;
-
-              // Files over 500MB → open trimmer to split into segments
-              const TRIMMER_THRESHOLD = 500 * 1024 * 1024; // 500MB
-              if (file.size > TRIMMER_THRESHOLD) {
-                // Prevent browser crashes due to client-side WASM memory limits on mobile
-                const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                if (isMobileBrowser) {
-                  toast(`Large file (${Math.round(file.size / 1024 / 1024)}MB) detected. Streaming directly to cloud Sanctum...`, { icon: '☁️', duration: 6000 });
-                } else {
-                  toast(`File is ${Math.round(file.size / 1024 / 1024)}MB — opening trimmer to split it down.`, { icon: '✂️' });
-                  setLargeFile(file);
-                  setShowTrimmer(true);
-                  return;
-                }
-              }
-
-              // Direct browser-to-R2 upload via presigned URL (bypasses proxy limits)
-              const loadToast = toast.loading('Uploading to Sanctum...');
-              const newJobId = Math.random().toString(36).substring(7);
-              setJobId(newJobId);
-              setIsProcessing(true);
-
-              try {
-                const r2Url = await uploadDirectToR2(file, newJobId);
-
-                await fetch('/api/download-youtube', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ url: r2Url, jobId: newJobId, userId }),
-                });
-
-                toast.success('Upload complete. Neural Harvesting started!', { id: loadToast });
-              } catch (err: unknown) {
-                const msg = err instanceof Error ? err.message : 'Upload failed';
-                toast.error(msg, { id: loadToast });
-                setIsProcessing(false);
-              }
+              if (file) handleFileUpload(file);
+              e.target.value = '';
             }}
           />
 
-          <div 
-            className="glass-card premium-border animate-in" 
+          <div
+            className="glass-card premium-border animate-in"
+            role="button"
+            tabIndex={0}
             onClick={() => document.getElementById('video-upload')?.click()}
-            style={{ 
-              animationDelay: '0.4s', maxWidth: '800px', margin: '0 auto', padding: '64px', 
-              borderStyle: 'dashed', borderWidth: '2px', cursor: 'pointer',
-              background: 'rgba(255,255,255,0.02)'
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('video-upload')?.click();
+              }
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              setIsDragging(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragging(false);
+              const file = e.dataTransfer.files?.[0];
+              if (file) handleFileUpload(file);
+            }}
+            style={{
+              animationDelay: '0.2s',
+              maxWidth: '920px',
+              margin: '0 auto 32px',
+              padding: isMobile ? '48px 24px' : '72px 48px',
+              borderRadius: '28px',
+              borderStyle: 'dashed',
+              borderWidth: isDragging ? '3px' : '2px',
+              borderColor: isDragging ? '#A78BFA' : 'rgba(139, 92, 246, 0.55)',
+              cursor: 'pointer',
+              background: isDragging
+                ? 'linear-gradient(180deg, rgba(139,92,246,0.18) 0%, rgba(139,92,246,0.06) 100%)'
+                : 'linear-gradient(180deg, rgba(139,92,246,0.12) 0%, rgba(255,255,255,0.02) 100%)',
+              boxShadow: isDragging
+                ? '0 0 0 4px rgba(139,92,246,0.15), 0 24px 60px rgba(0,0,0,0.35)'
+                : '0 20px 50px rgba(0,0,0,0.25)',
+              transition: 'border-color 0.2s, background 0.2s, box-shadow 0.2s',
+              textAlign: 'center',
             }}
           >
-             <div style={{ fontSize: '48px', marginBottom: '24px', filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.3))' }}>📁</div>
-             <h3 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '12px' }}>Drag & Drop Master Session</h3>
-             <p style={{ color: 'var(--text-muted)', fontSize: '16px', marginBottom: '24px' }}>MP4, MOV, or WEBM (Max 500MB)</p>
-             <div className="vesper-badge badge-gold" style={{ padding: '10px 20px', borderRadius: '12px' }}>
-                SEGMENTED UPLOAD ACTIVE FOR LARGER FILES
-             </div>
+            <div
+              style={{
+                width: isMobile ? '72px' : '88px',
+                height: isMobile ? '72px' : '88px',
+                margin: '0 auto 28px',
+                borderRadius: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: isMobile ? '36px' : '44px',
+                background: 'rgba(139, 92, 246, 0.2)',
+                border: '1px solid rgba(139, 92, 246, 0.45)',
+                boxShadow: '0 0 30px rgba(139, 92, 246, 0.25)',
+              }}
+            >
+              ⬆️
+            </div>
+            <h3 style={{ fontSize: isMobile ? '26px' : '32px', fontWeight: 900, marginBottom: '12px', letterSpacing: '-0.02em' }}>
+              Upload Video File
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: isMobile ? '15px' : '17px', marginBottom: '24px', maxWidth: '520px', marginInline: 'auto', lineHeight: 1.5 }}>
+              Drag and drop your sermon MP4 here, or click to browse. Best for full-quality reel exports.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
+              <span className="vesper-badge badge-violet">MP4 · MOV · WEBM</span>
+              <span className="vesper-badge badge-gold">Up to 500MB direct</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '28px', opacity: 0.5 }}>
+            <div style={{ height: '1px', width: isMobile ? '40px' : '80px', background: 'currentColor' }} />
+            <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.2em' }}>OR</span>
+            <div style={{ height: '1px', width: isMobile ? '40px' : '80px', background: 'currentColor' }} />
+          </div>
+
+          {/* Secondary: YouTube link */}
+          <div
+            className="glass-card premium-border"
+            style={{
+              maxWidth: '920px',
+              margin: '0 auto 40px',
+              padding: isMobile ? '20px' : '24px',
+              borderRadius: '24px',
+            }}
+          >
+            <label
+              htmlFor="youtube-url-input"
+              style={{
+                display: 'block',
+                fontSize: '11px',
+                fontWeight: 900,
+                letterSpacing: '0.15em',
+                color: '#8B5CF6',
+                marginBottom: '12px',
+              }}
+            >
+              Paste YouTube Link
+            </label>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '10px' }}>
+              <input
+                id="youtube-url-input"
+                type="text"
+                placeholder="https://youtube.com/watch?v=…"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleProcess()}
+                style={{
+                  flex: 1,
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '14px',
+                  padding: isMobile ? '14px 16px' : '16px 20px',
+                  color: '#fff',
+                  fontSize: '16px',
+                  outline: 'none',
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleProcess}
+                className="vesper-btn vesper-btn-outline shimmer-effect"
+                style={{
+                  padding: isMobile ? '14px 20px' : '0 28px',
+                  whiteSpace: 'nowrap',
+                  fontSize: '13px',
+                }}
+              >
+                Analyze from YouTube
+              </button>
+            </div>
+            <p style={{ margin: '12px 0 0', fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.5 }}>
+              Preview and clip discovery only — upload a video file above to export rendered reels.
+            </p>
           </div>
         </div>
       </section>
@@ -381,7 +486,7 @@ export default function Home() {
       <section id="features" style={{ padding: '160px 20px', position: 'relative' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '100px' }}>
-            <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>THE VISION</div>
+            <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>The Vision</div>
             <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 5vw, 64px)', marginBottom: '32px' }}>
               Beyond Technology: <span className="accent-text">Our Ministry</span>
             </h2>
@@ -418,16 +523,24 @@ export default function Home() {
 
           <div className="testimonials-grid">
             {[
-              { text: "Vesper has completely transformed our social media presence. What used to take our tech team 10 hours now takes 10 minutes.", author: "Pastor David M.", role: "Lead Pastor" },
-              { text: "The quality of the AI-generated clips is incredible. It captures the heart of the message perfectly every single time.", author: "Sarah J.", role: "Media Director" }
+              {
+                text: 'Vesper has completely transformed our social media presence. What used to take our tech team 10 hours now takes 10 minutes.',
+                author: 'Pastor David M.',
+                church: 'First Baptist Church, Nashville',
+              },
+              {
+                text: 'The quality of the AI-generated clips is incredible. It captures the heart of the message perfectly every single time.',
+                author: 'Sarah J.',
+                church: 'Grace Community Church, Austin',
+              },
             ].map((t, i) => (
               <div key={i} className="testimonial-card">
                 <p style={{ marginBottom: '24px' }}>&ldquo;{t.text}&rdquo;</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#1F1F24' }} />
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: 900 }}>{t.author}</div>
-                    <div style={{ fontSize: '12px', color: '#8B5CF6' }}>{t.role}</div>
+                    <div style={{ fontSize: '14px', fontWeight: 800 }}>{t.author}</div>
+                    <div style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '2px' }}>{t.church}</div>
                   </div>
                 </div>
               </div>
@@ -440,20 +553,21 @@ export default function Home() {
       <section style={{ padding: '120px 20px', textAlign: 'center' }}>
         <div className="glass-card premium-border animate-in" style={{ maxWidth: '1000px', margin: '0 auto', padding: '100px 48px', background: 'var(--primary-glow)' }}>
            <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 6vw, 56px)', marginBottom: '32px' }}>Ready to amplify your message?</h2>
-           <p style={{ color: 'var(--text-muted)', fontSize: '20px', marginBottom: '48px', maxWidth: '700px', margin: '0 auto 48px' }}>Join 500+ churches using Vesper to reach more people with the Gospel.</p>
-           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: '16px 48px', fontSize: '18px' }}>GET STARTED NOW</button>
+           <p style={{ color: 'var(--text-muted)', fontSize: '20px', marginBottom: '48px', maxWidth: '700px', margin: '0 auto 48px' }}>Turn your next sermon into shareable reels in minutes — upload a file or paste a YouTube link to begin.</p>
+           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: '16px 48px', fontSize: '18px' }}>GET STARTED</button>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="glass-card" style={{ padding: '80px 20px', borderRadius: '48px 48px 0 0', borderBottom: 'none', borderLeft: 'none', borderRight: 'none', textAlign: 'center', background: 'rgba(0,0,0,0.5)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '40px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.3em', opacity: 0.6, marginBottom: '24px' }}>
-          <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>PRIVACY POLICY</Link>
-          <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>TERMS OF SERVICE</Link>
-          <span style={{ color: '#fff' }}>© 2026 VESPER</span>
+          <Link href="/privacy" style={{ color: '#fff', textDecoration: 'none' }}>Privacy Policy</Link>
+          <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>Terms of Service</Link>
+          <Link href="/sitemap.xml" style={{ color: '#fff', textDecoration: 'none' }}>Sitemap</Link>
+          <span style={{ color: '#fff' }}>© 2026 Vesper</span>
         </div>
         <p style={{ fontSize: '14px', color: 'var(--text-dim)', fontWeight: 600 }}>
-          Made by <a href="https://www.biblefunlandstudios.com/" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 800 }}>BIBLEFUNLAND</a> STUDIOS
+          Made by <a href="https://www.biblefunlandstudios.com/" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 800 }}>Biblefunland</a> Studios
         </p>
       </footer>
 

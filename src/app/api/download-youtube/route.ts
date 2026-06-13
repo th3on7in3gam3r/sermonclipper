@@ -262,7 +262,7 @@ export async function POST(req: NextRequest) {
   if (dbUser.usageCount >= limit) {
     return NextResponse.json({ 
       error: 'Plan limit reached', 
-      details: `Your ${dbUser.plan} plan is limited to ${limit} sermons per month. Please upgrade to continue reaching more hearts.`,
+      details: `Your ${dbUser.plan} plan is limited to ${limit} clips per month. Please upgrade to continue.`,
       code: 'LIMIT_REACHED'
     }, { status: 403 });
   }

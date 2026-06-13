@@ -53,6 +53,7 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const isLast = step === SLIDES.length - 1;
   const current = SLIDES[step];
+  const totalSteps = SLIDES.length;
 
   const handleComplete = () => {
     if (!acknowledged) return;
@@ -76,20 +77,81 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
         boxShadow: '0 0 0 1px rgba(139,92,246,0.2), 0 40px 120px rgba(0,0,0,0.8), 0 0 80px rgba(139,92,246,0.15)',
         animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
       }}>
-        {/* Progress bar */}
-        <div style={{ height: '3px', background: 'rgba(255,255,255,0.05)' }}>
-          <div style={{
-            height: '100%',
-            width: `${((step + 1) / SLIDES.length) * 100}%`,
-            background: 'linear-gradient(90deg, #8B5CF6, #D8B4FE)',
-            transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-          }} />
-        </div>
-
         {/* Content */}
-        <div style={{ padding: '40px 40px 32px' }}>
-          {/* Icon + step counter */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <div style={{ padding: '32px 32px 28px' }}>
+          {/* Labeled step bar */}
+          <div
+            role="progressbar"
+            aria-valuenow={step + 1}
+            aria-valuemin={1}
+            aria-valuemax={totalSteps}
+            aria-label={`Step ${step + 1} of ${totalSteps}`}
+            style={{ marginBottom: '28px' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
+              <span style={{ fontSize: '15px', fontWeight: 900, color: '#fff', letterSpacing: '-0.01em' }}>
+                Step {step + 1} of {totalSteps}
+              </span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#A78BFA' }}>
+                {Math.round(((step + 1) / totalSteps) * 100)}% complete
+              </span>
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${totalSteps}, 1fr)`,
+                gap: '6px',
+                marginBottom: '10px',
+              }}
+            >
+              {SLIDES.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setStep(i)}
+                  aria-label={`Go to step ${i + 1}`}
+                  aria-current={i === step ? 'step' : undefined}
+                  style={{
+                    height: '10px',
+                    borderRadius: '99px',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    background:
+                      i < step ? '#10B981' : i === step ? '#8B5CF6' : 'rgba(255,255,255,0.12)',
+                    boxShadow: i === step ? '0 0 12px rgba(139,92,246,0.5)' : 'none',
+                    transition: 'background 0.25s, box-shadow 0.25s',
+                  }}
+                />
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '4px' }}>
+              {SLIDES.map((slide, i) => (
+                <button
+                  key={slide.title}
+                  type="button"
+                  onClick={() => setStep(i)}
+                  style={{
+                    flex: 1,
+                    background: 'none',
+                    border: 'none',
+                    padding: '4px 2px',
+                    cursor: 'pointer',
+                    fontSize: '9px',
+                    fontWeight: i === step ? 800 : 600,
+                    color: i === step ? '#E9D5FF' : i < step ? '#6EE7B7' : '#71717A',
+                    lineHeight: 1.2,
+                    textAlign: 'center',
+                  }}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Icon */}
+          <div style={{ marginBottom: '20px' }}>
             <div style={{
               width: '56px', height: '56px', borderRadius: '16px',
               background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)',
@@ -98,9 +160,6 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
             }}>
               {current.icon}
             </div>
-            <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em' }}>
-              {step + 1} / {SLIDES.length}
-            </span>
           </div>
 
           {/* Title */}
@@ -155,50 +214,36 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
             </div>
           )}
 
-          {/* Step dots */}
-          <div style={{ display: 'flex', gap: '5px', marginBottom: '24px' }}>
-            {SLIDES.map((_, i) => (
-              <div
-                key={i}
-                onClick={() => setStep(i)}
-                style={{
-                  width: i === step ? '20px' : '6px',
-                  height: '6px', borderRadius: '99px', cursor: 'pointer',
-                  background: i === step ? '#8B5CF6' : i < step ? '#10B981' : 'rgba(255,255,255,0.1)',
-                  transition: 'all 0.3s',
-                }}
-              />
-            ))}
-          </div>
-
           {/* Buttons */}
           <div style={{ display: 'flex', gap: '10px' }}>
             {step > 0 && (
               <button
-                onClick={() => setStep(s => s - 1)}
+                type="button"
+                onClick={() => setStep((s) => s - 1)}
                 style={{
                   flex: 1, padding: '14px',
                   background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '12px', color: '#A1A1AA', fontSize: '12px', fontWeight: 800,
-                  cursor: 'pointer', letterSpacing: '0.08em',
+                  borderRadius: '12px', color: '#A1A1AA', fontSize: '13px', fontWeight: 700,
+                  cursor: 'pointer',
                 }}
               >
-                ← BACK
+                Back
               </button>
             )}
             <button
-              onClick={isLast ? handleComplete : () => setStep(s => s + 1)}
+              type="button"
+              onClick={isLast ? handleComplete : () => setStep((s) => s + 1)}
               disabled={isLast && !acknowledged}
               className="shimmer-btn"
               style={{
                 flex: 2, padding: '14px',
-                borderRadius: '12px', fontSize: '12px', fontWeight: 900,
-                letterSpacing: '0.1em',
+                borderRadius: '12px', fontSize: '13px', fontWeight: 900,
+                letterSpacing: '0.06em',
                 opacity: (isLast && !acknowledged) ? 0.4 : 1,
                 cursor: (isLast && !acknowledged) ? 'not-allowed' : 'pointer',
               }}
             >
-              {isLast ? 'GET STARTED ✦' : 'NEXT →'}
+              {isLast ? 'GET STARTED ✦' : 'Next →'}
             </button>
           </div>
         </div>
