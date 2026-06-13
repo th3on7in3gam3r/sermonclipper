@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { SITE_URL, SITE_TITLE } from '@/lib/siteConfig';
+import { SITE_URL, SITE_TITLE, SUPPORT_EMAIL } from '@/lib/siteConfig';
 
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Vesper Studio <hello@vesper.biblefunland.com>';
 const UNSUBSCRIBE_BASE = `${SITE_URL}/api/email/unsubscribe`;
@@ -145,5 +145,18 @@ export async function sendTeamInviteEmail(
   );
 
   await resend.emails.send({ from: FROM_EMAIL, to, subject: `You are invited to ${params.teamName} on Vesper`, html });
+  return { ok: true };
+}
+
+export async function sendAccountDeletedEmail(to: string) {
+  const resend = getResend();
+  if (!resend) return { ok: false, skipped: true };
+
+  const html = emailShell(
+    `<h1 style="margin:0 0 12px;font-size:22px;">Your Vesper account has been deleted</h1>
+     <p style="color:#D4D4D8;line-height:1.6;margin:0;">We have permanently removed your account, clips, and associated data from Vesper. If you did not request this, contact us immediately at ${SUPPORT_EMAIL}.</p>`
+  );
+
+  await resend.emails.send({ from: FROM_EMAIL, to, subject: 'Your Vesper account has been deleted', html });
   return { ok: true };
 }

@@ -1,36 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generatePresignedGetUrl } from '../../../lib/r2';
+import { auth } from '@clerk/nextjs/server';
+import { getMediaDeliveryUrl } from '@/lib/cdn';
+import { getR2ObjectUrl } from '@/lib/r2';
+import { extractR2Key, isR2StorageUrl } from '@/lib/videoSource';
 
 /**
- * Returns a short-lived presigned GET URL for a private R2 object.
- * Used by the results page so the browser can play back uploaded videos.
+ * Returns a short-lived delivery URL for private storage (CDN or app-signed).
+ * Never returns raw R2 URLs to clients.
  *
- * GET /api/video-url?key=uploads/jobId/file.mp4
+ * GET /api/video-url?key=uploads/jobId/uuid.mp4
+ * GET /api/video-url?url=<legacy internal url>  (authenticated migration)
  */
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = req.nextUrl;
+    const keyParam = searchParams.get('key');
     const rawUrl = searchParams.get('url');
 
-    if (!rawUrl) {
-      return NextResponse.json({ error: 'Missing url param' }, { status: 400 });
+    let key = keyParam || '';
+    if (!key && rawUrl) {
+      if (isR2StorageUrl(rawUrl)) {
+        key = extractR2Key(rawUrl);
+      } else if (!rawUrl.includes('://')) {
+        key = rawUrl;
+      } else {
+        return NextResponse.json({ url: rawUrl });
+      }
     }
 
-    // If it's already a presigned URL or not an R2 private URL, return as-is
-    if (!rawUrl.includes('.r2.cloudflarestorage.com') || rawUrl.includes('X-Amz-Signature')) {
-      return NextResponse.json({ url: rawUrl });
+    if (!key) {
+      return NextResponse.json({ error: 'Missing key or url param' }, { status: 400 });
     }
 
-    // Extract the key from the R2 URL
-    // Format: https://account.r2.cloudflarestorage.com/bucket/key
-    const urlObj = new URL(rawUrl);
-    const decodedPath = decodeURIComponent(urlObj.pathname);
-    const pathParts = decodedPath.split('/').filter(Boolean);
-    // pathParts[0] = bucket, rest = key
-    const key = pathParts.slice(1).join('/');
+    const playbackUrl = await getMediaDeliveryUrl(key);
+    const internalUrl = getR2ObjectUrl(key);
 
-    const presignedUrl = await generatePresignedGetUrl(key, 3600);
-    return NextResponse.json({ url: presignedUrl });
+    return NextResponse.json({ url: playbackUrl, key, internalUrl });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Failed to generate URL';
     console.error('[Video URL] Error:', error);

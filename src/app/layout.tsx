@@ -22,6 +22,10 @@ const outfit = Outfit({
 
 import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from 'react-hot-toast';
+import { Suspense } from 'react';
+import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
+import VesperErrorBoundary from '@/components/shared/VesperErrorBoundary';
+import CookieConsent from '@/components/consent/CookieConsent';
 import { vesperClerkAppearance, vesperClerkLocalization } from '@/lib/clerkAppearance';
 
 let hasWarnedMissingClerkKey = false;
@@ -98,13 +102,13 @@ export default function RootLayout({
           <link rel="icon" href="/favicon.png" />
           <link rel="shortcut icon" href="/favicon.png" />
           <link rel="apple-touch-icon" href="/vesper-logo.png" />
-          <meta
-            httpEquiv="Content-Security-Policy"
-            content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://*.clerk.accounts.dev https://clerk.vesper.biblefunland.com https://accounts.vesper.biblefunland.com https://challenges.cloudflare.com https://www.youtube.com https://s.ytimg.com https://vercel.live https://*.vercel.live; connect-src 'self' blob: https://unpkg.com https://*.clerk.accounts.dev https://clerk.vesper.biblefunland.com https://accounts.vesper.biblefunland.com https://*.mongodb.net https://vercel.live https://*.r2.cloudflarestorage.com; img-src 'self' data: blob: https://img.clerk.com https://images.clerk.dev https://i.ytimg.com https://img.youtube.com https://oaidalleapiprodscus.blob.core.windows.net https://*.r2.cloudflarestorage.com https://*.r2.dev; media-src 'self' blob: https://*.r2.cloudflarestorage.com https://*.r2.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://challenges.cloudflare.com https://clerk.vesper.biblefunland.com https://accounts.vesper.biblefunland.com https://vesper.biblefunland.com https://www.youtube.com https://*.youtube.com https://vercel.live; worker-src 'self' blob:;"
-          />
+          <link rel="preload" href="/vesper-logo.png" as="image" type="image/png" />
         </head>
         <body className="antialiased">
-          <Toaster 
+          <Suspense fallback={null}>
+            <AnalyticsProvider>
+              <VesperErrorBoundary>
+                <Toaster 
             position="bottom-center"
             toastOptions={{
               style: {
@@ -125,6 +129,10 @@ export default function RootLayout({
             }}
           />
           {children}
+                <CookieConsent />
+              </VesperErrorBoundary>
+            </AnalyticsProvider>
+          </Suspense>
         </body>
       </html>
     </ClerkProvider>

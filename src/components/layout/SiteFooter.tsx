@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SITE_URL, SUPPORT_EMAIL } from '@/lib/siteConfig';
+import { CookiePreferencesLink } from '@/components/consent/CookieConsent';
 
 export default function SiteFooter() {
   return (
@@ -15,6 +16,7 @@ export default function SiteFooter() {
         <nav className="site-footer-links" aria-label="Footer">
           <Link href="/privacy">Privacy Policy</Link>
           <Link href="/terms">Terms of Service</Link>
+          <CookiePreferencesLink />
           <a href={`mailto:${SUPPORT_EMAIL}`}>Contact / Support</a>
           <a href="/sitemap.xml">Sitemap</a>
         </nav>

@@ -50,6 +50,7 @@ export async function uploadBufferToR2(key: string, buffer: Uint8Array, contentT
     Key: key,
     Body: buffer,
     ContentType: contentType,
+    CacheControl: 'public, max-age=31536000, immutable',
   });
 
   await client.send(command);
@@ -80,6 +81,7 @@ export async function generatePresignedUploadUrl(key: string, contentType = 'vid
     Bucket: bucket,
     Key: key,
     ContentType: contentType,
+    CacheControl: 'public, max-age=31536000, immutable',
   });
 
   const url = await getSignedUrl(presignClient, command, { expiresIn });
@@ -150,6 +152,7 @@ export async function uploadStreamToR2(key: string, stream: Readable, contentTyp
       Key: key,
       Body: stream,
       ContentType: contentType,
+      CacheControl: 'public, max-age=31536000, immutable',
     },
     // Keep part size small to save memory on Koyeb
     partSize: 5 * 1024 * 1024, // 5MB

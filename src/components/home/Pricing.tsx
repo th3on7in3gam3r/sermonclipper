@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
+import { captureEvent } from '@/lib/analytics';
 
 const plans = [
   {
@@ -63,6 +64,7 @@ export default function Pricing() {
 
   const handleSubscription = async (priceId: string | null, plan: string) => {
     if (!priceId) return;
+    captureEvent('pricing_plan_clicked', { plan_name: plan });
     setLoading(plan);
 
     try {

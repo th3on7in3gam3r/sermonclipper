@@ -19,6 +19,11 @@ export interface IUser extends Document {
   quotaWarningSentAt?: Date;
   quotaReachedSentAt?: Date;
   lastRecapMonth?: string;
+  referralCode?: string;
+  referredBy?: string;
+  referralRewarded?: boolean;
+  referralUpgradeCount?: number;
+  lastActiveAt?: Date;
   createdAt: Date;
 }
 
@@ -40,6 +45,11 @@ const UserSchema: Schema = new Schema({
   quotaWarningSentAt: { type: Date },
   quotaReachedSentAt: { type: Date },
   lastRecapMonth: { type: String },
+  referralCode: { type: String, unique: true, sparse: true, index: true },
+  referredBy: { type: String, index: true },
+  referralRewarded: { type: Boolean, default: false },
+  referralUpgradeCount: { type: Number, default: 0 },
+  lastActiveAt: { type: Date },
   createdAt: { type: Date, default: Date.now },
 });
 

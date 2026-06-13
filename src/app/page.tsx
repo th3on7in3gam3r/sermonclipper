@@ -13,7 +13,6 @@ import FAQ from '@/components/FAQ';
 import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import VideoTrimmer from '@/components/VideoTrimmer';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@clerk/nextjs';
 import {
   MAX_DIRECT_UPLOAD_BYTES,
   MAX_DIRECT_UPLOAD_LABEL,
@@ -23,6 +22,9 @@ import {
 import SiteFooter from '@/components/layout/SiteFooter';
 import { isValidYouTubeUrl } from '@/lib/youtubeValidation';
 import toast from 'react-hot-toast';
+import { vesperFetch } from '@/lib/apiClient';
+import { captureEvent } from '@/lib/analytics';
+import { queueProcessingJob } from '@/lib/clientJobs';
 
 const PROCESSING_STEPS = [
   { id: 'upload', label: 'Uploading…' },
@@ -76,7 +78,6 @@ export default function Home() {
   const [status, setStatus] = useState<Record<string, string> | null>(null);
   const [lastSubmitUrl, setLastSubmitUrl] = useState('');
   const router = useRouter();
-  const { userId } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -113,25 +114,16 @@ export default function Home() {
     setIsProcessing(true);
 
     try {
-      const res = await fetch('/api/download-youtube', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url.trim(), jobId: newJobId, userId }),
-      });
-      const errorData = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
+      const queued = await queueProcessingJob('youtube', { url: url.trim(), jobId: newJobId });
+      if ('error' in queued) {
         const message =
-          errorData.details ||
-          errorData.error ||
-          (errorData.code === 'LIMIT_REACHED'
+          queued.code === 'LIMIT_REACHED'
             ? 'You have used all your clips this month. Upgrade to get more.'
-            : 'Analysis failed. Please try again.');
+            : queued.error;
         setProcessingError(message);
         return;
       }
-
-      router.push(`/results?jobId=${newJobId}&videoUrl=${encodeURIComponent(url.trim())}`);
+      setJobId(queued.jobId);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'Connection failed';
       setProcessingError(msg);
@@ -148,23 +140,33 @@ export default function Home() {
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`/api/progress?jobId=${jobId}`);
-        const data = await res.json();
-        if (data) {
-          setStatus(data);
-          if (data.status === 'error') {
-            setProcessingError(data.message?.replace(/^\[Neural Error\]\s*/, '') || 'Analysis failed. Please try again.');
-            return;
-          }
-          if (data.status === 'completed' && data.finalPath) {
-            router.push(`/results?jobId=${jobId}&videoUrl=${encodeURIComponent(data.finalPath)}`);
-            clearInterval(interval);
-          }
+        const [progressRes, jobRes] = await Promise.all([
+          fetch(`/api/progress?jobId=${jobId}`),
+          fetch(`/api/jobs/${jobId}`),
+        ]);
+        const data = progressRes.ok ? await progressRes.json() : null;
+        const job = jobRes.ok ? await jobRes.json() : null;
+
+        if (data) setStatus(data);
+
+        if (job?.status === 'failed' || data?.status === 'error') {
+          setProcessingError(
+            job?.error ||
+              data?.message?.replace(/^\[Neural Error\]\s*/, '') ||
+              'Analysis failed. Please try again.'
+          );
+          return;
+        }
+
+        const finalPath = job?.finalPath || data?.finalPath;
+        if (job?.status === 'complete' || (data?.status === 'completed' && finalPath)) {
+          router.push(`/results?jobId=${jobId}&videoUrl=${encodeURIComponent(finalPath)}`);
+          clearInterval(interval);
         }
       } catch (e) {
         console.error('Progress check failed:', e);
       }
-    }, 2000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [jobId, isProcessing, router]);
@@ -188,7 +190,7 @@ export default function Home() {
     }
 
     // Step 1: get presigned URL from server
-    const urlRes = await fetch('/api/upload-url', {
+    const urlRes = await vesperFetch('/api/upload-url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fileName: file.name, contentType, jobId, fileSizeBytes: file.size }),
@@ -197,9 +199,8 @@ export default function Home() {
       const err = await urlRes.json();
       throw new Error(err.error || 'Failed to get upload URL');
     }
-    const { uploadUrl, publicUrl } = await urlRes.json();
+    const { uploadUrl, key } = await urlRes.json();
 
-    // Step 2: PUT file directly to R2 (no server in middle, no size limit)
     const putRes = await fetch(uploadUrl, {
       method: 'PUT',
       headers: { 'Content-Type': contentType },
@@ -207,7 +208,18 @@ export default function Home() {
     });
     if (!putRes.ok) throw new Error(`R2 upload failed: ${putRes.status}`);
 
-    return publicUrl;
+    const confirmRes = await vesperFetch('/api/upload-confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key }),
+    });
+    if (!confirmRes.ok) {
+      const err = await confirmRes.json();
+      throw new Error(err.error || 'Upload validation failed');
+    }
+    const { internalUrl } = await confirmRes.json();
+    captureEvent('clip_created', { source_type: 'upload' });
+    return internalUrl as string;
   };
 
   const handleFileUpload = async (file: File) => {
@@ -234,25 +246,14 @@ export default function Home() {
     try {
       const r2Url = await uploadDirectToR2(file, newJobId);
 
-      const res = await fetch('/api/download-youtube', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: r2Url, jobId: newJobId, userId }),
-      });
-      const errorData = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
+      const queued = await queueProcessingJob('youtube', { url: r2Url, jobId: newJobId });
+      if ('error' in queued) {
         toast.dismiss(loadToast);
-        setProcessingError(
-          errorData.details ||
-            errorData.error ||
-            'Upload succeeded but analysis failed. Please try again.'
-        );
+        setProcessingError(queued.error);
         return;
       }
 
-      toast.success('Upload complete. Neural analysis started!', { id: loadToast });
-      router.push(`/results?jobId=${newJobId}&videoUrl=${encodeURIComponent(r2Url)}`);
+      toast.success('Upload complete. Analysis queued!', { id: loadToast });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Upload failed';
       toast.error(msg, { id: loadToast });
@@ -272,21 +273,14 @@ export default function Home() {
     try {
       const r2Url = await uploadDirectToR2(trimmedFile, trimJobId);
 
-      const res = await fetch('/api/download-youtube', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: r2Url, jobId: trimJobId, userId }),
-      });
-      const errorData = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
+      const queued = await queueProcessingJob('youtube', { url: r2Url, jobId: trimJobId });
+      if ('error' in queued) {
         toast.dismiss(loadToast);
-        setProcessingError(errorData.details || errorData.error || 'Analysis failed after upload.');
+        setProcessingError(queued.error);
         return;
       }
 
-      toast.success('Trimmed video uploaded! Processing started.', { id: loadToast });
-      router.push(`/results?jobId=${trimJobId}&videoUrl=${encodeURIComponent(r2Url)}`);
+      toast.success('Trimmed video uploaded! Processing queued.', { id: loadToast });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Upload failed';
       toast.error(msg, { id: loadToast });

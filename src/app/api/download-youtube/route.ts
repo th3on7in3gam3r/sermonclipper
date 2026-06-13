@@ -12,6 +12,13 @@ import { auth } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 
+function authorizeInternal(req: NextRequest): string | null {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return null;
+  if (req.headers.get('authorization') !== `Bearer ${secret}`) return null;
+  return req.headers.get('x-vesper-user-id');
+}
+
 // ── Configuration ────────────────────────────────────────────────────────────
 try {
   dns.setServers(['1.1.1.1', '1.0.0.1', '8.8.8.8']);
@@ -228,7 +235,9 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
 }
 
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
+  const internalUserId = authorizeInternal(req);
+  const { userId: clerkUserId } = await auth();
+  const userId = clerkUserId || internalUserId;
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized. Please sign in.' }, { status: 401 });
   }

@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { sendWelcomeEmail } from '@/lib/email';
 import { PLAN_LIMITS } from '@/lib/plans';
+import { generateReferralCode } from '@/lib/referral';
+import { isVesperAdmin } from '@/lib/adminBypass';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const { userId } = await auth();
   const clerkUser = await currentUser();
 
@@ -13,21 +15,43 @@ export async function GET() {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
+  const refCode = req.nextUrl.searchParams.get('ref')?.trim();
+
   await connectDB();
   let dbUser = await User.findOne({ clerkId: userId });
   const isNewUser = !dbUser;
 
   if (!dbUser) {
-    dbUser = await User.create({ clerkId: userId, plan: 'free', usageCount: 0, onboardingComplete: false });
+    dbUser = await User.create({
+      clerkId: userId,
+      plan: 'free',
+      usageCount: 0,
+      onboardingComplete: false,
+      referralCode: generateReferralCode(),
+    });
   }
+
+  if (!dbUser.referralCode) {
+    dbUser.referralCode = generateReferralCode();
+  }
+
+  if (isNewUser && refCode && !dbUser.referredBy) {
+    const referrer = await User.findOne({ referralCode: refCode });
+    if (referrer && referrer.clerkId !== userId) {
+      dbUser.referredBy = referrer.clerkId;
+    }
+  }
+
+  dbUser.lastActiveAt = new Date();
 
   const email = clerkUser.emailAddresses?.[0]?.emailAddress;
   const name = clerkUser.firstName || 'there';
 
   if (email && dbUser.email !== email) {
     dbUser.email = email;
-    await dbUser.save();
   }
+
+  await dbUser.save();
 
   if (email && !dbUser.welcomeEmailSent && !dbUser.emailUnsubscribed) {
     try {
@@ -39,36 +63,33 @@ export async function GET() {
     }
   }
 
-  // DIVINE BYPASS: Hardcode specific admins to Church Pro
-  const isAdmin =
-    userId === 'user_3DYwuXu2bJd40YjKuyIoEh0Mvm4' ||
-    clerkUser.emailAddresses.some((e) => e.emailAddress.includes('yahweh')) ||
-    clerkUser.emailAddresses.some((e) => e.emailAddress.includes('theonlinegamer')) ||
-    clerkUser.firstName?.toLowerCase().includes('jerless');
+  const isAdmin = isVesperAdmin(userId, clerkUser);
+
+  const base = {
+    usageCount: dbUser.usageCount,
+    youtubeConnected: !!dbUser.youtubeTokens,
+    onboardingComplete: isAdmin ? true : (dbUser.onboardingComplete ?? false),
+    isNewUser,
+    referralCode: dbUser.referralCode,
+    isAdmin,
+  };
 
   if (isAdmin) {
     return NextResponse.json({
+      ...base,
       plan: 'church_pro',
       status: 'active',
-      usageCount: dbUser.usageCount,
       limit: 999999,
-      youtubeConnected: !!dbUser.youtubeTokens,
-      onboardingComplete: true,
-      isAdmin: true,
-      isNewUser,
     });
   }
 
   const limit = PLAN_LIMITS[dbUser.plan] ?? PLAN_LIMITS.free;
 
   return NextResponse.json({
+    ...base,
     plan: dbUser.plan,
     status: dbUser.status,
-    usageCount: dbUser.usageCount,
     limit,
     lastUsageReset: dbUser.lastUsageReset,
-    youtubeConnected: !!dbUser.youtubeTokens,
-    onboardingComplete: dbUser.onboardingComplete ?? false,
-    isNewUser,
   });
 }

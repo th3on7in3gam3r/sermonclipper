@@ -8,6 +8,8 @@ import DashboardAccountPanel from '@/components/dashboard/DashboardAccountPanel'
 import DashboardSignInGate from '@/components/dashboard/DashboardSignInGate';
 import ClipLibrary, { type SermonRecord } from '@/components/dashboard/ClipLibrary';
 import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
+import NotificationBell from '@/components/dashboard/NotificationBell';
+import NpsSurvey from '@/components/dashboard/NpsSurvey';
 import SiteFooter from '@/components/layout/SiteFooter';
 import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
@@ -104,6 +106,7 @@ function DashboardContent() {
           {!isPhone && userData && (
             <QuotaDisplay compact usageCount={userData.usageCount} limit={userData.limit} lastUsageReset={userData.lastUsageReset} />
           )}
+          <NotificationBell />
           <Link href="/" className="vesper-btn-outline" style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-muted)', padding: isPhone ? '6px 8px' : isMobile ? '8px 10px' : undefined }}>
             HOME
           </Link>
@@ -145,6 +148,8 @@ function DashboardContent() {
       </div>
 
       {showOnboarding && <OnboardingModal onComplete={completeOnboarding} onSkip={completeOnboarding} />}
+
+      <NpsSurvey clipCount={userData?.usageCount || 0} accountAgeDays={30} />
 
       <SiteFooter />
     </main>

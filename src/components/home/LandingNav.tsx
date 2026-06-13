@@ -6,7 +6,8 @@ import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 
 const NAV_LINKS = [
-  { href: '/#how-it-works', label: 'How it Works' },
+  { href: '/how-it-works', label: 'How it Works' },
+  { href: '/for-churches', label: 'For Churches' },
   { href: '/#pricing', label: 'Pricing' },
   { href: '/#faq', label: 'FAQ' },
 ] as const;

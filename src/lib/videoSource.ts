@@ -7,10 +7,11 @@ export function isR2StorageUrl(url: string): boolean {
   return url.includes('.r2.cloudflarestorage.com');
 }
 
-/** True when Vesper has a harvestable master file (R2 upload, direct MP4, etc.). */
+/** True when Vesper has a harvestable master file (R2 upload, direct MP4, storage key, etc.). */
 export function isDownloadableMasterUrl(url: string | null | undefined): boolean {
   if (!url) return false;
   if (isYouTubeUrl(url)) return false;
+  if (/^uploads\//.test(url) || /^sermons\//.test(url)) return true;
   return isR2StorageUrl(url) || /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
 }
 

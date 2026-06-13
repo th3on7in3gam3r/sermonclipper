@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
+import { captureEvent } from '@/lib/analytics';
 
 const FAQ_DATA = [
   {
@@ -80,7 +81,11 @@ export default function FAQ() {
             >
               <button
                 type="button"
-                onClick={() => setOpenIdx(isOpen ? null : i)}
+                onClick={() => {
+                  const next = isOpen ? null : i;
+                  if (next !== null) captureEvent('faq_item_expanded', { question: item.q });
+                  setOpenIdx(next);
+                }}
                 aria-expanded={isOpen}
                 aria-controls={`faq-panel-${i}`}
                 id={`faq-trigger-${i}`}

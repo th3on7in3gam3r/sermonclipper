@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getHeroDemoClip, type HeroDemoPanel } from '@/lib/heroDemoConfig';
-import { generatePresignedGetUrl } from '@/lib/r2';
-import { extractR2Key, isR2StorageUrl } from '@/lib/videoSource';
+import { getMediaDeliveryUrl } from '@/lib/cdn';
 
 export async function GET(req: NextRequest) {
   const panel = req.nextUrl.searchParams.get('panel') as HeroDemoPanel | null;
@@ -13,20 +12,24 @@ export async function GET(req: NextRequest) {
   const clip = getHeroDemoClip(panel);
 
   try {
-    let url = clip.storageUrl;
-
-    if (isR2StorageUrl(url) && !url.includes('X-Amz-Signature')) {
-      url = await generatePresignedGetUrl(extractR2Key(url), 3600);
+    if (clip.cdnPath) {
+      return NextResponse.json({
+        url: clip.cdnPath,
+        clipStart: clip.clipStart,
+        clipEnd: panel === 'before' ? clip.clipEnd : null,
+        source: 'cdn',
+      });
     }
 
+    const url = await getMediaDeliveryUrl(clip.storageKey);
     return NextResponse.json({
       url,
       clipStart: clip.clipStart,
-      clipEnd: clip.clipEnd,
-      fallbackSrc: clip.fallbackSrc,
+      clipEnd: panel === 'before' ? clip.clipEnd : null,
+      source: 'signed',
     });
   } catch (error) {
-    console.error('[Demo Video] Presign failed:', error);
+    console.error('[Demo Video] Delivery failed:', error);
 
     if (clip.fallbackSrc) {
       return NextResponse.json({

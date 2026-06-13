@@ -131,7 +131,6 @@ export default function HeroDemoVideo({
           ref={videoRef}
           className="hero-demo-video"
           src={demo.url}
-          autoPlay
           muted
           playsInline
           preload="metadata"

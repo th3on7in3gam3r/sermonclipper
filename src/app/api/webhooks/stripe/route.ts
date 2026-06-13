@@ -40,6 +40,9 @@ export async function POST(req: Request) {
         status: 'active',
       }
     );
+
+    const { rewardReferrerOnUpgrade } = await import('@/lib/referral');
+    await rewardReferrerOnUpgrade(session.metadata.clerkId);
   }
 
   // Handle successful payments
