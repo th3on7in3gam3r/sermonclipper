@@ -2,6 +2,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ISermon extends Document {
   userId: string;
+  teamId?: string;
+  createdByName?: string;
   jobId: string;
   title: string;
   mainTheme: string;
@@ -13,6 +15,8 @@ export interface ISermon extends Document {
 
 const SermonSchema: Schema = new Schema({
   userId: { type: String, required: true, index: true },
+  teamId: { type: String, index: true },
+  createdByName: { type: String },
   jobId: { type: String, required: true, unique: true },
   title: { type: String, required: true },
   mainTheme: { type: String },

@@ -34,12 +34,12 @@ function AuthActions({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: 
 
   return (
     <div className={wrapClass}>
-      <SignInButton mode="modal" appearance={vesperClerkAppearance}>
+      <SignInButton mode="modal" appearance={vesperClerkAppearance} forceRedirectUrl="/dashboard">
         <button type="button" className="vesper-btn vesper-btn-outline landing-nav-ghost" onClick={onNavigate}>
           Log In
         </button>
       </SignInButton>
-      <SignUpButton mode="modal" appearance={vesperClerkAppearance}>
+      <SignUpButton mode="modal" appearance={vesperClerkAppearance} forceRedirectUrl="/dashboard?onboarding=1">
         <button type="button" className="vesper-btn vesper-btn-primary shimmer-effect landing-nav-cta" onClick={onNavigate}>
           Get Started
         </button>

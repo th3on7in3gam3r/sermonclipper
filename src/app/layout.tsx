@@ -90,6 +90,8 @@ export default function RootLayout({
       publishableKey={clerkPublishableKey}
       appearance={vesperClerkAppearance}
       localization={vesperClerkLocalization}
+      signInFallbackRedirectUrl="/dashboard"
+      signUpFallbackRedirectUrl="/dashboard?onboarding=1"
     >
       <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
         <head>

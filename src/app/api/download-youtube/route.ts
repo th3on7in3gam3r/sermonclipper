@@ -270,6 +270,13 @@ export async function POST(req: NextRequest) {
   // Increment usage
   dbUser.usageCount += 1;
   await dbUser.save();
+
+  try {
+    const { maybeSendQuotaEmails } = await import('@/lib/email/quotaTriggers');
+    await maybeSendQuotaEmails(dbUser);
+  } catch (err) {
+    console.error('[download-youtube] Quota email trigger failed:', err);
+  }
   
   // VERCEL-SAFE ARCHITECTURE:
   // We MUST await the AI analysis in the main request. 

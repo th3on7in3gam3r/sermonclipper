@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { progressManager } from '../../../lib/progress';
 import { planAllowsExport } from '@/lib/plans';
+import { effectivePlan } from '@/lib/adminBypass';
 import { getShotstackConfig, mapShotstackHttpError } from '@/lib/shotstack';
 import { resolveShotstackVideoUrl } from '../../../lib/shotstackVideoUrl';
 import { isDownloadableMasterUrl, isYouTubeUrl } from '../../../lib/videoSource';
@@ -65,9 +66,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Sign in to export reels.' }, { status: 401 });
     }
 
+    const clerkUser = await currentUser();
+
     await connectDB();
     const dbUser = await User.findOne({ clerkId: userId });
-    if (!planAllowsExport(dbUser?.plan)) {
+    const plan = effectivePlan(dbUser?.plan, userId, clerkUser);
+    if (!planAllowsExport(plan)) {
       return NextResponse.json(
         {
           error: 'Export requires a Creator or Church Pro plan.',
@@ -78,7 +82,17 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { jobId, clip, template, filter, font, animation, videoUrl: bodyVideoUrl } = body;
+    const {
+      jobId,
+      clip,
+      template,
+      filter,
+      font,
+      animation,
+      videoUrl: bodyVideoUrl,
+      format = '9:16',
+      quality = 'standard',
+    } = body;
 
     if (!jobId || !clip) {
       return NextResponse.json({ error: 'Missing jobId or clip data' }, { status: 400 });
@@ -145,10 +159,17 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const videoUrl = resolvedVideoUrl;
+    if (quality === 'high' && plan === 'free') {
+      return NextResponse.json({ error: 'High quality exports require Creator or Church Pro.', code: 'UPGRADE_REQUIRED' }, { status: 403 });
+    }
+
+    const aspectRatio = format === '1:1' ? '1:1' : format === '16:9' ? '16:9' : '9:16';
+    const resolution = quality === 'high' ? '1080' : 'hd';
+
     const start = parseTime(clip.start);
     const end = parseTime(clip.end);
     const duration = Math.max(end - start, 1);
+    const videoUrl = resolvedVideoUrl;
 
     const captionColor = TEMPLATE_COLORS[template] || '#FFFFFF';
     const fontFamily = FONT_FAMILIES[font] || 'Montserrat';
@@ -279,14 +300,29 @@ export async function POST(req: NextRequest) {
       ];
     }
 
+    if (plan === 'free') {
+      const watermarkClip = {
+        asset: {
+          type: 'text',
+          text: 'VESPER',
+          font: { family: 'Montserrat SemiBold', size: 28, color: '#FFFFFF' },
+        },
+        start: 0,
+        length: duration,
+        position: 'bottomRight',
+        opacity: 0.35,
+      };
+      tracks.unshift({ clips: [watermarkClip] });
+    }
+
     const shotstackEdit = {
       timeline: {
         tracks,
       },
       output: {
         format: 'mp4',
-        resolution: 'hd',
-        aspectRatio: '9:16',
+        resolution,
+        aspectRatio,
       },
     };
 

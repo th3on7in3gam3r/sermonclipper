@@ -21,6 +21,8 @@ interface StudioPhonePreviewProps {
   selectedFont: string;
   selectedAnimation: string;
   caption: string;
+  captionFontSize?: number;
+  captionColor?: string;
   selectedPlatform: string;
   isPlaying: boolean;
   isMuted: boolean;
@@ -41,6 +43,8 @@ export default function StudioPhonePreview({
   selectedFont,
   selectedAnimation,
   caption,
+  captionFontSize = 20,
+  captionColor,
   selectedPlatform,
   isPlaying,
   isMuted,
@@ -266,10 +270,10 @@ export default function StudioPhonePreview({
               className={animationClass}
               style={{
                 textAlign: 'center',
-                color: template?.color || '#fff',
+                color: captionColor || template?.color || '#fff',
                 fontFamily: font?.family || 'inherit',
                 fontWeight: font?.weight || 900,
-                fontSize: isMobile ? '22px' : '20px',
+                fontSize: isMobile ? `${captionFontSize + 2}px` : `${captionFontSize}px`,
                 textShadow: template?.textShadow || 'none',
                 fontStyle: template?.fontStyle || 'normal',
                 textTransform: 'uppercase',

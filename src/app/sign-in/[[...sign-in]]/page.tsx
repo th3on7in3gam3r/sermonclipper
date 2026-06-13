@@ -1,9 +1,16 @@
 import { SignIn } from '@clerk/nextjs';
+import AuthPageShell from '@/components/auth/AuthPageShell';
+import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 
-export default function Page() {
+export default function SignInPage() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#09090b' }}>
-      <SignIn />
-    </div>
+    <AuthPageShell>
+      <SignIn
+        appearance={vesperClerkAppearance}
+        forceRedirectUrl="/dashboard"
+        signUpForceRedirectUrl="/dashboard?onboarding=1"
+        fallbackRedirectUrl="/dashboard"
+      />
+    </AuthPageShell>
   );
 }

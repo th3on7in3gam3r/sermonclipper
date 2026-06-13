@@ -175,13 +175,23 @@ export const vesperClerkLocalization = {
   signIn: {
     start: {
       title: 'Sign in to Vesper',
-      subtitle: 'Welcome back! Please sign in to continue',
+      subtitle: 'Welcome back! Sign in to open your Studio dashboard.',
+    },
+    forgotPassword: {
+      title: 'Reset your password',
+      subtitle: 'Enter your email and we will send a reset link.',
+      formTitle: 'Forgot password?',
+      formSubtitle: 'We will email you a secure link to reset your password.',
+      resendButton: 'Did not receive it? Resend',
     },
   },
   signUp: {
     start: {
       title: 'Create your Vesper account',
-      subtitle: 'Welcome! Fill in the details below to get started.',
+      subtitle: 'Start turning sermons into cinematic reels in minutes.',
+    },
+    emailCode: {
+      formSubtitle: 'Enter the verification code sent to your email.',
     },
   },
   userProfile: {

@@ -22,6 +22,7 @@ export interface ExportSettings {
 export interface RenderState {
   status: string;
   url?: string;
+  error?: string;
 }
 
 export interface UserStatus {
@@ -30,4 +31,5 @@ export interface UserStatus {
   usageCount?: number;
   limit?: number;
   lastUsageReset?: string;
+  isAdmin?: boolean;
 }

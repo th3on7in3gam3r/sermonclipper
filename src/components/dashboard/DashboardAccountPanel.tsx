@@ -10,9 +10,10 @@ interface DashboardAccountPanelProps {
     limit?: number;
   } | null;
   isMobile?: boolean;
+  plan?: string;
 }
 
-export default function DashboardAccountPanel({ userData, isMobile = false }: DashboardAccountPanelProps) {
+export default function DashboardAccountPanel({ userData, isMobile = false, plan }: DashboardAccountPanelProps) {
   const { user, isLoaded } = useUser();
 
   const planLabel = userData?.plan?.replace(/_/g, ' ').toUpperCase() || 'FREE';
@@ -131,6 +132,50 @@ export default function DashboardAccountPanel({ userData, isMobile = false }: Da
             {!isUnlimited && limitNum != null ? ` · ${usage}/${limitNum} used` : ''}
           </span>
         </div>
+        <Link
+          href="/dashboard/billing"
+          className="vesper-btn-outline"
+          style={{
+            padding: '10px 16px',
+            fontSize: '11px',
+            textAlign: 'center',
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+            flex: isMobile ? 1 : undefined,
+          }}
+        >
+          BILLING
+        </Link>
+        {(plan || userData?.plan) === 'church_pro' && (
+          <Link
+            href="/dashboard/team"
+            className="vesper-btn-outline"
+            style={{
+              padding: '10px 16px',
+              fontSize: '11px',
+              textAlign: 'center',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              flex: isMobile ? 1 : undefined,
+            }}
+          >
+            TEAM
+          </Link>
+        )}
+        <Link
+          href="/dashboard/settings"
+          className="vesper-btn-outline"
+          style={{
+            padding: '10px 16px',
+            fontSize: '11px',
+            textAlign: 'center',
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+            flex: isMobile ? 1 : undefined,
+          }}
+        >
+          SETTINGS
+        </Link>
         <Link
           href="/#pricing"
           className="vesper-btn-outline"

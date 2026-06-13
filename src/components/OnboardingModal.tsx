@@ -263,10 +263,10 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
 }
 
 /** Hook to check if onboarding should show for signed-in users only */
-export function useOnboarding() {
+export function useOnboarding(forceShow = false) {
   const { isLoaded, userId } = useAuth();
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState(forceShow);
+  const [isChecking, setIsChecking] = useState(!forceShow);
 
   const completeOnboarding = useCallback(async () => {
     if (userId) {
@@ -285,6 +285,12 @@ export function useOnboarding() {
 
     if (!userId) {
       setNeedsOnboarding(false);
+      setIsChecking(false);
+      return;
+    }
+
+    if (forceShow) {
+      setNeedsOnboarding(true);
       setIsChecking(false);
       return;
     }
@@ -328,7 +334,7 @@ export function useOnboarding() {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, userId]);
+  }, [isLoaded, userId, forceShow]);
 
   const showOnboarding = isLoaded && Boolean(userId) && !isChecking && needsOnboarding;
 

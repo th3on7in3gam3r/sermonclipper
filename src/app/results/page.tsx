@@ -250,15 +250,21 @@ function ResultsContent() {
       return;
     }
 
-    if (!planAllowsExport(userStatus?.plan)) {
+    const canExport =
+      planAllowsExport(userStatus?.plan) || userStatus?.isAdmin === true;
+
+    if (!canExport) {
       setUpgradePrompt('export');
+      toast.error('Export requires the Creator plan ($19/mo). Upgrade to generate reels.', {
+        duration: 5000,
+      });
       return;
     }
 
     const index = clip.index;
-    setRendering(prev => ({ ...prev, [index]: { status: 'loading' } }));
-    setRenderProgress(prev => ({ ...prev, [index]: 0 }));
-    const renderToastId = toast.loading('Synchronizing with Shotstack Cloud...');
+    setRendering((prev) => ({ ...prev, [index]: { status: 'loading' } }));
+    setRenderProgress((prev) => ({ ...prev, [index]: 2 }));
+    const renderToastId = toast.loading('Starting cloud render…');
     
     // Default settings if not provided (e.g. for batch export)
     const {
@@ -295,20 +301,22 @@ function ResultsContent() {
 
       if (data.code === 'UPGRADE_REQUIRED') {
         setUpgradePrompt('export');
-        setRendering((prev) => ({ ...prev, [index]: { status: 'error' } }));
+        setRendering((prev) => ({ ...prev, [index]: { status: 'error', error: data.error } }));
         toast.error(data.error || 'Upgrade required to export reels.', { id: renderToastId });
         return;
       }
 
       if (data.shotstackId) {
-        toast.loading('Neural rendering in progress...', { id: renderToastId });
+        setRenderProgress((prev) => ({ ...prev, [index]: 8 }));
+        toast.loading('Neural rendering in progress…', { id: renderToastId });
         pollStatus(data.shotstackId, index, renderToastId);
       } else {
-        setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
-        toast.error(data.error || `Export failed (${res.status}).`, { id: renderToastId });
+        const errMsg = data.error || `Export failed (${res.status}).`;
+        setRendering((prev) => ({ ...prev, [index]: { status: 'error', error: errMsg } }));
+        toast.error(errMsg, { id: renderToastId, duration: 6000 });
       }
     } catch {
-      setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
+      setRendering((prev) => ({ ...prev, [index]: { status: 'error', error: 'Network error during rendering.' } }));
       toast.error('Network error during rendering.', { id: renderToastId });
     }
   };
@@ -407,15 +415,27 @@ function ResultsContent() {
       if (data.status === 'done') {
         setRendering(prev => ({ ...prev, [index]: { status: 'complete', url: data.url } }));
         setRenderProgress(prev => ({ ...prev, [index]: 100 }));
-        toast.success('Reel rendered! Click DOWNLOAD REEL to save it.', { id: toastId, duration: 6000 });
+        toast.success('Your reel is ready — download or share below.', { id: toastId, duration: 6000 });
+
+        const clip = analysis?.clips?.[index];
+        fetch('/api/email/render-complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clipTitle: clip?.hook_title || clip?.main_quote || 'Your clip',
+            resultsUrl: `${window.location.origin}${window.location.pathname}${window.location.search}`,
+            thumbnailUrl: clip?.hook_title ? undefined : undefined,
+          }),
+        }).catch(() => {});
       } else if (data.status === 'failed') {
-        setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
+        setRendering((prev) => ({ ...prev, [index]: { status: 'error', error: 'Cloud render failed.' } }));
         toast.error('Cloud render failed.', { id: toastId });
       } else {
         setTimeout(() => pollStatus(id, index, toastId), 3000);
       }
     } catch {
-      setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
+      setRendering((prev) => ({ ...prev, [index]: { status: 'error', error: 'Lost connection to render status.' } }));
+      toast.error('Lost connection to render status.', { id: toastId });
     }
   };
 
@@ -813,6 +833,7 @@ function ResultsContent() {
           key={selectedClip.index}
           selectedClip={selectedClip}
           onClose={() => setSelectedClip(null)}
+          jobId={jobId}
           videoId={videoId}
           videoUrl={videoUrl}
           playableVideoUrl={playableVideoUrl}

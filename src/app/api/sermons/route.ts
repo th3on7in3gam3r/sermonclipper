@@ -2,6 +2,19 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import Sermon from '@/models/Sermon';
+import Team from '@/models/Team';
+
+async function getAccessibleUserIds(userId: string): Promise<string[]> {
+  const team =
+    (await Team.findOne({ ownerId: userId })) ||
+    (await Team.findOne({ 'members.userId': userId }));
+  if (!team) return [userId];
+  const ids = new Set<string>([team.ownerId]);
+  for (const m of team.members) {
+    if (m.userId) ids.add(m.userId);
+  }
+  return [...ids];
+}
 
 export async function GET(req: Request) {
   try {
@@ -28,7 +41,9 @@ export async function GET(req: Request) {
       return NextResponse.json(sermon);
     }
 
-    const sermons = await Sermon.find({ userId }).sort({ createdAt: -1 });
+    const sermons = await Sermon.find({ userId: { $in: await getAccessibleUserIds(userId) } }).sort({
+      createdAt: -1,
+    });
 
     return NextResponse.json(sermons);
   } catch (error) {
@@ -45,16 +60,20 @@ export async function DELETE(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
-    if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
+    const idsParam = searchParams.get('ids');
+    const ids = idsParam ? idsParam.split(',').filter(Boolean) : id ? [id] : [];
+
+    if (!ids.length) return NextResponse.json({ error: 'Missing ID(s)' }, { status: 400 });
 
     await connectDB();
-    const result = await Sermon.deleteOne({ _id: id, userId });
+    const accessible = await getAccessibleUserIds(userId);
+    const result = await Sermon.deleteMany({ _id: { $in: ids }, userId: { $in: accessible } });
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, deleted: result.deletedCount });
   } catch (error) {
     console.error('[Sermons DELETE] Error:', error);
     return NextResponse.json({ error: 'Internal Error' }, { status: 500 });

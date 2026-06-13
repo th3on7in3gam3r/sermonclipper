@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import { sendWelcomeEmail } from '@/lib/email';
+import { PLAN_LIMITS } from '@/lib/plans';
 
 export async function GET() {
   const { userId } = await auth();
@@ -13,16 +15,35 @@ export async function GET() {
 
   await connectDB();
   let dbUser = await User.findOne({ clerkId: userId });
-  
+  const isNewUser = !dbUser;
+
   if (!dbUser) {
-    dbUser = await User.create({ clerkId: userId, plan: 'free', usageCount: 0 });
+    dbUser = await User.create({ clerkId: userId, plan: 'free', usageCount: 0, onboardingComplete: false });
+  }
+
+  const email = clerkUser.emailAddresses?.[0]?.emailAddress;
+  const name = clerkUser.firstName || 'there';
+
+  if (email && dbUser.email !== email) {
+    dbUser.email = email;
+    await dbUser.save();
+  }
+
+  if (email && !dbUser.welcomeEmailSent && !dbUser.emailUnsubscribed) {
+    try {
+      await sendWelcomeEmail(email, name, dbUser.emailUnsubscribeToken);
+      dbUser.welcomeEmailSent = true;
+      await dbUser.save();
+    } catch (err) {
+      console.error('[User status] Welcome email failed:', err);
+    }
   }
 
   // DIVINE BYPASS: Hardcode specific admins to Church Pro
-  const isAdmin = 
+  const isAdmin =
     userId === 'user_3DYwuXu2bJd40YjKuyIoEh0Mvm4' ||
-    clerkUser.emailAddresses.some(e => e.emailAddress.includes('yahweh')) || 
-    clerkUser.emailAddresses.some(e => e.emailAddress.includes('theonlinegamer')) ||
+    clerkUser.emailAddresses.some((e) => e.emailAddress.includes('yahweh')) ||
+    clerkUser.emailAddresses.some((e) => e.emailAddress.includes('theonlinegamer')) ||
     clerkUser.firstName?.toLowerCase().includes('jerless');
 
   if (isAdmin) {
@@ -33,17 +54,21 @@ export async function GET() {
       limit: 999999,
       youtubeConnected: !!dbUser.youtubeTokens,
       onboardingComplete: true,
-      isAdmin: true
+      isAdmin: true,
+      isNewUser,
     });
   }
+
+  const limit = PLAN_LIMITS[dbUser.plan] ?? PLAN_LIMITS.free;
 
   return NextResponse.json({
     plan: dbUser.plan,
     status: dbUser.status,
     usageCount: dbUser.usageCount,
-    limit: dbUser.plan === 'free' ? 2 : dbUser.plan === 'creator' ? 20 : 999999,
+    limit,
     lastUsageReset: dbUser.lastUsageReset,
     youtubeConnected: !!dbUser.youtubeTokens,
     onboardingComplete: dbUser.onboardingComplete ?? false,
+    isNewUser,
   });
 }
