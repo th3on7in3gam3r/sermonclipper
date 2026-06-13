@@ -23,18 +23,14 @@ export default function QuotaDisplay({
   const resetDate = formatResetDate(getUsageResetDate(lastUsageReset));
 
   return (
-    <div className={`quota-display${atLimit ? ' quota-display--limit' : ''}${compact ? ' quota-display--compact' : ''}`}>
+    <div
+      className={`quota-display${atLimit ? ' quota-display--limit' : ''}${compact ? ' quota-display--compact' : ''}`}
+    >
       <div className="quota-display-header">
         <span className="quota-display-label">
-          {isUnlimited
-            ? 'Unlimited clips'
-            : `${usageCount} of ${limit} clips used this month`}
+          {isUnlimited ? 'Unlimited clips' : `${usageCount} of ${limit} clips used this month`}
         </span>
-        {!isUnlimited && (
-          <span className="quota-display-remaining">
-            {remaining} left
-          </span>
-        )}
+        {!isUnlimited && <span className="quota-display-remaining">{remaining} left</span>}
       </div>
 
       {!isUnlimited && (

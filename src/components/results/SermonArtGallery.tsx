@@ -48,11 +48,7 @@ function SermonArtCard({ asset }: { asset: SermonImage }) {
           <>
             <img src={generatedImage} alt={asset.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4 p-6 text-center">
-              <a
-                href={generatedImage}
-                target="_blank"
-                className="btn-primary !py-2 !px-6 !text-xs w-full"
-              >
+              <a href={generatedImage} target="_blank" className="btn-primary !py-2 !px-6 !text-xs w-full">
                 Download
               </a>
               <button
@@ -66,7 +62,9 @@ function SermonArtCard({ asset }: { asset: SermonImage }) {
         ) : isGenerating ? (
           <div className="w-full h-full bg-white/5 flex flex-col items-center justify-center gap-4">
             <div className="w-10 h-10 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-accent animate-pulse">Rendering Design…</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-accent animate-pulse">
+              Rendering Design…
+            </span>
           </div>
         ) : (
           <button
@@ -75,10 +73,17 @@ function SermonArtCard({ asset }: { asset: SermonImage }) {
           >
             <div className="w-14 h-14 rounded-full bg-accent/10 group-hover/btn:bg-accent/20 flex items-center justify-center transition-all">
               <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
             </div>
-            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest group-hover/btn:text-white/60">Generate High-End Visual</span>
+            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest group-hover/btn:text-white/60">
+              Generate High-End Visual
+            </span>
           </button>
         )}
       </div>
@@ -126,7 +131,9 @@ export default function SermonArtGallery({ assets }: SermonArtGalleryProps) {
           <span className="text-[10px] font-black uppercase tracking-[0.4em] text-accent">Visual Engine</span>
         </div>
         <h2 className="text-4xl font-extrabold text-white tracking-tighter">Sermon Art Suite</h2>
-        <p className="text-white/30 text-sm max-w-xl font-medium">Generate high-end, branded graphics for social media, YouTube thumbnails, and church presentations.</p>
+        <p className="text-white/30 text-sm max-w-xl font-medium">
+          Generate high-end, branded graphics for social media, YouTube thumbnails, and church presentations.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">

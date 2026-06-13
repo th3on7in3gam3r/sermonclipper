@@ -4,10 +4,7 @@ import { notFound } from 'next/navigation';
 import LandingNav from '@/components/home/LandingNav';
 import SiteFooter from '@/components/layout/SiteFooter';
 
-const ARTICLES: Record<
-  string,
-  { title: string; description: string; body: string[] }
-> = {
+const ARTICLES: Record<string, { title: string; description: string; body: string[] }> = {
   'sermon-to-reel': {
     title: 'How to Turn a 45-Minute Sermon Into a 60-Second Reel',
     description: 'Find one hook, one quote, and one CTA from any sermon message.',

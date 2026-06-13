@@ -18,12 +18,14 @@ const ARTICLES = [
   {
     slug: 'best-times-instagram',
     title: 'The 5 Best Times to Post Church Content on Instagram in 2025',
-    excerpt: 'When your congregation is actually scrolling — and how to batch content without burning out volunteers.',
+    excerpt:
+      'When your congregation is actually scrolling — and how to batch content without burning out volunteers.',
   },
   {
     slug: 'short-form-outreach',
     title: 'Why Short-Form Video is the Future of Church Outreach',
-    excerpt: 'Reach people who will never sit through a 45-minute livestream — without dumbing down the Gospel.',
+    excerpt:
+      'Reach people who will never sit through a 45-minute livestream — without dumbing down the Gospel.',
   },
 ];
 

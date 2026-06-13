@@ -16,17 +16,23 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const dbUser = await User.findOne({ clerkId: userId });
     if (!dbUser?.youtubeTokens) {
-      return NextResponse.json({ error: 'Connect YouTube in Settings first.', code: 'NOT_CONNECTED' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Connect YouTube in Settings first.', code: 'NOT_CONNECTED' },
+        { status: 403 }
+      );
     }
 
-    const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://vesper.biblefunland.com'}/api/youtube/upload`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: req.headers.get('cookie') || '',
-      },
-      body: JSON.stringify({ videoUrl, title, description: description || title }),
-    });
+    const uploadRes = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL || 'https://vesper.biblefunland.com'}/api/youtube/upload`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: req.headers.get('cookie') || '',
+        },
+        body: JSON.stringify({ videoUrl, title, description: description || title }),
+      }
+    );
 
     const data = await uploadRes.json();
     if (!uploadRes.ok) {

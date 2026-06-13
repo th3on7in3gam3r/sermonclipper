@@ -13,11 +13,7 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Webhook Error';
     return new NextResponse(`Webhook Error: ${msg}`, { status: 400 });

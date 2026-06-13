@@ -101,7 +101,9 @@ export default function ThumbnailStudioModal({
             <div className="vesper-badge badge-violet" style={{ marginBottom: '8px' }}>
               VISUAL HARVEST
             </div>
-            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 900, marginBottom: '6px' }}>Thumbnail Studio</h2>
+            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 900, marginBottom: '6px' }}>
+              Thumbnail Studio
+            </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0 }}>
               {clip.hook_title || `Clip ${clip.index + 1}`}
             </p>
@@ -145,7 +147,16 @@ export default function ThumbnailStudioModal({
             </p>
           )}
 
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.12em', color: '#C4B5FD' }}>
+          <label
+            style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontSize: '11px',
+              fontWeight: 900,
+              letterSpacing: '0.12em',
+              color: '#C4B5FD',
+            }}
+          >
             HEADLINE ON THUMBNAIL
           </label>
           <input
@@ -166,7 +177,16 @@ export default function ThumbnailStudioModal({
             }}
           />
 
-          <label style={{ display: 'block', marginBottom: '10px', fontSize: '11px', fontWeight: 900, letterSpacing: '0.12em', color: '#C4B5FD' }}>
+          <label
+            style={{
+              display: 'block',
+              marginBottom: '10px',
+              fontSize: '11px',
+              fontWeight: 900,
+              letterSpacing: '0.12em',
+              color: '#C4B5FD',
+            }}
+          >
             VISUAL STYLE
           </label>
           <div
@@ -218,8 +238,17 @@ export default function ThumbnailStudioModal({
           >
             {isLoading ? (
               <div style={{ textAlign: 'center', padding: '24px' }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px', animation: 'pulse 2s infinite' }}>◈</div>
-                <p style={{ color: 'var(--text-muted)', fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em' }}>
+                <div style={{ fontSize: '32px', marginBottom: '12px', animation: 'pulse 2s infinite' }}>
+                  ◈
+                </div>
+                <p
+                  style={{
+                    color: 'var(--text-muted)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    letterSpacing: '0.1em',
+                  }}
+                >
                   GENERATING NEURAL THUMBNAILS…
                 </p>
               </div>
@@ -231,8 +260,12 @@ export default function ThumbnailStudioModal({
               />
             ) : (
               <div style={{ padding: '24px', width: '100%' }}>
-                <div style={{ fontSize: '40px', marginBottom: '12px' }} aria-hidden="true">🖼️</div>
-                <p style={{ color: '#fff', fontSize: '16px', fontWeight: 800, marginBottom: '8px' }}>No thumbnails generated</p>
+                <div style={{ fontSize: '40px', marginBottom: '12px' }} aria-hidden="true">
+                  🖼️
+                </div>
+                <p style={{ color: '#fff', fontSize: '16px', fontWeight: 800, marginBottom: '8px' }}>
+                  No thumbnails generated
+                </p>
                 <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.5 }}>
                   Choose a style below and generate your first 16:9 YouTube billboard.
                 </p>
@@ -241,7 +274,15 @@ export default function ThumbnailStudioModal({
           </div>
 
           {variants.length > 1 && (
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', overflowX: 'auto', paddingBottom: '4px' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '10px',
+                marginBottom: '20px',
+                overflowX: 'auto',
+                paddingBottom: '4px',
+              }}
+            >
               {variants.map((url, idx) => (
                 <button
                   key={idx}
@@ -258,7 +299,11 @@ export default function ThumbnailStudioModal({
                     opacity: selectedVariantIdx === idx ? 1 : 0.65,
                   }}
                 >
-                  <img src={proxyImageUrl(url)} alt={`Thumbnail variant ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img
+                    src={proxyImageUrl(url)}
+                    alt={`Thumbnail variant ${idx + 1}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
                 </button>
               ))}
             </div>

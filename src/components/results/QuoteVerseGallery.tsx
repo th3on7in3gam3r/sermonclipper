@@ -52,11 +52,7 @@ function QuoteVerseCard({ asset }: { asset: QuoteVerse }) {
           <>
             <img src={generatedImage} alt={asset.text} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4 p-6 text-center">
-              <a
-                href={generatedImage}
-                target="_blank"
-                className="btn-primary !py-2 !px-6 !text-xs w-full"
-              >
+              <a href={generatedImage} target="_blank" className="btn-primary !py-2 !px-6 !text-xs w-full">
                 Download
               </a>
               <button
@@ -70,7 +66,9 @@ function QuoteVerseCard({ asset }: { asset: QuoteVerse }) {
         ) : isGenerating ? (
           <div className="w-full h-full bg-white/5 flex flex-col items-center justify-center gap-4">
             <div className="w-10 h-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-primary animate-pulse">Designing Verse…</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-primary animate-pulse">
+              Designing Verse…
+            </span>
           </div>
         ) : (
           <button
@@ -79,10 +77,17 @@ function QuoteVerseCard({ asset }: { asset: QuoteVerse }) {
           >
             <div className="w-14 h-14 rounded-full bg-primary/10 group-hover/btn:bg-primary/20 flex items-center justify-center transition-all">
               <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
             </div>
-            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest group-hover/btn:text-white/60">Generate Scripture Visual</span>
+            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest group-hover/btn:text-white/60">
+              Generate Scripture Visual
+            </span>
           </button>
         )}
       </div>
@@ -127,10 +132,14 @@ export default function QuoteVerseGallery({ assets }: QuoteVerseGalleryProps) {
       <div className="space-y-3">
         <div className="flex items-center gap-3">
           <div className="w-8 h-[1px] bg-primary/30" />
-          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Scripture Engine</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">
+            Scripture Engine
+          </span>
         </div>
         <h2 className="text-4xl font-extrabold text-white tracking-tighter">Verse Art Gallery</h2>
-        <p className="text-white/30 text-sm max-w-xl font-medium">Turn powerful scriptures and quotes from the sermon into shareable, high-impact visual designs.</p>
+        <p className="text-white/30 text-sm max-w-xl font-medium">
+          Turn powerful scriptures and quotes from the sermon into shareable, high-impact visual designs.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">

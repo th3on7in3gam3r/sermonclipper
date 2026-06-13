@@ -23,7 +23,12 @@ export default function UpgradePromptModal({
   if (!open) return null;
 
   return (
-    <div className="upgrade-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="upgrade-modal-title">
+    <div
+      className="upgrade-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="upgrade-modal-title"
+    >
       <div className="upgrade-modal-card glass-card premium-border" ref={trapRef}>
         <p className="upgrade-modal-eyebrow">Upgrade to unlock</p>
         <h2 id="upgrade-modal-title" className="upgrade-modal-title">
@@ -32,7 +37,11 @@ export default function UpgradePromptModal({
         <p className="upgrade-modal-copy">
           Available on the <strong>{planName}</strong> plan — {price}
         </p>
-        <Link href="/#pricing" className="vesper-btn vesper-btn-primary shimmer-effect upgrade-modal-cta" onClick={onClose}>
+        <Link
+          href="/#pricing"
+          className="vesper-btn vesper-btn-primary shimmer-effect upgrade-modal-cta"
+          onClick={onClose}
+        >
           Upgrade Now
         </Link>
         <button type="button" className="upgrade-modal-dismiss" onClick={onClose}>

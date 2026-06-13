@@ -8,16 +8,16 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const jobId = searchParams.get('jobId');
   if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
-  
+
   const update = await progressManager.get(jobId);
   if (update?.analysis) {
     return NextResponse.json({
       success: true,
       ...update.analysis,
-      analysis: update.analysis
+      analysis: update.analysis,
     });
   }
-  
+
   return NextResponse.json({ success: false, status: 'pending' });
 }
 
@@ -31,15 +31,15 @@ export async function POST(req: NextRequest) {
     if (!url) return NextResponse.json({ error: 'No URL' }, { status: 400 });
     if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not set in Settings');
 
-    progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'loading', 
-      message: 'Gemini analyzing sermon...' 
+    progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'loading',
+      message: 'Gemini analyzing sermon...',
     });
 
     // Most reliable and lightweight model call
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
     });
 
     const prompt = `You are a World-Class Ministry Content Strategist and Social Media Expert. 
@@ -83,25 +83,24 @@ export async function POST(req: NextRequest) {
       const match = text.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(match ? match[0] : text);
     } catch {
-      parsed = { success: true, sermon_title: "Sermon", clips: [] };
+      parsed = { success: true, sermon_title: 'Sermon', clips: [] };
     }
 
-    progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'completed', 
+    progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'completed',
       message: `✅ Generated ${parsed.clips?.length || 0} clips`,
-      analysis: parsed
+      analysis: parsed,
     });
 
     return NextResponse.json({
       success: true,
       ...parsed,
-      analysis: parsed
+      analysis: parsed,
     });
-
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Gemini analysis failed';
-    console.error("Gemini Error:", error);
+    console.error('Gemini Error:', error);
     if (jobId) {
       progressManager.update(jobId, { step: 'Analysis', status: 'error', message: msg });
     }

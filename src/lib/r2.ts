@@ -13,7 +13,9 @@ let r2Client: S3Client | null = null;
 
 function getR2Client() {
   if (!accountId || !bucket || !accessKeyId || !secretAccessKey) {
-    console.warn('[R2] Cloudflare R2 environment variables are not fully configured. R2 upload/download helpers will be disabled.');
+    console.warn(
+      '[R2] Cloudflare R2 environment variables are not fully configured. R2 upload/download helpers will be disabled.'
+    );
     return null;
   }
 
@@ -41,7 +43,11 @@ export function getR2ObjectUrl(key: string) {
   return `${endpoint}/${bucket}/${key}`;
 }
 
-export async function uploadBufferToR2(key: string, buffer: Uint8Array, contentType = 'application/octet-stream') {
+export async function uploadBufferToR2(
+  key: string,
+  buffer: Uint8Array,
+  contentType = 'application/octet-stream'
+) {
   const client = getR2Client();
   if (!client) throw new Error('Missing Cloudflare R2 credentials');
 
@@ -87,8 +93,6 @@ export async function generatePresignedUploadUrl(key: string, contentType = 'vid
   const url = await getSignedUrl(presignClient, command, { expiresIn });
   return { uploadUrl: url, publicUrl: getR2ObjectUrl(key) };
 }
-
-
 
 /**
  * Generate a presigned GET URL so external services (e.g. Shotstack) can
@@ -141,7 +145,11 @@ export async function generatePresignedDownloadUrl(
   return getSignedUrl(presignClient, command, { expiresIn });
 }
 
-export async function uploadStreamToR2(key: string, stream: Readable, contentType = 'application/octet-stream') {
+export async function uploadStreamToR2(
+  key: string,
+  stream: Readable,
+  contentType = 'application/octet-stream'
+) {
   const client = getR2Client();
   if (!client) throw new Error('Missing Cloudflare R2 credentials');
 

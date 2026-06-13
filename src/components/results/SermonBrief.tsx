@@ -12,7 +12,13 @@ interface SermonBriefProps {
   setSummaryTab: (tab: 'one' | 'bullets' | 'detailed') => void;
 }
 
-export default function SermonBrief({ summaries, main_theme, tone, summaryTab, setSummaryTab }: SermonBriefProps) {
+export default function SermonBrief({
+  summaries,
+  main_theme,
+  tone,
+  summaryTab,
+  setSummaryTab,
+}: SermonBriefProps) {
   if (!main_theme && !summaries) return null;
 
   const tabs = [
@@ -30,14 +36,31 @@ export default function SermonBrief({ summaries, main_theme, tone, summaryTab, s
           {main_theme || 'Sermon Insight'}
         </h3>
         {tone && (
-          <div style={{ fontSize: '12px', fontWeight: 900, color: 'var(--primary)', letterSpacing: '0.1em', opacity: 0.8 }}>
+          <div
+            style={{
+              fontSize: '12px',
+              fontWeight: 900,
+              color: 'var(--primary)',
+              letterSpacing: '0.1em',
+              opacity: 0.8,
+            }}
+          >
             TONE: {tone.toUpperCase()}
           </div>
         )}
       </div>
- 
+
       {/* Tab nav */}
-      <div style={{ display: 'flex', gap: '8px', padding: '6px', background: 'rgba(255,255,255,0.03)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '8px',
+          padding: '6px',
+          background: 'rgba(255,255,255,0.03)',
+          borderRadius: '14px',
+          border: '1px solid rgba(255,255,255,0.05)',
+        }}
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -51,19 +74,28 @@ export default function SermonBrief({ summaries, main_theme, tone, summaryTab, s
               background: summaryTab === tab.id ? 'var(--primary)' : 'transparent',
               border: 'none',
               boxShadow: summaryTab === tab.id ? '0 4px 15px rgba(139,92,246,0.3)' : 'none',
-              color: summaryTab === tab.id ? '#fff' : 'var(--text-dim)'
+              color: summaryTab === tab.id ? '#fff' : 'var(--text-dim)',
             }}
           >
             {tab.label.toUpperCase()}
           </button>
         ))}
       </div>
- 
+
       {/* Content */}
       <div style={{ flex: 1, minHeight: '200px', overflowY: 'auto' }} className="scrollbar-hide">
         <div key={summaryTab} className="animate-in">
           {summaryTab === 'one' && (
-            <p style={{ color: 'var(--text-muted)', fontSize: '17px', lineHeight: 1.8, fontStyle: 'italic', borderLeft: '3px solid var(--primary)', paddingLeft: '24px' }}>
+            <p
+              style={{
+                color: 'var(--text-muted)',
+                fontSize: '17px',
+                lineHeight: 1.8,
+                fontStyle: 'italic',
+                borderLeft: '3px solid var(--primary)',
+                paddingLeft: '24px',
+              }}
+            >
               &quot;{summaries?.one_minute_summary || 'Summary loading…'}&quot;
             </p>
           )}
@@ -71,8 +103,16 @@ export default function SermonBrief({ summaries, main_theme, tone, summaryTab, s
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {(summaries?.bullet_points || []).slice(0, 5).map((point, i) => (
                 <div key={i} style={{ display: 'flex', gap: '16px' }}>
-                  <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '14px', marginTop: '2px' }}>{String(i + 1).padStart(2, '0')}</span>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: 1.6, fontWeight: 500 }}>{point}</p>
+                  <span
+                    style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '14px', marginTop: '2px' }}
+                  >
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <p
+                    style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: 1.6, fontWeight: 500 }}
+                  >
+                    {point}
+                  </p>
                 </div>
               ))}
             </div>

@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/blog/short-form-outreach',
     '/privacy',
     '/terms',
+    '/changelog',
   ];
 
   return pages.map((path, i) => ({

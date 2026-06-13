@@ -2,10 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import {
-  isOnboardingCompleteLocally,
-  markOnboardingCompleteLocally,
-} from '@/lib/onboardingStorage';
+import { isOnboardingCompleteLocally, markOnboardingCompleteLocally } from '@/lib/onboardingStorage';
 import { MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
 import { useFocusTrap } from '@/lib/useFocusTrap';
 
@@ -20,7 +17,7 @@ const SLIDES = [
     icon: '🧠',
     title: 'Step 2: AI Analysis',
     body: 'Our GPT-4o engine watches your entire sermon and identifies the most impactful moments — powerful quotes, emotional peaks, and theological highlights. This takes about 60 seconds.',
-    highlight: 'You\'ll get 8-12 clips automatically.',
+    highlight: "You'll get 8-12 clips automatically.",
   },
   {
     icon: '🎛',
@@ -72,7 +69,13 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
 
   return (
     <div className="onboarding-overlay" role="presentation">
-      <div className="onboarding-card" ref={trapRef} role="dialog" aria-modal="true" aria-labelledby="onboarding-step-title">
+      <div
+        className="onboarding-card"
+        ref={trapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboarding-step-title"
+      >
         <button
           type="button"
           onClick={handleSkip}
@@ -93,8 +96,18 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
             aria-labelledby="onboarding-progress-label"
             style={{ marginBottom: '28px' }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
-              <span id="onboarding-progress-label" style={{ fontSize: '15px', fontWeight: 900, color: '#fff', letterSpacing: '-0.01em' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                marginBottom: '12px',
+              }}
+            >
+              <span
+                id="onboarding-progress-label"
+                style={{ fontSize: '15px', fontWeight: 900, color: '#fff', letterSpacing: '-0.01em' }}
+              >
                 Step {step + 1} of {totalSteps}
               </span>
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#A78BFA' }}>
@@ -122,8 +135,7 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
                     border: 'none',
                     padding: 0,
                     cursor: 'pointer',
-                    background:
-                      i < step ? '#10B981' : i === step ? '#8B5CF6' : 'rgba(255,255,255,0.12)',
+                    background: i < step ? '#10B981' : i === step ? '#8B5CF6' : 'rgba(255,255,255,0.12)',
                     boxShadow: i === step ? '0 0 12px rgba(139,92,246,0.5)' : 'none',
                     transition: 'background 0.25s, box-shadow 0.25s',
                   }}
@@ -157,39 +169,80 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
 
           {/* Icon */}
           <div style={{ marginBottom: '20px' }}>
-            <div style={{
-              width: '56px', height: '56px', borderRadius: '16px',
-              background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '28px',
-            }}>
+            <div
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '16px',
+                background: 'rgba(139,92,246,0.15)',
+                border: '1px solid rgba(139,92,246,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '28px',
+              }}
+            >
               {current.icon}
             </div>
           </div>
 
           {/* Title */}
           {step === 0 && (
-            <p style={{ fontSize: '13px', color: '#A78BFA', fontWeight: 800, letterSpacing: '0.04em', marginBottom: '8px' }}>
+            <p
+              style={{
+                fontSize: '13px',
+                color: '#A78BFA',
+                fontWeight: 800,
+                letterSpacing: '0.04em',
+                marginBottom: '8px',
+              }}
+            >
               Here&apos;s how it works in {totalSteps} simple steps
             </p>
           )}
-          <h2 id="onboarding-step-title" style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: '16px', color: '#fff' }}>
+          <h2
+            id="onboarding-step-title"
+            style={{
+              fontSize: '24px',
+              fontWeight: 900,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.2,
+              marginBottom: '16px',
+              color: '#fff',
+            }}
+          >
             {current.title}
           </h2>
 
           {/* Body */}
-          <p style={{ fontSize: '14px', color: '#D4D4D8', lineHeight: 1.7, marginBottom: '16px', whiteSpace: 'pre-line' }}>
+          <p
+            style={{
+              fontSize: '14px',
+              color: '#D4D4D8',
+              lineHeight: 1.7,
+              marginBottom: '16px',
+              whiteSpace: 'pre-line',
+            }}
+          >
             {current.body}
           </p>
 
           {/* Highlight */}
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            padding: '8px 14px', borderRadius: '99px',
-            background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.3)',
-            marginBottom: '28px',
-          }}>
-            <span style={{ fontSize: '11px', color: '#E9D5FF', fontWeight: 700 }}>💡 {current.highlight}</span>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 14px',
+              borderRadius: '99px',
+              background: 'rgba(139,92,246,0.12)',
+              border: '1px solid rgba(139,92,246,0.3)',
+              marginBottom: '28px',
+            }}
+          >
+            <span style={{ fontSize: '11px', color: '#E9D5FF', fontWeight: 700 }}>
+              💡 {current.highlight}
+            </span>
           </div>
 
           {/* Acknowledgment checkbox on last slide */}
@@ -197,20 +250,32 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
             <div
               onClick={() => setAcknowledged(!acknowledged)}
               style={{
-                display: 'flex', alignItems: 'flex-start', gap: '12px',
-                padding: '16px', borderRadius: '14px', cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '12px',
+                padding: '16px',
+                borderRadius: '14px',
+                cursor: 'pointer',
                 background: acknowledged ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.03)',
                 border: acknowledged ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(255,255,255,0.08)',
-                marginBottom: '24px', transition: 'all 0.2s',
+                marginBottom: '24px',
+                transition: 'all 0.2s',
               }}
             >
-              <div style={{
-                width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0,
-                border: acknowledged ? '2px solid #10B981' : '2px solid #52525B',
-                background: acknowledged ? '#10B981' : 'transparent',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.2s',
-              }}>
+              <div
+                style={{
+                  width: '22px',
+                  height: '22px',
+                  borderRadius: '6px',
+                  flexShrink: 0,
+                  border: acknowledged ? '2px solid #10B981' : '2px solid #52525B',
+                  background: acknowledged ? '#10B981' : 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s',
+                }}
+              >
                 {acknowledged && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 900 }}>✓</span>}
               </div>
               <div>
@@ -218,7 +283,8 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
                   I understand how Vesper works
                 </p>
                 <p style={{ fontSize: '11px', color: '#71717A', lineHeight: 1.5 }}>
-                  I acknowledge that YouTube links provide AI analysis only, and full reel export requires uploading an MP4 file directly.
+                  I acknowledge that YouTube links provide AI analysis only, and full reel export requires
+                  uploading an MP4 file directly.
                 </p>
               </div>
             </div>
@@ -231,9 +297,14 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
                 type="button"
                 onClick={() => setStep((s) => s - 1)}
                 style={{
-                  flex: 1, padding: '14px',
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '12px', color: '#A1A1AA', fontSize: '13px', fontWeight: 700,
+                  flex: 1,
+                  padding: '14px',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '12px',
+                  color: '#A1A1AA',
+                  fontSize: '13px',
+                  fontWeight: 700,
                   cursor: 'pointer',
                 }}
               >
@@ -246,8 +317,11 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
               disabled={(isLast && !acknowledged) || isSaving}
               className="shimmer-btn"
               style={{
-                flex: 2, padding: '14px',
-                borderRadius: '12px', fontSize: '13px', fontWeight: 900,
+                flex: 2,
+                padding: '14px',
+                borderRadius: '12px',
+                fontSize: '13px',
+                fontWeight: 900,
                 letterSpacing: '0.06em',
                 opacity: (isLast && !acknowledged) || isSaving ? 0.4 : 1,
                 cursor: (isLast && !acknowledged) || isSaving ? 'not-allowed' : 'pointer',

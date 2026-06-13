@@ -6,8 +6,7 @@ import Team from '@/models/Team';
 
 async function getAccessibleUserIds(userId: string): Promise<string[]> {
   const team =
-    (await Team.findOne({ ownerId: userId })) ||
-    (await Team.findOne({ 'members.userId': userId }));
+    (await Team.findOne({ ownerId: userId })) || (await Team.findOne({ 'members.userId': userId }));
   if (!team) return [userId];
   const ids = new Set<string>([team.ownerId]);
   for (const m of team.members) {

@@ -3,8 +3,7 @@ export function isShotstackOutputUrl(url: string): boolean {
   try {
     const host = new URL(url).hostname.toLowerCase();
     return (
-      host.endsWith('.amazonaws.com') &&
-      (host.includes('shotstack') || host.startsWith('shotstack-api'))
+      host.endsWith('.amazonaws.com') && (host.includes('shotstack') || host.startsWith('shotstack-api'))
     );
   } catch {
     return false;

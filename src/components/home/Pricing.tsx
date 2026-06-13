@@ -21,7 +21,13 @@ const plans = [
     bestFor: 'Best for solo pastors or media leads',
     price: '$19',
     desc: 'Power your ministry with consistent cinematic short-form.',
-    features: ['20 Clips / mo', 'High-Priority Rendering', 'All Caption Templates', 'Custom Branding', 'Email Support'],
+    features: [
+      '20 Clips / mo',
+      'High-Priority Rendering',
+      'All Caption Templates',
+      'Custom Branding',
+      'Email Support',
+    ],
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_CREATOR,
     plan: 'creator',
     popular: true,
@@ -31,7 +37,13 @@ const plans = [
     bestFor: 'Best for full ministry teams',
     price: '$49',
     desc: 'The full Vesper suite for growing churches.',
-    features: ['Unlimited Clips', 'Ultra-Fast Dedicated Rendering', 'Multi-User Access', 'White-Label Branding', 'Priority Phone Support'],
+    features: [
+      'Unlimited Clips',
+      'Ultra-Fast Dedicated Rendering',
+      'Multi-User Access',
+      'White-Label Branding',
+      'Priority Phone Support',
+    ],
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_CHURCH_PRO,
     plan: 'church_pro',
     popular: false,
@@ -113,14 +125,28 @@ export default function Pricing() {
   };
 
   return (
-    <section id="pricing" className="landing-anchor" style={{ padding: '160px 20px', position: 'relative', overflow: 'hidden' }}>
+    <section
+      id="pricing"
+      className="landing-anchor"
+      style={{ padding: '160px 20px', position: 'relative', overflow: 'hidden' }}
+    >
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-          <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>Investment</div>
+          <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>
+            Investment
+          </div>
           <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 5vw, 64px)', marginBottom: '32px' }}>
             Plans for Every <span className="accent-text">Ministry</span>
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '20px', maxWidth: '800px', margin: '0 auto', lineHeight: 1.6 }}>
+          <p
+            style={{
+              color: 'var(--text-muted)',
+              fontSize: '20px',
+              maxWidth: '800px',
+              margin: '0 auto',
+              lineHeight: 1.6,
+            }}
+          >
             Empower your church with the tools to reach the next generation.
           </p>
         </div>

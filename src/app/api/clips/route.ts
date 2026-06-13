@@ -12,15 +12,15 @@ export async function GET(req: NextRequest) {
     }
 
     const clipsDir = join('/tmp', 'clips', jobId);
-    
+
     try {
       const metadataPath = join(clipsDir, 'metadata.json');
       const metadataBuffer = await readFile(metadataPath);
       const data = JSON.parse(metadataBuffer.toString());
-      
+
       // Return everything stored in metadata
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         clips: data.clips || [],
         sermon_images: data.sermon_images || [],
         quotes_and_verses: data.quotes_and_verses || [],
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
         summaries: data.summaries || null,
         main_theme: data.main_theme || '',
         tone: data.tone || '',
-        social_captions: data.social_captions || []
+        social_captions: data.social_captions || [],
       });
     } catch {
       return NextResponse.json({ success: true, clips: [] });

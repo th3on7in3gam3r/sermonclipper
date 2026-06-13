@@ -36,22 +36,41 @@ function JoinContent() {
   };
 
   return (
-    <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div className="glass-card premium-border" style={{ maxWidth: '440px', padding: '32px', textAlign: 'center' }}>
+    <main
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+      }}
+    >
+      <div
+        className="glass-card premium-border"
+        style={{ maxWidth: '440px', padding: '32px', textAlign: 'center' }}
+      >
         <h1 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '12px' }}>Team invite</h1>
         {info ? (
           <>
             <p style={{ color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.6 }}>
               You have been invited to join <strong>{info.teamName}</strong> as <strong>{info.role}</strong>.
             </p>
-            <button type="button" className="vesper-btn vesper-btn-primary shimmer-effect" onClick={accept} style={{ width: '100%' }}>
+            <button
+              type="button"
+              className="vesper-btn vesper-btn-primary shimmer-effect"
+              onClick={accept}
+              style={{ width: '100%' }}
+            >
               Accept invite
             </button>
           </>
         ) : (
           <p style={{ color: 'var(--text-muted)' }}>Loading invite…</p>
         )}
-        <Link href="/dashboard" style={{ display: 'block', marginTop: '16px', fontSize: '13px', color: 'var(--text-dim)' }}>
+        <Link
+          href="/dashboard"
+          style={{ display: 'block', marginTop: '16px', fontSize: '13px', color: 'var(--text-dim)' }}
+        >
           Go to dashboard
         </Link>
       </div>

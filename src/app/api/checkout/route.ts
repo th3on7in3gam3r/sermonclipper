@@ -41,12 +41,17 @@ export async function POST(req: Request) {
     // 3. Create Checkout Session
     if (!priceId) {
       console.error('[STRIPE_ERROR] Missing Price ID for plan:', plan);
-      return new NextResponse('Stripe Price ID is missing. Please check your environment variables.', { status: 400 });
+      return new NextResponse('Stripe Price ID is missing. Please check your environment variables.', {
+        status: 400,
+      });
     }
 
     if (!process.env.NEXT_PUBLIC_APP_URL) {
       console.error('[STRIPE_ERROR] Missing NEXT_PUBLIC_APP_URL');
-      return new NextResponse('Application URL configuration error. Please check your environment variables.', { status: 500 });
+      return new NextResponse(
+        'Application URL configuration error. Please check your environment variables.',
+        { status: 500 }
+      );
     }
 
     const session = await stripe.checkout.sessions.create({

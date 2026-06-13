@@ -93,6 +93,13 @@ export async function POST(req: NextRequest) {
     inviterDb?.emailUnsubscribeToken
   );
 
+  try {
+    const { markChecklist } = await import('@/lib/checklist');
+    await markChecklist(userId, 'invitedTeamMember');
+  } catch {
+    /* non-blocking */
+  }
+
   return NextResponse.json({ ok: true, inviteUrl });
 }
 
@@ -107,7 +114,9 @@ export async function DELETE(req: NextRequest) {
   const team = await Team.findOne({ ownerId: userId });
   if (!team) return NextResponse.json({ error: 'Team not found' }, { status: 404 });
 
-  team.members = team.members.filter((m: { email: string; role: string }) => m.email !== memberEmail || m.role === 'owner');
+  team.members = team.members.filter(
+    (m: { email: string; role: string }) => m.email !== memberEmail || m.role === 'owner'
+  );
   await team.save();
 
   return NextResponse.json({ ok: true });

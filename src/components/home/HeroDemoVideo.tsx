@@ -17,12 +17,7 @@ type DemoPayload = {
   clipEnd: number | null;
 };
 
-export default function HeroDemoVideo({
-  panel,
-  className,
-  controlClassName,
-  ariaLabel,
-}: HeroDemoVideoProps) {
+export default function HeroDemoVideo({ panel, className, controlClassName, ariaLabel }: HeroDemoVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [demo, setDemo] = useState<DemoPayload | null>(null);

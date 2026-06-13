@@ -12,7 +12,10 @@ export async function POST() {
   await connectDB();
   const dbUser = await User.findOne({ clerkId: userId });
   if (!dbUser?.stripeCustomerId) {
-    return NextResponse.json({ error: 'No billing account yet. Subscribe to a plan first.' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'No billing account yet. Subscribe to a plan first.' },
+      { status: 400 }
+    );
   }
 
   const session = await stripe.billingPortal.sessions.create({

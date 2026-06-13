@@ -46,23 +46,22 @@ Summary: ${analysis.summary || ''}
 Please generate the carousel JSON.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      response_format: { type: "json_object" },
+      model: 'gpt-4o',
+      response_format: { type: 'json_object' },
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage }
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
       ],
       temperature: 0.7,
     });
 
     const content = response.choices[0].message.content;
     if (!content) {
-      throw new Error("No content returned from OpenAI");
+      throw new Error('No content returned from OpenAI');
     }
 
     const parsed = JSON.parse(content);
     return NextResponse.json(parsed);
-
   } catch (error: unknown) {
     console.error('[Social Carousel] API Error:', error);
     const msg = error instanceof Error ? error.message : 'Failed to generate carousel';

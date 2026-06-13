@@ -113,7 +113,9 @@ export async function POST(req: NextRequest) {
       setTimeout(() => {
         fetch(`${req.nextUrl.origin}/api/jobs/process?jobId=${encodeURIComponent(jobId)}`, {
           method: 'POST',
-          headers: req.headers.get('authorization') ? { Authorization: req.headers.get('authorization')! } : {},
+          headers: req.headers.get('authorization')
+            ? { Authorization: req.headers.get('authorization')! }
+            : {},
         }).catch(() => {});
       }, delayMs);
     }

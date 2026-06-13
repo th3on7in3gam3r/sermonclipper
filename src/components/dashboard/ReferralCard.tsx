@@ -31,8 +31,8 @@ export default function ReferralCard() {
         Share Vesper with another church. When they upgrade, you earn a free month on your plan.
       </p>
       <p style={{ fontSize: '13px', marginBottom: '8px' }}>
-        <strong>{data.stats.referred}</strong> churches referred · <strong>{data.stats.upgrades}</strong> upgrades ·{' '}
-        <strong>{data.stats.monthsEarned}</strong> months earned
+        <strong>{data.stats.referred}</strong> churches referred · <strong>{data.stats.upgrades}</strong>{' '}
+        upgrades · <strong>{data.stats.monthsEarned}</strong> months earned
       </p>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
         <input readOnly value={data.link} className="referral-input" aria-label="Referral link" />
@@ -40,7 +40,11 @@ export default function ReferralCard() {
           Copy link
         </button>
       </div>
-      <button type="button" className="vesper-btn-outline" onClick={() => copy(data.shareMessage, 'Message copied')}>
+      <button
+        type="button"
+        className="vesper-btn-outline"
+        onClick={() => copy(data.shareMessage, 'Message copied')}
+      >
         Copy share message
       </button>
     </div>

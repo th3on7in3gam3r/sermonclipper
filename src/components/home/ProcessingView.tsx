@@ -49,7 +49,7 @@ export default function ProcessingView({
   const displayMessage =
     statusMessage && !statusMessage.startsWith('[Raw]')
       ? statusMessage
-      : steps[Math.min(currentStepIndex, steps.length - 1)]?.label ?? 'Processing…';
+      : (steps[Math.min(currentStepIndex, steps.length - 1)]?.label ?? 'Processing…');
 
   if (error) {
     return (

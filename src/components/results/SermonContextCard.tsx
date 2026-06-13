@@ -74,7 +74,14 @@ export default function SermonContextCard({
         <h3 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, marginBottom: '12px' }}>
           Full sermon capture
         </h3>
-        <p style={{ fontSize: isMobile ? '15px' : '16px', lineHeight: 1.6, color: 'var(--text-muted)', marginBottom: '20px' }}>
+        <p
+          style={{
+            fontSize: isMobile ? '15px' : '16px',
+            lineHeight: 1.6,
+            color: 'var(--text-muted)',
+            marginBottom: '20px',
+          }}
+        >
           {summary || 'The complete cinematic capture of your ministry session.'}
         </p>
 

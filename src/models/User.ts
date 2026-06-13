@@ -24,6 +24,17 @@ export interface IUser extends Document {
   referralRewarded?: boolean;
   referralUpgradeCount?: number;
   lastActiveAt?: Date;
+  checklist?: {
+    uploadedSermon?: boolean;
+    createdClip?: boolean;
+    customizedCaption?: boolean;
+    exportedReel?: boolean;
+    connectedSocial?: boolean;
+    invitedTeamMember?: boolean;
+  };
+  onboardingEmailsSent?: number[];
+  lastSeenChangelogDate?: Date;
+  shortcutsTipShown?: boolean;
   createdAt: Date;
 }
 
@@ -50,6 +61,17 @@ const UserSchema: Schema = new Schema({
   referralRewarded: { type: Boolean, default: false },
   referralUpgradeCount: { type: Number, default: 0 },
   lastActiveAt: { type: Date },
+  checklist: {
+    uploadedSermon: { type: Boolean, default: false },
+    createdClip: { type: Boolean, default: false },
+    customizedCaption: { type: Boolean, default: false },
+    exportedReel: { type: Boolean, default: false },
+    connectedSocial: { type: Boolean, default: false },
+    invitedTeamMember: { type: Boolean, default: false },
+  },
+  onboardingEmailsSent: { type: [Number], default: [] },
+  lastSeenChangelogDate: { type: Date },
+  shortcutsTipShown: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });
 

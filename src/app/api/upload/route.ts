@@ -4,12 +4,11 @@ import { progressManager } from '../../../lib/progress';
 import { MAX_DIRECT_UPLOAD_BYTES, MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
 import { v4 as uuidv4 } from 'uuid';
 
-
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
-    const jobId = formData.get('jobId') as string || uuidv4();
+    const jobId = (formData.get('jobId') as string) || uuidv4();
 
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
@@ -25,25 +24,25 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    progressManager.update(jobId, { 
-      step: 'Uploading', 
-      status: 'loading', 
-      message: '[Neural Pulse] Securely uploading sermon binary to Sanctum...' 
+    progressManager.update(jobId, {
+      step: 'Uploading',
+      status: 'loading',
+      message: '[Neural Pulse] Securely uploading sermon binary to Sanctum...',
     });
 
     const r2Key = `uploads/${jobId}/${file.name}`;
     const r2Url = await uploadBufferToR2(r2Key, buffer, file.type || 'video/mp4');
 
-    progressManager.update(jobId, { 
-      step: 'Uploading', 
-      status: 'completed', 
-      message: 'Binary Upload Complete' 
+    progressManager.update(jobId, {
+      step: 'Uploading',
+      status: 'completed',
+      message: 'Binary Upload Complete',
     });
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       jobId,
-      url: r2Url
+      url: r2Url,
     });
   } catch (error: unknown) {
     console.error('Upload error:', error);

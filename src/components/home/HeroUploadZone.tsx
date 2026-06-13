@@ -21,13 +21,7 @@ function UploadIcon({ size }: { size: number }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path
-        d="M22 48h20"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        opacity="0.5"
-      />
+      <path d="M22 48h20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.5" />
     </svg>
   );
 }
@@ -69,11 +63,7 @@ export default function HeroUploadZone({ isMobile, onFileSelect }: HeroUploadZon
     if (file) onFileSelect(file);
   };
 
-  const zoneClass = [
-    'hero-upload-zone',
-    'animate-in',
-    isDragging ? 'hero-upload-zone--dragging' : '',
-  ]
+  const zoneClass = ['hero-upload-zone', 'animate-in', isDragging ? 'hero-upload-zone--dragging' : '']
     .filter(Boolean)
     .join(' ');
 

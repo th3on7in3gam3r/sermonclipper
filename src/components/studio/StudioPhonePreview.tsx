@@ -1,12 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import {
-  STUDIO_ANIMATIONS,
-  STUDIO_FILTERS,
-  STUDIO_FONTS,
-  STUDIO_TEMPLATES,
-} from '@/lib/studio/constants';
+import { STUDIO_ANIMATIONS, STUDIO_FILTERS, STUDIO_FONTS, STUDIO_TEMPLATES } from '@/lib/studio/constants';
 import type { SermonClip } from '@/lib/studio/types';
 
 interface StudioPhonePreviewProps {
@@ -71,15 +66,54 @@ export default function StudioPhonePreview({
 
   const src = playableVideoUrl || videoUrl || '';
   const isAudio =
-    src.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) ||
-    src.toLowerCase().includes('audio');
+    src.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) || src.toLowerCase().includes('audio');
 
   return (
     <div style={{ position: 'relative' }}>
-      <div style={{ position: 'absolute', left: '-14px', top: '100px', width: '3px', height: '24px', background: '#27272A', borderRadius: '2px 0 0 2px' }} />
-      <div style={{ position: 'absolute', left: '-14px', top: '140px', width: '3px', height: '48px', background: '#27272A', borderRadius: '2px 0 0 2px' }} />
-      <div style={{ position: 'absolute', left: '-14px', top: '196px', width: '3px', height: '48px', background: '#27272A', borderRadius: '2px 0 0 2px' }} />
-      <div style={{ position: 'absolute', right: '-14px', top: '160px', width: '3px', height: '80px', background: '#27272A', borderRadius: '0 2px 2px 0' }} />
+      <div
+        style={{
+          position: 'absolute',
+          left: '-14px',
+          top: '100px',
+          width: '3px',
+          height: '24px',
+          background: '#27272A',
+          borderRadius: '2px 0 0 2px',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          left: '-14px',
+          top: '140px',
+          width: '3px',
+          height: '48px',
+          background: '#27272A',
+          borderRadius: '2px 0 0 2px',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          left: '-14px',
+          top: '196px',
+          width: '3px',
+          height: '48px',
+          background: '#27272A',
+          borderRadius: '2px 0 0 2px',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          right: '-14px',
+          top: '160px',
+          width: '3px',
+          height: '80px',
+          background: '#27272A',
+          borderRadius: '0 2px 2px 0',
+        }}
+      />
 
       <div
         className="premium-border"
@@ -90,13 +124,23 @@ export default function StudioPhonePreview({
           background: '#000',
           borderRadius: '48px',
           border: '8px solid #18181B',
-          boxShadow: '0 30px 60px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05), inset 0 0 15px rgba(255,255,255,0.05)',
+          boxShadow:
+            '0 30px 60px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05), inset 0 0 15px rgba(255,255,255,0.05)',
           position: 'relative',
           overflow: 'hidden',
           maxHeight: 'calc(100vh - 240px)',
         }}
       >
-        <div style={{ position: 'absolute', inset: '4px', borderRadius: '48px', border: '1px solid rgba(255,255,255,0.08)', pointerEvents: 'none', zIndex: 5 }} />
+        <div
+          style={{
+            position: 'absolute',
+            inset: '4px',
+            borderRadius: '48px',
+            border: '1px solid rgba(255,255,255,0.08)',
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+        />
         <div
           style={{
             position: 'absolute',
@@ -114,7 +158,13 @@ export default function StudioPhonePreview({
         <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
           {videoId ? (
             <iframe
-              style={{ width: '100%', height: '100%', border: 'none', transform: 'scale(1.05)', filter: filterCss }}
+              style={{
+                width: '100%',
+                height: '100%',
+                border: 'none',
+                transform: 'scale(1.05)',
+                filter: filterCss,
+              }}
               src={`https://www.youtube.com/embed/${videoId}?start=${previewStart}&end=${previewEnd}&autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`}
               allow="autoplay; encrypted-media"
               title="Clip preview"
@@ -126,7 +176,8 @@ export default function StudioPhonePreview({
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundImage: 'url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&q=80")',
+                    backgroundImage:
+                      'url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&q=80")',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     display: 'flex',
@@ -191,7 +242,15 @@ export default function StudioPhonePreview({
           ) : null}
 
           {!isPlaying && !videoId && (
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 50 }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 50,
+              }}
+            >
               <button
                 type="button"
                 onClick={() => onPlayingChange(true)}
@@ -282,14 +341,33 @@ export default function StudioPhonePreview({
 
           <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none', opacity: 0.8 }}>
             {selectedPlatform === 'tiktok' && (
-              <div style={{ position: 'absolute', right: '12px', bottom: '160px', display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  bottom: '160px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '24px',
+                  alignItems: 'center',
+                }}
+              >
                 <span style={{ fontSize: '24px' }}>❤️</span>
                 <span style={{ fontSize: '24px' }}>💬</span>
               </div>
             )}
             <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '80px' }}>
               <div style={{ fontSize: '14px', fontWeight: 900, marginBottom: '4px' }}>@yourministry</div>
-              <div style={{ fontSize: '12px', color: '#fff', opacity: 0.9, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: '#fff',
+                  opacity: 0.9,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {caption}
               </div>
             </div>
@@ -299,7 +377,8 @@ export default function StudioPhonePreview({
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.4) 100%)',
+              background:
+                'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.4) 100%)',
               pointerEvents: 'none',
             }}
           />

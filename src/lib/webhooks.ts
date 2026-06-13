@@ -2,11 +2,7 @@ import { createHmac } from 'crypto';
 import connectDB from '@/lib/mongodb';
 import { Webhook, WebhookDelivery } from '@/models/Webhook';
 
-export async function dispatchWebhook(
-  userId: string,
-  event: string,
-  data: Record<string, unknown>
-) {
+export async function dispatchWebhook(userId: string, event: string, data: Record<string, unknown>) {
   await connectDB();
   const hooks = await Webhook.find({ userId, active: true, events: event }).lean();
   if (hooks.length === 0) return;
@@ -45,12 +41,18 @@ async function attemptDelivery(
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    await WebhookDelivery.updateOne({ _id: deliveryId }, { $set: { status: 'success', attempts: attempt + 1 } });
+    await WebhookDelivery.updateOne(
+      { _id: deliveryId },
+      { $set: { status: 'success', attempts: attempt + 1 } }
+    );
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Delivery failed';
     const next = attempt + 1;
     if (next >= 3) {
-      await WebhookDelivery.updateOne({ _id: deliveryId }, { $set: { status: 'failed', attempts: next, lastError: msg } });
+      await WebhookDelivery.updateOne(
+        { _id: deliveryId },
+        { $set: { status: 'failed', attempts: next, lastError: msg } }
+      );
       return;
     }
     await WebhookDelivery.updateOne({ _id: deliveryId }, { $set: { attempts: next, lastError: msg } });

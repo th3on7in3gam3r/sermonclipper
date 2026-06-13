@@ -14,10 +14,7 @@ export async function POST() {
   if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
   if (!dbUser.stripeCustomerId) {
-    return NextResponse.json(
-      { error: 'Subscribe to a paid plan first to manage billing.' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Subscribe to a paid plan first to manage billing.' }, { status: 400 });
   }
 
   const session = await stripe.billingPortal.sessions.create({

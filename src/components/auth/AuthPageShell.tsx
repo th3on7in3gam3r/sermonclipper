@@ -14,8 +14,8 @@ export default function AuthPageShell({ children }: { children: ReactNode }) {
         </Link>
         <div className="auth-page-card">{children}</div>
         <p className="auth-page-footnote">
-          By continuing, you agree to our{' '}
-          <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link>.
+          By continuing, you agree to our <Link href="/terms">Terms</Link> and{' '}
+          <Link href="/privacy">Privacy Policy</Link>.
         </p>
       </div>
     </div>

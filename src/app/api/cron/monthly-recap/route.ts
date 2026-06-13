@@ -46,11 +46,7 @@ export async function GET(req: NextRequest) {
     if (!dbUser.email) continue;
 
     try {
-      await sendMonthlyRecapEmail(
-        dbUser.email,
-        { monthLabel, clipCount },
-        dbUser.emailUnsubscribeToken
-      );
+      await sendMonthlyRecapEmail(dbUser.email, { monthLabel, clipCount }, dbUser.emailUnsubscribeToken);
       dbUser.lastRecapMonth = monthKey;
       await dbUser.save();
       sent += 1;

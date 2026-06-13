@@ -40,8 +40,7 @@ const WebhookDeliverySchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export const Webhook =
-  mongoose.models.Webhook || mongoose.model<IWebhook>('Webhook', WebhookSchema);
+export const Webhook = mongoose.models.Webhook || mongoose.model<IWebhook>('Webhook', WebhookSchema);
 export const WebhookDelivery =
   mongoose.models.WebhookDelivery ||
   mongoose.model<IWebhookDelivery>('WebhookDelivery', WebhookDeliverySchema);

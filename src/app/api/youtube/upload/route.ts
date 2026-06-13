@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const result = await uploadVideo(dbUser.youtubeTokens, {
       title,
       description,
-      url: videoUrl
+      url: videoUrl,
     });
 
     return NextResponse.json({ success: true, youtubeId: result.id });

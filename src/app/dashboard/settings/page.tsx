@@ -95,17 +95,39 @@ export default function AccountSettingsPage() {
   return (
     <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh' }}>
       <div className="vesper-mesh-bg" />
-      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '120px 24px 80px', position: 'relative', zIndex: 1 }}>
-        <Link href="/dashboard" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: '13px', fontWeight: 700 }}>
+      <div
+        style={{
+          maxWidth: '720px',
+          margin: '0 auto',
+          padding: '120px 24px 80px',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        <Link
+          href="/dashboard"
+          style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: '13px', fontWeight: 700 }}
+        >
           ← Back to Studio
         </Link>
         <h1 style={{ fontSize: '36px', fontWeight: 900, margin: '16px 0 8px' }}>Account settings</h1>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>Connected accounts, webhooks, and privacy controls.</p>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
+          Connected accounts, webhooks, and privacy controls.
+        </p>
 
         <div className="glass-card premium-border" style={{ padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '16px' }}>Social accounts</h2>
           {PLATFORMS.map((p) => (
-            <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div
+              key={p.id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '16px 0',
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
+              }}
+            >
               <div>
                 <p style={{ fontWeight: 800 }}>{p.label}</p>
                 <p style={{ fontSize: '13px', color: connections[p.id] ? '#10B981' : 'var(--text-muted)' }}>
@@ -141,7 +163,12 @@ export default function AccountSettingsPage() {
             Receive POST events for clip.created, clip.exported, and quota.warning.
           </p>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-            <input value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-server.com/webhook" className="referral-input" />
+            <input
+              value={webhookUrl}
+              onChange={(e) => setWebhookUrl(e.target.value)}
+              placeholder="https://your-server.com/webhook"
+              className="referral-input"
+            />
             <button type="button" className="vesper-btn-outline" onClick={addWebhook}>
               Add
             </button>
@@ -157,10 +184,20 @@ export default function AccountSettingsPage() {
 
         <div className="glass-card premium-border" style={{ padding: '24px', marginTop: '24px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>Your data</h2>
-          <button type="button" className="vesper-btn-outline" onClick={exportData} style={{ marginRight: '8px' }}>
+          <button
+            type="button"
+            className="vesper-btn-outline"
+            onClick={exportData}
+            style={{ marginRight: '8px' }}
+          >
             Export My Data
           </button>
-          <button type="button" className="vesper-btn-outline" style={{ color: '#FCA5A5', borderColor: '#FCA5A5' }} onClick={() => setShowDeleteModal(true)}>
+          <button
+            type="button"
+            className="vesper-btn-outline"
+            style={{ color: '#FCA5A5', borderColor: '#FCA5A5' }}
+            onClick={() => setShowDeleteModal(true)}
+          >
             Delete My Account
           </button>
         </div>
@@ -170,8 +207,18 @@ export default function AccountSettingsPage() {
             <div className="cookie-modal glass-card" onClick={(e) => e.stopPropagation()}>
               <h3>Delete account</h3>
               <p>This permanently deletes your account, clips, and data. Type DELETE to confirm.</p>
-              <input value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} className="referral-input" placeholder="DELETE" />
-              <button type="button" className="vesper-btn vesper-btn-primary" style={{ background: '#DC2626' }} onClick={deleteAccount}>
+              <input
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                className="referral-input"
+                placeholder="DELETE"
+              />
+              <button
+                type="button"
+                className="vesper-btn vesper-btn-primary"
+                style={{ background: '#DC2626' }}
+                onClick={deleteAccount}
+              >
                 Permanently delete
               </button>
             </div>

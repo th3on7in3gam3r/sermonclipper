@@ -2,8 +2,7 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import type { NextRequest } from 'next/server';
 
-export const RATE_LIMIT_MESSAGE =
-  "You're moving fast! Please wait a moment before trying again.";
+export const RATE_LIMIT_MESSAGE = "You're moving fast! Please wait a moment before trying again.";
 
 type LimitResult = { success: boolean; retryAfterSec?: number };
 
@@ -47,9 +46,7 @@ const authIpLimiter = buildLimiter(10, '15 m');
 
 function clientIp(req: NextRequest): string {
   return (
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown'
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown'
   );
 }
 
@@ -69,10 +66,7 @@ async function runLimit(
   return memoryLimit(key, fallbackLimit, fallbackWindowMs);
 }
 
-export async function checkApiRateLimit(
-  req: NextRequest,
-  userId?: string | null
-): Promise<LimitResult> {
+export async function checkApiRateLimit(req: NextRequest, userId?: string | null): Promise<LimitResult> {
   const path = req.nextUrl.pathname;
   const ip = clientIp(req);
 

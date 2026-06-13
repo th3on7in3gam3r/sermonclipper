@@ -29,10 +29,7 @@ export async function GET(req: NextRequest) {
 
     const upstream = await fetch(rawUrl, { redirect: 'follow' });
     if (!upstream.ok || !upstream.body) {
-      return NextResponse.json(
-        { error: `Could not fetch render (${upstream.status})` },
-        { status: 502 }
-      );
+      return NextResponse.json({ error: `Could not fetch render (${upstream.status})` }, { status: 502 });
     }
 
     const filename = sanitizeReelFilename(filenameParam.replace(/\.mp4$/i, ''));

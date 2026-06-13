@@ -81,7 +81,11 @@ export default function StudioExportPanel({
             >
               Download
             </button>
-            <button type="button" onClick={() => setShowShare(true)} className="vesper-btn-outline studio-export-share">
+            <button
+              type="button"
+              onClick={() => setShowShare(true)}
+              className="vesper-btn-outline studio-export-share"
+            >
               Share
             </button>
           </>
@@ -122,9 +126,7 @@ export default function StudioExportPanel({
           <div className="studio-export-progress-bar">
             <div style={{ width: `${renderProgress}%` }} />
           </div>
-          <p className="studio-export-progress-label">
-            Cloud render in progress… {renderProgress}%
-          </p>
+          <p className="studio-export-progress-label">Cloud render in progress… {renderProgress}%</p>
         </div>
       )}
 

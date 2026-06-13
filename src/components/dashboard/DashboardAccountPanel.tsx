@@ -13,17 +13,23 @@ interface DashboardAccountPanelProps {
   plan?: string;
 }
 
-export default function DashboardAccountPanel({ userData, isMobile = false, plan }: DashboardAccountPanelProps) {
+export default function DashboardAccountPanel({
+  userData,
+  isMobile = false,
+  plan,
+}: DashboardAccountPanelProps) {
   const { user, isLoaded } = useUser();
 
   const planLabel = userData?.plan?.replace(/_/g, ' ').toUpperCase() || 'FREE';
   const usage = userData?.usageCount ?? 0;
   const limitNum = userData?.limit;
   const isUnlimited = limitNum === 999999;
-  const clipsRemaining =
-    isUnlimited || limitNum == null ? null : Math.max(0, limitNum - usage);
+  const clipsRemaining = isUnlimited || limitNum == null ? null : Math.max(0, limitNum - usage);
   const displayName =
-    user?.fullName || user?.firstName || user?.primaryEmailAddress?.emailAddress?.split('@')[0] || 'Ministry User';
+    user?.fullName ||
+    user?.firstName ||
+    user?.primaryEmailAddress?.emailAddress?.split('@')[0] ||
+    'Ministry User';
   const email = user?.primaryEmailAddress?.emailAddress;
 
   return (
@@ -121,13 +127,30 @@ export default function DashboardAccountPanel({ userData, isMobile = false, plan
             minWidth: isMobile ? 0 : '160px',
           }}
         >
-          <span style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.15em', display: 'block', marginBottom: '6px' }}>
+          <span
+            style={{
+              fontSize: '10px',
+              fontWeight: 900,
+              color: '#8B5CF6',
+              letterSpacing: '0.15em',
+              display: 'block',
+              marginBottom: '6px',
+            }}
+          >
             CLIPS REMAINING
           </span>
           <span style={{ fontSize: '15px', fontWeight: 900, display: 'block', lineHeight: 1.3 }}>
-            {isUnlimited ? 'Unlimited' : clipsRemaining ?? '—'}
+            {isUnlimited ? 'Unlimited' : (clipsRemaining ?? '—')}
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, display: 'block', marginTop: '4px' }}>
+          <span
+            style={{
+              fontSize: '12px',
+              color: 'var(--text-muted)',
+              fontWeight: 700,
+              display: 'block',
+              marginTop: '4px',
+            }}
+          >
             {planLabel}
             {!isUnlimited && limitNum != null ? ` · ${usage}/${limitNum} used` : ''}
           </span>

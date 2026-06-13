@@ -28,5 +28,12 @@ export async function POST(req: NextRequest) {
     await sermon.save();
   }
 
+  try {
+    const { markChecklist } = await import('@/lib/checklist');
+    await markChecklist(userId, 'customizedCaption');
+  } catch {
+    /* non-blocking */
+  }
+
   return NextResponse.json({ ok: true, savedAt: new Date().toISOString() });
 }

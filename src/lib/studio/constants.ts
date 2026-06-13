@@ -37,19 +37,56 @@ export const STUDIO_TEMPLATES = [
 
 export const STUDIO_FILTERS = [
   { id: 'none', name: 'Original', css: 'none', preview: 'bg-gradient-to-br from-zinc-700 to-zinc-900' },
-  { id: 'vintage', name: 'Vintage Grace', css: 'sepia(0.55) contrast(1.15) brightness(0.95)', preview: 'bg-gradient-to-br from-amber-900 to-yellow-800' },
-  { id: 'cold', name: 'Cold Truth', css: 'saturate(0.4) brightness(1.1) hue-rotate(200deg)', preview: 'bg-gradient-to-br from-blue-900 to-slate-700' },
-  { id: 'warm', name: 'Warm Spirit', css: 'sepia(0.3) saturate(1.4) hue-rotate(15deg)', preview: 'bg-gradient-to-br from-orange-900 to-red-800' },
-  { id: 'noir', name: 'Noir Prophet', css: 'grayscale(0.9) contrast(1.3)', preview: 'bg-gradient-to-br from-zinc-900 to-zinc-600' },
-  { id: 'glory', name: 'Glory Light', css: 'brightness(1.15) saturate(1.3) contrast(0.95)', preview: 'bg-gradient-to-br from-violet-800 to-purple-600' },
+  {
+    id: 'vintage',
+    name: 'Vintage Grace',
+    css: 'sepia(0.55) contrast(1.15) brightness(0.95)',
+    preview: 'bg-gradient-to-br from-amber-900 to-yellow-800',
+  },
+  {
+    id: 'cold',
+    name: 'Cold Truth',
+    css: 'saturate(0.4) brightness(1.1) hue-rotate(200deg)',
+    preview: 'bg-gradient-to-br from-blue-900 to-slate-700',
+  },
+  {
+    id: 'warm',
+    name: 'Warm Spirit',
+    css: 'sepia(0.3) saturate(1.4) hue-rotate(15deg)',
+    preview: 'bg-gradient-to-br from-orange-900 to-red-800',
+  },
+  {
+    id: 'noir',
+    name: 'Noir Prophet',
+    css: 'grayscale(0.9) contrast(1.3)',
+    preview: 'bg-gradient-to-br from-zinc-900 to-zinc-600',
+  },
+  {
+    id: 'glory',
+    name: 'Glory Light',
+    css: 'brightness(1.15) saturate(1.3) contrast(0.95)',
+    preview: 'bg-gradient-to-br from-violet-800 to-purple-600',
+  },
 ] as const;
 
 export const STUDIO_FONTS = [
   { id: 'outfit', name: 'Outfit', family: "'Outfit', sans-serif", weight: 900, desc: 'Modern & clean.' },
-  { id: 'impact', name: 'Impact', family: "Impact, 'Arial Narrow', sans-serif", weight: 900, desc: 'Bold & powerful.' },
+  {
+    id: 'impact',
+    name: 'Impact',
+    family: "Impact, 'Arial Narrow', sans-serif",
+    weight: 900,
+    desc: 'Bold & powerful.',
+  },
   { id: 'georgia', name: 'Georgia', family: 'Georgia, serif', weight: 700, desc: 'Classic & reverent.' },
   { id: 'mono', name: 'Mono', family: "'Courier New', monospace", weight: 700, desc: 'Technical & precise.' },
-  { id: 'serif', name: 'Playfair', family: "'Playfair Display', Georgia, serif", weight: 900, desc: 'Elegant & editorial.' },
+  {
+    id: 'serif',
+    name: 'Playfair',
+    family: "'Playfair Display', Georgia, serif",
+    weight: 900,
+    desc: 'Elegant & editorial.',
+  },
 ] as const;
 
 export const STUDIO_ANIMATIONS = [
@@ -60,8 +97,22 @@ export const STUDIO_ANIMATIONS = [
 ] as const;
 
 export const STUDIO_PLATFORMS = [
-  { id: 'tiktok', icon: '📱', label: 'TikTok', format: '9:16 Vertical', limit: 2200, prefix: '#ministry #shorts ' },
-  { id: 'insta', icon: '📸', label: 'Instagram', format: '9:16 Reel', limit: 2200, prefix: 'Reel from today: ' },
+  {
+    id: 'tiktok',
+    icon: '📱',
+    label: 'TikTok',
+    format: '9:16 Vertical',
+    limit: 2200,
+    prefix: '#ministry #shorts ',
+  },
+  {
+    id: 'insta',
+    icon: '📸',
+    label: 'Instagram',
+    format: '9:16 Reel',
+    limit: 2200,
+    prefix: 'Reel from today: ',
+  },
   { id: 'youtube', icon: '▶️', label: 'YouTube Shorts', format: '9:16 Vertical', limit: 500, prefix: '' },
   { id: 'x', icon: '𝕏', label: 'X', format: '1:1 / 9:16', limit: 280, prefix: 'Powerful moment: ' },
 ] as const;

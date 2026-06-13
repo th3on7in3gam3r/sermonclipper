@@ -53,10 +53,7 @@ export default function CaptionEditor({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [dirty, setDirty] = useState(false);
 
-  const segments = useMemo(
-    () => buildSegments(caption, clipStart, clipEnd),
-    [caption, clipStart, clipEnd]
-  );
+  const segments = useMemo(() => buildSegments(caption, clipStart, clipEnd), [caption, clipStart, clipEnd]);
 
   const saveDraft = useCallback(async () => {
     if (!jobId || !dirty) return;
@@ -107,7 +104,9 @@ export default function CaptionEditor({
 
       <div className="caption-editor-words" role="textbox" aria-label="Edit caption words">
         {segments.length === 0 ? (
-          <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Add a caption below the preview.</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+            Add a caption below the preview.
+          </span>
         ) : (
           segments.map((seg, idx) =>
             editingIdx === idx ? (

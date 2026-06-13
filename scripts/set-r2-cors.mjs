@@ -51,11 +51,7 @@ const command = new PutBucketCorsCommand({
   CORSConfiguration: {
     CORSRules: [
       {
-        AllowedOrigins: [
-          'https://vesper.biblefunland.com',
-          'http://localhost:3000',
-          'http://localhost:3001',
-        ],
+        AllowedOrigins: ['https://vesper.biblefunland.com', 'http://localhost:3000', 'http://localhost:3001'],
         AllowedMethods: ['GET', 'PUT', 'HEAD'],
         AllowedHeaders: ['*'],
         ExposeHeaders: ['ETag', 'Content-Length', 'Accept-Ranges', 'Content-Range'],

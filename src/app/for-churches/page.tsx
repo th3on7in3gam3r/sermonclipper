@@ -20,22 +20,29 @@ export default function ForChurchesPage() {
           <p className="seo-kicker">For churches</p>
           <h1>Your media team&apos;s sermon-to-social pipeline</h1>
           <p className="seo-lead">
-            Stop rebuilding the same edit every Monday. Vesper finds highlight moments, writes captions, and exports
-            branded vertical reels your volunteers can post all week.
+            Stop rebuilding the same edit every Monday. Vesper finds highlight moments, writes captions, and
+            exports branded vertical reels your volunteers can post all week.
           </p>
         </section>
         <section className="seo-grid">
           <article className="seo-step-card glass-card">
             <h2>One sermon, many touchpoints</h2>
-            <p>Turn a single message into a week of Reels, quote graphics, and Shorts without rewatching hour-long footage.</p>
+            <p>
+              Turn a single message into a week of Reels, quote graphics, and Shorts without rewatching
+              hour-long footage.
+            </p>
           </article>
           <article className="seo-step-card glass-card">
             <h2>Volunteer-friendly</h2>
-            <p>Non-editors can customize templates, preview on a phone frame, and download MP4s in minutes.</p>
+            <p>
+              Non-editors can customize templates, preview on a phone frame, and download MP4s in minutes.
+            </p>
           </article>
           <article className="seo-step-card glass-card">
             <h2>Built for ministry budgets</h2>
-            <p>Start free, upgrade when your church is ready. Church Pro supports teams and unlimited exports.</p>
+            <p>
+              Start free, upgrade when your church is ready. Church Pro supports teams and unlimited exports.
+            </p>
           </article>
         </section>
         <section className="seo-cta">

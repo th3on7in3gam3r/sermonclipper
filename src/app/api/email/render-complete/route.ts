@@ -23,11 +23,7 @@ export async function POST(req: NextRequest) {
   const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
   if (!email) return NextResponse.json({ ok: true, skipped: true });
 
-  await sendRenderCompleteEmail(
-    email,
-    { clipTitle, resultsUrl, thumbnailUrl },
-    dbUser.emailUnsubscribeToken
-  );
+  await sendRenderCompleteEmail(email, { clipTitle, resultsUrl, thumbnailUrl }, dbUser.emailUnsubscribeToken);
 
   return NextResponse.json({ ok: true });
 }

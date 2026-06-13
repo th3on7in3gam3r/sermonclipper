@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react';
 
-export default function NpsSurvey({ clipCount, accountAgeDays }: { clipCount: number; accountAgeDays: number }) {
+export default function NpsSurvey({
+  clipCount,
+  accountAgeDays,
+}: {
+  clipCount: number;
+  accountAgeDays: number;
+}) {
   const [visible, setVisible] = useState(false);
   const [score, setScore] = useState<number | null>(null);
   const [feedback, setFeedback] = useState('');
@@ -44,7 +50,12 @@ export default function NpsSurvey({ clipCount, accountAgeDays }: { clipCount: nu
       ) : (
         <>
           <p>What&apos;s the main reason for your score? (optional)</p>
-          <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} rows={2} className="nps-feedback" />
+          <textarea
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            rows={2}
+            className="nps-feedback"
+          />
           <button type="button" className="vesper-btn vesper-btn-primary" onClick={submit}>
             Submit
           </button>

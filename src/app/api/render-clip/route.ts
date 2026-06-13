@@ -131,8 +131,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: hint }, { status: 503 });
     }
 
-    const { apiKey: SHOTSTACK_API_KEY, renderUrl: SHOTSTACK_URL, environment: shotstackEnv } =
-      shotstackConfig;
+    const {
+      apiKey: SHOTSTACK_API_KEY,
+      renderUrl: SHOTSTACK_URL,
+      environment: shotstackEnv,
+    } = shotstackConfig;
 
     let shotstackVideoUrl: string;
     try {
@@ -143,10 +146,9 @@ export async function POST(req: NextRequest) {
       console.error('[Render] Failed to prepare video URL for Shotstack:', urlError);
       return NextResponse.json(
         {
-          error:
-            detail.includes('Missing Cloudflare R2')
-              ? 'Cloud storage is not configured on the server. Add CF_ACCOUNT_ID, R2_BUCKET, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY in Vercel, then redeploy.'
-              : `Could not prepare your uploaded video for cloud rendering: ${detail}`,
+          error: detail.includes('Missing Cloudflare R2')
+            ? 'Cloud storage is not configured on the server. Add CF_ACCOUNT_ID, R2_BUCKET, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY in Vercel, then redeploy.'
+            : `Could not prepare your uploaded video for cloud rendering: ${detail}`,
           code: 'R2_ERROR',
         },
         { status: 502 }
@@ -162,7 +164,10 @@ export async function POST(req: NextRequest) {
     }
 
     if (quality === 'high' && plan === 'free') {
-      return NextResponse.json({ error: 'High quality exports require Creator or Church Pro.', code: 'UPGRADE_REQUIRED' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'High quality exports require Creator or Church Pro.', code: 'UPGRADE_REQUIRED' },
+        { status: 403 }
+      );
     }
 
     const aspectRatio = format === '1:1' ? '1:1' : format === '16:9' ? '16:9' : '9:16';
@@ -204,8 +209,9 @@ export async function POST(req: NextRequest) {
       transition: { in: transitionIn, out: 'fade' },
     }));
 
-    const isAudio = videoUrl.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) || 
-                    videoUrl.toLowerCase().includes('audio');
+    const isAudio =
+      videoUrl.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) ||
+      videoUrl.toLowerCase().includes('audio');
 
     let tracks: any[] = [];
 
@@ -328,7 +334,9 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    console.log(`[Shotstack] Render: env=${shotstackEnv}, template=${template}, filter=${filter}, font=${font}, animation=${animation}, duration=${duration}s`);
+    console.log(
+      `[Shotstack] Render: env=${shotstackEnv}, template=${template}, filter=${filter}, font=${font}, animation=${animation}, duration=${duration}s`
+    );
 
     const response = await fetch(SHOTSTACK_URL, {
       method: 'POST',
@@ -359,6 +367,12 @@ export async function POST(req: NextRequest) {
 
     if (data.success && data.response?.id) {
       console.log('[Shotstack] Render queued:', data.response.id);
+      try {
+        const { markChecklist } = await import('@/lib/checklist');
+        await markChecklist(userId, 'exportedReel');
+      } catch {
+        /* non-blocking */
+      }
       return NextResponse.json({
         success: true,
         shotstackId: data.response.id,

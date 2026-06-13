@@ -65,7 +65,15 @@ export default function ClipActionBar({
   };
 
   return (
-    <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative' }}>
+    <div
+      style={{
+        marginTop: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        position: 'relative',
+      }}
+    >
       <div
         style={{
           display: 'grid',
@@ -80,7 +88,13 @@ export default function ClipActionBar({
             type="button"
             onClick={onToggleCaption}
             className="vesper-btn-outline"
-            style={{ ...btnBase, width: '100%', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}
+            style={{
+              ...btnBase,
+              width: '100%',
+              justifyContent: 'space-between',
+              position: 'relative',
+              zIndex: 2,
+            }}
           >
             <span>CAPTION</span>
             <span style={{ opacity: 0.5, fontSize: '10px' }}>{captionOpen ? '▲' : '▼'}</span>
@@ -103,14 +117,17 @@ export default function ClipActionBar({
             >
               {!clip.suggested_captions?.length && !clip.main_quote ? (
                 <div style={{ padding: '16px', textAlign: 'center' }}>
-                  <p style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>No Social Kit captions yet</p>
+                  <p style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>
+                    No Social Kit captions yet
+                  </p>
                   <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                     Captions appear here after AI analysis completes.
                   </p>
                 </div>
               ) : (
                 platforms.map((p, pi) => {
-                  const caption = clip.suggested_captions?.[pi] || clip.suggested_captions?.[0] || clip.main_quote || '';
+                  const caption =
+                    clip.suggested_captions?.[pi] || clip.suggested_captions?.[0] || clip.main_quote || '';
                   const text = `${p.prefix}${caption}`;
                   return (
                     <button
@@ -171,7 +188,14 @@ export default function ClipActionBar({
 
       {renderStatus === 'loading' && (
         <div>
-          <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '99px', overflow: 'hidden' }}>
+          <div
+            style={{
+              height: '4px',
+              background: 'rgba(255,255,255,0.06)',
+              borderRadius: '99px',
+              overflow: 'hidden',
+            }}
+          >
             <div
               style={{
                 height: '100%',
@@ -207,14 +231,14 @@ export default function ClipActionBar({
           <button
             type="button"
             onClick={onCustomize}
-            className={isYouTubeSource ? 'vesper-btn-outline' : 'vesper-btn vesper-btn-primary shimmer-effect'}
+            className={
+              isYouTubeSource ? 'vesper-btn-outline' : 'vesper-btn vesper-btn-primary shimmer-effect'
+            }
             style={{
               ...btnBase,
               width: '100%',
               fontSize: '12px',
-              ...(isYouTubeSource
-                ? { color: 'var(--primary)', borderColor: 'var(--primary-glow)' }
-                : {}),
+              ...(isYouTubeSource ? { color: 'var(--primary)', borderColor: 'var(--primary-glow)' } : {}),
             }}
           >
             {isYouTubeSource ? 'PREVIEW IN STUDIO' : 'CUSTOMIZE REEL'}

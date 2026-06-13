@@ -15,7 +15,7 @@ SermonClipper is a full-stack web application built with Next.js 14 that automat
 Before running the application, ensure you have the following installed:
 
 1. **Node.js (v18+)**: [Download Node.js](https://nodejs.org/)
-2. **FFmpeg**: 
+2. **FFmpeg**:
    - Mac: `brew install ffmpeg`
    - Linux: `sudo apt install ffmpeg`
    - Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
@@ -25,18 +25,21 @@ Before running the application, ensure you have the following installed:
 ## Getting Started
 
 1. **Clone the repository:**
+
    ```bash
    git clone <repository-url>
    cd sermon-clipper
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 3. **Configure Environment Variables:**
    Create a `.env.local` file in the root directory and add your API keys:
+
    ```env
    OPENAI_API_KEY=your_openai_api_key
    ANTHROPIC_API_KEY=your_anthropic_api_key
@@ -44,6 +47,7 @@ Before running the application, ensure you have the following installed:
    ```
 
    If you want to download YouTube videos reliably when YouTube detects bot-like traffic, also add one of these:
+
    ```env
    YTDLP_COOKIES_PATH=/path/to/youtube_cookies.txt
    # or
@@ -55,8 +59,8 @@ Before running the application, ensure you have the following installed:
 
    If neither value is set, some YouTube downloads may fail with a bot-block error.
 
-
 4. **Run the development server:**
+
    ```bash
    npm run dev
    ```
@@ -65,6 +69,7 @@ Before running the application, ensure you have the following installed:
    Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Deploying on Koyeb
+
 If you deploy on Koyeb and want YouTube downloads to work for videos behind anti-bot checks, provide cookies to `yt-dlp` using one of these environment variables:
 
 - `YTDLP_COOKIES_PATH=/path/to/youtube_cookies.txt`

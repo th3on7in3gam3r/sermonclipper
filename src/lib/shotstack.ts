@@ -166,7 +166,11 @@ export async function verifyShotstackKey(
 
   // 400 validation errors mean auth worked — key is valid
   if (response.status === 400) {
-    return { ok: true, status: response.status, message: 'Key accepted (validation error on empty timeline is expected)' };
+    return {
+      ok: true,
+      status: response.status,
+      message: 'Key accepted (validation error on empty timeline is expected)',
+    };
   }
 
   return {
@@ -176,8 +180,7 @@ export async function verifyShotstackKey(
   };
 }
 
-const SAMPLE_VIDEO =
-  'https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/earth.mp4';
+const SAMPLE_VIDEO = 'https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/earth.mp4';
 
 /** Submit a tiny real render to confirm the key can queue jobs (not just auth). */
 export async function probeShotstackRender(
@@ -210,8 +213,12 @@ export async function probeShotstackRender(
   });
 
   const raw = await response.text();
-  let data: { success?: boolean; response?: { id?: string }; message?: string; errors?: { detail?: string }[] } =
-    {};
+  let data: {
+    success?: boolean;
+    response?: { id?: string };
+    message?: string;
+    errors?: { detail?: string }[];
+  } = {};
   try {
     data = raw ? JSON.parse(raw) : {};
   } catch {

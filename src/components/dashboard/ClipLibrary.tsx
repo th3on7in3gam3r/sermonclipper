@@ -1,12 +1,13 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import EmptyState from '@/components/shared/EmptyState';
 import ExportFlowModal from '@/components/dashboard/ExportFlowModal';
 import ShareExportModal from '@/components/dashboard/ShareExportModal';
+import ClipPreviewPanel from '@/components/dashboard/ClipPreviewPanel';
 import { parseTime } from '@/lib/parseTime';
 
 export type SermonRecord = {
@@ -125,36 +126,42 @@ interface ClipLibraryProps {
   plan?: string;
   onDelete: (sermonIds: string[]) => Promise<void>;
   isPhone?: boolean;
+  registerActions?: (actions: {
+    exportSelected?: () => void;
+    deleteSelected?: () => void;
+    focusIndex?: (delta: number) => void;
+  }) => void;
 }
 
 const PAGE_SIZE = 12;
 
-export default function ClipLibrary({ sermons, plan, onDelete, isPhone = false }: ClipLibraryProps) {
+export default function ClipLibrary({
+  sermons,
+  plan,
+  onDelete,
+  isPhone = false,
+  registerActions,
+}: ClipLibraryProps) {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'date-desc' | 'date-asc' | 'sermon' | 'export'>('date-desc');
   const [sermonFilter, setSermonFilter] = useState('');
   const [exportFilter, setExportFilter] = useState<'all' | 'complete' | 'none'>('all');
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [focusedIndex, setFocusedIndex] = useState(0);
   const [exportItem, setExportItem] = useState<LibraryItem | null>(null);
   const [shareItem, setShareItem] = useState<{ item: LibraryItem; renderUrl: string } | null>(null);
+  const [previewItem, setPreviewItem] = useState<LibraryItem | null>(null);
 
   const allItems = useMemo(() => flattenSermons(sermons), [sermons]);
 
-  const sermonTitles = useMemo(
-    () => [...new Set(allItems.map((i) => i.sermonTitle))].sort(),
-    [allItems]
-  );
+  const sermonTitles = useMemo(() => [...new Set(allItems.map((i) => i.sermonTitle))].sort(), [allItems]);
 
   const filtered = useMemo(() => {
     let list = allItems;
     const q = search.trim().toLowerCase();
     if (q) {
-      list = list.filter(
-        (i) =>
-          i.title.toLowerCase().includes(q) ||
-          i.sermonTitle.toLowerCase().includes(q)
-      );
+      list = list.filter((i) => i.title.toLowerCase().includes(q) || i.sermonTitle.toLowerCase().includes(q));
     }
     if (sermonFilter) list = list.filter((i) => i.sermonTitle === sermonFilter);
     if (exportFilter !== 'all') {
@@ -203,6 +210,22 @@ export default function ClipLibrary({ sermons, plan, onDelete, isPhone = false }
     await onDelete([item.sermonId]);
     toast.success('Clip deleted');
   };
+
+  useEffect(() => {
+    registerActions?.({
+      exportSelected: () => {
+        const item = pageItems[focusedIndex] || pageItems.find((i) => selected.has(i.key));
+        if (item) setExportItem(item);
+      },
+      deleteSelected: () => {
+        const item = pageItems[focusedIndex] || pageItems.find((i) => selected.has(i.key));
+        if (item) void deleteOne(item);
+      },
+      focusIndex: (delta) => {
+        setFocusedIndex((i) => Math.max(0, Math.min(pageItems.length - 1, i + delta)));
+      },
+    });
+  }, [registerActions, pageItems, focusedIndex, selected, onDelete]);
 
   if (!allItems.length) {
     return (
@@ -275,21 +298,31 @@ export default function ClipLibrary({ sermons, plan, onDelete, isPhone = false }
           <button type="button" className="vesper-btn-outline" onClick={toggleSelectAll}>
             {selected.size === pageItems.length ? 'Deselect page' : 'Select page'}
           </button>
-          <button type="button" className="vesper-btn-outline" style={{ color: '#EF4444' }} onClick={bulkDelete}>
+          <button
+            type="button"
+            className="vesper-btn-outline"
+            style={{ color: '#EF4444' }}
+            onClick={bulkDelete}
+          >
             Delete selected
           </button>
         </div>
       )}
 
       <div className="clip-library-grid">
-        {pageItems.map((item) => {
+        {pageItems.map((item, index) => {
           const ytId = getYoutubeId(item.videoUrl);
-          const thumb = ytId
-            ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`
-            : null;
+          const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null;
           return (
-            <article key={item.key} className="clip-library-card glass-card premium-border">
-              <div className="clip-library-card-select">
+            <article
+              key={item.key}
+              className={`clip-library-card glass-card premium-border${focusedIndex === index ? ' clip-library-card--focused' : ''}`}
+              onClick={() => setPreviewItem(item)}
+              onKeyDown={(e) => e.key === 'Enter' && setPreviewItem(item)}
+              role="button"
+              tabIndex={0}
+            >
+              <div className="clip-library-card-select" onClick={(e) => e.stopPropagation()}>
                 <input
                   type="checkbox"
                   checked={selected.has(item.key)}
@@ -312,7 +345,7 @@ export default function ClipLibrary({ sermons, plan, onDelete, isPhone = false }
                   <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                   {item.createdByName && <span>· {item.createdByName}</span>}
                 </div>
-                <div className="clip-library-actions">
+                <div className="clip-library-actions" onClick={(e) => e.stopPropagation()}>
                   <button
                     type="button"
                     className="vesper-btn-outline clip-library-action"
@@ -326,9 +359,7 @@ export default function ClipLibrary({ sermons, plan, onDelete, isPhone = false }
                   <button
                     type="button"
                     className="vesper-btn-outline clip-library-action"
-                    onClick={() =>
-                      setShareItem({ item, renderUrl: '' })
-                    }
+                    onClick={() => setShareItem({ item, renderUrl: '' })}
                   >
                     Share
                   </button>
@@ -387,6 +418,21 @@ export default function ClipLibrary({ sermons, plan, onDelete, isPhone = false }
           clipTitle={shareItem.item.title}
           renderUrl={shareItem.renderUrl}
           onClose={() => setShareItem(null)}
+        />
+      )}
+
+      {previewItem && (
+        <ClipPreviewPanel
+          item={previewItem}
+          resultsHref={buildResultsHref(previewItem)}
+          captionText={
+            sermons.find((s) => s._id === previewItem.sermonId)?.analysis?.clips?.[previewItem.clipIndex]
+              ?.suggested_captions?.[0]
+          }
+          onClose={() => setPreviewItem(null)}
+          onDelete={(item) => void deleteOne(item)}
+          onExport={(item) => setExportItem(item)}
+          onShare={(item) => setShareItem({ item, renderUrl: '' })}
         />
       )}
     </div>

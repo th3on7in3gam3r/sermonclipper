@@ -25,10 +25,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No transcription provided' }, { status: 400 });
     }
 
-    progressManager.update(jobId, { 
-      step: 'Analyzing', 
-      status: 'loading', 
-      message: 'Generating your complete Sermon Clipper Suite...' 
+    progressManager.update(jobId, {
+      step: 'Analyzing',
+      status: 'loading',
+      message: 'Generating your complete Sermon Clipper Suite...',
     });
 
     const transcriptText = transcription.text || JSON.stringify(transcription);
@@ -61,18 +61,18 @@ Begin processing now.`;
 
     const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: 'gpt-4o',
       messages: [
         {
-          role: "system",
-          content: systemPrompt
+          role: 'system',
+          content: systemPrompt,
         },
         {
-          role: "user",
-          content: `Here is the sermon transcript: ${transcriptText}`
-        }
+          role: 'user',
+          content: `Here is the sermon transcript: ${transcriptText}`,
+        },
       ],
-      response_format: { type: "json_object" }
+      response_format: { type: 'json_object' },
     });
 
     const content = response.choices[0].message.content;
@@ -92,7 +92,7 @@ Begin processing now.`;
       console.error('[Analyze] Raw content:', content);
       throw new Error(`Failed to parse OpenAI response: ${msg}`);
     }
-    
+
     // Map new structure to expected format
     let mappedData;
     try {
@@ -109,14 +109,14 @@ Begin processing now.`;
           hook_title: clip.hook_title,
           main_quote: clip.main_quote,
           why_it_works: clip.why_it_works,
-          hashtags: clip.hashtags
+          hashtags: clip.hashtags,
         })),
         social_captions: (data.social_captions || []).map((cap: Record<string, unknown>) => ({
           clip_number: cap.clip_number,
-          captions: [cap.instagram_caption, cap.tiktok_caption].filter(Boolean)
+          captions: [cap.instagram_caption, cap.tiktok_caption].filter(Boolean),
         })),
         sermon_images: data.sermon_images || [],
-        quotes_and_verses: data.quotes_and_verses || []
+        quotes_and_verses: data.quotes_and_verses || [],
       };
       console.log('[Analyze] Mapped data successfully');
     } catch (mapErr: unknown) {
@@ -124,16 +124,16 @@ Begin processing now.`;
       console.error('[Analyze] Mapping error:', msg);
       throw new Error(`Failed to map response data: ${msg}`);
     }
-    
-    progressManager.update(jobId, { 
-      step: 'Analyzing', 
-      status: 'completed', 
-      message: 'Analysis complete' 
+
+    progressManager.update(jobId, {
+      step: 'Analyzing',
+      status: 'completed',
+      message: 'Analysis complete',
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      ...mappedData
+    return NextResponse.json({
+      success: true,
+      ...mappedData,
     });
   } catch (error: unknown) {
     console.error('Analysis error:', error);

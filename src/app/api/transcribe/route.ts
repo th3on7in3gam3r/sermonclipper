@@ -11,10 +11,14 @@ export async function POST(req: NextRequest) {
     currentJobId = jobId;
 
     if (!filePath || !jobId) {
-      return NextResponse.json({ error: "Missing filePath or jobId" }, { status: 400 });
+      return NextResponse.json({ error: 'Missing filePath or jobId' }, { status: 400 });
     }
 
-    progressManager.update(jobId, { step: 'Analysis', status: 'loading', message: 'Extracting Spiritual Audio...' });
+    progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'loading',
+      message: 'Extracting Spiritual Audio...',
+    });
 
     const audioPath = join(TMP_DIR, `${jobId}_audio.mp3`);
 
@@ -22,20 +26,14 @@ export async function POST(req: NextRequest) {
     // 16kHz Mono 64kbps is the 'Sweet Spot' for Whisper/Groq
     await new Promise((resolve, reject) => {
       ffmpeg(filePath)
-        .outputOptions([
-          '-vn',
-          '-acodec libmp3lame',
-          '-ar 16000',
-          '-ac 1',
-          '-b:a 64k'
-        ])
+        .outputOptions(['-vn', '-acodec libmp3lame', '-ar 16000', '-ac 1', '-b:a 64k'])
         .save(audioPath)
         .on('start', (cmd) => console.log('[Transcribe] FFMPEG Start:', cmd))
         .on('progress', (p) => {
-          progressManager.update(jobId, { 
-            step: 'Analysis', 
-            status: 'loading', 
-            message: `Extracting Audio: ${Math.round(p.percent || 0)}%` 
+          progressManager.update(jobId, {
+            step: 'Analysis',
+            status: 'loading',
+            message: `Extracting Audio: ${Math.round(p.percent || 0)}%`,
           });
         })
         .on('end', resolve)
@@ -45,32 +43,39 @@ export async function POST(req: NextRequest) {
         });
     });
 
-    progressManager.update(jobId, { step: 'Analysis', status: 'loading', message: 'Neural Transcription Active...' });
+    progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'loading',
+      message: 'Neural Transcription Active...',
+    });
 
     // ── AI Transcription Stage ──────────────────────────────────────────
     // Note: Here is where you would integrate OpenAI Whisper or Groq.
     // For now, we simulate a deep analysis.
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise((r) => setTimeout(r, 3000));
 
-    progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'completed', 
-      message: 'Transcription Complete' 
+    progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'completed',
+      message: 'Transcription Complete',
     });
 
     return NextResponse.json({
       success: true,
       jobId,
       audioPath,
-      transcript: "Transcription generated successfully. Ready for social clipping."
+      transcript: 'Transcription generated successfully. Ready for social clipping.',
     });
-
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
-    console.error("🔥 TRANSCRIBE ERROR:", error);
+    console.error('🔥 TRANSCRIBE ERROR:', error);
     if (currentJobId) {
-      progressManager.update(currentJobId, { step: 'Analysis', status: 'error', message: `Analysis Failed: ${msg}` });
+      progressManager.update(currentJobId, {
+        step: 'Analysis',
+        status: 'error',
+        message: `Analysis Failed: ${msg}`,
+      });
     }
-    return NextResponse.json({ error: "Transcription failed", message: msg }, { status: 500 });
+    return NextResponse.json({ error: 'Transcription failed', message: msg }, { status: 500 });
   }
 }

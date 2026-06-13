@@ -10,14 +10,14 @@ const oauth2Client = new OAuth2Client(
 export const getAuthUrl = (state?: string) => {
   const scopes = [
     'https://www.googleapis.com/auth/youtube.upload',
-    'https://www.googleapis.com/auth/youtube.readonly'
+    'https://www.googleapis.com/auth/youtube.readonly',
   ];
 
   return oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: scopes,
     include_granted_scopes: true,
-    state
+    state,
   });
 };
 
@@ -26,7 +26,10 @@ export const getTokens = async (code: string) => {
   return tokens;
 };
 
-export const uploadVideo = async (tokens: Record<string, unknown>, videoData: { title: string, description: string, url: string }) => {
+export const uploadVideo = async (
+  tokens: Record<string, unknown>,
+  videoData: { title: string; description: string; url: string }
+) => {
   oauth2Client.setCredentials(tokens);
   const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
 
@@ -41,16 +44,16 @@ export const uploadVideo = async (tokens: Record<string, unknown>, videoData: { 
         title: videoData.title,
         description: videoData.description,
         categoryId: '22', // People & Blogs
-        tags: ['sermon', 'church', 'vesper']
+        tags: ['sermon', 'church', 'vesper'],
       },
       status: {
         privacyStatus: 'public', // Or 'unlisted'
-        selfDeclaredMadeForKids: false
-      }
+        selfDeclaredMadeForKids: false,
+      },
     },
     media: {
-      body: Buffer.from(buffer)
-    }
+      body: Buffer.from(buffer),
+    },
   });
 
   return res.data;

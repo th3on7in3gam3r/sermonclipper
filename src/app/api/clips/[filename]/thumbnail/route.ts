@@ -8,7 +8,7 @@ async function findThumbnailPath(filename: string) {
   const thumbName = filename.replace('.mp4', '.jpg');
   const clipsBase = join('/tmp', 'clips');
   if (!existsSync(clipsBase)) return null;
-  
+
   const jobDirs = await readdir(clipsBase);
   for (const jobDir of jobDirs) {
     const fullPath = join(clipsBase, jobDir, thumbName);
@@ -17,10 +17,7 @@ async function findThumbnailPath(filename: string) {
   return null;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ filename: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ filename: string }> }) {
   try {
     const { filename } = await params;
     const filePath = await findThumbnailPath(filename);
@@ -31,7 +28,7 @@ export async function GET(
 
     const fileStat = await stat(filePath);
     const fileBuffer = await readFile(filePath);
-    
+
     return new NextResponse(fileBuffer, {
       status: 200,
       headers: {

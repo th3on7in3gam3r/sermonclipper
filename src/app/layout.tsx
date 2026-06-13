@@ -1,21 +1,17 @@
-import type { Metadata, Viewport } from "next";
-import { Inter, Outfit } from "next/font/google";
-import "./globals.css";
-import {
-  OG_IMAGE_PATH,
-  SITE_DESCRIPTION,
-  SITE_TITLE,
-  SITE_URL,
-} from '@/lib/siteConfig';
+import type { Metadata, Viewport } from 'next';
+import { Inter, Outfit } from 'next/font/google';
+import './globals.css';
+import './theme-extensions.css';
+import { OG_IMAGE_PATH, SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from '@/lib/siteConfig';
 
-const inter = Inter({ 
-  subsets: ["latin"],
+const inter = Inter({
+  subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
 });
 
-const outfit = Outfit({ 
-  subsets: ["latin"],
+const outfit = Outfit({
+  subsets: ['latin'],
   variable: '--font-outfit',
   display: 'swap',
 });
@@ -24,6 +20,8 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from 'react-hot-toast';
 import { Suspense } from 'react';
 import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
+import { FeatureFlagsProvider } from '@/components/providers/FeatureFlagsProvider';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import VesperErrorBoundary from '@/components/shared/VesperErrorBoundary';
 import CookieConsent from '@/components/consent/CookieConsent';
 import { vesperClerkAppearance, vesperClerkLocalization } from '@/lib/clerkAppearance';
@@ -97,7 +95,7 @@ export default function RootLayout({
       signInFallbackRedirectUrl="/dashboard"
       signUpFallbackRedirectUrl="/dashboard?onboarding=1"
     >
-      <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
+      <html lang="en" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
         <head>
           <link rel="icon" href="/favicon.png" />
           <link rel="shortcut icon" href="/favicon.png" />
@@ -106,32 +104,36 @@ export default function RootLayout({
         </head>
         <body className="antialiased">
           <Suspense fallback={null}>
-            <AnalyticsProvider>
-              <VesperErrorBoundary>
-                <Toaster 
-            position="bottom-center"
-            toastOptions={{
-              style: {
-                background: '#1A1A1A',
-                color: '#fff',
-                border: '1px solid #333',
-                borderRadius: '99px',
-                padding: '12px 24px',
-                fontSize: '14px',
-                fontWeight: 500,
-              },
-              success: {
-                iconTheme: {
-                  primary: '#8B5CF6',
-                  secondary: '#fff',
-                },
-              },
-            }}
-          />
-          {children}
-                <CookieConsent />
-              </VesperErrorBoundary>
-            </AnalyticsProvider>
+            <ThemeProvider>
+              <FeatureFlagsProvider>
+                <AnalyticsProvider>
+                  <VesperErrorBoundary>
+                    <Toaster
+                      position="bottom-center"
+                      toastOptions={{
+                        style: {
+                          background: '#1A1A1A',
+                          color: '#fff',
+                          border: '1px solid #333',
+                          borderRadius: '99px',
+                          padding: '12px 24px',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                        },
+                        success: {
+                          iconTheme: {
+                            primary: '#8B5CF6',
+                            secondary: '#fff',
+                          },
+                        },
+                      }}
+                    />
+                    {children}
+                    <CookieConsent />
+                  </VesperErrorBoundary>
+                </AnalyticsProvider>
+              </FeatureFlagsProvider>
+            </ThemeProvider>
           </Suspense>
         </body>
       </html>

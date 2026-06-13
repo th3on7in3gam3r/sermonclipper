@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     const fileStat = await stat(filePath);
     const extension = extname(filePath).toLowerCase();
-    
+
     // Determine Content-Type
     let contentType = 'application/octet-stream';
     if (extension === '.mp4') contentType = 'video/mp4';

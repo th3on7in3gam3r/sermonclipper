@@ -144,8 +144,7 @@ export default function ShareExportModal({ clipTitle, renderUrl, onClose }: Shar
         )}
 
         <p className="share-export-footnote">
-          Manage connected accounts in{' '}
-          <a href="/dashboard/settings">Account Settings</a>.
+          Manage connected accounts in <a href="/dashboard/settings">Account Settings</a>.
         </p>
       </div>
     </div>

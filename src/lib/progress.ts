@@ -30,11 +30,11 @@ class ProgressManager {
     try {
       await connectDB();
       const existing = await JobProgress.findOne({ jobId: id });
-      
+
       const updateData = {
         ...update,
         jobId: id,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       if (existing) {
@@ -46,7 +46,7 @@ class ProgressManager {
       } else {
         await JobProgress.create(updateData);
       }
-      
+
       console.log(`[Progress] Updated ${id}: ${update.step} (${update.status})`);
     } catch (err) {
       console.error(`[Progress] Failed to update ${id}:`, err);

@@ -10,16 +10,16 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const jobId = searchParams.get('jobId');
   if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
-  
+
   const update = await progressManager.get(jobId);
   if (update?.analysis) {
     return NextResponse.json({
       success: true,
       ...update.analysis,
-      analysis: update.analysis
+      analysis: update.analysis,
     });
   }
-  
+
   return NextResponse.json({ success: false, status: 'pending' });
 }
 
@@ -39,10 +39,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, ...cached.analysis, analysis: cached.analysis });
     }
 
-    progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'loading', 
-      message: 'Claude 3.5 Sonnet analyzing sermon...' 
+    progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'loading',
+      message: 'Claude 3.5 Sonnet analyzing sermon...',
     });
 
     const prompt = `You are an expert sermon media editor.
@@ -70,10 +70,10 @@ Watch the full sermon and return **only valid JSON** with this structure:
 Generate 8-12 high-quality clips. Focus on impactful, emotional, and biblical moments.`;
 
     const message = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20240620",
+      model: 'claude-3-5-sonnet-20240620',
       max_tokens: 4000,
       temperature: 0.5,
-      messages: [{ role: "user", content: prompt }]
+      messages: [{ role: 'user', content: prompt }],
     });
 
     const text = message.content[0].type === 'text' ? message.content[0].text : '';
@@ -83,25 +83,24 @@ Generate 8-12 high-quality clips. Focus on impactful, emotional, and biblical mo
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
     } catch {
-      parsed = { success: true, sermon_title: "Sermon Highlights", clips: [] };
+      parsed = { success: true, sermon_title: 'Sermon Highlights', clips: [] };
     }
 
-    progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'completed', 
+    progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'completed',
       message: `✅ Claude generated ${parsed.clips?.length || 0} clips`,
-      analysis: parsed
+      analysis: parsed,
     });
 
     return NextResponse.json({
       success: true,
       ...parsed,
-      analysis: parsed
+      analysis: parsed,
     });
-
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Claude analysis failed';
-    console.error("Claude Error:", error);
+    console.error('Claude Error:', error);
     if (jobId) {
       progressManager.update(jobId, { step: 'Analysis', status: 'error', message: msg });
     }

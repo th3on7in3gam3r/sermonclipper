@@ -35,13 +35,21 @@ export default function CookieConsent() {
           <Link href="/privacy">Privacy Policy</Link>.
         </p>
         <div className="cookie-banner-actions">
-          <button type="button" className="vesper-btn-outline" onClick={() => save(rejectNonEssentialConsent())}>
+          <button
+            type="button"
+            className="vesper-btn-outline"
+            onClick={() => save(rejectNonEssentialConsent())}
+          >
             Reject Non-Essential
           </button>
           <button type="button" className="vesper-btn-outline" onClick={() => setShowPrefs(true)}>
             Manage Preferences
           </button>
-          <button type="button" className="vesper-btn vesper-btn-primary" onClick={() => save(acceptAllConsent())}>
+          <button
+            type="button"
+            className="vesper-btn vesper-btn-primary"
+            onClick={() => save(acceptAllConsent())}
+          >
             Accept All
           </button>
         </div>

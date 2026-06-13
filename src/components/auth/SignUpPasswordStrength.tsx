@@ -41,7 +41,13 @@ export default function SignUpPasswordStrength() {
 
   return (
     <div className="signup-password-strength" aria-live="polite">
-      <div className="signup-password-strength-bar" role="progressbar" aria-valuenow={score} aria-valuemin={0} aria-valuemax={4}>
+      <div
+        className="signup-password-strength-bar"
+        role="progressbar"
+        aria-valuenow={score}
+        aria-valuemin={0}
+        aria-valuemax={4}
+      >
         {[1, 2, 3, 4].map((i) => (
           <span
             key={i}

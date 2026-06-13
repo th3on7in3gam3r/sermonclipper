@@ -23,8 +23,10 @@ export async function rewardReferrerOnUpgrade(upgradedClerkId: string): Promise<
       const Stripe = (await import('stripe')).default;
       const stripe = new Stripe(stripeKey);
       const sub = await stripe.subscriptions.retrieve(referrer.stripeSubscriptionId);
-      const trialEnd =
-        Math.max(Math.floor(Date.now() / 1000), (sub.trial_end || Math.floor(Date.now() / 1000)) + 30 * 86400);
+      const trialEnd = Math.max(
+        Math.floor(Date.now() / 1000),
+        (sub.trial_end || Math.floor(Date.now() / 1000)) + 30 * 86400
+      );
       await stripe.subscriptions.update(referrer.stripeSubscriptionId, { trial_end: trialEnd });
       referrer.referralRewarded = true;
     } catch (err) {

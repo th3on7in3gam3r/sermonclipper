@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
 
     const fileStat = await stat(zipPath);
     const file = createReadStream(zipPath);
-    
+
     // Convert Node.js stream to Web stream
     const stream = new ReadableStream({
       start(controller) {
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
       },
       cancel() {
         file.destroy();
-      }
+      },
     });
 
     return new NextResponse(stream, {

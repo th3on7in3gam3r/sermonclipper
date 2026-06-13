@@ -38,7 +38,8 @@ export default function HowItWorksPage() {
           <p className="seo-kicker">How it works</p>
           <h1>From pulpit to Reels in four steps</h1>
           <p className="seo-lead">
-            Vesper is built for church media teams who need consistent short-form without spending hours in an editor.
+            Vesper is built for church media teams who need consistent short-form without spending hours in an
+            editor.
           </p>
         </section>
         <section className="seo-steps">

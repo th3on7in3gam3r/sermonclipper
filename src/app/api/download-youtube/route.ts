@@ -33,16 +33,22 @@ const MIRRORS = [
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function extractVideoId(url: string): string | null {
-  const m = url.match(/(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  const m = url.match(
+    /(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/
+  );
   return m?.[1] ?? null;
 }
 
-async function resolveMirror(videoId: string, mirror: { name: string; type: string; url: string }, fullUrl: string): Promise<string | null> {
+async function resolveMirror(
+  videoId: string,
+  mirror: { name: string; type: string; url: string },
+  fullUrl: string
+): Promise<string | null> {
   try {
     if (mirror.type === 'cobalt') {
       const res = await fetch(mirror.url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ url: fullUrl, videoQuality: '720' }),
         signal: AbortSignal.timeout(15000),
       });
@@ -51,7 +57,9 @@ async function resolveMirror(videoId: string, mirror: { name: string; type: stri
       return data.url || null;
     }
     return null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // ── OpenAI Strategy ──────────────────────────────────────────────────────────
@@ -66,16 +74,17 @@ async function runOpenAIPrimary(url: string, _jobId: string) {
   });
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: 'gpt-4o',
     temperature: 0.5,
-    response_format: { type: "json_object" },
+    response_format: { type: 'json_object' },
     messages: [
       {
-        role: "system",
-        content: "You are a World-Class Ministry Content Strategist and Social Media Expert. Your goal is to harvest high-impact, spiritually provocative, and emotionally resonant segments for viral social media clips (Reels, TikToks, Shorts)."
+        role: 'system',
+        content:
+          'You are a World-Class Ministry Content Strategist and Social Media Expert. Your goal is to harvest high-impact, spiritually provocative, and emotionally resonant segments for viral social media clips (Reels, TikToks, Shorts).',
       },
       {
-        role: "user",
+        role: 'user',
         content: `Analyze this sermon: ${url}
         
         CRITICAL SELECTION CRITERIA:
@@ -103,9 +112,9 @@ async function runOpenAIPrimary(url: string, _jobId: string) {
           ]
         }
 
-        Generate 8-12 high-quality clips.`
-      }
-    ]
+        Generate 8-12 high-quality clips.`,
+      },
+    ],
   });
 
   const text = completion.choices[0]?.message?.content || '{}';
@@ -115,30 +124,42 @@ async function runOpenAIPrimary(url: string, _jobId: string) {
 // ── Main Job ─────────────────────────────────────────────────────────────────
 async function runSermonPipeline(url: string, jobId: string, userId: string): Promise<void> {
   const filePath = join(TMP_DIR, `${jobId}.mp4`);
-  
+
   // 1. PRIMARY: NEURAL BRAIN (Instant Analysis)
-  await progressManager.update(jobId, { step: 'Analysis', status: 'loading', message: 'Neural Engine: Harvesting viral spiritual moments...' });
-  
+  await progressManager.update(jobId, {
+    step: 'Analysis',
+    status: 'loading',
+    message: 'Neural Engine: Harvesting viral spiritual moments...',
+  });
+
   let analysisResult = null;
   try {
     analysisResult = await runOpenAIPrimary(url, jobId);
-    await progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'completed', 
+    await progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'completed',
       message: `✅ GPT-4o generated ${analysisResult?.clips?.length || 0} clips`,
-      finalPath: url, 
-      analysis: analysisResult
+      finalPath: url,
+      analysis: analysisResult,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error';
     console.error('[Engine] Neural Primary Failed:', msg);
-    await progressManager.update(jobId, { step: 'Analysis', status: 'error', message: `Neural Analysis Failed: ${msg}` });
+    await progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'error',
+      message: `Neural Analysis Failed: ${msg}`,
+    });
     return; // Stop if analysis fails
   }
 
   // 2. SECONDARY: BINARY HARVEST (MP4 Download)
-  await progressManager.update(jobId, { step: 'Downloading', status: 'loading', message: 'Engine: Harvesting media binary...' });
-  
+  await progressManager.update(jobId, {
+    step: 'Downloading',
+    status: 'loading',
+    message: 'Engine: Harvesting media binary...',
+  });
+
   let downloadSuccess = false;
 
   // Try Direct Download (R2/Direct Link)
@@ -171,7 +192,9 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
             downloadSuccess = true;
             break;
           }
-        } catch { /* mirror failed, try next */ }
+        } catch {
+          /* mirror failed, try next */
+        }
       }
     }
   }
@@ -179,32 +202,36 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
   // 3. Finalize Media Kit
   if (downloadSuccess) {
     try {
-      await progressManager.update(jobId, { step: 'Uploading', status: 'loading', message: 'Cloud Sync: Finalizing Media Kit...' });
+      await progressManager.update(jobId, {
+        step: 'Uploading',
+        status: 'loading',
+        message: 'Cloud Sync: Finalizing Media Kit...',
+      });
       const r2Url = await uploadStreamToR2(`sermons/${jobId}.mp4`, createReadStream(filePath), 'video/mp4');
-      await progressManager.update(jobId, { 
-        step: 'Downloading', 
-        status: 'completed', 
-        message: 'Master Download Complete', 
+      await progressManager.update(jobId, {
+        step: 'Downloading',
+        status: 'completed',
+        message: 'Master Download Complete',
         finalPath: r2Url,
-        analysis: analysisResult
+        analysis: analysisResult,
       });
       if (existsSync(filePath)) unlinkSync(filePath);
     } catch {
-      await progressManager.update(jobId, { 
-        step: 'Downloading', 
-        status: 'completed', 
-        message: 'Analysis Ready (Download Sync Pending)', 
+      await progressManager.update(jobId, {
+        step: 'Downloading',
+        status: 'completed',
+        message: 'Analysis Ready (Download Sync Pending)',
         finalPath: url,
-        analysis: analysisResult
+        analysis: analysisResult,
       });
     }
   } else {
-    await progressManager.update(jobId, { 
-      step: 'Downloading', 
-      status: 'completed', 
-      message: 'Processing Ready (Using Cloud Streaming)', 
+    await progressManager.update(jobId, {
+      step: 'Downloading',
+      status: 'completed',
+      message: 'Processing Ready (Using Cloud Streaming)',
       finalPath: url,
-      analysis: analysisResult
+      analysis: analysisResult,
     });
   }
 
@@ -212,7 +239,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
   try {
     const connectDB = (await import('../../../lib/mongodb')).default;
     const Sermon = (await import('../../../models/Sermon')).default;
-    
+
     await connectDB();
     await Sermon.findOneAndUpdate(
       { jobId },
@@ -224,7 +251,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
         videoUrl: url,
         finalPath: downloadSuccess ? (await progressManager.get(jobId))?.finalPath : url,
         analysis: analysisResult,
-        createdAt: new Date()
+        createdAt: new Date(),
       },
       { upsert: true }
     );
@@ -262,18 +289,21 @@ export async function POST(req: NextRequest) {
   }
 
   const limits: Record<string, number> = {
-    'free': 2,
-    'creator': 20,
-    'church_pro': 999999
+    free: 2,
+    creator: 20,
+    church_pro: 999999,
   };
 
   const limit = limits[dbUser.plan as string] || 2;
   if (dbUser.usageCount >= limit) {
-    return NextResponse.json({ 
-      error: 'Plan limit reached', 
-      details: `Your ${dbUser.plan} plan is limited to ${limit} clips per month. Please upgrade to continue.`,
-      code: 'LIMIT_REACHED'
-    }, { status: 403 });
+    return NextResponse.json(
+      {
+        error: 'Plan limit reached',
+        details: `Your ${dbUser.plan} plan is limited to ${limit} clips per month. Please upgrade to continue.`,
+        code: 'LIMIT_REACHED',
+      },
+      { status: 403 }
+    );
   }
 
   // Increment usage
@@ -286,41 +316,41 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[download-youtube] Quota email trigger failed:', err);
   }
-  
+
   // VERCEL-SAFE ARCHITECTURE:
-  // We MUST await the AI analysis in the main request. 
-  // Download/Upload will happen as a side-effect if time permits, 
+  // We MUST await the AI analysis in the main request.
+  // Download/Upload will happen as a side-effect if time permits,
   // but the 'Brain' work is secured first.
-  
+
   try {
     // 1. Initial State
-    await progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'loading', 
-      message: '[Neural Pulse] Initializing Vesper Engine...' 
+    await progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'loading',
+      message: '[Neural Pulse] Initializing Vesper Engine...',
     });
 
     // 2. Await AI BRAIN
-    await progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'loading', 
-      message: '[Neural Pulse] Establishing Secure AI Handshake...' 
+    await progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'loading',
+      message: '[Neural Pulse] Establishing Secure AI Handshake...',
     });
-    
+
     console.log(`[Engine] Starting Synchronous Analysis for ${jobId}`);
     const analysisResult = await runOpenAIPrimary(url, jobId);
-    
-    await progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'loading', 
-      message: '[Neural Pulse] Spiritual Insights Harvested. Syncing to Sanctum...' 
+
+    await progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'loading',
+      message: '[Neural Pulse] Spiritual Insights Harvested. Syncing to Sanctum...',
     });
 
     // 3. Persist immediately to MongoDB
     const connectDB = (await import('../../../lib/mongodb')).default;
     const Sermon = (await import('../../../models/Sermon')).default;
     await connectDB();
-    
+
     await Sermon.findOneAndUpdate(
       { jobId },
       {
@@ -329,49 +359,61 @@ export async function POST(req: NextRequest) {
         title: analysisResult.sermon_title || 'Untitled Sermon',
         mainTheme: analysisResult.main_theme || '',
         videoUrl: url,
-        finalPath: url, 
+        finalPath: url,
         analysis: analysisResult,
-        createdAt: new Date()
+        createdAt: new Date(),
       },
       { upsert: true }
     );
 
-    await progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'loading', 
-      message: '[Neural Pulse] Database Write Confirmed.' 
+    await progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'loading',
+      message: '[Neural Pulse] Database Write Confirmed.',
     });
 
     // 4. Update progress to reflect success
-    await progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'completed', 
+    await progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'completed',
       message: `[Neural Pulse] Complete. GPT-4o generated ${analysisResult?.clips?.length || 0} clips.`,
       finalPath: url,
-      analysis: analysisResult
+      analysis: analysisResult,
     });
 
     // 5. Kick off download as a "Best Effort" background task
-    runSermonPipeline(url, jobId, userId).catch(e => {
+    runSermonPipeline(url, jobId, userId).catch((e) => {
       console.error('[Engine] BG Pipeline Error:', e);
     });
-    
+
+    try {
+      const { markChecklist } = await import('@/lib/checklist');
+      const isYoutube = Boolean(extractVideoId(url));
+      if (!isYoutube) await markChecklist(userId, 'uploadedSermon');
+      await markChecklist(userId, 'createdClip');
+    } catch {
+      /* non-blocking */
+    }
+
     return NextResponse.json({ success: true, jobId });
   } catch (e: unknown) {
     const errorMsg = e instanceof Error ? e.message : 'Unknown Neural Error';
     console.error('[Engine] Synchronous Failure:', e);
-    
+
     // Log the EXACT error to the progress manager so the user sees it in the log
-    await progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'error', 
-      message: `[Neural Error] ${errorMsg}` 
+    await progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'error',
+      message: `[Neural Error] ${errorMsg}`,
     });
 
-    return NextResponse.json({ 
-      error: 'Neural Engine Failure', 
-      details: errorMsg,
-      code: (e as { code?: string })?.code || '500' 
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Neural Engine Failure',
+        details: errorMsg,
+        code: (e as { code?: string })?.code || '500',
+      },
+      { status: 500 }
+    );
   }
 }

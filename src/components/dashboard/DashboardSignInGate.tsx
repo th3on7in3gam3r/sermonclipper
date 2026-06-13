@@ -16,7 +16,10 @@ export default function DashboardSignInGate() {
   }, []);
 
   return (
-    <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <main
+      className="vesper-mesh-bg-container"
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+    >
       <div className="vesper-mesh-bg" />
 
       <header
@@ -38,15 +41,35 @@ export default function DashboardSignInGate() {
           borderRadius: '20px',
         }}
       >
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: isPhone ? '8px' : '12px' }}>
-          <img src="/vesper-logo-icon.png" alt="VESPER" style={{ height: isPhone ? '26px' : '32px', width: 'auto' }} />
+        <Link
+          href="/"
+          style={{
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: isPhone ? '8px' : '12px',
+          }}
+        >
+          <img
+            src="/vesper-logo-icon.png"
+            alt="VESPER"
+            style={{ height: isPhone ? '26px' : '32px', width: 'auto' }}
+          />
           {!isPhone && (
             <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
               <span style={{ color: '#8B5CF6' }}>VES</span>PER
             </div>
           )}
         </Link>
-        <Link href="/" className="vesper-btn-outline" style={{ fontSize: isPhone ? '12px' : '13px', textDecoration: 'none', padding: isPhone ? '6px 8px' : undefined }}>
+        <Link
+          href="/"
+          className="vesper-btn-outline"
+          style={{
+            fontSize: isPhone ? '12px' : '13px',
+            textDecoration: 'none',
+            padding: isPhone ? '6px 8px' : undefined,
+          }}
+        >
           BACK HOME
         </Link>
       </header>
@@ -79,13 +102,17 @@ export default function DashboardSignInGate() {
             YOUR <span className="accent-text">ARCHIVE</span>
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '16px', lineHeight: 1.6, marginBottom: '36px' }}>
-            Sign in to view harvested sermons, usage limits, and account settings. Authentication opens in a secure
-            Clerk modal — no redirect away from Vesper.
+            Sign in to view harvested sermons, usage limits, and account settings. Authentication opens in a
+            secure Clerk modal — no redirect away from Vesper.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <SignInButton mode="modal" appearance={vesperClerkAppearance}>
-              <button type="button" className="vesper-btn vesper-btn-primary shimmer-effect" style={{ width: '100%', padding: '16px' }}>
+              <button
+                type="button"
+                className="vesper-btn vesper-btn-primary shimmer-effect"
+                style={{ width: '100%', padding: '16px' }}
+              >
                 SIGN IN
               </button>
             </SignInButton>

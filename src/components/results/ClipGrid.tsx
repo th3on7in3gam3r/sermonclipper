@@ -23,13 +23,17 @@ interface ClipGridProps {
 }
 
 export default function ClipGrid({ clips }: ClipGridProps) {
-  const validClips = clips.filter(c => typeof c.url === 'string' && c.url.trim().length > 0);
+  const validClips = clips.filter((c) => typeof c.url === 'string' && c.url.trim().length > 0);
 
   if (validClips.length === 0) {
     return (
       <div className="glass-card p-16 text-center">
-        <p className="text-white/40 font-semibold uppercase tracking-widest text-xs">Processing Video Streams</p>
-        <p className="text-white/20 text-sm mt-4 max-w-sm mx-auto font-medium">We&apos;re finalizing your clips. Please refresh in a moment if they haven&apos;t appeared.</p>
+        <p className="text-white/40 font-semibold uppercase tracking-widest text-xs">
+          Processing Video Streams
+        </p>
+        <p className="text-white/20 text-sm mt-4 max-w-sm mx-auto font-medium">
+          We&apos;re finalizing your clips. Please refresh in a moment if they haven&apos;t appeared.
+        </p>
       </div>
     );
   }
@@ -93,11 +97,13 @@ function ClipItem({ clip }: { clip: Clip }) {
           {clip.hashtags && (
             <div className="flex flex-wrap gap-2">
               {clip.hashtags.split(' ').map((tag, i) => (
-                <span key={i} className="text-primary text-[10px] font-bold tracking-widest">{tag}</span>
+                <span key={i} className="text-primary text-[10px] font-bold tracking-widest">
+                  {tag}
+                </span>
               ))}
             </div>
           )}
-          
+
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => {

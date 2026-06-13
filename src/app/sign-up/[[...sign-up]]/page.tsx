@@ -12,7 +12,17 @@ export default function SignUpPage() {
 
   return (
     <AuthPageShell>
-      <label className="signup-terms" style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
+      <label
+        className="signup-terms"
+        style={{
+          display: 'flex',
+          gap: '10px',
+          alignItems: 'flex-start',
+          marginBottom: '16px',
+          fontSize: '13px',
+          color: 'var(--text-muted)',
+        }}
+      >
         <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
         <span>
           I agree to the{' '}

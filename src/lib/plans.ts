@@ -8,10 +8,7 @@ export const FREE_STUDIO_TEMPLATES = new Set(['minimal']);
 
 export type UpgradeFeature = 'export' | 'caption_templates' | 'custom_branding';
 
-export const UPGRADE_COPY: Record<
-  UpgradeFeature,
-  { feature: string; plan: string; price: string }
-> = {
+export const UPGRADE_COPY: Record<UpgradeFeature, { feature: string; plan: string; price: string }> = {
   export: {
     feature: 'Export cinematic reels with captions and effects baked in',
     plan: 'Creator',

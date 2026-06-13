@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
+import ThemeToggle from '@/components/shared/ThemeToggle';
+import { useHeroCtaTest } from '@/lib/useHeroCtaTest';
 
 const NAV_LINKS = [
   { href: '/how-it-works', label: 'How it Works' },
@@ -14,6 +16,7 @@ const NAV_LINKS = [
 
 function AuthActions({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: () => void }) {
   const { isLoaded, userId } = useAuth();
+  const { label, onCtaClick } = useHeroCtaTest(userId);
 
   const wrapClass = stacked ? 'landing-nav-mobile-auth' : 'landing-nav-actions';
 
@@ -36,13 +39,28 @@ function AuthActions({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: 
   return (
     <div className={wrapClass}>
       <SignInButton mode="modal" appearance={vesperClerkAppearance} forceRedirectUrl="/dashboard">
-        <button type="button" className="vesper-btn vesper-btn-outline landing-nav-ghost" onClick={onNavigate}>
+        <button
+          type="button"
+          className="vesper-btn vesper-btn-outline landing-nav-ghost"
+          onClick={onNavigate}
+        >
           Log In
         </button>
       </SignInButton>
-      <SignUpButton mode="modal" appearance={vesperClerkAppearance} forceRedirectUrl="/dashboard?onboarding=1">
-        <button type="button" className="vesper-btn vesper-btn-primary shimmer-effect landing-nav-cta" onClick={onNavigate}>
-          Get Started
+      <SignUpButton
+        mode="modal"
+        appearance={vesperClerkAppearance}
+        forceRedirectUrl="/dashboard?onboarding=1"
+      >
+        <button
+          type="button"
+          className="vesper-btn vesper-btn-primary shimmer-effect landing-nav-cta"
+          onClick={() => {
+            onCtaClick();
+            onNavigate?.();
+          }}
+        >
+          {label}
         </button>
       </SignUpButton>
     </div>
@@ -80,6 +98,7 @@ export default function LandingNav() {
         </nav>
 
         <div className="landing-nav-actions landing-nav-actions--desktop">
+          <ThemeToggle />
           <AuthActions />
         </div>
 

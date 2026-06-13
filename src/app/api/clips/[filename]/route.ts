@@ -7,7 +7,7 @@ import { existsSync, createReadStream } from 'fs';
 async function findClipPath(filename: string) {
   const clipsBase = join('/tmp', 'clips');
   if (!existsSync(clipsBase)) return null;
-  
+
   const jobDirs = await readdir(clipsBase);
   for (const jobDir of jobDirs) {
     const fullPath = join(clipsBase, jobDir, filename);
@@ -16,12 +16,9 @@ async function findClipPath(filename: string) {
   return null;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ filename: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ filename: string }> }) {
   try {
-    const { filename } = await params; 
+    const { filename } = await params;
     const filePath = await findClipPath(filename);
 
     if (!filePath) {
@@ -39,17 +36,17 @@ export async function GET(
 
     if (range && isVideo) {
       // --- HARDENED RANGE REQUEST STREAMING ---
-      const parts = range.replace(/bytes=/, "").split("-");
+      const parts = range.replace(/bytes=/, '').split('-');
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-      
+
       console.log(`[DEBUG] Streaming Range: ${start}-${end} / ${fileSize}`);
 
       if (start >= fileSize) {
         console.error(`[DEBUG] Invalid Range Request: Start ${start} >= FileSize ${fileSize}`);
         return new Response('Requested range not satisfiable', {
           status: 416,
-          headers: { 'Content-Range': `bytes */${fileSize}` }
+          headers: { 'Content-Range': `bytes */${fileSize}` },
         });
       }
 
@@ -66,7 +63,7 @@ export async function GET(
         },
         cancel() {
           file.destroy();
-        }
+        },
       });
 
       return new Response(stream, {
@@ -95,9 +92,9 @@ export async function GET(
         },
         cancel() {
           file.destroy();
-        }
+        },
       });
-      
+
       return new Response(stream, {
         status: 200,
         headers: {

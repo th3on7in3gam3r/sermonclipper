@@ -6,16 +6,16 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const jobId = searchParams.get('jobId');
   if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
-  
+
   const update = await progressManager.get(jobId);
   if (update?.analysis) {
     return NextResponse.json({
       success: true,
       ...update.analysis,
-      analysis: update.analysis
+      analysis: update.analysis,
     });
   }
-  
+
   return NextResponse.json({ success: false, status: 'pending' });
 }
 
@@ -37,10 +37,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, ...cached.analysis, analysis: cached.analysis });
     }
 
-    progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'loading', 
-      message: 'GPT-4o analyzing sermon...' 
+    progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'loading',
+      message: 'GPT-4o analyzing sermon...',
     });
 
     // Lazy initialize inside the request (fixes Next.js build error)
@@ -49,16 +49,16 @@ export async function POST(req: NextRequest) {
     });
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: 'gpt-4o',
       temperature: 0.5,
-      response_format: { type: "json_object" },
+      response_format: { type: 'json_object' },
       messages: [
         {
-          role: "system",
-          content: "You are an expert sermon clip editor for social media."
+          role: 'system',
+          content: 'You are an expert sermon clip editor for social media.',
         },
         {
-          role: "user",
+          role: 'user',
           content: `Analyze this sermon video. Return ONLY valid JSON.
 
 YouTube URL: ${url}
@@ -79,9 +79,9 @@ YouTube URL: ${url}
   "summary": "Powerful 2-3 sentence summary"
 }
 
-Generate 8-12 high-quality clips.`
-        }
-      ]
+Generate 8-12 high-quality clips.`,
+        },
+      ],
     });
 
     const text = completion.choices[0]?.message?.content || '{}';
@@ -89,25 +89,24 @@ Generate 8-12 high-quality clips.`
     try {
       parsed = JSON.parse(text);
     } catch {
-      parsed = { success: true, sermon_title: "Sermon Highlights", clips: [] };
+      parsed = { success: true, sermon_title: 'Sermon Highlights', clips: [] };
     }
 
-    progressManager.update(jobId, { 
-      step: 'Analysis', 
-      status: 'completed', 
+    progressManager.update(jobId, {
+      step: 'Analysis',
+      status: 'completed',
       message: `✅ GPT-4o generated ${parsed.clips?.length || 0} clips`,
-      analysis: parsed
+      analysis: parsed,
     });
 
     return NextResponse.json({
       success: true,
       ...parsed,
-      analysis: parsed
+      analysis: parsed,
     });
-
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'OpenAI analysis failed';
-    console.error("OpenAI Error:", error);
+    console.error('OpenAI Error:', error);
     if (jobId) {
       progressManager.update(jobId, { step: 'Analysis', status: 'error', message: msg });
     }

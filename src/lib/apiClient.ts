@@ -6,9 +6,7 @@ export async function vesperFetch(input: RequestInfo | URL, init?: RequestInit):
   const res = await fetch(input, init);
   if (res.status === 429) {
     const retryAfter = res.headers.get('Retry-After');
-    const msg = retryAfter
-      ? `${RATE_LIMIT_MESSAGE} Try again in ${retryAfter} seconds.`
-      : RATE_LIMIT_MESSAGE;
+    const msg = retryAfter ? `${RATE_LIMIT_MESSAGE} Try again in ${retryAfter} seconds.` : RATE_LIMIT_MESSAGE;
     toast.error(msg, { duration: 5000 });
   }
   return res;

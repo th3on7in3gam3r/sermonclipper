@@ -12,15 +12,18 @@ export async function GET(req: NextRequest) {
 
   try {
     const tokens = await getTokens(code);
-    
+
     if (state) {
       await connectDB();
-      await User.findOneAndUpdate(
-        { clerkId: state },
-        { youtubeTokens: tokens }
-      );
+      await User.findOneAndUpdate({ clerkId: state }, { youtubeTokens: tokens });
+      try {
+        const { markChecklist } = await import('@/lib/checklist');
+        await markChecklist(state, 'connectedSocial');
+      } catch {
+        /* non-blocking */
+      }
     }
-    
+
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard?youtube=success`);
   } catch (error) {
     console.error('[YOUTUBE_CALLBACK_ERROR]', error);

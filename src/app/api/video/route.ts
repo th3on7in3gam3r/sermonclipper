@@ -20,13 +20,13 @@ export async function GET(req: NextRequest) {
     const contentType = isVideo ? 'video/mp4' : 'image/jpeg';
 
     if (range && isVideo) {
-      const parts = range.replace(/bytes=/, "").split("-");
+      const parts = range.replace(/bytes=/, '').split('-');
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
       const chunksize = end - start + 1;
 
       const fileBuffer = await readFile(filePath);
-      
+
       return new NextResponse(fileBuffer.subarray(start, end + 1), {
         status: 206,
         headers: {
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       });
     } else {
       const fileBuffer = await readFile(filePath);
-      
+
       return new NextResponse(fileBuffer, {
         status: 200,
         headers: {

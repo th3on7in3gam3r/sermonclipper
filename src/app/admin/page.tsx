@@ -2,15 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 type Metrics = {
   users: {
@@ -44,16 +36,31 @@ type AdminUser = {
   usageCount: number;
 };
 
+type AbTestStats = {
+  testName: string;
+  variants: {
+    variant: string;
+    impressions: number;
+    clicks: number;
+    signups: number;
+    conversionRate: number;
+  }[];
+  significant: boolean;
+  significanceNote: string;
+};
+
 export default function AdminPage() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [abTest, setAbTest] = useState<AbTestStats | null>(null);
   const [search, setSearch] = useState('');
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
-    const [mRes, uRes] = await Promise.all([
+    const [mRes, uRes, abRes] = await Promise.all([
       fetch('/api/admin/metrics'),
       fetch(`/api/admin/users?q=${encodeURIComponent(search)}`),
+      fetch('/api/admin/ab-test'),
     ]);
     if (!mRes.ok || !uRes.ok) {
       setError('Unauthorized or failed to load admin data.');
@@ -61,6 +68,7 @@ export default function AdminPage() {
     }
     setMetrics(await mRes.json());
     setUsers((await uRes.json()).users);
+    if (abRes.ok) setAbTest((await abRes.json()).heroCta);
   }, [search]);
 
   useEffect(() => {
@@ -97,7 +105,10 @@ export default function AdminPage() {
     <main className="admin-page">
       <header className="admin-header">
         <h1>Vesper Admin</h1>
-        <Link href="/dashboard">← Dashboard</Link>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <Link href="/admin/flags">Feature Flags</Link>
+          <Link href="/dashboard">← Dashboard</Link>
+        </div>
       </header>
 
       <section className="admin-kpis">
@@ -150,7 +161,16 @@ export default function AdminPage() {
           {metrics.nps.feedback.length > 0 && (
             <div style={{ marginTop: '24px' }}>
               <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>Written feedback</h3>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <ul
+                style={{
+                  listStyle: 'none',
+                  padding: 0,
+                  margin: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
                 {metrics.nps.feedback.slice(0, 20).map((f, i) => (
                   <li key={i} style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
                     <strong style={{ color: '#fff' }}>{f.score}/10</strong> — {f.feedback}
@@ -159,6 +179,35 @@ export default function AdminPage() {
               </ul>
             </div>
           )}
+        </section>
+      )}
+
+      {abTest && (
+        <section className="admin-chart glass-card">
+          <h2>Hero CTA A/B Test</h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '16px' }}>{abTest.significanceNote}</p>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Variant</th>
+                <th>Impressions</th>
+                <th>Clicks</th>
+                <th>Signups</th>
+                <th>Conv. rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {abTest.variants.map((v) => (
+                <tr key={v.variant}>
+                  <td>{v.variant}</td>
+                  <td>{v.impressions}</td>
+                  <td>{v.clicks}</td>
+                  <td>{v.signups}</td>
+                  <td>{v.conversionRate}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </section>
       )}
 

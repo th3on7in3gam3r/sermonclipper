@@ -125,7 +125,12 @@ export async function sendMonthlyRecapEmail(
     unsubscribeToken
   );
 
-  await resend.emails.send({ from: FROM_EMAIL, to, subject: `Your Vesper recap — ${params.monthLabel}`, html });
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Your Vesper recap — ${params.monthLabel}`,
+    html,
+  });
   return { ok: true };
 }
 
@@ -144,7 +149,12 @@ export async function sendTeamInviteEmail(
     unsubscribeToken
   );
 
-  await resend.emails.send({ from: FROM_EMAIL, to, subject: `You are invited to ${params.teamName} on Vesper`, html });
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `You are invited to ${params.teamName} on Vesper`,
+    html,
+  });
   return { ok: true };
 }
 

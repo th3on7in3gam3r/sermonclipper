@@ -23,7 +23,9 @@ export async function GET(req: NextRequest) {
 
     if (!isDownloadableMasterUrl(rawUrl)) {
       return NextResponse.json(
-        { error: 'No downloadable master file for this session. Upload an MP4 or wait for harvest to finish.' },
+        {
+          error: 'No downloadable master file for this session. Upload an MP4 or wait for harvest to finish.',
+        },
         { status: 400 }
       );
     }

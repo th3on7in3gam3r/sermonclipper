@@ -43,7 +43,10 @@ export async function POST(req: NextRequest) {
 
   const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
   if (userEmail?.toLowerCase() !== invite.email.toLowerCase()) {
-    return NextResponse.json({ error: 'This invite was sent to a different email address.' }, { status: 403 });
+    return NextResponse.json(
+      { error: 'This invite was sent to a different email address.' },
+      { status: 403 }
+    );
   }
 
   if (team.members.length >= team.seatLimit) {

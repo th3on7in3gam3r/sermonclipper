@@ -22,7 +22,8 @@ import SiteFooter from '@/components/layout/SiteFooter';
 import EmptyState from '@/components/shared/EmptyState';
 import { planAllowsExport, UPGRADE_COPY } from '@/lib/plans';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
-const GOOGLE_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap';
+const GOOGLE_FONTS_URL =
+  'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap';
 
 function ResultsContent() {
   // Inject Google Fonts once on mount so Outfit & Playfair Display render correctly
@@ -39,7 +40,7 @@ function ResultsContent() {
   const finalPathParam = searchParams.get('finalPath');
   const jobId = searchParams.get('jobId');
   const [analysis, setAnalysis] = useState<any>(null);
-  const [rendering, setRendering] = useState<{ [key: number]: { status: string, url?: string } }>({});
+  const [rendering, setRendering] = useState<{ [key: number]: { status: string; url?: string } }>({});
   const [userStatus, setUserStatus] = useState<any>(null);
   const [upgradePrompt, setUpgradePrompt] = useState<keyof typeof UPGRADE_COPY | null>(null);
   const [playableVideoUrl, setPlayableVideoUrl] = useState<string | null>(null);
@@ -117,7 +118,6 @@ function ResultsContent() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  
   // Carousel State
   const [carouselLoading, setCarouselLoading] = useState(false);
   const [carouselData, setCarouselData] = useState<any>(null);
@@ -128,18 +128,18 @@ function ResultsContent() {
       setShowCarouselModal(true);
       return;
     }
-    
+
     setCarouselLoading(true);
     const loadToast = toast.loading('Generating AI Social Carousel...');
-    
+
     try {
       const res = await fetch('/api/social-carousel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId })
+        body: JSON.stringify({ jobId }),
       });
       const data = await res.json();
-      
+
       if (data.slides) {
         setCarouselData(data);
         setShowCarouselModal(true);
@@ -158,7 +158,7 @@ function ResultsContent() {
   const getYouTubeId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
+    return match && match[2].length === 11 ? match[2] : null;
   };
 
   const videoId = videoUrl ? getYouTubeId(videoUrl) : null;
@@ -177,10 +177,10 @@ function ResultsContent() {
   // Render progress per clip (0-100)
   const [renderProgress, setRenderProgress] = useState<{ [key: number]: number }>({});
 
-
-
   // Core Asset State
-  const [thumbnails, setThumbnails] = useState<{ [key: number]: { status: string; url?: string; variants?: string[] } }>({});
+  const [thumbnails, setThumbnails] = useState<{
+    [key: number]: { status: string; url?: string; variants?: string[] };
+  }>({});
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
   // Thumbnail Studio state
   const [activeThumbnailClip, setActiveThumbnailClip] = useState<any>(null);
@@ -196,40 +196,42 @@ function ResultsContent() {
 
   const handleGenerateThumbnail = async () => {
     if (!activeThumbnailClip) return;
-    
+
     setIsGeneratingThumb(true);
     const i = activeThumbnailClip.index;
-    setThumbnails(prev => ({ ...prev, [i]: { status: 'loading' } }));
-    
+    setThumbnails((prev) => ({ ...prev, [i]: { status: 'loading' } }));
+
     const baseText = `YouTube thumbnail, 16:9 aspect ratio, text overlay saying "${thumbPrompt || activeThumbnailClip.hook_title}", church/faith theme, professional quality, no watermarks`;
-    
+
     const primary = THUMB_STYLES.find((s) => s.id === thumbStyle) || THUMB_STYLES[0];
     const others = THUMB_STYLES.filter((s) => s.id !== primary.id);
     const styleOrder = [primary, ...others];
     const prompts = styleOrder.map((s) => `${baseText}, ${s.prompt}`);
-    
+
     try {
-      const promises = prompts.map(p => fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: p }),
-      }).then(res => res.json()));
+      const promises = prompts.map((p) =>
+        fetch('/api/generate-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: p }),
+        }).then((res) => res.json())
+      );
 
       const results = await Promise.allSettled(promises);
       const urls = results
         .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled' && r.value.success)
-        .map(r => r.value.imageUrl);
-        
+        .map((r) => r.value.imageUrl);
+
       if (urls.length > 0) {
-        setThumbnails(prev => ({ ...prev, [i]: { status: 'done', url: urls[0], variants: urls } }));
+        setThumbnails((prev) => ({ ...prev, [i]: { status: 'done', url: urls[0], variants: urls } }));
         setSelectedVariantIdx(0);
         toast.success(`Generated ${urls.length} variants! ✦`);
       } else {
-        setThumbnails(prev => ({ ...prev, [i]: { status: 'error' } }));
+        setThumbnails((prev) => ({ ...prev, [i]: { status: 'error' } }));
         toast.error('Thumbnail generation failed.');
       }
     } catch {
-      setThumbnails(prev => ({ ...prev, [i]: { status: 'error' } }));
+      setThumbnails((prev) => ({ ...prev, [i]: { status: 'error' } }));
       toast.error('Network error.');
     } finally {
       setIsGeneratingThumb(false);
@@ -239,7 +241,14 @@ function ResultsContent() {
   const PLATFORMS = [
     { id: 'instagram', label: 'Instagram', icon: '📸', prefix: '✨ ', format: 'Feed / Reels', limit: 2200 },
     { id: 'tiktok', label: 'TikTok', icon: '🎵', prefix: '', format: 'Short-form Video', limit: 2200 },
-    { id: 'youtube', label: 'YouTube Shorts', icon: '▶️', prefix: '', format: 'Shorts / Description', limit: 500 },
+    {
+      id: 'youtube',
+      label: 'YouTube Shorts',
+      icon: '▶️',
+      prefix: '',
+      format: 'Shorts / Description',
+      limit: 500,
+    },
     { id: 'x', label: 'X / Twitter', icon: '🐦', prefix: '', format: 'Post', limit: 280 },
     { id: 'facebook', label: 'Facebook', icon: '📘', prefix: '', format: 'Post / Reel', limit: 63206 },
   ];
@@ -250,8 +259,7 @@ function ResultsContent() {
       return;
     }
 
-    const canExport =
-      planAllowsExport(userStatus?.plan) || userStatus?.isAdmin === true;
+    const canExport = planAllowsExport(userStatus?.plan) || userStatus?.isAdmin === true;
 
     if (!canExport) {
       setUpgradePrompt('export');
@@ -265,7 +273,7 @@ function ResultsContent() {
     setRendering((prev) => ({ ...prev, [index]: { status: 'loading' } }));
     setRenderProgress((prev) => ({ ...prev, [index]: 2 }));
     const renderToastId = toast.loading('Starting cloud render…');
-    
+
     // Default settings if not provided (e.g. for batch export)
     const {
       template = 'minimal',
@@ -274,28 +282,28 @@ function ResultsContent() {
       animation = 'fade',
       trimStart: tStart,
       trimEnd: tEnd,
-      caption
+      caption,
     } = settings;
 
     try {
       const res = await fetch('/api/render-clip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           jobId,
           videoUrl: masterDownloadUrl || videoUrl,
-          clip: { 
-            ...clip, 
-            start: tStart || clip.start, 
+          clip: {
+            ...clip,
+            start: tStart || clip.start,
             end: tEnd || clip.end,
-            suggested_captions: caption ? [caption] : clip.suggested_captions
+            suggested_captions: caption ? [caption] : clip.suggested_captions,
           },
           index,
           template,
           filter,
           font,
           animation,
-        })
+        }),
       });
       const data = await res.json();
 
@@ -316,7 +324,10 @@ function ResultsContent() {
         toast.error(errMsg, { id: renderToastId, duration: 6000 });
       }
     } catch {
-      setRendering((prev) => ({ ...prev, [index]: { status: 'error', error: 'Network error during rendering.' } }));
+      setRendering((prev) => ({
+        ...prev,
+        [index]: { status: 'error', error: 'Network error during rendering.' },
+      }));
       toast.error('Network error during rendering.', { id: renderToastId });
     }
   };
@@ -324,13 +335,13 @@ function ResultsContent() {
   const handleBatchExport = async () => {
     if (!analysis?.clips) return;
     toast.success('Batch export initiated! Firing up neural engines...', { icon: '🚀' });
-    
+
     const clips = analysis.clips;
     for (let i = 0; i < clips.length; i += 3) {
       const batch = clips.slice(i, i + 3);
       await Promise.all(batch.map((clip: any, idx: number) => startExport({ ...clip, index: i + idx })));
       // Throttle slightly to respect cloud rendering bounds
-      if (i + 3 < clips.length) await new Promise(r => setTimeout(r, 2000));
+      if (i + 3 < clips.length) await new Promise((r) => setTimeout(r, 2000));
     }
   };
 
@@ -358,7 +369,7 @@ function ResultsContent() {
     ctx.font = 'bold 54px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
+
     const quote = `"${clip.main_quote}"`;
     const words = quote.split(' ');
     let line = '';
@@ -381,7 +392,7 @@ function ResultsContent() {
     const totalTextHeight = lines.length * 80;
     y = (1080 - totalTextHeight) / 2 + 40;
 
-    lines.forEach(l => {
+    lines.forEach((l) => {
       ctx.fillText(l, 540, y);
       y += 80;
     });
@@ -390,7 +401,7 @@ function ResultsContent() {
     ctx.fillStyle = '#8B5CF6';
     ctx.font = '900 28px sans-serif';
     ctx.fillText('VESPER', 540, 950);
-    
+
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.font = '400 24px sans-serif';
     ctx.fillText(analysis?.sermon_title || 'Sermon Highlight', 540, 990);
@@ -409,12 +420,12 @@ function ResultsContent() {
       const data = await res.json();
 
       if (typeof data.percent === 'number') {
-        setRenderProgress(prev => ({ ...prev, [index]: Math.round(data.percent) }));
+        setRenderProgress((prev) => ({ ...prev, [index]: Math.round(data.percent) }));
       }
 
       if (data.status === 'done') {
-        setRendering(prev => ({ ...prev, [index]: { status: 'complete', url: data.url } }));
-        setRenderProgress(prev => ({ ...prev, [index]: 100 }));
+        setRendering((prev) => ({ ...prev, [index]: { status: 'complete', url: data.url } }));
+        setRenderProgress((prev) => ({ ...prev, [index]: 100 }));
         toast.success('Your reel is ready — download or share below.', { id: toastId, duration: 6000 });
 
         const clip = analysis?.clips?.[index];
@@ -434,7 +445,10 @@ function ResultsContent() {
         setTimeout(() => pollStatus(id, index, toastId), 3000);
       }
     } catch {
-      setRendering((prev) => ({ ...prev, [index]: { status: 'error', error: 'Lost connection to render status.' } }));
+      setRendering((prev) => ({
+        ...prev,
+        [index]: { status: 'error', error: 'Lost connection to render status.' },
+      }));
       toast.error('Lost connection to render status.', { id: toastId });
     }
   };
@@ -533,18 +547,37 @@ function ResultsContent() {
   const clipCount = analysis?.clips?.length ?? 0;
 
   return (
-    <div className="vesper-mesh-bg-container" style={{ width: '100%', minHeight: '100vh', position: 'relative' }}>
+    <div
+      className="vesper-mesh-bg-container"
+      style={{ width: '100%', minHeight: '100vh', position: 'relative' }}
+    >
       <div className="vesper-mesh-bg" />
-      
+
       {/* Navigation */}
-      <header className="glass-card" style={{ 
-        position: 'fixed', top: '16px', left: '50%', transform: 'translateX(-50%)', 
-        width: 'calc(100% - 24px)', maxWidth: '1400px', minHeight: '64px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-        padding: isMobile ? '10px 12px' : '0 32px', zIndex: 1000, borderRadius: '20px'
-      }}>
+      <header
+        className="glass-card"
+        style={{
+          position: 'fixed',
+          top: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'calc(100% - 24px)',
+          maxWidth: '1400px',
+          minHeight: '64px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: isMobile ? '10px 12px' : '0 32px',
+          zIndex: 1000,
+          borderRadius: '20px',
+        }}
+      >
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/vesper-logo-icon.png" alt="Vesper Studio logo" style={{ height: '32px', width: 'auto' }} />
+          <img
+            src="/vesper-logo-icon.png"
+            alt="Vesper Studio logo"
+            style={{ height: '32px', width: 'auto' }}
+          />
           <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
             <span style={{ color: '#8B5CF6' }}>VES</span>PER
           </div>
@@ -553,18 +586,52 @@ function ResultsContent() {
           {isLoaded && userId ? (
             <>
               <nav style={{ display: 'flex', gap: isMobile ? '12px' : '24px' }}>
-                <Link href="/" style={{ textDecoration: 'none', fontSize: isMobile ? '12px' : '14px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>HOME</Link>
-                <Link href="/dashboard" style={{ textDecoration: 'none', fontSize: isMobile ? '12px' : '14px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>ARCHIVE</Link>
+                <Link
+                  href="/"
+                  style={{
+                    textDecoration: 'none',
+                    fontSize: isMobile ? '12px' : '14px',
+                    fontWeight: 700,
+                    color: 'var(--text-muted)',
+                    letterSpacing: '0.1em',
+                    transition: 'color 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                >
+                  HOME
+                </Link>
+                <Link
+                  href="/dashboard"
+                  style={{
+                    textDecoration: 'none',
+                    fontSize: isMobile ? '12px' : '14px',
+                    fontWeight: 700,
+                    color: 'var(--text-muted)',
+                    letterSpacing: '0.1em',
+                    transition: 'color 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                >
+                  ARCHIVE
+                </Link>
               </nav>
               <button
                 onClick={() => setShowTour(true)}
                 title="Open tutorial"
                 className="vesper-btn-outline"
                 style={{
-                  width: '36px', height: '36px', borderRadius: '50%',
-                  padding: 0, fontSize: '16px', fontWeight: 900,
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  padding: 0,
+                  fontSize: '16px',
+                  fontWeight: 900,
                 }}
-              >?</button>
+              >
+                ?
+              </button>
               <UserButton
                 appearance={vesperClerkAppearance}
                 userProfileProps={{ appearance: vesperClerkAppearance }}
@@ -580,7 +647,12 @@ function ResultsContent() {
             </>
           ) : (
             <SignInButton mode="modal" appearance={vesperClerkAppearance}>
-              <button className="vesper-btn vesper-btn-primary shimmer-effect" style={{ padding: isMobile ? '8px 14px' : '10px 24px', fontSize: isMobile ? '11px' : '14px' }}>SIGN IN</button>
+              <button
+                className="vesper-btn vesper-btn-primary shimmer-effect"
+                style={{ padding: isMobile ? '8px 14px' : '10px 24px', fontSize: isMobile ? '11px' : '14px' }}
+              >
+                SIGN IN
+              </button>
             </SignInButton>
           )}
         </div>
@@ -589,45 +661,100 @@ function ResultsContent() {
       {/* Main Content */}
       <div style={{ paddingTop: '120px', paddingBottom: '100px' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: isMobile ? '0 16px' : '0 40px' }}>
-
           {/* Hero Section */}
-          <div className="glass-card premium-border" style={{ padding: isMobile ? '32px 24px' : '64px', marginBottom: '64px', overflow: 'hidden' }}>
+          <div
+            className="glass-card premium-border"
+            style={{ padding: isMobile ? '32px 24px' : '64px', marginBottom: '64px', overflow: 'hidden' }}
+          >
             {/* Background Glow */}
-            <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '400px', height: '400px', background: 'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
-            
+            <div
+              style={{
+                position: 'absolute',
+                top: '-100px',
+                right: '-100px',
+                width: '400px',
+                height: '400px',
+                background: 'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)',
+                zIndex: 0,
+                pointerEvents: 'none',
+              }}
+            />
+
             <div style={{ position: 'relative', zIndex: 1 }}>
               {isYouTubeSource && (
-                <div className="vesper-badge badge-gold" style={{ marginBottom: '24px', padding: '12px 20px', width: '100%', justifyContent: 'flex-start', borderRadius: '16px' }}>
+                <div
+                  className="vesper-badge badge-gold"
+                  style={{
+                    marginBottom: '24px',
+                    padding: '12px 20px',
+                    width: '100%',
+                    justifyContent: 'flex-start',
+                    borderRadius: '16px',
+                  }}
+                >
                   <span style={{ fontSize: '18px' }}>📺</span>
                   <div style={{ marginLeft: '12px' }}>
                     <p style={{ fontWeight: 900, marginBottom: '2px' }}>YOUTUBE PREVIEW MODE</p>
-                    <p style={{ textTransform: 'none', fontWeight: 400, opacity: 0.8 }}>Export requires a direct MP4 upload. AI analysis remains fully active.</p>
+                    <p style={{ textTransform: 'none', fontWeight: 400, opacity: 0.8 }}>
+                      Export requires a direct MP4 upload. AI analysis remains fully active.
+                    </p>
                   </div>
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '40px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-end',
+                  flexWrap: 'wrap',
+                  gap: '40px',
+                }}
+              >
                 <div style={{ flex: '1 1 600px' }}>
                   <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'currentColor', boxShadow: '0 0 10px currentColor' }} />
+                    <div
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        background: 'currentColor',
+                        boxShadow: '0 0 10px currentColor',
+                      }}
+                    />
                     ANALYSIS COMPLETE
                   </div>
                   <h1 className="title-xl gradient-text" style={{ marginBottom: '24px' }}>
-                    {analysis?.sermon_title || 'HARVESTING...'}<br />
+                    {analysis?.sermon_title || 'HARVESTING...'}
+                    <br />
                     <span className="accent-text">RESULTS</span>
                   </h1>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '18px', maxWidth: '640px', lineHeight: 1.6, fontWeight: 400 }}>
-                    {analysis?.main_theme || 'Distilling the essence of your message into high-impact cinematic reels.'}
+                  <p
+                    style={{
+                      color: 'var(--text-muted)',
+                      fontSize: '18px',
+                      maxWidth: '640px',
+                      lineHeight: 1.6,
+                      fontWeight: 400,
+                    }}
+                  >
+                    {analysis?.main_theme ||
+                      'Distilling the essence of your message into high-impact cinematic reels.'}
                   </p>
                 </div>
-                
+
                 {!isYouTubeSource && (
                   <div style={{ width: isMobile ? '100%' : '280px' }}>
                     <button
                       type="button"
                       onClick={handleBatchExport}
                       className="vesper-btn vesper-btn-primary shimmer-effect"
-                      style={{ width: '100%', background: 'linear-gradient(135deg, #10B981, #059669)', padding: '14px 20px', fontSize: '13px' }}
+                      style={{
+                        width: '100%',
+                        background: 'linear-gradient(135deg, #10B981, #059669)',
+                        padding: '14px 20px',
+                        fontSize: '13px',
+                      }}
                     >
                       BATCH EXPORT ALL CLIPS
                     </button>
@@ -637,7 +764,13 @@ function ResultsContent() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(400px, 1fr))', gap: '32px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(400px, 1fr))',
+              gap: '32px',
+            }}
+          >
             <SermonContextCard
               summary={analysis?.summary}
               videoUrl={videoUrl}
@@ -654,8 +787,25 @@ function ResultsContent() {
             {/* Generated Clips */}
             {analysis?.clips && analysis.clips.length > 0 ? (
               analysis.clips.map((clip: any, i: number) => (
-                <div key={i} className="glass-card premium-border animate-in" style={{ animationDelay: `${(i + 1) * 0.1}s`, overflow: 'visible', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ position: 'relative', aspectRatio: '16/9', background: '#000', overflow: 'hidden', borderRadius: 'inherit' }}>
+                <div
+                  key={i}
+                  className="glass-card premium-border animate-in"
+                  style={{
+                    animationDelay: `${(i + 1) * 0.1}s`,
+                    overflow: 'visible',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <div
+                    style={{
+                      position: 'relative',
+                      aspectRatio: '16/9',
+                      background: '#000',
+                      overflow: 'hidden',
+                      borderRadius: 'inherit',
+                    }}
+                  >
                     {videoId ? (
                       <iframe
                         style={{ width: '100%', height: '100%', border: 'none' }}
@@ -663,36 +813,96 @@ function ResultsContent() {
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       ></iframe>
-                    ) : videoUrl && (
-                      <video 
-                        src={playableVideoUrl || ''}
-                        controls
-                        preload="metadata"
-                        onLoadedMetadata={(e) => {
-                          const vid = e.currentTarget;
-                          const start = parseTime(clip.start);
-                          vid.currentTime = start;
-                        }}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
+                    ) : (
+                      videoUrl && (
+                        <video
+                          src={playableVideoUrl || ''}
+                          controls
+                          preload="metadata"
+                          onLoadedMetadata={(e) => {
+                            const vid = e.currentTarget;
+                            const start = parseTime(clip.start);
+                            vid.currentTime = start;
+                          }}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      )
                     )}
-                    <div className="vesper-badge" style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 10, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', color: '#fff' }}>NEURAL CLIP {i+1}</div>
-                    
+                    <div
+                      className="vesper-badge"
+                      style={{
+                        position: 'absolute',
+                        top: '16px',
+                        left: '16px',
+                        zIndex: 10,
+                        background: 'rgba(0,0,0,0.6)',
+                        backdropFilter: 'blur(8px)',
+                        color: '#fff',
+                      }}
+                    >
+                      NEURAL CLIP {i + 1}
+                    </div>
+
                     {clip.viral_score && (
-                      <div className="vesper-badge badge-violet" style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10, backdropFilter: 'blur(8px)' }}>
+                      <div
+                        className="vesper-badge badge-violet"
+                        style={{
+                          position: 'absolute',
+                          top: '16px',
+                          right: '16px',
+                          zIndex: 10,
+                          backdropFilter: 'blur(8px)',
+                        }}
+                      >
                         🔥 {clip.viral_score}% VIRAL
                       </div>
                     )}
 
-                    <div style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 800, backdropFilter: 'blur(8px)', fontFamily: 'monospace' }}>
-                      {Math.floor((parseTime(clip.end) - parseTime(clip.start)) / 60)}:{String((parseTime(clip.end) - parseTime(clip.start)) % 60).padStart(2, '0')}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '12px',
+                        right: '12px',
+                        background: 'rgba(0,0,0,0.7)',
+                        color: '#fff',
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        backdropFilter: 'blur(8px)',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {Math.floor((parseTime(clip.end) - parseTime(clip.start)) / 60)}:
+                      {String((parseTime(clip.end) - parseTime(clip.start)) % 60).padStart(2, '0')}
                     </div>
                   </div>
 
                   <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <h4 style={{ color: 'var(--primary)', fontSize: '18px', fontWeight: 900, marginBottom: '12px', letterSpacing: '0.02em' }}>{clip.hook_title}</h4>
-                    <p style={{ fontStyle: 'italic', color: '#fff', fontSize: '15px', lineHeight: 1.5, marginBottom: '24px', opacity: 0.9 }}>&ldquo;{clip.main_quote}&rdquo;</p>
-                    
+                    <h4
+                      style={{
+                        color: 'var(--primary)',
+                        fontSize: '18px',
+                        fontWeight: 900,
+                        marginBottom: '12px',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      {clip.hook_title}
+                    </h4>
+                    <p
+                      style={{
+                        fontStyle: 'italic',
+                        color: '#fff',
+                        fontSize: '15px',
+                        lineHeight: 1.5,
+                        marginBottom: '24px',
+                        opacity: 0.9,
+                      }}
+                    >
+                      &ldquo;{clip.main_quote}&rdquo;
+                    </p>
+
                     <ClipActionBar
                       clip={clip}
                       isMobile={isMobile}
@@ -711,9 +921,20 @@ function ResultsContent() {
                 </div>
               ))
             ) : (
-              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '100px', color: 'var(--text-muted)' }}>
-                <div style={{ fontSize: '40px', marginBottom: '24px', animation: 'pulse 2s infinite' }}>◈</div>
-                <div style={{ fontSize: '18px', fontWeight: 600, letterSpacing: '0.1em' }}>ESTABLISHING NEURAL LINK...</div>
+              <div
+                style={{
+                  gridColumn: '1/-1',
+                  textAlign: 'center',
+                  padding: '100px',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                <div style={{ fontSize: '40px', marginBottom: '24px', animation: 'pulse 2s infinite' }}>
+                  ◈
+                </div>
+                <div style={{ fontSize: '18px', fontWeight: 600, letterSpacing: '0.1em' }}>
+                  ESTABLISHING NEURAL LINK...
+                </div>
               </div>
             )}
           </div>
@@ -739,120 +960,342 @@ function ResultsContent() {
           )}
 
           {/* Pro Tools Section */}
-          <div className="animate-in" style={{ marginTop: "120px", marginBottom: "100px", textAlign: "center" }}>
-            <h2 className="title-xl" style={{ fontSize: "clamp(32px, 5vw, 48px)", marginBottom: "60px" }}>
+          <div
+            className="animate-in"
+            style={{ marginTop: '120px', marginBottom: '100px', textAlign: 'center' }}
+          >
+            <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 5vw, 48px)', marginBottom: '60px' }}>
               EXPAND YOUR <span className="accent-text">MINISTRY</span>
             </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "32px" }}>
-              <ToolCard title="Social Carousel" desc="Neural-generated multi-slide series." onClick={handleGenerateCarousel} loading={carouselLoading} icon="📱" />
-              <ToolCard title="Quote Vault" desc="Transform powerful sermon quotes." onClick={() => setShowQuoteVault(true)} icon="💎" />
-              <ToolCard title="YouTube Description" desc="AI-optimized metadata." onClick={() => setShowYTDesc(true)} icon="📝" />
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: '32px',
+              }}
+            >
+              <ToolCard
+                title="Social Carousel"
+                desc="Neural-generated multi-slide series."
+                onClick={handleGenerateCarousel}
+                loading={carouselLoading}
+                icon="📱"
+              />
+              <ToolCard
+                title="Quote Vault"
+                desc="Transform powerful sermon quotes."
+                onClick={() => setShowQuoteVault(true)}
+                icon="💎"
+              />
+              <ToolCard
+                title="YouTube Description"
+                desc="AI-optimized metadata."
+                onClick={() => setShowYTDesc(true)}
+                icon="📝"
+              />
             </div>
           </div>
           <SiteFooter />
         </div>
 
-      <UpgradePromptModal
-        open={upgradePrompt !== null}
-        feature={upgradePrompt ? UPGRADE_COPY[upgradePrompt].feature : ''}
-        planName={upgradePrompt ? UPGRADE_COPY[upgradePrompt].plan : ''}
-        price={upgradePrompt ? UPGRADE_COPY[upgradePrompt].price : ''}
-        onClose={() => setUpgradePrompt(null)}
-      />
+        <UpgradePromptModal
+          open={upgradePrompt !== null}
+          feature={upgradePrompt ? UPGRADE_COPY[upgradePrompt].feature : ''}
+          planName={upgradePrompt ? UPGRADE_COPY[upgradePrompt].plan : ''}
+          price={upgradePrompt ? UPGRADE_COPY[upgradePrompt].price : ''}
+          onClose={() => setUpgradePrompt(null)}
+        />
 
-      {showCarouselModal && carouselData && (
-        <CarouselModal data={carouselData} onClose={() => setShowCarouselModal(false)} />
-      )}
+        {showCarouselModal && carouselData && (
+          <CarouselModal data={carouselData} onClose={() => setShowCarouselModal(false)} />
+        )}
 
-      {showYTDesc && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(30px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '0' : '24px' }}>
-          <div className="glass-card animate-in premium-border" style={{ width: '100%', maxWidth: '640px', height: isMobile ? '100%' : 'auto', maxHeight: '90vh', display: 'flex', flexDirection: 'column', borderRadius: isMobile ? '0' : '24px' }}>
-            <div style={{ padding: '32px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div className="vesper-badge badge-violet" style={{ marginBottom: '8px' }}>SEO ENGINE</div>
-                <h2 style={{ fontSize: '24px', fontWeight: 900 }}>YouTube Strategy</h2>
-              </div>
-              <button onClick={() => setShowYTDesc(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '18px' }}>✕</button>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div className="glass-card" style={{ padding: '24px', background: 'rgba(255,255,255,0.03)' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: 900, color: 'var(--primary)', marginBottom: '12px', letterSpacing: '0.1em' }}>OPTIMIZED DESCRIPTION</h4>
-                <p style={{ fontSize: '15px', color: '#fff', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: '20px' }}>{analysis?.summary || 'Processing...'}</p>
-                <button onClick={() => { navigator.clipboard.writeText(analysis?.summary || ''); toast.success('Description copied!'); }} className="vesper-btn vesper-btn-outline" style={{ width: '100%' }}>COPY DESCRIPTION</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showQuoteVault && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '0' : '20px' }}>
-          <div className="glass-panel animate-up" style={{ width: '100%', maxWidth: isMobile ? '100%' : '800px', height: isMobile ? '100%' : 'auto', maxHeight: isMobile ? '100%' : '85vh', borderRadius: isMobile ? '0' : '32px', display: 'flex', flexDirection: 'column', border: isMobile ? 'none' : '1px solid rgba(139,92,246,0.25)', overflow: 'hidden' }}>
-            <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-              <div>
-                <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: '6px' }}>EXPAND YOUR MINISTRY</div>
-                <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.02em' }}>Quote Vault</h2>
-                <p style={{ color: '#A1A1AA', fontSize: '18px', marginTop: '4px' }}>Auto-generated 1080x1080 graphics for Instagram Stories.</p>
-              </div>
-              <button onClick={() => setShowQuoteVault(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '18px' }}>✕</button>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
-              {analysis?.clips?.map((clip: any, i: number) => (
-                <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em', marginBottom: '12px' }}>CLIP {i + 1}</div>
-                  <div style={{ flex: 1, marginBottom: '20px' }}>
-                    <p style={{ fontStyle: 'italic', fontSize: '18px', lineHeight: 1.5, color: '#E4E4E7' }}>&ldquo;{clip.main_quote}&rdquo;</p>
+        {showYTDesc && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 10000,
+              background: 'rgba(0,0,0,0.9)',
+              backdropFilter: 'blur(30px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: isMobile ? '0' : '24px',
+            }}
+          >
+            <div
+              className="glass-card animate-in premium-border"
+              style={{
+                width: '100%',
+                maxWidth: '640px',
+                height: isMobile ? '100%' : 'auto',
+                maxHeight: '90vh',
+                display: 'flex',
+                flexDirection: 'column',
+                borderRadius: isMobile ? '0' : '24px',
+              }}
+            >
+              <div
+                style={{
+                  padding: '32px',
+                  borderBottom: '1px solid rgba(255,255,255,0.05)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <div>
+                  <div className="vesper-badge badge-violet" style={{ marginBottom: '8px' }}>
+                    SEO ENGINE
                   </div>
-                  <button onClick={() => downloadQuoteGraphic(clip, i)} className="vesper-btn vesper-btn-outline" style={{ width: '100%' }}>DOWNLOAD GRAPHIC</button>
+                  <h2 style={{ fontSize: '24px', fontWeight: 900 }}>YouTube Strategy</h2>
                 </div>
-              ))}
+                <button
+                  onClick={() => setShowYTDesc(false)}
+                  style={{
+                    background: 'none',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  padding: '32px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '24px',
+                }}
+              >
+                <div className="glass-card" style={{ padding: '24px', background: 'rgba(255,255,255,0.03)' }}>
+                  <h4
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 900,
+                      color: 'var(--primary)',
+                      marginBottom: '12px',
+                      letterSpacing: '0.1em',
+                    }}
+                  >
+                    OPTIMIZED DESCRIPTION
+                  </h4>
+                  <p
+                    style={{
+                      fontSize: '15px',
+                      color: '#fff',
+                      lineHeight: 1.6,
+                      whiteSpace: 'pre-wrap',
+                      marginBottom: '20px',
+                    }}
+                  >
+                    {analysis?.summary || 'Processing...'}
+                  </p>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(analysis?.summary || '');
+                      toast.success('Description copied!');
+                    }}
+                    className="vesper-btn vesper-btn-outline"
+                    style={{ width: '100%' }}
+                  >
+                    COPY DESCRIPTION
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {activeThumbnailClip && (
-        <ThumbnailStudioModal
-          clip={activeThumbnailClip}
-          isMobile={isMobile}
-          thumbPrompt={thumbPrompt}
-          onThumbPromptChange={setThumbPrompt}
-          thumbStyle={thumbStyle}
-          onThumbStyleChange={setThumbStyle}
-          isGenerating={isGeneratingThumb}
-          thumbnail={thumbnails[activeThumbnailClip.index]}
-          selectedVariantIdx={selectedVariantIdx}
-          onSelectVariant={setSelectedVariantIdx}
-          onClose={() => setActiveThumbnailClip(null)}
-          onGenerate={handleGenerateThumbnail}
-        />
-      )}
+        {showQuoteVault && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 10000,
+              background: 'rgba(0,0,0,0.92)',
+              backdropFilter: 'blur(20px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: isMobile ? '0' : '20px',
+            }}
+          >
+            <div
+              className="glass-panel animate-up"
+              style={{
+                width: '100%',
+                maxWidth: isMobile ? '100%' : '800px',
+                height: isMobile ? '100%' : 'auto',
+                maxHeight: isMobile ? '100%' : '85vh',
+                borderRadius: isMobile ? '0' : '32px',
+                display: 'flex',
+                flexDirection: 'column',
+                border: isMobile ? 'none' : '1px solid rgba(139,92,246,0.25)',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  padding: '32px 32px 24px',
+                  borderBottom: '1px solid rgba(255,255,255,0.07)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontSize: '17px',
+                      fontWeight: 900,
+                      color: '#8B5CF6',
+                      letterSpacing: '0.2em',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    EXPAND YOUR MINISTRY
+                  </div>
+                  <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.02em' }}>Quote Vault</h2>
+                  <p style={{ color: '#A1A1AA', fontSize: '18px', marginTop: '4px' }}>
+                    Auto-generated 1080x1080 graphics for Instagram Stories.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowQuoteVault(false)}
+                  style={{
+                    background: 'none',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  padding: '32px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                  gap: '24px',
+                }}
+              >
+                {analysis?.clips?.map((clip: any, i: number) => (
+                  <div
+                    key={i}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '17px',
+                        fontWeight: 900,
+                        color: '#8B5CF6',
+                        letterSpacing: '0.1em',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      CLIP {i + 1}
+                    </div>
+                    <div style={{ flex: 1, marginBottom: '20px' }}>
+                      <p style={{ fontStyle: 'italic', fontSize: '18px', lineHeight: 1.5, color: '#E4E4E7' }}>
+                        &ldquo;{clip.main_quote}&rdquo;
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => downloadQuoteGraphic(clip, i)}
+                      className="vesper-btn vesper-btn-outline"
+                      style={{ width: '100%' }}
+                    >
+                      DOWNLOAD GRAPHIC
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
-      {selectedClip && (
-        <VesperStudio
-          key={selectedClip.index}
-          selectedClip={selectedClip}
-          onClose={() => setSelectedClip(null)}
-          videoId={videoId}
-          videoUrl={videoUrl}
-          playableVideoUrl={playableVideoUrl}
-          rendering={rendering}
-          renderProgress={renderProgress}
-          startExport={startExport}
-          isMobile={isMobile}
-          userStatus={userStatus}
-          isYouTubeSource={isYouTubeSource}
-        />
-      )}
-      <VesperTour forceOpen={showTour} onClose={() => setShowTour(false)} />
-        </div>
+        {activeThumbnailClip && (
+          <ThumbnailStudioModal
+            clip={activeThumbnailClip}
+            isMobile={isMobile}
+            thumbPrompt={thumbPrompt}
+            onThumbPromptChange={setThumbPrompt}
+            thumbStyle={thumbStyle}
+            onThumbStyleChange={setThumbStyle}
+            isGenerating={isGeneratingThumb}
+            thumbnail={thumbnails[activeThumbnailClip.index]}
+            selectedVariantIdx={selectedVariantIdx}
+            onSelectVariant={setSelectedVariantIdx}
+            onClose={() => setActiveThumbnailClip(null)}
+            onGenerate={handleGenerateThumbnail}
+          />
+        )}
+
+        {selectedClip && (
+          <VesperStudio
+            key={selectedClip.index}
+            selectedClip={selectedClip}
+            onClose={() => setSelectedClip(null)}
+            videoId={videoId}
+            videoUrl={videoUrl}
+            playableVideoUrl={playableVideoUrl}
+            rendering={rendering}
+            renderProgress={renderProgress}
+            startExport={startExport}
+            isMobile={isMobile}
+            userStatus={userStatus}
+            isYouTubeSource={isYouTubeSource}
+          />
+        )}
+        <VesperTour forceOpen={showTour} onClose={() => setShowTour(false)} />
       </div>
+    </div>
   );
 }
 
-function ToolCard({ title, desc, onClick, loading, icon }: { title: string; desc: string; onClick?: () => void; loading?: boolean; icon: string }) {
+function ToolCard({
+  title,
+  desc,
+  onClick,
+  loading,
+  icon,
+}: {
+  title: string;
+  desc: string;
+  onClick?: () => void;
+  loading?: boolean;
+  icon: string;
+}) {
   return (
-    <div className="glass-card premium-border" style={{ padding: '32px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div
+      className="glass-card premium-border"
+      style={{ padding: '32px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '16px' }}
+    >
       <div style={{ fontSize: '32px', marginBottom: '8px' }}>{icon}</div>
       <h3 style={{ fontSize: '20px', fontWeight: 900 }}>{title}</h3>
       <p style={{ fontSize: '15px', color: 'var(--text-muted)', lineHeight: 1.6, flex: 1 }}>{desc}</p>
@@ -860,7 +1303,7 @@ function ToolCard({ title, desc, onClick, loading, icon }: { title: string; desc
         onClick={onClick}
         disabled={loading || !onClick}
         className="vesper-btn vesper-btn-outline shimmer-effect"
-        style={{ width: '100%', opacity: (loading || !onClick) ? 0.5 : 1 }}
+        style={{ width: '100%', opacity: loading || !onClick ? 0.5 : 1 }}
       >
         {loading ? 'GENERATING...' : `ACTIVATE ${title.toUpperCase()}`}
       </button>
@@ -868,28 +1311,137 @@ function ToolCard({ title, desc, onClick, loading, icon }: { title: string; desc
   );
 }
 
-function CarouselModal({ data, onClose }: { data: { slides: { slide_number: number; heading: string; content: string }[]; post_caption: string }; onClose: () => void }) {
+function CarouselModal({
+  data,
+  onClose,
+}: {
+  data: { slides: { slide_number: number; heading: string; content: string }[]; post_caption: string };
+  onClose: () => void;
+}) {
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(20px)', zIndex: 10000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-      <div className="animate-up glass-panel" style={{ padding: '48px', width: '100%', maxWidth: '860px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <h2 style={{ fontSize: '28px', fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>Kingdom <span style={{ color: '#8B5CF6' }}>Carousel</span></h2>
-          <button onClick={onClose} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: 'rgba(0,0,0,0.9)',
+        backdropFilter: 'blur(20px)',
+        zIndex: 10000,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '20px',
+      }}
+    >
+      <div
+        className="animate-up glass-panel"
+        style={{
+          padding: '48px',
+          width: '100%',
+          maxWidth: '860px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '40px',
+          }}
+        >
+          <h2
+            style={{
+              fontSize: '28px',
+              fontWeight: 900,
+              letterSpacing: '-0.02em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Kingdom <span style={{ color: '#8B5CF6' }}>Carousel</span>
+          </h2>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#fff',
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              fontSize: '16px',
+            }}
+          >
+            ✕
+          </button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '40px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: '16px',
+            marginBottom: '40px',
+          }}
+        >
           {data.slides.map((slide) => (
-            <div key={slide.slide_number} className="glass-panel" style={{ padding: '28px', background: 'rgba(255,255,255,0.03)' }}>
-              <div style={{ fontSize: '15px', color: '#8B5CF6', fontWeight: 900, marginBottom: '12px', letterSpacing: '0.2em' }}>SLIDE {slide.slide_number}</div>
-              <h4 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '12px', lineHeight: 1.2 }}>{slide.heading}</h4>
+            <div
+              key={slide.slide_number}
+              className="glass-panel"
+              style={{ padding: '28px', background: 'rgba(255,255,255,0.03)' }}
+            >
+              <div
+                style={{
+                  fontSize: '15px',
+                  color: '#8B5CF6',
+                  fontWeight: 900,
+                  marginBottom: '12px',
+                  letterSpacing: '0.2em',
+                }}
+              >
+                SLIDE {slide.slide_number}
+              </div>
+              <h4 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '12px', lineHeight: 1.2 }}>
+                {slide.heading}
+              </h4>
               <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.6 }}>{slide.content}</p>
             </div>
           ))}
         </div>
-        <div className="glass-panel" style={{ padding: '32px', background: 'rgba(139, 92, 246, 0.05)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-          <h4 style={{ fontSize: '16px', fontWeight: 900, marginBottom: '14px', color: '#8B5CF6', letterSpacing: '0.2em' }}>OPTIMIZED CAPTION</h4>
-          <p style={{ fontSize: '16px', color: '#fff', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.post_caption}</p>
-          <button onClick={() => { navigator.clipboard.writeText(data.post_caption); toast.success('Caption copied!'); }}
-            className="shimmer-btn" style={{ marginTop: '24px', padding: '14px 28px', fontSize: '16px' }}>
+        <div
+          className="glass-panel"
+          style={{
+            padding: '32px',
+            background: 'rgba(139, 92, 246, 0.05)',
+            border: '1px solid rgba(139, 92, 246, 0.2)',
+          }}
+        >
+          <h4
+            style={{
+              fontSize: '16px',
+              fontWeight: 900,
+              marginBottom: '14px',
+              color: '#8B5CF6',
+              letterSpacing: '0.2em',
+            }}
+          >
+            OPTIMIZED CAPTION
+          </h4>
+          <p style={{ fontSize: '16px', color: '#fff', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+            {data.post_caption}
+          </p>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(data.post_caption);
+              toast.success('Caption copied!');
+            }}
+            className="shimmer-btn"
+            style={{ marginTop: '24px', padding: '14px 28px', fontSize: '16px' }}
+          >
             COPY CAPTION
           </button>
         </div>
@@ -898,7 +1450,10 @@ function CarouselModal({ data, onClose }: { data: { slides: { slide_number: numb
   );
 }
 
-class ResultsErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: string }> {
+class ResultsErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: string }
+> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false, error: '' };
@@ -909,7 +1464,18 @@ class ResultsErrorBoundary extends React.Component<{ children: React.ReactNode }
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ minHeight: '100vh', background: '#0A0A0F', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
+        <div
+          style={{
+            minHeight: '100vh',
+            background: '#0A0A0F',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '40px',
+            textAlign: 'center',
+          }}
+        >
           <div style={{ maxWidth: '500px' }}>
             <div style={{ fontSize: '48px', marginBottom: '24px' }}>⚠️</div>
             <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '16px' }}>Something went wrong</h2>

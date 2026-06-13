@@ -19,7 +19,9 @@ export function getConsent(): ConsentPreferences | null {
   }
 }
 
-export function saveConsent(prefs: Omit<ConsentPreferences, 'essential' | 'decidedAt'> & { essential?: true }) {
+export function saveConsent(
+  prefs: Omit<ConsentPreferences, 'essential' | 'decidedAt'> & { essential?: true }
+) {
   const value: ConsentPreferences = {
     essential: true,
     analytics: prefs.analytics,

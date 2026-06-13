@@ -199,7 +199,11 @@ export default function ExportFlowModal({ item, plan, onClose, onComplete }: Exp
               </p>
             )}
 
-            <button type="button" className="vesper-btn vesper-btn-primary shimmer-effect export-flow-cta" onClick={startRender}>
+            <button
+              type="button"
+              className="vesper-btn vesper-btn-primary shimmer-effect export-flow-cta"
+              onClick={startRender}
+            >
               Start export
             </button>
           </>

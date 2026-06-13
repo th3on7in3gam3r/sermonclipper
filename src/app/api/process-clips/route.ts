@@ -40,30 +40,35 @@ console.log('[Process] Final FFmpeg Path:', finalFfmpegPath);
 ffmpeg.setFfmpegPath(finalFfmpegPath);
 
 // Probe video to check for audio streams
-async function probeVideoStreams(filePath: string): Promise<{ hasAudio: boolean; hasVideo: boolean; duration?: number }> {
+async function probeVideoStreams(
+  filePath: string
+): Promise<{ hasAudio: boolean; hasVideo: boolean; duration?: number }> {
   try {
     const probeCmd = `"${finalFfmpegPath}" -v error -select_streams v:0 -select_streams a:0 -show_entries stream=codec_type:format=duration -of default=noprint_wrappers=1:nokey=1:nk=1 "${filePath}"`;
     const { stdout } = await execAsync(probeCmd);
     const lines = stdout.trim().split('\n').filter(Boolean);
-    
+
     const hasVideo = lines.includes('video');
     const hasAudio = lines.includes('audio');
-    const duration = lines.find(line => /^\d+\.\d+$/.test(line)) ? parseFloat(lines.find(line => /^\d+\.\d+$/.test(line))!) : undefined;
-    
+    const duration = lines.find((line) => /^\d+\.\d+$/.test(line))
+      ? parseFloat(lines.find((line) => /^\d+\.\d+$/.test(line))!)
+      : undefined;
+
     return {
       hasVideo,
       hasAudio,
-      duration
+      duration,
     };
   } catch {
     console.warn('[Process] Failed to probe video streams, assuming audio exists');
     return { hasVideo: true, hasAudio: true };
-  }}
+  }
+}
 
 // Parse time string like "0:15" or "1:30" into seconds
 function parseTimeString(timeStr: string): number {
   if (!timeStr || typeof timeStr !== 'string') return 0;
-  
+
   const parts = timeStr.split(':').map(Number);
   if (parts.length === 2) {
     // MM:SS format
@@ -77,18 +82,18 @@ function parseTimeString(timeStr: string): number {
 
 export async function POST(req: NextRequest) {
   try {
-    const { 
-      filePath, 
-      clips, 
-      transcription, 
-      jobId, 
-      summaries, 
-      main_theme, 
-      tone, 
-      five_day_devotional, 
-      sermon_images, 
+    const {
+      filePath,
+      clips,
+      transcription,
+      jobId,
+      summaries,
+      main_theme,
+      tone,
+      five_day_devotional,
+      sermon_images,
       quotes_and_verses,
-      social_captions
+      social_captions,
     } = await req.json();
 
     if (!filePath || !clips || !transcription) {
@@ -103,7 +108,9 @@ export async function POST(req: NextRequest) {
 
     // Probe source video for streams and duration
     const sourceInfo = await probeVideoStreams(filePath);
-    console.log(`[Process] Source video: duration=${sourceInfo.duration}s, hasVideo=${sourceInfo.hasVideo}, hasAudio=${sourceInfo.hasAudio}`);
+    console.log(
+      `[Process] Source video: duration=${sourceInfo.duration}s, hasVideo=${sourceInfo.hasVideo}, hasAudio=${sourceInfo.hasAudio}`
+    );
 
     if (!sourceInfo.hasVideo) {
       console.warn('[Process] Source video has no video stream, running in audio-only optimization mode');
@@ -112,10 +119,10 @@ export async function POST(req: NextRequest) {
     const clipsDir = join(TMP_DIR, 'clips', jobId);
     await mkdir(clipsDir, { recursive: true });
 
-    progressManager.update(jobId, { 
-      step: 'Cutting', 
-      status: 'loading', 
-      message: 'Processing clips...' 
+    progressManager.update(jobId, {
+      step: 'Cutting',
+      status: 'loading',
+      message: 'Processing clips...',
     });
 
     const processedClips = [];
@@ -123,54 +130,64 @@ export async function POST(req: NextRequest) {
     for (let i = 0; i < clips.length; i++) {
       const rawClip = clips[i];
       const clipId = uuidv4();
-      
+
       // Flexible property mapping with time parsing
       const clip = {
         title: rawClip.hook_title || rawClip.title || `Clip ${i + 1}`,
         start_time: Number(rawClip.start_time) || parseTimeString(rawClip.start) || 0,
         end_time: Number(rawClip.end_time) || parseTimeString(rawClip.end) || 0,
-        ...rawClip
+        ...rawClip,
       };
 
       const duration = clip.end_time - clip.start_time;
 
       // Validate clip duration is reasonable (not too short or too long)
       if (duration < 5) {
-        console.warn(`[Process] Clip ${i + 1} too short (${duration}s), minimum 5 seconds required, skipping`);
+        console.warn(
+          `[Process] Clip ${i + 1} too short (${duration}s), minimum 5 seconds required, skipping`
+        );
         continue;
       }
       if (duration > 120) {
-        console.warn(`[Process] Clip ${i + 1} too long (${duration}s), maximum 120 seconds allowed, skipping`);
+        console.warn(
+          `[Process] Clip ${i + 1} too long (${duration}s), maximum 120 seconds allowed, skipping`
+        );
         continue;
       }
 
       // Validate clip doesn't exceed source video duration
       if (sourceInfo.duration && clip.end_time > sourceInfo.duration) {
-        console.warn(`[Process] Clip ${i + 1} end time (${clip.end_time}s) exceeds source video duration (${sourceInfo.duration}s), skipping`);
+        console.warn(
+          `[Process] Clip ${i + 1} end time (${clip.end_time}s) exceeds source video duration (${sourceInfo.duration}s), skipping`
+        );
         continue; // Skip clips that exceed source duration
       }
 
       // Additional validation: ensure start time is within bounds
       if (sourceInfo.duration && clip.start_time >= sourceInfo.duration) {
-        console.warn(`[Process] Clip ${i + 1} start time (${clip.start_time}s) is beyond source video duration (${sourceInfo.duration}s), skipping`);
+        console.warn(
+          `[Process] Clip ${i + 1} start time (${clip.start_time}s) is beyond source video duration (${sourceInfo.duration}s), skipping`
+        );
         continue;
       }
 
-      console.log(`[Process] Processing clip ${i + 1}: ${clip.title} (${clip.start_time}s - ${clip.end_time}s, duration: ${duration}s)`);
+      console.log(
+        `[Process] Processing clip ${i + 1}: ${clip.title} (${clip.start_time}s - ${clip.end_time}s, duration: ${duration}s)`
+      );
 
       const outputFileName = `clip-${i + 1}-${clipId}.mp4`;
       const outputPath = join(clipsDir, outputFileName);
 
-      progressManager.update(jobId, { 
-        step: 'Cutting', 
-        status: 'loading', 
+      progressManager.update(jobId, {
+        step: 'Cutting',
+        status: 'loading',
         message: `Processing clip ${i + 1}/${clips.length}: ${clip.title}`,
-        progress: (i / clips.length) * 100
+        progress: (i / clips.length) * 100,
       });
 
       let clipR2Url: string | undefined;
       let thumbR2Url: string | undefined;
-      
+
       const hasWords = transcription && transcription.words && transcription.words.length > 0;
       if (hasWords) {
         try {
@@ -188,7 +205,9 @@ export async function POST(req: NextRequest) {
         const clipDuration = clip.end_time - clip.start_time;
 
         const streams = await probeVideoStreams(filePath);
-        console.log(`[Process] Source streams for clip ${i + 1}: video=${streams.hasVideo}, audio=${streams.hasAudio}`);
+        console.log(
+          `[Process] Source streams for clip ${i + 1}: video=${streams.hasVideo}, audio=${streams.hasAudio}`
+        );
 
         let cutCmd: string;
         if (!streams.hasVideo) {
@@ -232,14 +251,18 @@ export async function POST(req: NextRequest) {
             throw new Error(`Output file missing video stream: ${outputFileName}`);
           }
           if (!outputStreams.hasAudio) {
-            console.warn(`[Process] Output file missing audio stream for clip ${i + 1}, regenerating with audio...`);
+            console.warn(
+              `[Process] Output file missing audio stream for clip ${i + 1}, regenerating with audio...`
+            );
             const outputPathTemp = outputPath + '.tmp.mp4';
             const audioAddCmd = `"${finalFfmpegPath}" -i "${outputPath}" -f lavfi -i anullsrc=r=44100:cl=stereo -c:v copy -c:a aac -b:a 128k -ac 2 -shortest -y "${outputPathTemp}"`;
             await execAsync(audioAddCmd);
             renameSync(outputPathTemp, outputPath);
             console.log(`[Process] Added audio to clip ${i + 1}`);
           }
-          console.log(`[Process] Clip ${i + 1} verified: video=${outputStreams.hasVideo}, audio=${outputStreams.hasAudio}`);
+          console.log(
+            `[Process] Clip ${i + 1} verified: video=${outputStreams.hasVideo}, audio=${outputStreams.hasAudio}`
+          );
         } catch (probeErr: unknown) {
           const msg = probeErr instanceof Error ? probeErr.message : String(probeErr);
           console.error(`[Process] Stream validation failed for clip ${i + 1}:`, msg);
@@ -252,9 +275,13 @@ export async function POST(req: NextRequest) {
             throw new Error(`Final validation failed: no video stream in ${outputFileName}`);
           }
           if (finalStreams.duration && finalStreams.duration < 1) {
-            throw new Error(`Final validation failed: clip too short (${finalStreams.duration}s) in ${outputFileName}`);
+            throw new Error(
+              `Final validation failed: clip too short (${finalStreams.duration}s) in ${outputFileName}`
+            );
           }
-          console.log(`[Process] Final validation passed for clip ${i + 1}: duration=${finalStreams.duration?.toFixed(1)}s`);
+          console.log(
+            `[Process] Final validation passed for clip ${i + 1}: duration=${finalStreams.duration?.toFixed(1)}s`
+          );
         } catch (finalErr: unknown) {
           const msg = finalErr instanceof Error ? finalErr.message : String(finalErr);
           console.error(`[Process] Final validation failed for clip ${i + 1}:`, msg);
@@ -322,21 +349,24 @@ export async function POST(req: NextRequest) {
 
     // Save final metadata
     const metadataPath = join(clipsDir, 'metadata.json');
-    await writeFile(metadataPath, JSON.stringify({
-      clips: processedClips,
-      summaries: summaries || null,
-      main_theme: main_theme || '',
-      tone: tone || '',
-      five_day_devotional: five_day_devotional || [],
-      sermon_images: sermon_images || [],
-      quotes_and_verses: quotes_and_verses || [],
-      social_captions: social_captions || []
-    }));
+    await writeFile(
+      metadataPath,
+      JSON.stringify({
+        clips: processedClips,
+        summaries: summaries || null,
+        main_theme: main_theme || '',
+        tone: tone || '',
+        five_day_devotional: five_day_devotional || [],
+        sermon_images: sermon_images || [],
+        quotes_and_verses: quotes_and_verses || [],
+        social_captions: social_captions || [],
+      })
+    );
 
-    progressManager.update(jobId, { 
-      step: 'Cutting', 
-      status: 'completed', 
-      message: 'All clips processed successfully' 
+    progressManager.update(jobId, {
+      step: 'Cutting',
+      status: 'completed',
+      message: 'All clips processed successfully',
     });
 
     return NextResponse.json({ success: true, jobId, clips: processedClips });
@@ -355,10 +385,10 @@ interface WordEntry {
 
 function generateSRT(words: WordEntry[], start: number, end: number) {
   if (!words) return '';
-  
-  const clipWords = words.filter(w => w.start >= start && w.end <= end);
+
+  const clipWords = words.filter((w) => w.start >= start && w.end <= end);
   let srt = '';
-  
+
   // Group words into short segments (e.g., 3-5 words)
   const groupSize = 3;
   for (let i = 0; i < clipWords.length; i += groupSize) {
@@ -366,11 +396,11 @@ function generateSRT(words: WordEntry[], start: number, end: number) {
     const index = Math.floor(i / groupSize) + 1;
     const startTime = formatTime(group[0].start - start);
     const endTime = formatTime(group[group.length - 1].end - start);
-    const text = group.map(w => w.word).join(' ');
-    
+    const text = group.map((w) => w.word).join(' ');
+
     srt += `${index}\n${startTime} --> ${endTime}\n${text}\n\n`;
   }
-  
+
   return srt;
 }
 

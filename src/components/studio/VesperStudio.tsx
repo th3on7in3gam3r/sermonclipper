@@ -130,8 +130,7 @@ export default function VesperStudio({
       return;
     }
 
-    const canExport =
-      planAllowsExport(userStatus?.plan) || userStatus?.isAdmin === true;
+    const canExport = planAllowsExport(userStatus?.plan) || userStatus?.isAdmin === true;
 
     if (!canExport) {
       setUpgradePrompt('export');
@@ -196,8 +195,7 @@ export default function VesperStudio({
   const overLimit = selectedPlatformConfig?.limit ? charCount > selectedPlatformConfig.limit : false;
   const trimDuration = trimEnd - trimStart;
   const hasSocialCaption = Boolean(
-    selectedClip.suggested_captions?.some((c) => c?.trim()) ||
-      captionOverrides[clipIndex]?.trim()
+    selectedClip.suggested_captions?.some((c) => c?.trim()) || captionOverrides[clipIndex]?.trim()
   );
   const hasExport = renderState?.status === 'complete' && renderState?.url;
 
@@ -232,13 +230,24 @@ export default function VesperStudio({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/vesper-logo-icon.png" alt="Vesper Studio logo" style={{ height: '32px', width: 'auto' }} />
+          <img
+            src="/vesper-logo-icon.png"
+            alt="Vesper Studio logo"
+            style={{ height: '32px', width: 'auto' }}
+          />
           <div>
             <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
               <span style={{ color: '#8B5CF6' }}>VES</span>PER{' '}
               <span style={{ opacity: 0.5, fontWeight: 300, fontSize: '16px' }}>STUDIO</span>
             </div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', fontWeight: 700 }}>
+            <div
+              style={{
+                fontSize: '10px',
+                color: 'var(--text-muted)',
+                letterSpacing: '0.1em',
+                fontWeight: 700,
+              }}
+            >
               NEURAL EDITING SUITE
             </div>
           </div>
@@ -248,12 +257,19 @@ export default function VesperStudio({
             </div>
           )}
         </div>
-        <button type="button" onClick={onClose} className="vesper-btn-outline shimmer-effect" style={{ padding: '10px 20px' }}>
+        <button
+          type="button"
+          onClick={onClose}
+          className="vesper-btn-outline shimmer-effect"
+          style={{ padding: '10px 20px' }}
+        >
           ✕ CLOSE
         </button>
       </header>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
+      <div
+        style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}
+      >
         {/* Left: style tools */}
         <aside
           className="studio-panel"
@@ -268,7 +284,13 @@ export default function VesperStudio({
             background: 'rgba(10, 10, 15, 0.4)',
           }}
         >
-          <nav style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <nav
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              borderBottom: '1px solid rgba(255,255,255,0.05)',
+            }}
+          >
             {STUDIO_TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -289,12 +311,23 @@ export default function VesperStudio({
                 }}
               >
                 <span style={{ fontSize: '20px' }}>{tab.icon}</span>
-                <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.08em' }}>{tab.label}</span>
+                <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.08em' }}>
+                  {tab.label}
+                </span>
               </button>
             ))}
           </nav>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
             {activeTab === 'templates' &&
               STUDIO_TEMPLATES.map((t) => (
                 <OptionCard
@@ -325,7 +358,9 @@ export default function VesperStudio({
                     }}
                   >
                     <div className={f.preview} style={{ height: '64px' }} />
-                    <div style={{ padding: '8px', textAlign: 'center', fontSize: '12px', fontWeight: 800 }}>{f.name}</div>
+                    <div style={{ padding: '8px', textAlign: 'center', fontSize: '12px', fontWeight: 800 }}>
+                      {f.name}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -355,10 +390,19 @@ export default function VesperStudio({
               ))}
 
             {activeTab === 'trim' && (
-              <div style={{ padding: '20px', background: 'rgba(139,92,246,0.04)', borderRadius: '20px', border: '1px solid rgba(139,92,246,0.15)' }}>
+              <div
+                style={{
+                  padding: '20px',
+                  background: 'rgba(139,92,246,0.04)',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(139,92,246,0.15)',
+                }}
+              >
                 <label style={{ display: 'block', marginBottom: '20px' }}>
                   <span style={{ fontSize: '13px', color: '#71717A', fontWeight: 800 }}>START</span>
-                  <span style={{ float: 'right', fontFamily: 'monospace', fontWeight: 900 }}>{formatTime(trimStart)}</span>
+                  <span style={{ float: 'right', fontFamily: 'monospace', fontWeight: 900 }}>
+                    {formatTime(trimStart)}
+                  </span>
                   <input
                     type="range"
                     min={Math.max(0, parseTime(selectedClip.start) - 60)}
@@ -372,7 +416,9 @@ export default function VesperStudio({
                 </label>
                 <label style={{ display: 'block', marginBottom: '20px' }}>
                   <span style={{ fontSize: '13px', color: '#71717A', fontWeight: 800 }}>END</span>
-                  <span style={{ float: 'right', fontFamily: 'monospace', fontWeight: 900 }}>{formatTime(trimEnd)}</span>
+                  <span style={{ float: 'right', fontFamily: 'monospace', fontWeight: 900 }}>
+                    {formatTime(trimEnd)}
+                  </span>
                   <input
                     type="range"
                     min={trimStart + 1}
@@ -386,7 +432,13 @@ export default function VesperStudio({
                 </label>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 900 }}>{trimDuration}s</span>
-                  <span style={{ color: trimDuration > 60 ? '#EF4444' : '#10B981', fontSize: '12px', fontWeight: 900 }}>
+                  <span
+                    style={{
+                      color: trimDuration > 60 ? '#EF4444' : '#10B981',
+                      fontSize: '12px',
+                      fontWeight: 900,
+                    }}
+                  >
                     {trimDuration > 60 ? 'OVER 60s LIMIT' : 'READY'}
                   </span>
                 </div>
@@ -435,9 +487,17 @@ export default function VesperStudio({
             )}
           </div>
 
-          <div style={{ padding: '24px', borderTop: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.3)' }}>
+          <div
+            style={{
+              padding: '24px',
+              borderTop: '1px solid rgba(255,255,255,0.07)',
+              background: 'rgba(0,0,0,0.3)',
+            }}
+          >
             <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
-              <strong style={{ color: '#fff' }}>{STUDIO_TEMPLATES.find((t) => t.id === selectedTemplate)?.name}</strong>
+              <strong style={{ color: '#fff' }}>
+                {STUDIO_TEMPLATES.find((t) => t.id === selectedTemplate)?.name}
+              </strong>
               {' · '}
               {STUDIO_FILTERS.find((f) => f.id === selectedFilter)?.name}
               {' · '}
@@ -526,7 +586,9 @@ export default function VesperStudio({
           }}
         >
           <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-            <div className="vesper-badge badge-green" style={{ marginBottom: '8px' }}>MEDIA KIT</div>
+            <div className="vesper-badge badge-green" style={{ marginBottom: '8px' }}>
+              MEDIA KIT
+            </div>
             <h3 style={{ fontSize: '20px', fontWeight: 900 }}>Social Distribution</h3>
           </div>
 
@@ -569,8 +631,17 @@ export default function VesperStudio({
                   <span style={{ fontSize: '24px' }}>{selectedPlatformConfig.icon}</span>
                   <span style={{ fontWeight: 900 }}>{selectedPlatformConfig.label}</span>
                 </div>
-                <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#E4E4E7', marginBottom: '12px' }}>{platformCaption}</p>
-                <p style={{ fontSize: '11px', color: overLimit ? '#EF4444' : '#52525B', marginBottom: '16px', fontWeight: 800 }}>
+                <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#E4E4E7', marginBottom: '12px' }}>
+                  {platformCaption}
+                </p>
+                <p
+                  style={{
+                    fontSize: '11px',
+                    color: overLimit ? '#EF4444' : '#52525B',
+                    marginBottom: '16px',
+                    fontWeight: 800,
+                  }}
+                >
                   {charCount}
                   {selectedPlatformConfig.limit ? ` / ${selectedPlatformConfig.limit}` : ''} chars
                   {overLimit ? ' — over limit' : ''}
@@ -605,7 +676,11 @@ export default function VesperStudio({
             ) : null}
 
             <div className="glass-card" style={{ padding: '20px', marginTop: '20px' }}>
-              <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--primary)', marginBottom: '8px' }}>NEURAL HOOK</div>
+              <div
+                style={{ fontSize: '10px', fontWeight: 900, color: 'var(--primary)', marginBottom: '8px' }}
+              >
+                NEURAL HOOK
+              </div>
               <p style={{ fontSize: '16px', color: '#fff', lineHeight: 1.5, fontWeight: 700 }}>
                 &ldquo;{selectedClip.engagement_hook || 'High-impact theological insight.'}&rdquo;
               </p>
@@ -724,7 +799,15 @@ function OptionCard({
         <div style={{ fontSize: '15px', fontWeight: 800, color: '#fff', fontFamily }}>{title}</div>
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{desc}</div>
         {locked && (
-          <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: 900, color: '#FBBF24', letterSpacing: '0.08em' }}>
+          <span
+            style={{
+              marginLeft: 'auto',
+              fontSize: '10px',
+              fontWeight: 900,
+              color: '#FBBF24',
+              letterSpacing: '0.08em',
+            }}
+          >
             PRO
           </span>
         )}
@@ -749,7 +832,15 @@ function PublishCard({
   onAction: () => void;
 }) {
   return (
-    <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+    <div
+      style={{
+        padding: '24px',
+        background: 'rgba(255,255,255,0.02)',
+        borderRadius: '20px',
+        border: '1px solid rgba(255,255,255,0.05)',
+        textAlign: 'center',
+      }}
+    >
       <div style={{ fontSize: '44px', marginBottom: '12px' }}>{icon}</div>
       <h3 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '8px' }}>{title}</h3>
       <p style={{ fontSize: '14px', color: '#71717A', marginBottom: '20px', lineHeight: 1.5 }}>{desc}</p>

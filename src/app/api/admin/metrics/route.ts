@@ -44,7 +44,9 @@ export async function GET(req: NextRequest) {
     mrr += PLAN_PRICES[plan] || 0;
   }
 
-  const jobs = await JobProgress.find({ updatedAt: { $gte: d30 } }).lean().catch(() => []);
+  const jobs = await JobProgress.find({ updatedAt: { $gte: d30 } })
+    .lean()
+    .catch(() => []);
   const clipsPerDay: Record<string, number> = {};
   let uploadCount = 0;
   let youtubeCount = 0;
@@ -79,8 +81,7 @@ export async function GET(req: NextRequest) {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, clips]) => ({ date, clips }));
 
-  const avgClips =
-    activeUsers > 0 ? Math.round(((sermonCount as number) / activeUsers) * 10) / 10 : 0;
+  const avgClips = activeUsers > 0 ? Math.round(((sermonCount as number) / activeUsers) * 10) / 10 : 0;
 
   return NextResponse.json({
     users: { total: totalUsers, signups30, signups7, activeUsers, planCounts },

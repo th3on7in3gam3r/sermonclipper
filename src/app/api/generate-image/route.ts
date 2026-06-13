@@ -19,11 +19,11 @@ export async function POST(req: NextRequest) {
 
     const openai = getOpenAIClient();
     const response = await openai.images.generate({
-      model: "dall-e-3",
+      model: 'dall-e-3',
       prompt: prompt,
       n: 1,
-      size: "1024x1792", // Vertical 9:16 approx
-      quality: "standard",
+      size: '1024x1792', // Vertical 9:16 approx
+      quality: 'standard',
     });
 
     if (!response.data || !response.data[0] || !response.data[0].url) {
@@ -32,9 +32,9 @@ export async function POST(req: NextRequest) {
 
     const imageUrl = response.data[0].url;
 
-    return NextResponse.json({ 
-      success: true, 
-      imageUrl 
+    return NextResponse.json({
+      success: true,
+      imageUrl,
     });
   } catch (error: unknown) {
     console.error('DALL-E error:', error);

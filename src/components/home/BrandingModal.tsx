@@ -25,10 +25,11 @@ export default function BrandingModal({ branding, setBranding, onClose }: Brandi
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-stone-900/60 backdrop-blur-sm animate-fade-in overflow-y-auto"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden">
-
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-stone-100">
           <div>
@@ -47,18 +48,25 @@ export default function BrandingModal({ branding, setBranding, onClose }: Brandi
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-stone-100">
-
           {/* Left: Controls */}
           <div className="p-8 space-y-7">
-
             {/* Presets */}
             <div className="space-y-3">
-              <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">Quick Presets</label>
+              <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">
+                Quick Presets
+              </label>
               <div className="flex flex-wrap gap-2">
                 {PRESETS.map((p) => (
                   <button
                     key={p.name}
-                    onClick={() => setBranding({ ...branding, primaryColor: p.primary, accentColor: p.accent, template: p.template })}
+                    onClick={() =>
+                      setBranding({
+                        ...branding,
+                        primaryColor: p.primary,
+                        accentColor: p.accent,
+                        template: p.template,
+                      })
+                    }
                     className="flex items-center gap-2 px-3 py-2 rounded-lg border border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-white text-sm font-medium text-stone-600 transition-all"
                   >
                     <span className="w-3 h-3 rounded-full" style={{ backgroundColor: p.primary }} />
@@ -71,7 +79,9 @@ export default function BrandingModal({ branding, setBranding, onClose }: Brandi
             {/* Style + Fonts */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">Visual Style</label>
+                <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">
+                  Visual Style
+                </label>
                 <select
                   value={branding.template}
                   onChange={(e) => setBranding({ ...branding, template: e.target.value })}
@@ -84,7 +94,9 @@ export default function BrandingModal({ branding, setBranding, onClose }: Brandi
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">Typography</label>
+                <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">
+                  Typography
+                </label>
                 <input
                   type="text"
                   value={branding.fonts}
@@ -101,7 +113,9 @@ export default function BrandingModal({ branding, setBranding, onClose }: Brandi
                 { label: 'Accent Color', key: 'accentColor' as const },
               ].map(({ label, key }) => (
                 <div key={key} className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">{label}</label>
+                  <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">
+                    {label}
+                  </label>
                   <div className="flex items-center gap-3 px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl">
                     <input
                       type="color"
@@ -122,7 +136,9 @@ export default function BrandingModal({ branding, setBranding, onClose }: Brandi
 
             {/* Logo */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">Logo Description</label>
+              <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">
+                Logo Description
+              </label>
               <textarea
                 placeholder="Describe your church logo for AI image generation…"
                 value={branding.logoDescription}
@@ -136,10 +152,14 @@ export default function BrandingModal({ branding, setBranding, onClose }: Brandi
           {/* Right: Preview + Actions */}
           <div className="p-8 flex flex-col gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">Preview</label>
+              <label className="text-xs font-semibold uppercase tracking-widest text-stone-400">
+                Preview
+              </label>
               <div
                 className="relative rounded-xl overflow-hidden h-52 flex flex-col justify-end p-6"
-                style={{ background: `linear-gradient(135deg, ${branding.primaryColor}22, ${branding.accentColor}11)` }}
+                style={{
+                  background: `linear-gradient(135deg, ${branding.primaryColor}22, ${branding.accentColor}11)`,
+                }}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 to-transparent" />
                 <div className="relative space-y-2">
@@ -150,7 +170,10 @@ export default function BrandingModal({ branding, setBranding, onClose }: Brandi
                     Clip 01
                   </span>
                   <p className="text-white font-black text-lg leading-tight">The Power of Choice</p>
-                  <div className="w-10 h-0.5 rounded-full" style={{ backgroundColor: branding.accentColor }} />
+                  <div
+                    className="w-10 h-0.5 rounded-full"
+                    style={{ backgroundColor: branding.accentColor }}
+                  />
                   <p className="text-white/60 text-xs">{branding.template} style</p>
                 </div>
               </div>
@@ -168,7 +191,12 @@ export default function BrandingModal({ branding, setBranding, onClose }: Brandi
                 className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-500 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 text-sm border border-red-100"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.895-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.895-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
                 Clear Studio Cache
               </button>

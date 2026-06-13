@@ -44,7 +44,12 @@ export default function NotificationBell() {
 
   return (
     <div className="notification-bell-wrap">
-      <button type="button" className="notification-bell-btn" aria-label="Notifications" onClick={() => setOpen((v) => !v)}>
+      <button
+        type="button"
+        className="notification-bell-btn"
+        aria-label="Notifications"
+        onClick={() => setOpen((v) => !v)}
+      >
         🔔
         {unread > 0 && <span className="notification-badge">{unread}</span>}
       </button>

@@ -26,7 +26,11 @@ export default class VesperErrorBoundary extends Component<Props, State> {
           <div className="error-boundary-fallback" role="alert">
             <h2>Something went wrong</h2>
             <p>We&apos;re on it — our team has been notified. Try refreshing the page.</p>
-            <button type="button" className="vesper-btn vesper-btn-primary" onClick={() => window.location.reload()}>
+            <button
+              type="button"
+              className="vesper-btn vesper-btn-primary"
+              onClick={() => window.location.reload()}
+            >
               Refresh
             </button>
           </div>

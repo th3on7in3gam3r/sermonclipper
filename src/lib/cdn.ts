@@ -4,7 +4,8 @@ import { extractR2Key, isR2StorageUrl } from './videoSource';
 
 const CDN_HOST = process.env.BUNNY_CDN_HOST?.replace(/\/$/, '');
 const BUNNY_TOKEN_KEY = process.env.BUNNY_TOKEN_AUTHENTICATION_KEY;
-const MEDIA_SIGNING_SECRET = process.env.MEDIA_SIGNING_SECRET || process.env.CLERK_SECRET_KEY || 'dev-media-secret';
+const MEDIA_SIGNING_SECRET =
+  process.env.MEDIA_SIGNING_SECRET || process.env.CLERK_SECRET_KEY || 'dev-media-secret';
 
 /** Default signed URL lifetime for user-facing media (1 hour). */
 export const MEDIA_URL_EXPIRY_SEC = 3600;
@@ -43,7 +44,10 @@ export async function getMediaDeliveryUrl(
 }
 
 /** For Shotstack / server-side fetch — presigned R2 GET (not exposed to browsers). */
-export async function getInternalFetchUrl(keyOrUrl: string, expiresInSec = MEDIA_URL_EXPIRY_SEC): Promise<string> {
+export async function getInternalFetchUrl(
+  keyOrUrl: string,
+  expiresInSec = MEDIA_URL_EXPIRY_SEC
+): Promise<string> {
   const key = isR2StorageUrl(keyOrUrl) ? extractR2Key(keyOrUrl) : keyOrUrl.replace(/^\/+/, '');
   return generatePresignedGetUrl(key, expiresInSec);
 }

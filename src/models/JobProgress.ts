@@ -18,7 +18,7 @@ const JobProgressSchema = new mongoose.Schema({
   progress: { type: Number, default: 0 },
   analysis: { type: Object, default: null },
   finalPath: { type: String, default: '' },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
 // updatedAt is managed manually in the progress manager
