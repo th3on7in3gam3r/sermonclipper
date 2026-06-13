@@ -19,6 +19,7 @@ import {
   MOBILE_TABS,
 } from '@/lib/studio/constants';
 import type { ExportSettings, RenderState, SermonClip, UserStatus } from '@/lib/studio/types';
+import { triggerReelDownload } from '@/lib/reelDownload';
 
 interface VesperStudioProps {
   selectedClip: SermonClip & { index: number };
@@ -419,7 +420,14 @@ export default function VesperStudio({
                       desc="Save the rendered file for TikTok or Instagram."
                       actionLabel="DOWNLOAD"
                       disabled={renderState?.status !== 'complete'}
-                      onAction={() => renderState?.url && window.open(renderState.url)}
+                      onAction={() => {
+                        if (!renderState?.url) return;
+                        triggerReelDownload(
+                          renderState.url,
+                          selectedClip.hook_title || selectedClip.main_quote || 'vesper-reel'
+                        );
+                        toast.success('Download started');
+                      }}
                     />
                   </>
                 )}

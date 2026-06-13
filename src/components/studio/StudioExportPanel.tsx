@@ -4,6 +4,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import ShareExportModal from '@/components/dashboard/ShareExportModal';
 import type { RenderState } from '@/lib/studio/types';
+import { triggerReelDownload } from '@/lib/reelDownload';
 
 interface StudioExportPanelProps {
   renderState?: RenderState;
@@ -14,11 +15,6 @@ interface StudioExportPanelProps {
   /** Hide the save-profile slot row when embedded in mobile export tab */
   showSaveSlot?: boolean;
   onSaveProfile?: () => void;
-}
-
-function safeFilename(title: string) {
-  const slug = title.slice(0, 48).replace(/[^\w-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-  return slug || 'vesper-reel';
 }
 
 export default function StudioExportPanel({
@@ -40,14 +36,7 @@ export default function StudioExportPanel({
 
   const handleDownload = () => {
     if (!renderUrl) return;
-    const a = document.createElement('a');
-    a.href = renderUrl;
-    a.download = `${safeFilename(clipTitle)}.mp4`;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    triggerReelDownload(renderUrl, clipTitle);
     toast.success('Download started');
   };
 

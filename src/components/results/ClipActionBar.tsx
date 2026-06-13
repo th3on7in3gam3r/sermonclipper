@@ -4,6 +4,7 @@
 
 import type { CSSProperties } from 'react';
 import toast from 'react-hot-toast';
+import { triggerReelDownload } from '@/lib/reelDownload';
 import type { ThumbnailState } from './ThumbnailStudioModal';
 
 type Platform = {
@@ -186,22 +187,22 @@ export default function ClipActionBar({
 
       <div style={{ position: 'relative', zIndex: 1 }}>
         {renderStatus === 'complete' && renderUrl ? (
-          <a
-            href={renderUrl}
-            download
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => {
+              triggerReelDownload(renderUrl, clip.hook_title || clip.main_quote || `clip-${clip.index + 1}`);
+              toast.success('Download started');
+            }}
             className="vesper-btn vesper-btn-primary shimmer-effect"
             style={{
               ...btnBase,
               width: '100%',
-              textDecoration: 'none',
               background: 'linear-gradient(135deg, #10B981, #059669)',
               fontSize: '12px',
             }}
           >
             DOWNLOAD REEL
-          </a>
+          </button>
         ) : (
           <button
             type="button"

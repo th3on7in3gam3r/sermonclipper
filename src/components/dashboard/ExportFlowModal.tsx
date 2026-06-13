@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import type { LibraryItem } from '@/components/dashboard/ClipLibrary';
 import { planAllowsExport } from '@/lib/plans';
+import { triggerReelDownload } from '@/lib/reelDownload';
 
 type ExportFormat = '9:16' | '1:1' | '16:9';
 type ExportQuality = 'standard' | 'high';
@@ -219,9 +220,16 @@ export default function ExportFlowModal({ item, plan, onClose, onComplete }: Exp
         {step === 'done' && (
           <div className="export-flow-done">
             <p>Your clip is ready.</p>
-            <a href={renderUrl} download className="vesper-btn vesper-btn-primary shimmer-effect export-flow-cta">
+            <button
+              type="button"
+              className="vesper-btn vesper-btn-primary shimmer-effect export-flow-cta"
+              onClick={() => {
+                triggerReelDownload(renderUrl, item.title || item.sermonTitle || 'vesper-reel');
+                toast.success('Download started');
+              }}
+            >
               Download MP4
-            </a>
+            </button>
             <button type="button" className="vesper-btn-outline export-flow-cta" onClick={copyLink}>
               Copy shareable link
             </button>

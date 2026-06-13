@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { triggerReelDownload } from '@/lib/reelDownload';
 
 interface ShareExportModalProps {
   clipTitle: string;
@@ -47,7 +48,8 @@ export default function ShareExportModal({ clipTitle, renderUrl, onClose }: Shar
       toast.error('Export the clip first.');
       return;
     }
-    window.open(renderUrl, '_blank');
+    triggerReelDownload(renderUrl, clipTitle);
+    toast.success('Download started');
   };
 
   const shareTo = async (platform: Platform) => {
