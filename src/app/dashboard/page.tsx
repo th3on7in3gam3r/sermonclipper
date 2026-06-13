@@ -4,13 +4,12 @@ import { Suspense, useEffect, useState } from 'react';
 import { useAuth, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import DashboardAccountPanel from '@/components/dashboard/DashboardAccountPanel';
+import DashboardOverview from '@/components/dashboard/DashboardOverview';
 import DashboardSignInGate from '@/components/dashboard/DashboardSignInGate';
 import ClipLibrary, { type SermonRecord } from '@/components/dashboard/ClipLibrary';
 import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
 import NotificationBell from '@/components/dashboard/NotificationBell';
 import NpsSurvey from '@/components/dashboard/NpsSurvey';
-import GettingStartedChecklist from '@/components/dashboard/GettingStartedChecklist';
 import WhatsNewBell from '@/components/dashboard/WhatsNewBell';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 import { ShortcutsHelpPanel, useKeyboardShortcuts } from '@/lib/useKeyboardShortcuts';
@@ -237,9 +236,7 @@ function DashboardContent() {
           </p>
         </div>
 
-        <GettingStartedChecklist />
-
-        <DashboardAccountPanel userData={userData} isMobile={isPhone} plan={userData?.plan} />
+        <DashboardOverview userData={userData} isPhone={isPhone} />
 
         {isPhone && userData && (
           <div style={{ marginBottom: '24px' }}>

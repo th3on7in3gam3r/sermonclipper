@@ -13,10 +13,10 @@ const ITEMS: {
   helpSlug: string;
   churchProOnly?: boolean;
 }[] = [
-  { key: 'uploadedSermon', label: 'Upload your first sermon video', href: '/#upload', helpSlug: 'supported-file-formats' },
+  { key: 'uploadedSermon', label: 'Upload your first sermon', href: '/#upload', helpSlug: 'supported-file-formats' },
   { key: 'createdClip', label: 'Create your first clip', href: '/#upload', helpSlug: 'creating-your-first-clip' },
-  { key: 'customizedCaption', label: 'Customize a caption template', href: '/dashboard', helpSlug: 'caption-templates' },
-  { key: 'exportedReel', label: 'Export your first reel', href: '/dashboard', helpSlug: 'export-formats' },
+  { key: 'customizedCaption', label: 'Customize a caption template', href: '/#upload', helpSlug: 'caption-templates' },
+  { key: 'exportedReel', label: 'Export your first reel', href: '/#upload', helpSlug: 'export-formats' },
   { key: 'connectedSocial', label: 'Connect a social account', href: '/dashboard/settings', helpSlug: 'connecting-social-accounts' },
   {
     key: 'invitedTeamMember',
@@ -51,20 +51,24 @@ export default function GettingStartedChecklist() {
 
   if (collapsed && completed >= total) {
     return (
-      <div className="getting-started-done glass-card">
-        <p>You&apos;re all set! 🎉</p>
+      <div className="getting-started getting-started-done glass-card premium-border">
+        <p>You&apos;re all set — happy clipping!</p>
       </div>
     );
   }
 
   const doneCount = visibleItems.filter((i) => checklist[i.key]).length;
+  const progressPct = visibleItems.length ? Math.round((doneCount / visibleItems.length) * 100) : 0;
 
   return (
     <div className="getting-started glass-card premium-border">
       <div className="getting-started-header">
-        <h3>Getting Started</h3>
-        <span>
-          {doneCount} of {visibleItems.length} tasks complete
+        <div>
+          <h3>Getting started</h3>
+          <p className="getting-started-subtitle">Complete these steps to get the most from Vesper</p>
+        </div>
+        <span className="getting-started-count">
+          {doneCount}/{visibleItems.length}
         </span>
       </div>
       <div
@@ -73,30 +77,37 @@ export default function GettingStartedChecklist() {
         aria-valuenow={doneCount}
         aria-valuemin={0}
         aria-valuemax={visibleItems.length}
+        aria-label={`${progressPct}% complete`}
       >
-        <div
-          className="getting-started-bar-fill"
-          style={{ width: `${(doneCount / visibleItems.length) * 100}%` }}
-        />
+        <div className="getting-started-bar-fill" style={{ width: `${progressPct}%` }} />
       </div>
       <ul className="getting-started-list">
-        {visibleItems.map((item) => (
-          <li key={item.key} className={checklist[item.key] ? 'done' : ''}>
-            <div className="getting-started-row">
-              <span>
-                {checklist[item.key] ? '☑' : '☐'}{' '}
-                {checklist[item.key] ? (
-                  <span>{item.label}</span>
-                ) : (
-                  <Link href={item.href}>{item.label}</Link>
-                )}
+        {visibleItems.map((item) => {
+          const done = Boolean(checklist[item.key]);
+          return (
+            <li key={item.key} className={done ? 'done' : ''}>
+              <span className={`getting-started-check${done ? ' getting-started-check--done' : ''}`} aria-hidden="true">
+                {done ? '✓' : ''}
               </span>
-              {!checklist[item.key] && (
-                <HelpInlineLink slug={item.helpSlug} label="Guide" className="help-inline-link help-inline-link--compact" />
-              )}
-            </div>
-          </li>
-        ))}
+              <div className="getting-started-row">
+                {done ? (
+                  <span className="getting-started-label">{item.label}</span>
+                ) : (
+                  <Link href={item.href} className="getting-started-label">
+                    {item.label}
+                  </Link>
+                )}
+                {!done && (
+                  <HelpInlineLink
+                    slug={item.helpSlug}
+                    label="Guide"
+                    className="help-inline-link help-inline-link--compact"
+                  />
+                )}
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

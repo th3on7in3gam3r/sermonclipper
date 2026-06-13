@@ -13,6 +13,13 @@ interface DashboardAccountPanelProps {
   plan?: string;
 }
 
+const QUICK_LINKS = [
+  { href: '/dashboard/billing', label: 'Billing' },
+  { href: '/dashboard/settings', label: 'Settings' },
+  { href: '/dashboard/team', label: 'Team', churchProOnly: true },
+  { href: '/#pricing', label: 'Upgrade', hideOnPro: true },
+] as const;
+
 export default function DashboardAccountPanel({
   userData,
   isMobile = false,
@@ -20,7 +27,8 @@ export default function DashboardAccountPanel({
 }: DashboardAccountPanelProps) {
   const { user, isLoaded } = useUser();
 
-  const planLabel = userData?.plan?.replace(/_/g, ' ').toUpperCase() || 'FREE';
+  const effectivePlan = plan || userData?.plan || 'free';
+  const planLabel = effectivePlan.replace(/_/g, ' ');
   const usage = userData?.usageCount ?? 0;
   const limitNum = userData?.limit;
   const isUnlimited = limitNum === 999999;
@@ -32,188 +40,43 @@ export default function DashboardAccountPanel({
     'Ministry User';
   const email = user?.primaryEmailAddress?.emailAddress;
 
+  const links = QUICK_LINKS.filter((link) => {
+    if ('churchProOnly' in link && link.churchProOnly && effectivePlan !== 'church_pro') return false;
+    if ('hideOnPro' in link && link.hideOnPro && effectivePlan === 'church_pro') return false;
+    return true;
+  });
+
   return (
-    <section
-      className="glass-card premium-border animate-in"
-      style={{
-        padding: isMobile ? '18px' : '24px',
-        marginBottom: '48px',
-        display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
-        gap: isMobile ? '14px' : '20px',
-        alignItems: isMobile ? 'stretch' : 'center',
-        justifyContent: 'space-between',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0, width: '100%' }}>
+    <section className={`dashboard-account-card glass-card premium-border animate-in${isMobile ? ' dashboard-account-card--mobile' : ''}`}>
+      <div className="dashboard-account-profile">
         {isLoaded && user?.imageUrl ? (
-          <img
-            src={user.imageUrl}
-            alt=""
-            width={56}
-            height={56}
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '16px',
-              objectFit: 'cover',
-              border: '2px solid rgba(139, 92, 246, 0.4)',
-              flexShrink: 0,
-            }}
-          />
+          <img src={user.imageUrl} alt="" className="dashboard-account-avatar" width={52} height={52} />
         ) : (
-          <div
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '16px',
-              background: 'rgba(139, 92, 246, 0.15)',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
-              flexShrink: 0,
-            }}
-          />
+          <div className="dashboard-account-avatar dashboard-account-avatar--placeholder" aria-hidden="true" />
         )}
-        <div style={{ minWidth: 0 }}>
-          <div className="vesper-badge badge-violet" style={{ marginBottom: '8px' }}>
-            ACCOUNT
-          </div>
-          <h2
-            style={{
-              fontSize: isMobile ? '18px' : '20px',
-              fontWeight: 900,
-              marginBottom: '4px',
-              letterSpacing: '-0.02em',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {isLoaded ? displayName : 'Loading…'}
-          </h2>
-          {email && (
-            <p
-              style={{
-                fontSize: isMobile ? '13px' : '14px',
-                color: 'var(--text-muted)',
-                margin: 0,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {email}
-            </p>
-          )}
+        <div className="dashboard-account-identity">
+          <span className="vesper-badge badge-violet dashboard-account-badge">Account</span>
+          <h2 className="dashboard-account-name">{isLoaded ? displayName : 'Loading…'}</h2>
+          {email && <p className="dashboard-account-email">{email}</p>}
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: isMobile ? 'row' : 'column',
-          gap: '10px',
-          alignItems: 'stretch',
-          width: isMobile ? '100%' : 'auto',
-        }}
-      >
-        <div
-          style={{
-            padding: '12px 16px',
-            borderRadius: '14px',
-            background: 'rgba(139, 92, 246, 0.08)',
-            border: '1px solid rgba(139, 92, 246, 0.2)',
-            textAlign: 'center',
-            flex: isMobile ? 1 : undefined,
-            minWidth: isMobile ? 0 : '160px',
-          }}
-        >
-          <span
-            style={{
-              fontSize: '10px',
-              fontWeight: 900,
-              color: '#8B5CF6',
-              letterSpacing: '0.15em',
-              display: 'block',
-              marginBottom: '6px',
-            }}
-          >
-            CLIPS REMAINING
-          </span>
-          <span style={{ fontSize: '15px', fontWeight: 900, display: 'block', lineHeight: 1.3 }}>
-            {isUnlimited ? 'Unlimited' : (clipsRemaining ?? '—')}
-          </span>
-          <span
-            style={{
-              fontSize: '12px',
-              color: 'var(--text-muted)',
-              fontWeight: 700,
-              display: 'block',
-              marginTop: '4px',
-            }}
-          >
-            {planLabel}
-            {!isUnlimited && limitNum != null ? ` · ${usage}/${limitNum} used` : ''}
-          </span>
-        </div>
-        <Link
-          href="/dashboard/billing"
-          className="vesper-btn-outline"
-          style={{
-            padding: '10px 16px',
-            fontSize: '11px',
-            textAlign: 'center',
-            textDecoration: 'none',
-            whiteSpace: 'nowrap',
-            flex: isMobile ? 1 : undefined,
-          }}
-        >
-          BILLING
-        </Link>
-        {(plan || userData?.plan) === 'church_pro' && (
-          <Link
-            href="/dashboard/team"
-            className="vesper-btn-outline"
-            style={{
-              padding: '10px 16px',
-              fontSize: '11px',
-              textAlign: 'center',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-              flex: isMobile ? 1 : undefined,
-            }}
-          >
-            TEAM
-          </Link>
-        )}
-        <Link
-          href="/dashboard/settings"
-          className="vesper-btn-outline"
-          style={{
-            padding: '10px 16px',
-            fontSize: '11px',
-            textAlign: 'center',
-            textDecoration: 'none',
-            whiteSpace: 'nowrap',
-            flex: isMobile ? 1 : undefined,
-          }}
-        >
-          SETTINGS
-        </Link>
-        <Link
-          href="/#pricing"
-          className="vesper-btn-outline"
-          style={{
-            padding: '10px 16px',
-            fontSize: '11px',
-            textAlign: 'center',
-            textDecoration: 'none',
-            whiteSpace: 'nowrap',
-            flex: isMobile ? 1 : undefined,
-          }}
-        >
-          UPGRADE PLAN
-        </Link>
+      <div className="dashboard-account-quota">
+        <span className="dashboard-account-quota-label">Clips remaining</span>
+        <strong className="dashboard-account-quota-value">{isUnlimited ? 'Unlimited' : (clipsRemaining ?? '—')}</strong>
+        <span className="dashboard-account-quota-plan">
+          {planLabel}
+          {!isUnlimited && limitNum != null ? ` · ${usage}/${limitNum} used` : ''}
+        </span>
       </div>
+
+      <nav className="dashboard-account-nav" aria-label="Account shortcuts">
+        {links.map((link) => (
+          <Link key={link.href} href={link.href} className="dashboard-account-nav-link">
+            {link.label}
+          </Link>
+        ))}
+      </nav>
     </section>
   );
 }
