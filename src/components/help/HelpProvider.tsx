@@ -7,12 +7,14 @@ type HelpContextValue = {
   openHelp: (slug?: string) => void;
   closeHelp: () => void;
   isOpen: boolean;
+  hasHelp: boolean;
 };
 
 const HelpContext = createContext<HelpContextValue>({
   openHelp: () => {},
   closeHelp: () => {},
   isOpen: false,
+  hasHelp: false,
 });
 
 export function HelpProvider({ children }: { children: React.ReactNode }) {
@@ -39,7 +41,7 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
   }, [isOpen, closeHelp]);
 
   return (
-    <HelpContext.Provider value={{ openHelp, closeHelp, isOpen }}>
+    <HelpContext.Provider value={{ openHelp, closeHelp, isOpen, hasHelp: true }}>
       {children}
       {isOpen && (
         <div className="help-slideover-overlay" onClick={closeHelp}>
@@ -56,7 +58,7 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
               </button>
             </header>
             <div className="help-slideover-body">
-              <HelpCenter mode="panel" initialSlug={initialSlug} />
+              <HelpCenter key={initialSlug || 'index'} mode="panel" initialSlug={initialSlug} />
             </div>
             <footer className="help-slideover-footer">
               <a href="/help" target="_blank" rel="noopener noreferrer" className="help-full-link">

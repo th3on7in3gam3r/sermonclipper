@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import HelpInlineLink from '@/components/help/HelpInlineLink';
 
 const DEFAULT_STEPS = [
   { id: 'upload', label: 'Uploading…' },
@@ -16,6 +17,7 @@ interface ProcessingViewProps {
   startedAt?: number;
   error?: string | null;
   onRetry?: () => void;
+  helpArticleSlug?: string;
 }
 
 export default function ProcessingView({
@@ -25,6 +27,7 @@ export default function ProcessingView({
   startedAt,
   error,
   onRetry,
+  helpArticleSlug = 'stuck-processing',
 }: ProcessingViewProps) {
   const [elapsedMs, setElapsedMs] = useState(0);
   const [showSlowMessage, setShowSlowMessage] = useState(false);
@@ -59,6 +62,7 @@ export default function ProcessingView({
         </div>
         <h2 className="processing-view-title">Something went wrong</h2>
         <p className="processing-view-error">{error}</p>
+        <HelpInlineLink slug={helpArticleSlug} label="Troubleshooting guide →" />
         {onRetry && (
           <button type="button" className="vesper-btn vesper-btn-primary shimmer-effect" onClick={onRetry}>
             Try Again
@@ -75,7 +79,8 @@ export default function ProcessingView({
         <h2 className="processing-view-title">{displayMessage}</h2>
         {showSlowMessage && (
           <p className="processing-view-slow">
-            This is taking a bit longer than usual — hang tight, your sermon is being analyzed.
+            This is taking a bit longer than usual — hang tight, your sermon is being analyzed.{' '}
+            <HelpInlineLink slug="stuck-processing" label="Why is this taking so long?" className="help-inline-link help-inline-link--inline" />
           </p>
         )}
       </div>

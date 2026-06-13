@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import StudioHelpShell from '@/components/help/StudioHelpShell';
 
 function JoinContent() {
   const searchParams = useSearchParams();
@@ -80,8 +81,10 @@ function JoinContent() {
 
 export default function TeamJoinPage() {
   return (
-    <Suspense fallback={null}>
-      <JoinContent />
-    </Suspense>
+    <StudioHelpShell>
+      <Suspense fallback={null}>
+        <JoinContent />
+      </Suspense>
+    </StudioHelpShell>
   );
 }

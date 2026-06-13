@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import HelpInlineLink from '@/components/help/HelpInlineLink';
 import type { LibraryItem } from '@/components/dashboard/ClipLibrary';
 import { planAllowsExport } from '@/lib/plans';
 import { triggerReelDownload } from '@/lib/reelDownload';
@@ -29,6 +30,7 @@ export default function ExportFlowModal({ item, plan, onClose, onComplete }: Exp
   const [progress, setProgress] = useState(0);
   const [renderUrl, setRenderUrl] = useState('');
   const [etaSec, setEtaSec] = useState(120);
+  const [lastError, setLastError] = useState<string | null>(null);
   const isFree = !plan || plan === 'free';
   const canExport = planAllowsExport(plan);
 
@@ -47,6 +49,7 @@ export default function ExportFlowModal({ item, plan, onClose, onComplete }: Exp
 
     setStep('rendering');
     setProgress(5);
+    setLastError(null);
     toast.loading('Starting export…', { id: 'export-flow' });
 
     try {
@@ -70,12 +73,15 @@ export default function ExportFlowModal({ item, plan, onClose, onComplete }: Exp
 
       if (data.code === 'UPGRADE_REQUIRED') {
         toast.error(data.error || 'Upgrade required.', { id: 'export-flow' });
+        setLastError(data.error || 'Upgrade required.');
         setStep('format');
         return;
       }
 
       if (!data.shotstackId) {
-        toast.error(data.error || 'Export failed to start.', { id: 'export-flow' });
+        const msg = data.error || 'Export failed to start.';
+        toast.error(msg, { id: 'export-flow' });
+        setLastError(msg);
         setStep('format');
         return;
       }
@@ -83,6 +89,7 @@ export default function ExportFlowModal({ item, plan, onClose, onComplete }: Exp
       pollRender(data.shotstackId);
     } catch {
       toast.error('Network error.', { id: 'export-flow' });
+      setLastError('Network error during export.');
       setStep('format');
     }
   };
@@ -117,6 +124,7 @@ export default function ExportFlowModal({ item, plan, onClose, onComplete }: Exp
 
       if (data.status === 'failed') {
         toast.error('Render failed.', { id: 'export-flow' });
+        setLastError('Cloud render failed.');
         setStep('format');
         return;
       }
@@ -124,6 +132,7 @@ export default function ExportFlowModal({ item, plan, onClose, onComplete }: Exp
       setTimeout(() => pollRender(shotstackId), 3000);
     } catch {
       toast.error('Lost connection to render status.', { id: 'export-flow' });
+      setLastError('Lost connection to render status.');
       setStep('format');
     }
   };
@@ -153,6 +162,12 @@ export default function ExportFlowModal({ item, plan, onClose, onComplete }: Exp
 
         {step === 'format' && (
           <>
+            {lastError && (
+              <div className="export-flow-error-banner" role="alert">
+                <p>{lastError}</p>
+                <HelpInlineLink slug="export-failed" label="Export troubleshooting →" />
+              </div>
+            )}
             <p className="export-flow-label">Format</p>
             <div className="export-flow-options">
               {FORMATS.map((f) => (

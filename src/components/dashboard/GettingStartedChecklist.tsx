@@ -2,16 +2,29 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import HelpInlineLink from '@/components/help/HelpInlineLink';
 
 type Checklist = Record<string, boolean>;
 
-const ITEMS: { key: keyof Checklist; label: string; href: string; churchProOnly?: boolean }[] = [
-  { key: 'uploadedSermon', label: 'Upload your first sermon video', href: '/#upload' },
-  { key: 'createdClip', label: 'Create your first clip', href: '/#upload' },
-  { key: 'customizedCaption', label: 'Customize a caption template', href: '/dashboard' },
-  { key: 'exportedReel', label: 'Export your first reel', href: '/dashboard' },
-  { key: 'connectedSocial', label: 'Connect a social account', href: '/dashboard/settings' },
-  { key: 'invitedTeamMember', label: 'Invite a team member', href: '/dashboard/team', churchProOnly: true },
+const ITEMS: {
+  key: keyof Checklist;
+  label: string;
+  href: string;
+  helpSlug: string;
+  churchProOnly?: boolean;
+}[] = [
+  { key: 'uploadedSermon', label: 'Upload your first sermon video', href: '/#upload', helpSlug: 'supported-file-formats' },
+  { key: 'createdClip', label: 'Create your first clip', href: '/#upload', helpSlug: 'creating-your-first-clip' },
+  { key: 'customizedCaption', label: 'Customize a caption template', href: '/dashboard', helpSlug: 'caption-templates' },
+  { key: 'exportedReel', label: 'Export your first reel', href: '/dashboard', helpSlug: 'export-formats' },
+  { key: 'connectedSocial', label: 'Connect a social account', href: '/dashboard/settings', helpSlug: 'connecting-social-accounts' },
+  {
+    key: 'invitedTeamMember',
+    label: 'Invite a team member',
+    href: '/dashboard/team',
+    helpSlug: 'upgrade-downgrade',
+    churchProOnly: true,
+  },
 ];
 
 export default function GettingStartedChecklist() {
@@ -69,8 +82,19 @@ export default function GettingStartedChecklist() {
       <ul className="getting-started-list">
         {visibleItems.map((item) => (
           <li key={item.key} className={checklist[item.key] ? 'done' : ''}>
-            {checklist[item.key] ? '☑' : '☐'}{' '}
-            {checklist[item.key] ? <span>{item.label}</span> : <Link href={item.href}>{item.label}</Link>}
+            <div className="getting-started-row">
+              <span>
+                {checklist[item.key] ? '☑' : '☐'}{' '}
+                {checklist[item.key] ? (
+                  <span>{item.label}</span>
+                ) : (
+                  <Link href={item.href}>{item.label}</Link>
+                )}
+              </span>
+              {!checklist[item.key] && (
+                <HelpInlineLink slug={item.helpSlug} label="Guide" className="help-inline-link help-inline-link--compact" />
+              )}
+            </div>
           </li>
         ))}
       </ul>

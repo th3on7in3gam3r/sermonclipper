@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import HelpInlineLink from '@/components/help/HelpInlineLink';
 import ShareExportModal from '@/components/dashboard/ShareExportModal';
 import type { RenderState } from '@/lib/studio/types';
 import { triggerReelDownload } from '@/lib/reelDownload';
@@ -130,10 +131,18 @@ export default function StudioExportPanel({
         </div>
       )}
 
-      {isError && renderState?.error && (
-        <p className="studio-export-error" role="alert">
-          {renderState.error}
+      {isYouTubeSource && !isComplete && (
+        <p className="studio-export-error">
+          YouTube sources cannot be exported as rendered reels.{' '}
+          <HelpInlineLink slug="youtube-export-limitation" label="Learn why →" className="help-inline-link help-inline-link--inline" />
         </p>
+      )}
+
+      {isError && renderState?.error && (
+        <div className="studio-export-error" role="alert">
+          <p>{renderState.error}</p>
+          <HelpInlineLink slug="export-failed" label="Export troubleshooting →" />
+        </div>
       )}
 
       {showShare && renderUrl && (

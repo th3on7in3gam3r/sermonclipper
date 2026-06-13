@@ -17,6 +17,7 @@ import { ShortcutsHelpPanel, useKeyboardShortcuts } from '@/lib/useKeyboardShort
 import SiteFooter from '@/components/layout/SiteFooter';
 import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import StudioHelpShell from '@/components/help/StudioHelpShell';
+import HelpNavButton from '@/components/help/HelpNavButton';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 
 function DashboardContent() {
@@ -188,6 +189,7 @@ function DashboardContent() {
           )}
           <NotificationBell />
           <WhatsNewBell />
+          <HelpNavButton />
           <ThemeToggle />
           <Link
             href="/changelog"

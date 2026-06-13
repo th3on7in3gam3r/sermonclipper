@@ -586,6 +586,75 @@ html {
   font-weight: 700;
 }
 
+.help-inline-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.help-inline-link:hover {
+  text-decoration: underline;
+}
+
+.help-inline-link--compact {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.help-inline-link--inline {
+  display: inline;
+  font-size: inherit;
+  font-weight: 700;
+}
+
+.help-nav-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 8px;
+}
+
+.help-nav-btn:hover {
+  color: var(--secondary);
+}
+
+.getting-started-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.export-flow-error-banner {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.export-flow-error-banner p {
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #fca5a5;
+}
+
+.processing-view--error .help-inline-link {
+  display: inline-block;
+  margin: 12px 0 16px;
+}
+
 @media (max-width: 640px) {
   .help-floating-btn {
     bottom: 16px;
