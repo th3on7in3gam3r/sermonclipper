@@ -25,6 +25,7 @@ import HelpTooltip from '@/components/help/HelpTooltip';
 import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
 import EmptyState from '@/components/shared/EmptyState';
 import { planAllowsExport, UPGRADE_COPY } from '@/lib/plans';
+import { normalizeSermonAnalysis } from '@/lib/studioNavigation';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
 const GOOGLE_FONTS_URL =
   'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap';
@@ -50,14 +51,17 @@ function ResultsContent() {
   const [upgradePrompt, setUpgradePrompt] = useState<keyof typeof UPGRADE_COPY | null>(null);
   const [playableVideoUrl, setPlayableVideoUrl] = useState<string | null>(null);
   const [masterPath, setMasterPath] = useState<string | null>(null);
+  const [archivedVideoUrl, setArchivedVideoUrl] = useState<string | null>(null);
   const [isDownloadingMaster, setIsDownloadingMaster] = useState(false);
   const { isLoaded, userId } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
 
+  const effectiveVideoUrl = videoUrl || archivedVideoUrl;
+
   const masterDownloadUrl =
     (masterPath && isDownloadableMasterUrl(masterPath) ? masterPath : null) ||
     (finalPathParam && isDownloadableMasterUrl(finalPathParam) ? finalPathParam : null) ||
-    (videoUrl && isDownloadableMasterUrl(videoUrl) ? videoUrl : null);
+    (effectiveVideoUrl && isDownloadableMasterUrl(effectiveVideoUrl) ? effectiveVideoUrl : null);
 
   const resolvePlayableUrl = async (url: string) => {
     if (!isR2StorageUrl(url) || url.includes('X-Amz-Signature')) return url;
@@ -68,7 +72,7 @@ function ResultsContent() {
 
   // Resolve private R2 URL → presigned GET URL so the browser can play it
   useEffect(() => {
-    const source = masterDownloadUrl || videoUrl;
+    const source = masterDownloadUrl || effectiveVideoUrl;
     if (!source) {
       setPlayableVideoUrl(null);
       return;
@@ -84,7 +88,7 @@ function ResultsContent() {
     return () => {
       cancelled = true;
     };
-  }, [videoUrl, masterDownloadUrl]);
+  }, [effectiveVideoUrl, masterDownloadUrl]);
 
   // Load harvested master path from archive (dashboard) or job progress
   useEffect(() => {
@@ -101,6 +105,7 @@ function ResultsContent() {
       .then((res) => (res.ok ? res.json() : null))
       .then((sermon) => {
         if (sermon?.finalPath) applyPath(sermon.finalPath);
+        if (sermon?.videoUrl) setArchivedVideoUrl(sermon.videoUrl);
       })
       .catch(() => {});
 
@@ -166,7 +171,7 @@ function ResultsContent() {
     return match && match[2].length === 11 ? match[2] : null;
   };
 
-  const videoId = videoUrl ? getYouTubeId(videoUrl) : null;
+  const videoId = effectiveVideoUrl ? getYouTubeId(effectiveVideoUrl) : null;
 
   // If the source is YouTube (not a direct upload), Shotstack can't render from it
   const isYouTubeSource = !!videoId;
@@ -297,7 +302,7 @@ function ResultsContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           jobId,
-          videoUrl: masterDownloadUrl || videoUrl,
+          videoUrl: masterDownloadUrl || effectiveVideoUrl,
           clip: {
             ...clip,
             start: tStart || clip.start,
@@ -487,12 +492,14 @@ function ResultsContent() {
           setMasterPath(data.finalPath);
         }
         if (data?.analysis) {
-          setAnalysis(data.analysis);
-          return true;
+          const normalized = normalizeSermonAnalysis(data.analysis);
+          if (normalized) setAnalysis(normalized);
+          return Boolean(normalized?.clips);
         }
         if (data?.clips) {
-          setAnalysis(data);
-          return true;
+          const normalized = normalizeSermonAnalysis(data);
+          if (normalized) setAnalysis(normalized);
+          return Boolean(normalized?.clips);
         }
 
         // Dashboard "Studio" opens archived sermons — progress may not have analysis anymore
@@ -502,8 +509,10 @@ function ResultsContent() {
           if (sermon?.finalPath && isDownloadableMasterUrl(sermon.finalPath)) {
             setMasterPath(sermon.finalPath);
           }
-          if (sermon?.analysis) {
-            setAnalysis(sermon.analysis);
+          if (sermon?.videoUrl) setArchivedVideoUrl(sermon.videoUrl);
+          const normalized = normalizeSermonAnalysis(sermon?.analysis);
+          if (normalized) {
+            setAnalysis(normalized);
             return true;
           }
         }
@@ -814,7 +823,7 @@ function ResultsContent() {
           >
             <SermonContextCard
               summary={analysis?.summary}
-              videoUrl={videoUrl}
+              videoUrl={effectiveVideoUrl}
               playableVideoUrl={playableVideoUrl}
               videoId={videoId}
               masterDownloadUrl={masterDownloadUrl}
@@ -1311,7 +1320,7 @@ function ResultsContent() {
         {activeThumbnailClip && (
           <ThumbnailStudioModal
             clip={activeThumbnailClip}
-            videoSrc={playableVideoUrl || videoUrl}
+            videoSrc={playableVideoUrl || effectiveVideoUrl}
             isMobile={isMobile}
             thumbPrompt={thumbPrompt}
             onThumbPromptChange={setThumbPrompt}
@@ -1352,7 +1361,7 @@ function ResultsContent() {
             selectedClip={selectedClip}
             onClose={() => setSelectedClip(null)}
             videoId={videoId}
-            videoUrl={videoUrl}
+            videoUrl={effectiveVideoUrl}
             playableVideoUrl={playableVideoUrl}
             rendering={rendering}
             renderProgress={renderProgress}

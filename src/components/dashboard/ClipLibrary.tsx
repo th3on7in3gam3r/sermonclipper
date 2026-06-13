@@ -2,8 +2,9 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { buildStudioHref } from '@/lib/studioNavigation';
 import EmptyState from '@/components/shared/EmptyState';
 import ExportFlowModal from '@/components/dashboard/ExportFlowModal';
 import ShareExportModal from '@/components/dashboard/ShareExportModal';
@@ -49,14 +50,16 @@ export type LibraryItem = {
   isAudio?: boolean;
 };
 
-function buildResultsHref(item: LibraryItem) {
-  const params = new URLSearchParams({
-    jobId: item.jobId,
-    videoUrl: item.videoUrl,
-  });
-  if (item.finalPath) params.set('finalPath', item.finalPath);
-  params.set('clip', String(item.clipIndex));
-  return `/results?${params.toString()}`;
+interface ClipLibraryProps {
+  sermons: SermonRecord[];
+  plan?: string;
+  onDelete: (sermonIds: string[]) => Promise<void>;
+  isPhone?: boolean;
+  registerActions?: (actions: {
+    exportSelected?: () => void;
+    deleteSelected?: () => void;
+    focusIndex?: (delta: number) => void;
+  }) => void;
 }
 
 function getYoutubeId(url: string) {
@@ -124,18 +127,6 @@ function formatDuration(sec: number) {
   return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
 }
 
-interface ClipLibraryProps {
-  sermons: SermonRecord[];
-  plan?: string;
-  onDelete: (sermonIds: string[]) => Promise<void>;
-  isPhone?: boolean;
-  registerActions?: (actions: {
-    exportSelected?: () => void;
-    deleteSelected?: () => void;
-    focusIndex?: (delta: number) => void;
-  }) => void;
-}
-
 const PAGE_SIZE = 12;
 
 export default function ClipLibrary({
@@ -145,7 +136,6 @@ export default function ClipLibrary({
   isPhone = false,
   registerActions,
 }: ClipLibraryProps) {
-  const router = useRouter();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'date-desc' | 'date-asc' | 'sermon' | 'export'>('date-desc');
   const [sermonFilter, setSermonFilter] = useState('');
@@ -209,8 +199,12 @@ export default function ClipLibrary({
     toast.success('Deleted selected clips');
   };
 
-  const openStudio = (item: LibraryItem) => {
-    router.push(buildResultsHref(item));
+  const studioHref = (item: LibraryItem) => {
+    if (!item.jobId) {
+      toast.error('This clip is missing a session ID.');
+      return '#';
+    }
+    return buildStudioHref(item.jobId, item.clipIndex);
   };
 
   const openPreview = (item: LibraryItem) => {
@@ -377,13 +371,9 @@ export default function ClipLibrary({
                 >
                   Download
                 </button>
-                <button
-                  type="button"
-                  className="vesper-btn-outline clip-library-action"
-                  onClick={() => openStudio(item)}
-                >
+                <Link href={studioHref(item)} className="vesper-btn-outline clip-library-action">
                   Studio
-                </button>
+                </Link>
                 <button
                   type="button"
                   className="vesper-btn-outline clip-library-action"
@@ -451,7 +441,7 @@ export default function ClipLibrary({
       {previewItem && (
         <ClipPreviewPanel
           item={previewItem}
-          resultsHref={buildResultsHref(previewItem)}
+          resultsHref={buildStudioHref(previewItem.jobId, previewItem.clipIndex)}
           captionText={
             sermons.find((s) => s._id === previewItem.sermonId)?.analysis?.clips?.[previewItem.clipIndex]
               ?.suggested_captions?.[0]

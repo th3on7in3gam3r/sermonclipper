@@ -2347,6 +2347,11 @@ select:focus-visible,
   font-size: 10px !important;
   text-align: center;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-sizing: border-box;
 }
 
 .clip-library-action-danger {
