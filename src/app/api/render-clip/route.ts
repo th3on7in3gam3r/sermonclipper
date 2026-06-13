@@ -9,8 +9,6 @@ import { getShotstackConfig, mapShotstackHttpError, parseShotstackErrorBody } fr
 import { resolveShotstackVideoUrl } from '../../../lib/shotstackVideoUrl';
 import { isDownloadableMasterUrl, isYouTubeUrl } from '../../../lib/videoSource';
 
-const shotstackConfig = getShotstackConfig();
-
 const parseTime = (timeVal: unknown): number => {
   if (typeof timeVal === 'number') return timeVal;
   if (!timeVal) return 0;
@@ -123,14 +121,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const shotstackConfig = getShotstackConfig();
     if (!shotstackConfig) {
-      return NextResponse.json(
-        {
-          error:
-            'Video rendering is not configured. Add SHOTSTACK_PRODUCTION_KEY (production) or SHOTSTACK_SANDBOX_KEY (development) to your environment variables.',
-        },
-        { status: 503 }
-      );
+      const envPref = process.env.SHOTSTACK_ENV?.toLowerCase();
+      const hint =
+        envPref === 'production'
+          ? 'SHOTSTACK_ENV is production but SHOTSTACK_PRODUCTION_KEY is missing. Add your Production key from the Shotstack dashboard.'
+          : 'Add SHOTSTACK_PRODUCTION_KEY (production) or SHOTSTACK_SANDBOX_KEY (development) to your environment variables.';
+      return NextResponse.json({ error: hint }, { status: 503 });
     }
 
     const { apiKey: SHOTSTACK_API_KEY, renderUrl: SHOTSTACK_URL, environment: shotstackEnv } =
@@ -141,11 +139,15 @@ export async function POST(req: NextRequest) {
       shotstackVideoUrl = await resolveShotstackVideoUrl(resolvedVideoUrl);
       console.log('[Render] Shotstack source URL ready');
     } catch (urlError) {
+      const detail = urlError instanceof Error ? urlError.message : 'Unknown R2 error';
       console.error('[Render] Failed to prepare video URL for Shotstack:', urlError);
       return NextResponse.json(
         {
           error:
-            'Could not prepare your uploaded video for cloud rendering. Check R2 storage credentials and try again.',
+            detail.includes('Missing Cloudflare R2')
+              ? 'Cloud storage is not configured on the server. Add CF_ACCOUNT_ID, R2_BUCKET, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY in Vercel, then redeploy.'
+              : `Could not prepare your uploaded video for cloud rendering: ${detail}`,
+          code: 'R2_ERROR',
         },
         { status: 502 }
       );
@@ -338,7 +340,13 @@ export async function POST(req: NextRequest) {
     });
 
     const raw = await response.text();
-    let data: { success?: boolean; response?: { id?: string }; message?: string; error?: string };
+    let data: {
+      success?: boolean;
+      response?: { id?: string };
+      message?: string;
+      error?: string;
+      errors?: { detail?: string; title?: string; status?: string }[];
+    };
     try {
       data = raw ? JSON.parse(raw) : {};
     } catch {
@@ -364,7 +372,15 @@ export async function POST(req: NextRequest) {
     console.error('[Shotstack] Payload sent:', JSON.stringify(shotstackEdit));
 
     const mapped = mapShotstackHttpError(response.status, shotstackError, shotstackEnv);
-    return NextResponse.json({ error: mapped.error, code: 'SHOTSTACK_ERROR' }, { status: mapped.httpStatus });
+    return NextResponse.json(
+      {
+        error: mapped.error,
+        code: 'SHOTSTACK_ERROR',
+        shotstackStatus: response.status,
+        shotstackDetail: shotstackError,
+      },
+      { status: mapped.httpStatus }
+    );
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Render pipeline failed';
     console.error('[Render Engine] Critical Failure:', e);

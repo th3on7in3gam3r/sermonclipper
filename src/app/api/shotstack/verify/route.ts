@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { isVesperAdmin } from '@/lib/adminBypass';
-import { getShotstackConfig, verifyShotstackKey } from '@/lib/shotstack';
+import { getShotstackConfig, probeShotstackRender, verifyShotstackKey } from '@/lib/shotstack';
 
 /** Admin-only: verify which Shotstack key/endpoint the server is using. */
 export async function GET() {
@@ -20,6 +20,7 @@ export async function GET() {
   }
 
   const check = await verifyShotstackKey(config.apiKey, config.renderUrl);
+  const renderProbe = check.ok ? await probeShotstackRender(config.apiKey, config.renderUrl) : null;
 
   return NextResponse.json({
     configured: true,
@@ -29,8 +30,18 @@ export async function GET() {
     keyValid: check.ok,
     httpStatus: check.status,
     message: check.message,
+    renderProbe: renderProbe
+      ? {
+          ok: renderProbe.ok,
+          status: renderProbe.status,
+          message: renderProbe.message,
+          renderId: renderProbe.renderId,
+        }
+      : null,
     hint: check.ok
-      ? 'Key is valid for this endpoint.'
+      ? renderProbe?.ok
+        ? 'Key is valid and can queue renders.'
+        : 'Key auth works but a test render failed — check Shotstack billing/credits or account status.'
       : 'Copy fresh keys from Shotstack Dashboard → API Keys. Production key → SHOTSTACK_PRODUCTION_KEY on Vercel. Sandbox key → SHOTSTACK_SANDBOX_KEY. Redeploy after updating env vars.',
   });
 }
