@@ -13,6 +13,7 @@ interface HeroDemoVideoProps {
 
 type DemoPayload = {
   url: string;
+  fallbackUrl: string;
   clipStart: number;
   clipEnd: number | null;
 };
@@ -30,12 +31,14 @@ export default function HeroDemoVideo({ panel, className, controlClassName, aria
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
-        if (!data.url) {
+        const url = data.url || data.fallbackUrl;
+        if (!url) {
           setLoadError(true);
           return;
         }
         setDemo({
-          url: data.url,
+          url,
+          fallbackUrl: data.fallbackUrl || url,
           clipStart: data.clipStart ?? 0,
           clipEnd: data.clipEnd ?? null,
         });
@@ -57,8 +60,10 @@ export default function HeroDemoVideo({ panel, className, controlClassName, aria
     const useSegmentLoop = clipEnd != null && clipEnd > clipStart;
 
     const seekToStart = () => {
-      if (useSegmentLoop) {
+      if (useSegmentLoop && video.duration && clipStart < video.duration) {
         video.currentTime = clipStart;
+      } else if (useSegmentLoop) {
+        video.currentTime = 0;
       }
     };
 
@@ -100,6 +105,15 @@ export default function HeroDemoVideo({ panel, className, controlClassName, aria
     return () => observer.disconnect();
   }, [isPlaying, demo]);
 
+  const handleVideoError = useCallback(() => {
+    if (!demo) return;
+    if (demo.url !== demo.fallbackUrl) {
+      setDemo({ ...demo, url: demo.fallbackUrl });
+      return;
+    }
+    setLoadError(true);
+  }, [demo]);
+
   const togglePlayback = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -124,14 +138,21 @@ export default function HeroDemoVideo({ panel, className, controlClassName, aria
       {demo ? (
         <video
           ref={videoRef}
+          key={demo.url}
           className="hero-demo-video"
           src={demo.url}
           muted
           playsInline
-          preload="metadata"
+          autoPlay
+          preload="auto"
           loop={demo.clipEnd == null}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
+          onError={handleVideoError}
+          onLoadedData={() => {
+            const video = videoRef.current;
+            if (video && isPlaying) void video.play().catch(() => {});
+          }}
         />
       ) : (
         <div className="hero-demo-video-placeholder" aria-hidden="true">

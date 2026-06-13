@@ -10,37 +10,38 @@ export async function GET(req: NextRequest) {
   }
 
   const clip = getHeroDemoClip(panel);
+  const clipEnd = panel === 'before' ? clip.clipEnd : null;
+
+  const payload = {
+    clipStart: clip.clipStart,
+    clipEnd,
+    fallbackUrl: clip.publicSrc,
+  };
+
+  // Prefer bundled public previews — always work on Vercel without Bunny upload.
+  const preferPublic = process.env.HERO_DEMO_PREFER_CDN !== 'true';
+
+  if (preferPublic) {
+    return NextResponse.json({
+      ...payload,
+      url: clip.publicSrc,
+      source: 'public',
+    });
+  }
 
   try {
-    if (clip.cdnPath) {
-      return NextResponse.json({
-        url: clip.cdnPath,
-        clipStart: clip.clipStart,
-        clipEnd: panel === 'before' ? clip.clipEnd : null,
-        source: 'cdn',
-      });
-    }
-
     const url = await getMediaDeliveryUrl(clip.storageKey);
     return NextResponse.json({
+      ...payload,
       url,
-      clipStart: clip.clipStart,
-      clipEnd: panel === 'before' ? clip.clipEnd : null,
       source: 'signed',
     });
   } catch (error) {
-    console.error('[Demo Video] Delivery failed:', error);
-
-    if (clip.fallbackSrc) {
-      return NextResponse.json({
-        url: clip.fallbackSrc,
-        clipStart: 0,
-        clipEnd: null,
-        fallback: true,
-      });
-    }
-
-    const msg = error instanceof Error ? error.message : 'Failed to load demo video';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('[Demo Video] Signed delivery failed, using public preview:', error);
+    return NextResponse.json({
+      ...payload,
+      url: clip.publicSrc,
+      source: 'public',
+    });
   }
 }
