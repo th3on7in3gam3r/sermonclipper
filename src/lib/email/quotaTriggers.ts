@@ -26,7 +26,7 @@ export async function maybeSendQuotaEmails(dbUser: InstanceType<typeof User>) {
       ? `${dbUser.quotaReachedSentAt.getFullYear()}-${dbUser.quotaReachedSentAt.getMonth()}`
       : null;
     if (reachedKey !== monthKey) {
-      await sendQuotaReachedEmail(email, { resetDate }, token);
+      await sendQuotaReachedEmail(email, { resetDate }, token, dbUser.whiteLabel);
       dbUser.quotaReachedSentAt = now;
       await dbUser.save();
     }
@@ -38,7 +38,7 @@ export async function maybeSendQuotaEmails(dbUser: InstanceType<typeof User>) {
       ? `${dbUser.quotaWarningSentAt.getFullYear()}-${dbUser.quotaWarningSentAt.getMonth()}`
       : null;
     if (warningKey !== monthKey) {
-      await sendQuotaWarningEmail(email, { used, limit, resetDate }, token);
+      await sendQuotaWarningEmail(email, { used, limit, resetDate }, token, dbUser.whiteLabel);
       dbUser.quotaWarningSentAt = now;
       await dbUser.save();
     }

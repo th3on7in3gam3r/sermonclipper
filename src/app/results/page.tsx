@@ -20,6 +20,8 @@ import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
 import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
 import SiteFooter from '@/components/layout/SiteFooter';
 import StudioHelpShell from '@/components/help/StudioHelpShell';
+import HelpTooltip from '@/components/help/HelpTooltip';
+import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
 import EmptyState from '@/components/shared/EmptyState';
 import { planAllowsExport, UPGRADE_COPY } from '@/lib/plans';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
@@ -189,7 +191,7 @@ function ResultsContent() {
   const [thumbStyle, setThumbStyle] = useState<ThumbStyleId>('cinematic');
   const [isGeneratingThumb, setIsGeneratingThumb] = useState(false);
 
-  const openThumbnailStudio = (clip: { hook_title?: string; main_quote?: string }, index: number) => {
+  const openThumbnailStudio = (clip: { hook_title?: string; main_quote?: string; start?: string; end?: string }, index: number) => {
     setActiveThumbnailClip({ ...clip, index });
     setThumbPrompt(clip.hook_title || '');
     setSelectedVariantIdx(0);
@@ -785,6 +787,23 @@ function ResultsContent() {
               onDownloadMaster={handleMasterDownload}
             />
 
+            {analysis?.clips && analysis.clips.length > 0 && (
+              <div
+                style={{
+                  gridColumn: '1 / -1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  marginTop: '8px',
+                }}
+              >
+                <h2 style={{ fontSize: '14px', fontWeight: 900, letterSpacing: '0.12em', margin: 0 }}>
+                  NEURAL SELECTION
+                </h2>
+                <HelpTooltip content={HELP_TOOLTIPS.neuralSelection} label="About Neural Selection" />
+              </div>
+            )}
+
             {/* Generated Clips */}
             {analysis?.clips && analysis.clips.length > 0 ? (
               analysis.clips.map((clip: any, i: number) => (
@@ -853,9 +872,13 @@ function ResultsContent() {
                           right: '16px',
                           zIndex: 10,
                           backdropFilter: 'blur(8px)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '2px',
                         }}
                       >
                         🔥 {clip.viral_score}% VIRAL
+                        <HelpTooltip content={HELP_TOOLTIPS.impactScore} label="About Impact Score" />
                       </div>
                     )}
 
@@ -1243,6 +1266,7 @@ function ResultsContent() {
         {activeThumbnailClip && (
           <ThumbnailStudioModal
             clip={activeThumbnailClip}
+            videoSrc={playableVideoUrl || videoUrl}
             isMobile={isMobile}
             thumbPrompt={thumbPrompt}
             onThumbPromptChange={setThumbPrompt}
@@ -1254,6 +1278,17 @@ function ResultsContent() {
             onSelectVariant={setSelectedVariantIdx}
             onClose={() => setActiveThumbnailClip(null)}
             onGenerate={handleGenerateThumbnail}
+            youtubeConnected={!!userStatus?.youtubeConnected}
+            clipStartSec={parseTime(activeThumbnailClip.start || '0')}
+            clipEndSec={parseTime(activeThumbnailClip.end || '0') || parseTime(activeThumbnailClip.start || '0') + 60}
+            onSetReelCover={(url) => {
+              const idx = activeThumbnailClip.index;
+              setThumbnails((prev) => ({
+                ...prev,
+                [idx]: { ...prev[idx], status: 'done', reelCoverUrl: url, url: prev[idx]?.url || url },
+              }));
+              toast.success('Reel cover updated');
+            }}
           />
         )}
 

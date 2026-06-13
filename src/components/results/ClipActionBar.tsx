@@ -4,6 +4,8 @@
 
 import type { CSSProperties } from 'react';
 import toast from 'react-hot-toast';
+import HelpTooltip from '@/components/help/HelpTooltip';
+import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
 import { triggerReelDownload } from '@/lib/reelDownload';
 import type { ThumbnailState } from './ThumbnailStudioModal';
 
@@ -96,7 +98,10 @@ export default function ClipActionBar({
               zIndex: 2,
             }}
           >
-            <span>CAPTION</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              CAPTION
+              <HelpTooltip content={HELP_TOOLTIPS.socialKit} label="About Social Kit" />
+            </span>
             <span style={{ opacity: 0.5, fontSize: '10px' }}>{captionOpen ? '▲' : '▼'}</span>
           </button>
           {captionOpen && (
@@ -180,7 +185,10 @@ export default function ClipActionBar({
           ) : (
             <>
               <span aria-hidden>🎨</span>
-              <span>THUMBNAIL</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                THUMBNAIL
+                <HelpTooltip content={HELP_TOOLTIPS.thumbnailStudio} label="About Thumbnail Studio" />
+              </span>
             </>
           )}
         </button>

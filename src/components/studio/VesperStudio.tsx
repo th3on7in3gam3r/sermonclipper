@@ -4,6 +4,8 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import StudioPhonePreview from './StudioPhonePreview';
 import StudioExportPanel from './StudioExportPanel';
+import HelpTooltip from '@/components/help/HelpTooltip';
+import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
 import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
 import EmptyState from '@/components/shared/EmptyState';
 import { parseTime, formatTime } from '@/lib/parseTime';
@@ -547,8 +549,18 @@ export default function VesperStudio({
           />
 
           <div style={{ width: '100%', maxWidth: '330px', marginTop: '24px' }}>
-            <label style={{ fontSize: '11px', fontWeight: 900, color: '#52525B', letterSpacing: '0.15em' }}>
+            <label
+              style={{
+                fontSize: '11px',
+                fontWeight: 900,
+                color: '#52525B',
+                letterSpacing: '0.15em',
+                display: 'inline-flex',
+                alignItems: 'center',
+              }}
+            >
               LIVE CAPTION
+              <HelpTooltip content={HELP_TOOLTIPS.burnCaptions} label="About burned captions" />
             </label>
             <textarea
               value={captionOverrides[clipIndex] ?? caption}
@@ -589,7 +601,10 @@ export default function VesperStudio({
             <div className="vesper-badge badge-green" style={{ marginBottom: '8px' }}>
               MEDIA KIT
             </div>
-            <h3 style={{ fontSize: '20px', fontWeight: 900 }}>Social Distribution</h3>
+            <h3 style={{ fontSize: '20px', fontWeight: 900, display: 'inline-flex', alignItems: 'center' }}>
+              Social Distribution
+              <HelpTooltip content={HELP_TOOLTIPS.socialKit} label="About Social Kit" />
+            </h3>
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>

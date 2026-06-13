@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import HelpTooltip from '@/components/help/HelpTooltip';
+import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
 import { formatResetDate, getUsageResetDate } from '@/lib/plans';
 
 interface QuotaDisplayProps {
@@ -27,8 +29,9 @@ export default function QuotaDisplay({
       className={`quota-display${atLimit ? ' quota-display--limit' : ''}${compact ? ' quota-display--compact' : ''}`}
     >
       <div className="quota-display-header">
-        <span className="quota-display-label">
+        <span className="quota-display-label quota-display-label-row">
           {isUnlimited ? 'Unlimited clips' : `${usageCount} of ${limit} clips used this month`}
+          <HelpTooltip content={HELP_TOOLTIPS.quota} label="About clip quota" />
         </span>
         {!isUnlimited && <span className="quota-display-remaining">{remaining} left</span>}
       </div>

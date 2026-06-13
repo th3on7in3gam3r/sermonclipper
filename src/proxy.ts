@@ -2,6 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { applySecurityHeaders } from '@/lib/securityHeaders';
 import { checkApiRateLimit, RATE_LIMIT_MESSAGE } from '@/lib/rateLimit';
+import { resolveTenantByHost } from '@/lib/tenant';
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
@@ -37,7 +38,17 @@ export const proxy = clerkMiddleware(async (auth, request) => {
     await auth.protect();
   }
 
-  return applySecurityHeaders(NextResponse.next(), request);
+  const host = request.headers.get('host') || '';
+  const tenant = await resolveTenantByHost(host);
+  const response = NextResponse.next();
+  if (tenant) {
+    response.headers.set('x-vesper-tenant-id', tenant.clerkId);
+    if (tenant.whiteLabel?.churchName) {
+      response.headers.set('x-vesper-tenant-name', tenant.whiteLabel.churchName);
+    }
+  }
+
+  return applySecurityHeaders(response, request);
 });
 
 export const config = {

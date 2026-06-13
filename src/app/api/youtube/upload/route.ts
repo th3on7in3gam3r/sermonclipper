@@ -9,7 +9,8 @@ export async function POST(req: Request) {
     const { userId } = await auth();
     if (!userId) return new NextResponse('Unauthorized', { status: 401 });
 
-    const { videoUrl, title, description } = await req.json();
+    const { videoUrl, title, description, thumbnailUrl, clipIndex, hasTextOverlay, style } =
+      await req.json();
 
     await connectDB();
     const dbUser = await User.findOne({ clerkId: userId });
@@ -23,6 +24,22 @@ export async function POST(req: Request) {
       description,
       url: videoUrl,
     });
+
+    if (result.id) {
+      dbUser.youtubeThumbnailTests = [
+        ...(dbUser.youtubeThumbnailTests || []),
+        {
+          videoId: result.id,
+          clipIndex: typeof clipIndex === 'number' ? clipIndex : 0,
+          thumbnailUrl: thumbnailUrl || undefined,
+          hasTextOverlay: Boolean(hasTextOverlay),
+          style: style || undefined,
+          ctr: 0,
+          uploadedAt: new Date(),
+        },
+      ];
+      await dbUser.save();
+    }
 
     return NextResponse.json({ success: true, youtubeId: result.id });
   } catch (error: unknown) {

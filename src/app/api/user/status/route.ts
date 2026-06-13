@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
 
   if (email && !dbUser.welcomeEmailSent && !dbUser.emailUnsubscribed) {
     try {
-      await sendWelcomeEmail(email, name, dbUser.emailUnsubscribeToken);
+      await sendWelcomeEmail(email, name, dbUser.emailUnsubscribeToken, dbUser.whiteLabel);
       dbUser.welcomeEmailSent = true;
       await dbUser.save();
     } catch (err) {

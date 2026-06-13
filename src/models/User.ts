@@ -35,6 +35,28 @@ export interface IUser extends Document {
   onboardingEmailsSent?: number[];
   lastSeenChangelogDate?: Date;
   shortcutsTipShown?: boolean;
+  whiteLabel?: {
+    churchName?: string;
+    logoUrl?: string;
+    primaryColor?: string;
+    customDomain?: string;
+    customDomainVerified?: boolean;
+    customDomainVerifiedAt?: Date;
+    emailDomain?: string;
+    emailDomainVerified?: boolean;
+    emailReplyTo?: string;
+    showPoweredBy?: boolean;
+    defaultThumbnailStyle?: Record<string, unknown>;
+  };
+  youtubeThumbnailTests?: {
+    videoId: string;
+    clipIndex?: number;
+    thumbnailUrl?: string;
+    ctr?: number;
+    hasTextOverlay?: boolean;
+    style?: Record<string, unknown>;
+    uploadedAt?: Date;
+  }[];
   createdAt: Date;
 }
 
@@ -72,6 +94,8 @@ const UserSchema: Schema = new Schema({
   onboardingEmailsSent: { type: [Number], default: [] },
   lastSeenChangelogDate: { type: Date },
   shortcutsTipShown: { type: Boolean, default: false },
+  whiteLabel: { type: Schema.Types.Mixed },
+  youtubeThumbnailTests: { type: [Schema.Types.Mixed], default: [] },
   createdAt: { type: Date, default: Date.now },
 });
 

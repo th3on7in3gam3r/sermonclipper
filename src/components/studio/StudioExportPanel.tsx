@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import HelpInlineLink from '@/components/help/HelpInlineLink';
+import HelpTooltip from '@/components/help/HelpTooltip';
+import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
 import ShareExportModal from '@/components/dashboard/ShareExportModal';
 import type { RenderState } from '@/lib/studio/types';
 import { triggerReelDownload } from '@/lib/reelDownload';
@@ -98,13 +100,18 @@ export default function StudioExportPanel({
             disabled={isLoading || isYouTubeSource}
             style={{ opacity: isLoading || isYouTubeSource ? 0.65 : 1 }}
           >
-            {isLoading
-              ? `Generating… ${renderProgress}%`
-              : isYouTubeSource
-                ? 'Upload MP4 to export'
-                : isError
-                  ? 'Try again'
-                  : 'Generate Reel'}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              {isLoading
+                ? `Generating… ${renderProgress}%`
+                : isYouTubeSource
+                  ? 'Upload MP4 to export'
+                  : isError
+                    ? 'Try again'
+                    : 'Generate Reel'}
+              {!isLoading && !isYouTubeSource && (
+                <HelpTooltip content={HELP_TOOLTIPS.burnCaptions} label="About burned captions" />
+              )}
+            </span>
           </button>
         )}
       </div>
