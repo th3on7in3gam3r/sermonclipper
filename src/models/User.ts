@@ -5,7 +5,7 @@ export interface IUser extends Document {
   clerkId: string;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
-  plan: 'free' | 'creator' | 'church_pro';
+  plan: 'free' | 'creator' | 'church_pro' | 'network';
   status: 'active' | 'canceled' | 'past_due' | 'unpaid';
   usageCount: number;
   lastUsageReset: Date;
@@ -57,6 +57,14 @@ export interface IUser extends Document {
     style?: Record<string, unknown>;
     uploadedAt?: Date;
   }[];
+  cancelFeedback?: Record<string, unknown>;
+  showcaseOptIn?: boolean;
+  bioPage?: Record<string, unknown>;
+  autoClipSundayStream?: boolean;
+  networkId?: string;
+  networkRole?: 'admin' | 'church';
+  reEngagementSent?: string[];
+  analytics?: { embedViews?: number };
   createdAt: Date;
 }
 
@@ -64,7 +72,7 @@ const UserSchema: Schema = new Schema({
   clerkId: { type: String, required: true, unique: true, index: true },
   stripeCustomerId: { type: String, unique: true, sparse: true },
   stripeSubscriptionId: { type: String, unique: true, sparse: true },
-  plan: { type: String, enum: ['free', 'creator', 'church_pro'], default: 'free' },
+  plan: { type: String, enum: ['free', 'creator', 'church_pro', 'network'], default: 'free' },
   status: { type: String, default: 'active' },
   usageCount: { type: Number, default: 0 },
   lastUsageReset: { type: Date, default: Date.now },
@@ -96,6 +104,14 @@ const UserSchema: Schema = new Schema({
   shortcutsTipShown: { type: Boolean, default: false },
   whiteLabel: { type: Schema.Types.Mixed },
   youtubeThumbnailTests: { type: [Schema.Types.Mixed], default: [] },
+  cancelFeedback: { type: Schema.Types.Mixed },
+  showcaseOptIn: { type: Boolean, default: false },
+  bioPage: { type: Schema.Types.Mixed },
+  autoClipSundayStream: { type: Boolean, default: false },
+  networkId: { type: String, index: true },
+  networkRole: { type: String, enum: ['admin', 'church'] },
+  reEngagementSent: { type: [String], default: [] },
+  analytics: { type: Schema.Types.Mixed, default: {} },
   createdAt: { type: Date, default: Date.now },
 });
 

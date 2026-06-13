@@ -1,0 +1,31 @@
+-- Vesper Studio — entity map (MongoDB → Postgres)
+--
+-- users                  ← User (clerkId → clerk_id, usageCount → clips_used_this_month)
+-- user_onboarding_checklist ← User.checklist
+-- onboarding_email_log   ← User.onboardingEmailsSent[]
+-- oauth_connections      ← User.youtubeTokens, socialConnections
+-- white_label_settings   ← User.whiteLabel
+-- teams / team_members / team_invites ← Team
+-- brand_kits             ← localStorage brand kit (server-side target)
+-- sermon_sources         ← Sermon + upload metadata
+-- processing_jobs        ← JobProgress
+-- sermon_analyses        ← Sermon.analysis (JSONB)
+-- clips                  ← analysis.clips[]
+-- clip_platform_captions ← clip.suggested_captions[]
+-- clip_exports           ← render-clip history
+-- clip_thumbnails        ← ThumbnailStudio output
+-- youtube_thumbnail_tests ← User.youtubeThumbnailTests[]
+-- scheduled_posts        ← (planned)
+-- notifications          ← Notification
+-- webhooks               ← Webhook
+-- webhook_deliveries     ← WebhookDelivery
+-- feature_flags          ← FeatureFlag
+-- ab_test_events         ← AbTestEvent
+-- nps_responses          ← NpsResponse
+-- help_article_feedback  ← HelpFeedback
+--
+-- Apply order:
+--   psql $DATABASE_URL -f db/postgres/001_schema.sql
+--   psql $DATABASE_URL -f db/postgres/003_triggers.sql
+--   psql $DATABASE_URL -f db/postgres/002_indexes.sql
+--   psql $DATABASE_URL -f db/postgres/004_explain_queries.sql  (audit only)

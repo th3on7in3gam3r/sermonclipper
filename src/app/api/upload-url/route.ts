@@ -3,7 +3,18 @@ import { auth } from '@clerk/nextjs/server';
 import { generatePresignedUploadUrl } from '../../../lib/r2';
 import { MAX_DIRECT_UPLOAD_BYTES, MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
 import { buildUploadKey } from '@/lib/storageKeys';
+import { contentTypeForFormat, type AllowedMediaFormat } from '@/lib/fileValidation';
 import { v4 as uuidv4 } from 'uuid';
+
+const AUDIO_EXTS = new Set(['mp3', 'm4a', 'aac']);
+const VIDEO_EXTS = new Set(['mp4', 'mov', 'webm']);
+
+function resolveUploadExt(fileName: string): AllowedMediaFormat {
+  const ext = fileName.split('.').pop()?.toLowerCase() || 'mp4';
+  if (AUDIO_EXTS.has(ext)) return ext as AllowedMediaFormat;
+  if (ext === 'webm' || ext === 'mov') return ext;
+  return 'mp4';
+}
 
 /**
  * Returns a presigned URL for direct browser-to-R2 upload.
@@ -34,19 +45,22 @@ export async function POST(req: NextRequest) {
     }
 
     const jobId = incomingJobId || uuidv4();
-
-    const extFromName = fileName.split('.').pop()?.toLowerCase();
-    const ext = extFromName === 'webm' || extFromName === 'mov' ? extFromName : 'mp4';
+    const ext = resolveUploadExt(fileName);
     const key = buildUploadKey(jobId, ext);
 
+    const allowedTypes = [
+      'video/mp4',
+      'video/webm',
+      'video/quicktime',
+      'audio/mpeg',
+      'audio/mp4',
+      'audio/aac',
+      'audio/x-m4a',
+    ];
     const contentTypeHeader =
-      contentType && ['video/mp4', 'video/webm', 'video/quicktime'].includes(contentType)
+      contentType && allowedTypes.includes(contentType)
         ? contentType
-        : ext === 'webm'
-          ? 'video/webm'
-          : ext === 'mov'
-            ? 'video/quicktime'
-            : 'video/mp4';
+        : contentTypeForFormat(ext);
 
     const { uploadUrl } = await generatePresignedUploadUrl(key, contentTypeHeader, 3600);
 
@@ -56,6 +70,7 @@ export async function POST(req: NextRequest) {
       uploadUrl,
       key,
       confirmAfterUpload: true,
+      isAudio: AUDIO_EXTS.has(ext),
     });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Failed to generate upload URL';

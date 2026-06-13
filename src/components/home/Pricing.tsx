@@ -48,7 +48,24 @@ const plans = [
     plan: 'church_pro',
     popular: false,
   },
-];
+  {
+    name: 'Network',
+    bestFor: 'Denominations & church networks',
+    price: 'Custom',
+    desc: 'Manage dozens of churches under one network admin dashboard.',
+    features: [
+      'Child church accounts',
+      'Network-wide analytics',
+      'Shared brand templates',
+      'Dedicated support',
+      'Custom billing',
+    ],
+    priceId: null,
+    plan: 'network',
+    popular: false,
+    contact: true as const,
+  },
+] as const;
 
 function getPlanButtonLabel(planId: string, currentPlan: string | null, isSignedIn: boolean): string {
   if (!isSignedIn) return 'Get Started';
@@ -106,8 +123,13 @@ export default function Pricing() {
     }
   };
 
-  const handlePlanClick = (planId: string, priceId: string | null) => {
+  const handlePlanClick = (planId: string, priceId: string | null, contact?: boolean) => {
     if (!isLoaded) return;
+
+    if (contact || planId === 'network') {
+      window.location.href = 'mailto:hello@vesper.biblefunland.com?subject=Vesper%20Network%20%2F%20Enterprise';
+      return;
+    }
 
     if (!userId) {
       if (planId === 'free') {
@@ -155,7 +177,10 @@ export default function Pricing() {
           {plans.map((p) => {
             const isSignedIn = Boolean(userId);
             const isCurrent = isSignedIn && p.plan === currentPlan;
-            const label = getPlanButtonLabel(p.plan, currentPlan, isSignedIn);
+            const label =
+              'contact' in p && p.contact
+                ? 'Contact us'
+                : getPlanButtonLabel(p.plan, currentPlan, isSignedIn);
 
             return (
               <div
@@ -187,8 +212,18 @@ export default function Pricing() {
 
                 <button
                   type="button"
-                  onClick={() => handlePlanClick(p.plan, p.priceId as string | null)}
-                  disabled={isCurrent || loading !== null || (isSignedIn && !isCurrent && !p.priceId)}
+                  onClick={() =>
+                    handlePlanClick(
+                      p.plan,
+                      p.priceId as string | null,
+                      'contact' in p ? Boolean(p.contact) : false
+                    )
+                  }
+                  disabled={
+                    isCurrent ||
+                    loading !== null ||
+                    (isSignedIn && !isCurrent && !p.priceId && !('contact' in p && p.contact))
+                  }
                   className={`vesper-btn ${p.popular && !isCurrent ? 'vesper-btn-primary' : 'vesper-btn-outline'} shimmer-effect pricing-card-cta`}
                   style={{
                     opacity: isCurrent || (isSignedIn && !isCurrent && !p.priceId) ? 0.55 : 1,

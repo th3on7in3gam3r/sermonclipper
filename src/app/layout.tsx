@@ -24,12 +24,13 @@ import { FeatureFlagsProvider } from '@/components/providers/FeatureFlagsProvide
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import VesperErrorBoundary from '@/components/shared/VesperErrorBoundary';
 import CookieConsent from '@/components/consent/CookieConsent';
+import PwaProvider from '@/components/pwa/PwaProvider';
 import { vesperClerkAppearance, vesperClerkLocalization } from '@/lib/clerkAppearance';
 
 let hasWarnedMissingClerkKey = false;
 
 export const viewport: Viewport = {
-  themeColor: '#0A0A0F',
+  themeColor: '#7c3aed',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -128,8 +129,10 @@ export default function RootLayout({
                         },
                       }}
                     />
-                    {children}
-                    <CookieConsent />
+                    <PwaProvider>
+                      {children}
+                      <CookieConsent />
+                    </PwaProvider>
                   </VesperErrorBoundary>
                 </AnalyticsProvider>
               </FeatureFlagsProvider>

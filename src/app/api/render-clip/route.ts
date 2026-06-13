@@ -8,6 +8,7 @@ import { effectivePlan } from '@/lib/adminBypass';
 import { getShotstackConfig, mapShotstackHttpError, parseShotstackErrorBody } from '@/lib/shotstack';
 import { resolveShotstackVideoUrl } from '../../../lib/shotstackVideoUrl';
 import { isDownloadableMasterUrl, isYouTubeUrl } from '../../../lib/videoSource';
+import { isAudioMediaUrl } from '@/lib/mediaDetection';
 
 const parseTime = (timeVal: unknown): number => {
   if (typeof timeVal === 'number') return timeVal;
@@ -209,63 +210,68 @@ export async function POST(req: NextRequest) {
       transition: { in: transitionIn, out: 'fade' },
     }));
 
-    const isAudio =
-      videoUrl.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) ||
-      videoUrl.toLowerCase().includes('audio');
+    const isAudio = isAudioMediaUrl(videoUrl);
 
-    let tracks: any[] = [];
+    const brandColor =
+      (dbUser?.whiteLabel as { primaryColor?: string } | undefined)?.primaryColor || '#7c3aed';
+    const logoUrl = (dbUser?.whiteLabel as { logoUrl?: string } | undefined)?.logoUrl;
+
+    let tracks: Record<string, unknown>[] = [];
 
     if (isAudio) {
-      // Build title overlay clip at the top
-      const titleClip = {
+      const waveformHtml = `<div class="wrap"><div class="bars">${Array.from({ length: 32 })
+        .map((_, i) => `<span style="animation-delay:${(i * 0.05).toFixed(2)}s"></span>`)
+        .join('')}</div></div>`;
+      const waveformCss = `
+        .wrap { width:100%; height:100%; background:#0d0d14; display:flex; align-items:center; justify-content:center; }
+        .bars { display:flex; gap:6px; align-items:center; height:240px; }
+        .bars span { display:block; width:8px; height:40px; background:${brandColor}; border-radius:4px; animation: pulse 0.8s ease-in-out infinite alternate; }
+        @keyframes pulse { from { height:24px; opacity:0.5; } to { height:200px; opacity:1; } }
+      `;
+
+      const bgClip = {
         asset: {
-          type: 'text',
-          text: (clip.hook_title || 'SERMON FOCUS').toUpperCase(),
-          font: {
-            family: fontFamily,
-            size: 32,
-            color: '#8B5CF6', // Purple brand accent
-          },
+          type: 'html',
+          html: waveformHtml,
+          css: waveformCss,
+          width: 1080,
+          height: 1920,
         },
-        width: 900,
-        height: 100,
         start: 0,
         length: duration,
-        position: 'top',
-        transition: { in: 'fade', out: 'fade' },
+        fit: 'none',
       };
 
-      // Caption clips positioned centered for gorgeous podcast reel aesthetic
+      const logoClip = logoUrl
+        ? {
+            asset: { type: 'image', src: logoUrl },
+            start: 0,
+            length: duration,
+            width: 220,
+            height: 220,
+            position: 'center',
+            opacity: 0.92,
+          }
+        : null;
+
       const audioCaptionClips = captionLines.map((text: string, i: number) => ({
         asset: {
           type: 'text',
           text: text.toUpperCase(),
           font: {
             family: fontFamily,
-            size: 56,
+            size: 64,
             color: captionColor,
           },
         },
-        width: 1000,
-        height: 300,
+        width: 980,
+        height: 220,
         start: i * captionDuration,
         length: captionDuration,
-        position: 'center',
+        position: 'bottom',
         transition: { in: transitionIn, out: 'fade' },
       }));
 
-      // Background Image Clip - beautiful deep violet abstract 3D artwork from Unsplash
-      const bgClip = {
-        asset: {
-          type: 'image',
-          src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&q=80',
-        },
-        start: 0,
-        length: duration,
-        fit: 'cover',
-      };
-
-      // Audio track clip
       const audioClip = {
         asset: {
           type: 'audio',
@@ -277,13 +283,9 @@ export async function POST(req: NextRequest) {
       };
 
       tracks = [
-        // Layer 1: Captions (Topmost)
         ...(audioCaptionClips.length > 0 ? [{ clips: audioCaptionClips }] : []),
-        // Layer 2: Sermon Title Accent
-        { clips: [titleClip] },
-        // Layer 3: Main background card
+        ...(logoClip ? [{ clips: [logoClip] }] : []),
         { clips: [bgClip] },
-        // Layer 4: Audio track
         { clips: [audioClip] },
       ];
     } else {

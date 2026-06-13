@@ -13,6 +13,7 @@ import FAQ from '@/components/FAQ';
 import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import VideoTrimmer from '@/components/VideoTrimmer';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   MAX_DIRECT_UPLOAD_BYTES,
   MAX_DIRECT_UPLOAD_LABEL,
@@ -43,18 +44,18 @@ function getProcessingStepIndex(step?: string): number {
   return 3;
 }
 
-async function validateYoutubeUrl(inputUrl: string): Promise<string | null> {
+async function validateYoutubeUrl(inputUrl: string): Promise<{ error: string | null; notice: string | null }> {
   const trimmed = inputUrl.trim();
-  if (!trimmed) return 'Please enter a YouTube link';
-  if (!isValidYouTubeUrl(trimmed)) return 'Please enter a valid YouTube video URL';
+  if (!trimmed) return { error: 'Please enter a YouTube link', notice: null };
+  if (!isValidYouTubeUrl(trimmed)) return { error: 'Please enter a valid YouTube video URL', notice: null };
 
   try {
     const res = await fetch(`/api/youtube/validate?url=${encodeURIComponent(trimmed)}`);
     const data = await res.json();
-    if (!data.ok) return data.message as string;
-    return null;
+    if (!data.ok) return { error: data.message as string, notice: null };
+    return { error: null, notice: (data.liveNotice as string) || null };
   } catch {
-    return 'Could not verify this YouTube link. Check your connection and try again.';
+    return { error: 'Could not verify this YouTube link. Check your connection and try again.', notice: null };
   }
 }
 
@@ -69,6 +70,7 @@ export default function Home() {
   }, [completeOnboarding]);
   const [url, setUrl] = useState('');
   const [youtubeError, setYoutubeError] = useState<string | null>(null);
+  const [youtubeNotice, setYoutubeNotice] = useState<string | null>(null);
   const [youtubeValidating, setYoutubeValidating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingError, setProcessingError] = useState<string | null>(null);
@@ -99,13 +101,15 @@ export default function Home() {
 
   const handleProcess = async () => {
     setYoutubeError(null);
+    setYoutubeNotice(null);
     setYoutubeValidating(true);
-    const validationError = await validateYoutubeUrl(url);
+    const validation = await validateYoutubeUrl(url);
     setYoutubeValidating(false);
-    if (validationError) {
-      setYoutubeError(validationError);
+    if (validation.error) {
+      setYoutubeError(validation.error);
       return;
     }
+    if (validation.notice) setYoutubeNotice(validation.notice);
 
     const newJobId = Math.random().toString(36).substring(7);
     setLastSubmitUrl(url.trim());
@@ -135,6 +139,7 @@ export default function Home() {
   const handleUrlChange = (nextUrl: string) => {
     setUrl(nextUrl);
     if (youtubeError) setYoutubeError(null);
+    if (youtubeNotice) setYoutubeNotice(null);
   };
 
   useEffect(() => {
@@ -242,7 +247,7 @@ export default function Home() {
       return;
     }
 
-    const loadToast = toast.loading('Uploading video file…');
+    const loadToast = toast.loading(/\.(mp3|m4a|aac)$/i.test(file.name) ? 'Uploading audio file…' : 'Uploading media file…');
     const newJobId = Math.random().toString(36).substring(7);
     setJobId(newJobId);
     setProcessingError(null);
@@ -419,7 +424,10 @@ export default function Home() {
             }}
           >
             Automatically distill your powerful sermons into high-impact cinematic reels that reach more
-            hearts on every platform.
+            hearts on every platform.{' '}
+            <Link href="/showcase" style={{ color: 'var(--accent-violet)', fontWeight: 700 }}>
+              See what churches are creating →
+            </Link>
           </p>
 
           <HeroDemo />
@@ -430,6 +438,7 @@ export default function Home() {
             isMobile={isMobile}
             url={url}
             error={youtubeError}
+            notice={youtubeNotice}
             isValidating={youtubeValidating}
             onUrlChange={handleUrlChange}
             onSubmit={handleProcess}

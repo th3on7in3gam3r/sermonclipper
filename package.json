@@ -11,7 +11,8 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:migrate": "node scripts/migrate-postgres.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.94.0",
@@ -37,6 +38,7 @@
     "mongoose": "^9.6.2",
     "next": "16.2.4",
     "openai": "^6.37.0",
+    "pg": "^8.21.0",
     "posthog-js": "^1.386.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -52,6 +54,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/fluent-ffmpeg": "^2.1.28",
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",

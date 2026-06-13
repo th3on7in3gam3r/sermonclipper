@@ -5,6 +5,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import ReferralCard from '@/components/dashboard/ReferralCard';
 import WhiteLabelSettings from '@/components/dashboard/WhiteLabelSettings';
+import ProfileSettingsPanel from '@/components/dashboard/ProfileSettingsPanel';
 import StudioHelpShell from '@/components/help/StudioHelpShell';
 
 const PLATFORMS = [
@@ -151,6 +152,7 @@ export default function AccountSettingsPage() {
         </div>
 
         <WhiteLabelSettings />
+        <ProfileSettingsPanel />
 
         <div className="glass-card premium-border" style={{ padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>Planning Center</h2>

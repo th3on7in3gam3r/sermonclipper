@@ -73,7 +73,7 @@ export default function HeroUploadZone({ isMobile, onFileSelect }: HeroUploadZon
         ref={inputRef}
         type="file"
         id="video-upload"
-        accept="video/*,audio/*"
+        accept="video/mp4,video/quicktime,video/webm,audio/mpeg,audio/mp4,audio/aac,.mp3,.m4a,.aac"
         style={{ display: 'none' }}
         onChange={(e) => {
           const file = e.target.files?.[0];
@@ -107,7 +107,7 @@ export default function HeroUploadZone({ isMobile, onFileSelect }: HeroUploadZon
 
         <p className="hero-upload-headline">Drop your sermon here to get started</p>
         <p className="hero-upload-sub">
-          or click to browse — MP4, MOV, WEBM up to {MAX_DIRECT_UPLOAD_LABEL} for full-quality reel exports
+          or click to browse — MP4, MOV, WEBM, MP3, or M4A up to {MAX_DIRECT_UPLOAD_LABEL}
         </p>
 
         <div className="hero-upload-badges">

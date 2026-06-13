@@ -3375,3 +3375,232 @@ select:focus-visible,
   font-size: 14px;
   line-height: 1.5;
 }
+
+/* --- PWA --- */
+
+.pwa-offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  padding: 10px 16px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.95);
+  color: #1a1a1a;
+}
+
+.pwa-install-prompt {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9998;
+  max-width: 320px;
+  padding: 20px;
+  border-radius: 16px;
+}
+
+.pwa-install-title {
+  font-weight: 900;
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+
+.pwa-install-copy {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.pwa-install-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pwa-ios-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9997;
+  padding: 14px 48px 14px 16px;
+  background: rgba(12, 12, 18, 0.98);
+  border-top: 1px solid rgba(124, 58, 237, 0.4);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.pwa-ios-dismiss {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Showcase */
+.showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.showcase-card {
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.showcase-card-video-wrap {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  background: #000;
+}
+
+.showcase-card-video-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.showcase-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+}
+
+.showcase-card-body {
+  padding: 14px;
+}
+
+.showcase-church {
+  margin: 0 0 4px;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.showcase-caption {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Bio page */
+.bio-page-inner {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  text-align: center;
+  color: #fff;
+}
+
+.bio-page-logo {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  margin-bottom: 16px;
+}
+
+.bio-page-desc {
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.6;
+}
+
+.bio-page-social {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.bio-page-social a {
+  color: #c4b5fd;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.bio-page-clips {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 32px 0;
+}
+
+.bio-page-clip video {
+  width: 100%;
+  border-radius: 12px;
+  background: #000;
+}
+
+.bio-page-cta {
+  margin-top: 16px;
+}
+
+.bio-page-footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 13px;
+}
+
+.bio-page-footer a {
+  color: #a78bfa;
+}
+
+/* YouTube recent streams */
+.hero-youtube-recent {
+  margin-top: 14px;
+}
+
+.hero-youtube-recent-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+
+.hero-youtube-recent-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hero-youtube-recent-item {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(124, 58, 237, 0.35);
+  background: rgba(124, 58, 237, 0.08);
+  color: var(--text-primary);
+  cursor: pointer;
+  max-width: 100%;
+  text-align: left;
+}
+
+.hero-youtube-notice {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #fbbf24;
+  line-height: 1.4;
+}
+
+.clip-badge-audio {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+}

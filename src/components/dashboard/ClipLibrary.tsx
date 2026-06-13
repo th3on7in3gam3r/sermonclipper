@@ -19,7 +19,7 @@ export type SermonRecord = {
   finalPath?: string;
   createdAt: string;
   createdByName?: string;
-  analysis?: { clips?: ClipAnalysis[] };
+  analysis?: { clips?: ClipAnalysis[]; source_type?: string };
 };
 
 type ClipAnalysis = {
@@ -28,6 +28,7 @@ type ClipAnalysis = {
   hook_title?: string;
   main_quote?: string;
   suggested_captions?: string[];
+  is_audio?: boolean;
 };
 
 export type LibraryItem = {
@@ -45,6 +46,7 @@ export type LibraryItem = {
   finalPath?: string;
   createdByName?: string;
   exportStatus: 'none' | 'complete' | 'pending';
+  isAudio?: boolean;
 };
 
 function buildResultsHref(item: LibraryItem) {
@@ -90,6 +92,7 @@ function flattenSermons(sermons: SermonRecord[]): LibraryItem[] {
           finalPath: sermon.finalPath,
           createdByName: sermon.createdByName,
           exportStatus: 'none',
+          isAudio: Boolean(clip.is_audio || sermon.analysis?.source_type === 'audio'),
         });
       });
     } else {
@@ -339,7 +342,14 @@ export default function ClipLibrary({
                 <span className="clip-library-duration">{formatDuration(item.durationSec)}</span>
               </div>
               <div className="clip-library-body">
-                <h3>{item.title}</h3>
+                <h3>
+                  {item.title}
+                  {item.isAudio && (
+                    <span title="Audio sermon" style={{ marginLeft: 6 }}>
+                      🎙️
+                    </span>
+                  )}
+                </h3>
                 <p className="clip-library-sermon">{item.sermonTitle}</p>
                 <div className="clip-library-meta">
                   <span>{new Date(item.createdAt).toLocaleDateString()}</span>

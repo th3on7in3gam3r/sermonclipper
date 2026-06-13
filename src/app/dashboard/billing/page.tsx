@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth, UserButton } from '@clerk/nextjs';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 import SiteFooter from '@/components/layout/SiteFooter';
+import CancelSaveFlowModal from '@/components/billing/CancelSaveFlowModal';
 import StudioHelpShell from '@/components/help/StudioHelpShell';
 
 type BillingSummary = {
@@ -184,30 +185,7 @@ export default function BillingPage() {
       </div>
 
       {showCancelModal && (
-        <div className="upgrade-modal-overlay" role="presentation" onClick={() => setShowCancelModal(false)}>
-          <div className="upgrade-modal-card glass-card premium-border" onClick={(e) => e.stopPropagation()}>
-            <h2 className="upgrade-modal-title">Cancel your subscription?</h2>
-            <p className="upgrade-modal-copy">
-              You will keep access until the end of your billing period, then your account downgrades to Free
-              (2 clips/month, watermarked exports). Export history and your clip library remain available.
-            </p>
-            <button
-              type="button"
-              className="vesper-btn vesper-btn-primary upgrade-modal-cta"
-              onClick={openPortal}
-            >
-              Continue in Stripe
-            </button>
-            <button
-              type="button"
-              className="vesper-btn-outline upgrade-modal-cta"
-              style={{ marginTop: '10px' }}
-              onClick={() => setShowCancelModal(false)}
-            >
-              Keep subscription
-            </button>
-          </div>
-        </div>
+        <CancelSaveFlowModal onClose={() => setShowCancelModal(false)} onOpenStripePortal={openPortal} />
       )}
 
       <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 10 }}>

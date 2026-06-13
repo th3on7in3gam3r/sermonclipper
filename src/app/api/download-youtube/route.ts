@@ -4,6 +4,7 @@ import { existsSync, createWriteStream, createReadStream, unlinkSync } from 'fs'
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 import { progressManager } from '../../../lib/progress';
+import { isAudioMediaUrl } from '@/lib/mediaDetection';
 import { uploadStreamToR2 } from '../../../lib/r2';
 import { TMP_DIR } from '../../../lib/paths';
 import OpenAI from 'openai';
@@ -133,8 +134,18 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
   });
 
   let analysisResult = null;
+  const isAudioSource = isAudioMediaUrl(url);
   try {
     analysisResult = await runOpenAIPrimary(url, jobId);
+    if (analysisResult) {
+      analysisResult.source_type = isAudioSource ? 'audio' : 'video';
+      if (isAudioSource && Array.isArray(analysisResult.clips)) {
+        analysisResult.clips = analysisResult.clips.map((c: Record<string, unknown>) => ({
+          ...c,
+          is_audio: true,
+        }));
+      }
+    }
     await progressManager.update(jobId, {
       step: 'Analysis',
       status: 'completed',

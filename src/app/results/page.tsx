@@ -12,6 +12,7 @@ import VesperStudio from '@/components/studio/VesperStudio';
 import SermonContextCard from '@/components/results/SermonContextCard';
 import ClipActionBar from '@/components/results/ClipActionBar';
 import ThumbnailStudioModal from '@/components/results/ThumbnailStudioModal';
+import QuoteCardModal from '@/components/results/QuoteCardModal';
 import { THUMB_STYLES, type ThumbStyleId } from '@/lib/thumbnailStyles';
 import { parseTime } from '@/lib/parseTime';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
@@ -190,6 +191,7 @@ function ResultsContent() {
   const [thumbPrompt, setThumbPrompt] = useState('');
   const [thumbStyle, setThumbStyle] = useState<ThumbStyleId>('cinematic');
   const [isGeneratingThumb, setIsGeneratingThumb] = useState(false);
+  const [activeQuoteClip, setActiveQuoteClip] = useState<any>(null);
 
   const openThumbnailStudio = (clip: { hook_title?: string; main_quote?: string; start?: string; end?: string }, index: number) => {
     setActiveThumbnailClip({ ...clip, index });
@@ -459,6 +461,18 @@ function ResultsContent() {
   const handleCustomize = (clip: any, index: number) => {
     setSelectedClip({ ...clip, index });
   };
+
+  useEffect(() => {
+    const count = analysis?.clips?.length ?? 0;
+    if (count > 0) {
+      try {
+        localStorage.setItem('vesper-clip-count', String(count));
+      } catch {
+        /* ignore */
+      }
+      window.dispatchEvent(new Event('vesper-clip-created'));
+    }
+  }, [analysis?.clips?.length]);
 
   useEffect(() => {
     if (!jobId) return;
@@ -861,6 +875,11 @@ function ResultsContent() {
                       }}
                     >
                       NEURAL CLIP {i + 1}
+                      {(clip.is_audio || analysis?.source_type === 'audio') && (
+                        <span className="clip-badge-audio" style={{ marginLeft: 8 }}>
+                          🎙️ Audio
+                        </span>
+                      )}
                     </div>
 
                     {clip.viral_score && (
@@ -929,6 +948,7 @@ function ResultsContent() {
 
                     <ClipActionBar
                       clip={clip}
+                      jobId={jobId || undefined}
                       isMobile={isMobile}
                       isYouTubeSource={isYouTubeSource}
                       platforms={PLATFORMS}
@@ -939,6 +959,7 @@ function ResultsContent() {
                       renderProgress={renderProgress[i]}
                       renderUrl={rendering[i]?.url}
                       onOpenThumbnail={() => openThumbnailStudio(clip, i)}
+                      onOpenQuoteCard={() => setActiveQuoteClip({ ...clip, index: i })}
                       onCustomize={() => handleCustomize(clip, i)}
                     />
                   </div>
@@ -1289,6 +1310,15 @@ function ResultsContent() {
               }));
               toast.success('Reel cover updated');
             }}
+          />
+        )}
+
+        {activeQuoteClip && (
+          <QuoteCardModal
+            quote={activeQuoteClip.main_quote || activeQuoteClip.hook_title || ''}
+            speaker={analysis?.speaker}
+            church={analysis?.church_name}
+            onClose={() => setActiveQuoteClip(null)}
           />
         )}
 

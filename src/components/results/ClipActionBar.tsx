@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import HelpTooltip from '@/components/help/HelpTooltip';
 import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
 import { triggerReelDownload } from '@/lib/reelDownload';
+import { SITE_URL } from '@/lib/siteConfig';
 import type { ThumbnailState } from './ThumbnailStudioModal';
 
 type Platform = {
@@ -18,6 +19,7 @@ type Platform = {
 
 interface ClipActionBarProps {
   clip: any;
+  jobId?: string;
   isMobile: boolean;
   isYouTubeSource: boolean;
   platforms: Platform[];
@@ -28,6 +30,7 @@ interface ClipActionBarProps {
   renderProgress?: number;
   renderUrl?: string;
   onOpenThumbnail: () => void;
+  onOpenQuoteCard?: () => void;
   onCustomize: () => void;
 }
 
@@ -46,6 +49,7 @@ const btnBase: CSSProperties = {
 
 export default function ClipActionBar({
   clip,
+  jobId,
   isMobile,
   isYouTubeSource,
   platforms,
@@ -56,6 +60,7 @@ export default function ClipActionBar({
   renderProgress = 0,
   renderUrl,
   onOpenThumbnail,
+  onOpenQuoteCard,
   onCustomize,
 }: ClipActionBarProps) {
   const hasThumbnail = thumbnail?.status === 'done' && thumbnail?.url;
@@ -218,6 +223,31 @@ export default function ClipActionBar({
       )}
 
       <div style={{ position: 'relative', zIndex: 1 }}>
+        {jobId && (
+          <button
+            type="button"
+            onClick={() => {
+              const clipId = `${jobId}-${clip.index ?? 0}`;
+              const code = `<iframe src="${SITE_URL}/embed/${clipId}" width="315" height="560" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+              navigator.clipboard.writeText(code);
+              toast.success('Embed code copied');
+            }}
+            className="vesper-btn-outline"
+            style={{ ...btnBase, width: '100%', marginBottom: 10, fontSize: '11px' }}
+          >
+            GET EMBED CODE
+          </button>
+        )}
+        {onOpenQuoteCard && (
+          <button
+            type="button"
+            onClick={onOpenQuoteCard}
+            className="vesper-btn-outline"
+            style={{ ...btnBase, width: '100%', marginBottom: 10, fontSize: '12px' }}
+          >
+            EXPORT QUOTE CARD
+          </button>
+        )}
         {renderStatus === 'complete' && renderUrl ? (
           <button
             type="button"

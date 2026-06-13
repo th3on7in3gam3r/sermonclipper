@@ -14,18 +14,37 @@ async function fetchOEmbed(videoUrl: string) {
   return res.json() as Promise<{ title?: string }>;
 }
 
-async function fetchDurationSeconds(videoId: string): Promise<number | undefined> {
+type InvidiousMeta = {
+  lengthSeconds?: number;
+  liveNow?: boolean;
+  liveStatus?: string;
+  published?: number;
+};
+
+async function fetchInvidiousMeta(videoId: string): Promise<InvidiousMeta | null> {
   try {
     const res = await fetch(`https://invidious.projectsegfau.lt/api/v1/videos/${videoId}`, {
       signal: AbortSignal.timeout(10000),
     });
-    if (!res.ok) return undefined;
-    const data = await res.json();
-    if (typeof data.lengthSeconds === 'number') return data.lengthSeconds;
+    if (!res.ok) return null;
+    return res.json();
   } catch {
-    // Duration is optional — format/unavailability checks still apply
+    return null;
   }
-  return undefined;
+}
+
+function liveStreamNotice(meta: InvidiousMeta | null): string | null {
+  if (!meta) return null;
+  if (meta.liveNow) {
+    return 'This stream is still live — wait until it ends before clipping for best results.';
+  }
+  const endedRecently =
+    meta.liveStatus === 'post_live' ||
+    (meta.published && Date.now() / 1000 - meta.published < 86400);
+  if (endedRecently) {
+    return 'This stream just ended — YouTube is still processing the full replay. Check back in 1–2 hours for best results.';
+  }
+  return null;
 }
 
 export async function GET(req: NextRequest) {
@@ -51,11 +70,15 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const durationSeconds = await fetchDurationSeconds(videoId);
+  const invidious = await fetchInvidiousMeta(videoId);
+  const durationSeconds =
+    typeof invidious?.lengthSeconds === 'number' ? invidious.lengthSeconds : undefined;
   const durationError = validateYouTubeDuration(durationSeconds);
-  if (durationError) {
+  if (durationError && !invidious?.liveNow) {
     return NextResponse.json(durationError);
   }
+
+  const liveNotice = liveStreamNotice(invidious);
 
   return NextResponse.json({
     ok: true,
@@ -63,9 +86,12 @@ export async function GET(req: NextRequest) {
     title: oembed.title,
     durationSeconds,
     maxDurationSeconds: MAX_YOUTUBE_DURATION_SECONDS,
+    isLive: Boolean(invidious?.liveNow),
+    liveNotice,
     message:
-      durationSeconds != null
+      liveNotice ||
+      (durationSeconds != null
         ? `Ready to analyze (${formatDurationHours(durationSeconds)})`
-        : 'Ready to analyze',
+        : 'Ready to analyze'),
   });
 }
