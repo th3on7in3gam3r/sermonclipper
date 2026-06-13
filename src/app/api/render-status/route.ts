@@ -1,26 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const SHOTSTACK_SANDBOX_KEY = process.env.SHOTSTACK_SANDBOX_KEY;
-const SHOTSTACK_PRODUCTION_KEY = process.env.SHOTSTACK_PRODUCTION_KEY;
-const SHOTSTACK_API_KEY = SHOTSTACK_SANDBOX_KEY || SHOTSTACK_PRODUCTION_KEY;
-const SHOTSTACK_BASE_URL = SHOTSTACK_SANDBOX_KEY
-  ? 'https://api.shotstack.io/edit/stage/render'
-  : 'https://api.shotstack.io/edit/v1/render';
+import { getShotstackConfig, mapShotstackHttpError } from '@/lib/shotstack';
 
 export async function GET(req: NextRequest) {
   try {
     const id = req.nextUrl.searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
 
-    const response = await fetch(`${SHOTSTACK_BASE_URL}/${id}`, {
+    const shotstackConfig = getShotstackConfig();
+    if (!shotstackConfig) {
+      return NextResponse.json({ error: 'Shotstack is not configured' }, { status: 503 });
+    }
+
+    const response = await fetch(`${shotstackConfig.renderUrl}/${id}`, {
       headers: {
-        'x-api-key': SHOTSTACK_API_KEY || ''
-      }
+        'x-api-key': shotstackConfig.apiKey,
+      },
     });
 
-    const data = await response.json();
+    const raw = await response.text();
+    let data: {
+      success?: boolean;
+      response?: {
+        status?: string;
+        url?: string;
+        completion?: number;
+        progress?: number;
+        percentage?: number;
+        percent?: number;
+      };
+      message?: string;
+      error?: string;
+    };
 
-    if (data.success) {
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch {
+      return NextResponse.json({ error: 'Invalid Shotstack status response' }, { status: 502 });
+    }
+
+    if (data.success && data.response) {
       const status = data.response.status;
       const url = data.response.url;
 
@@ -31,20 +49,20 @@ export async function GET(req: NextRequest) {
         data.response.percent ??
         0;
 
-      // Shotstack sometimes reports completion as 0..1; normalize to 0..100.
       let percent = Number(rawPercent) || 0;
       if (percent > 0 && percent <= 1) percent = percent * 100;
       percent = Math.max(0, Math.min(100, percent));
 
-      return NextResponse.json({ 
-        status, 
+      return NextResponse.json({
+        status,
         url,
-        percent
+        percent,
       });
-    } else {
-      return NextResponse.json({ error: 'Failed to fetch status' }, { status: 500 });
     }
 
+    const message = data.message || data.error || `Shotstack status failed (${response.status})`;
+    const mapped = mapShotstackHttpError(response.status, message, shotstackConfig.environment);
+    return NextResponse.json({ error: mapped.error }, { status: mapped.httpStatus });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error';
     return NextResponse.json({ error: msg }, { status: 500 });

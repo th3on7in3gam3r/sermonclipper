@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import connectDB from '@/lib/mongodb';
+import User from '@/models/User';
 import { progressManager } from '../../../lib/progress';
+import { planAllowsExport } from '@/lib/plans';
+import { getShotstackConfig, mapShotstackHttpError } from '@/lib/shotstack';
 import { resolveShotstackVideoUrl } from '../../../lib/shotstackVideoUrl';
 import { isDownloadableMasterUrl, isYouTubeUrl } from '../../../lib/videoSource';
 
-const SHOTSTACK_SANDBOX_KEY = process.env.SHOTSTACK_SANDBOX_KEY;
-const SHOTSTACK_PRODUCTION_KEY = process.env.SHOTSTACK_PRODUCTION_KEY;
-
-// Always pair the key with its matching endpoint
-// If both are set, prefer sandbox for safety
-const SHOTSTACK_API_KEY = SHOTSTACK_SANDBOX_KEY || SHOTSTACK_PRODUCTION_KEY;
-const SHOTSTACK_URL = SHOTSTACK_SANDBOX_KEY
-  ? 'https://api.shotstack.io/edit/stage/render'
-  : 'https://api.shotstack.io/edit/v1/render';
+const shotstackConfig = getShotstackConfig();
 
 const parseTime = (timeVal: unknown): number => {
   if (typeof timeVal === 'number') return timeVal;
@@ -63,6 +60,23 @@ const FILTER_MAP: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Sign in to export reels.' }, { status: 401 });
+    }
+
+    await connectDB();
+    const dbUser = await User.findOne({ clerkId: userId });
+    if (!planAllowsExport(dbUser?.plan)) {
+      return NextResponse.json(
+        {
+          error: 'Export requires a Creator or Church Pro plan.',
+          code: 'UPGRADE_REQUIRED',
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { jobId, clip, template, filter, font, animation, videoUrl: bodyVideoUrl } = body;
 
@@ -95,15 +109,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!SHOTSTACK_API_KEY) {
+    if (!shotstackConfig) {
       return NextResponse.json(
         {
           error:
-            'Video rendering is not configured. Please add SHOTSTACK_SANDBOX_KEY or SHOTSTACK_PRODUCTION_KEY to your environment variables.',
+            'Video rendering is not configured. Add SHOTSTACK_PRODUCTION_KEY (production) or SHOTSTACK_SANDBOX_KEY (development) to your environment variables.',
         },
         { status: 503 }
       );
     }
+
+    const { apiKey: SHOTSTACK_API_KEY, renderUrl: SHOTSTACK_URL, environment: shotstackEnv } =
+      shotstackConfig;
 
     let shotstackVideoUrl: string;
     try {
@@ -273,7 +290,7 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    console.log(`[Shotstack] Render: template=${template}, filter=${filter}, font=${font}, animation=${animation}, duration=${duration}s`);
+    console.log(`[Shotstack] Render: env=${shotstackEnv}, template=${template}, filter=${filter}, font=${font}, animation=${animation}, duration=${duration}s`);
 
     const response = await fetch(SHOTSTACK_URL, {
       method: 'POST',
@@ -314,7 +331,8 @@ export async function POST(req: NextRequest) {
     console.error('[Shotstack] API Error:', shotstackError);
     console.error('[Shotstack] Payload sent:', JSON.stringify(shotstackEdit));
 
-    return NextResponse.json({ error: shotstackError }, { status: response.ok ? 500 : response.status || 500 });
+    const mapped = mapShotstackHttpError(response.status, shotstackError, shotstackEnv);
+    return NextResponse.json({ error: mapped.error, code: 'SHOTSTACK_ERROR' }, { status: mapped.httpStatus });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Render pipeline failed';
     console.error('[Render Engine] Critical Failure:', e);

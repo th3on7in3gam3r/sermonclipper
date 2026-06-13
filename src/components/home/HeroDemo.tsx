@@ -2,15 +2,10 @@
 
 import HeroDemoVideo from '@/components/home/HeroDemoVideo';
 
-// TODO: Replace with real full-sermon footage (15–20s clip) when available.
-const DEMO_SERMON_SRC = '/demo/sermon-before.mp4';
-// TODO: Replace with a real Vesper-exported 9:16 reel when available.
-const DEMO_REEL_SRC = '/demo/reel-after.mp4';
-
 const CAPTIONS = [
-  'Your breakthrough is closer than you think.',
-  'God is still writing your story.',
-  'Walk by faith, not by sight.',
+  'Your confession has power.',
+  'Speak faith over your life.',
+  'Walk in what God has declared.',
 ];
 
 export default function HeroDemo() {
@@ -21,7 +16,7 @@ export default function HeroDemo() {
           <div className="hero-demo-label hero-demo-label--muted">Before · Full sermon</div>
           <div className="hero-demo-before">
             <HeroDemoVideo
-              src={DEMO_SERMON_SRC}
+              panel="before"
               className="hero-demo-video--before"
               controlClassName="hero-demo-video-control--before"
               ariaLabel="full sermon preview video"
@@ -40,7 +35,7 @@ export default function HeroDemo() {
           <div className="hero-demo-label hero-demo-label--accent">After · Cinematic reel</div>
           <div className="hero-demo-phone">
             <HeroDemoVideo
-              src={DEMO_REEL_SRC}
+              panel="after"
               className="hero-demo-video--after"
               ariaLabel="cinematic reel preview video"
             />

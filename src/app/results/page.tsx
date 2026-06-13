@@ -292,13 +292,20 @@ function ResultsContent() {
         })
       });
       const data = await res.json();
-      
+
+      if (data.code === 'UPGRADE_REQUIRED') {
+        setUpgradePrompt('export');
+        setRendering((prev) => ({ ...prev, [index]: { status: 'error' } }));
+        toast.error(data.error || 'Upgrade required to export reels.', { id: renderToastId });
+        return;
+      }
+
       if (data.shotstackId) {
         toast.loading('Neural rendering in progress...', { id: renderToastId });
         pollStatus(data.shotstackId, index, renderToastId);
       } else {
         setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));
-        toast.error(data.error || 'Shotstack failed to queue render.', { id: renderToastId });
+        toast.error(data.error || `Export failed (${res.status}).`, { id: renderToastId });
       }
     } catch {
       setRendering(prev => ({ ...prev, [index]: { status: 'error' } }));

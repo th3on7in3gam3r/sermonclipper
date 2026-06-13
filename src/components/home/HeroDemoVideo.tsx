@@ -2,20 +2,91 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import type { HeroDemoPanel } from '@/lib/heroDemoConfig';
+
 interface HeroDemoVideoProps {
-  src: string;
+  panel: HeroDemoPanel;
   className?: string;
   controlClassName?: string;
   ariaLabel: string;
 }
 
-export default function HeroDemoVideo({ src, className, controlClassName, ariaLabel }: HeroDemoVideoProps) {
+type DemoPayload = {
+  url: string;
+  clipStart: number;
+  clipEnd: number | null;
+};
+
+export default function HeroDemoVideo({
+  panel,
+  className,
+  controlClassName,
+  ariaLabel,
+}: HeroDemoVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [demo, setDemo] = useState<DemoPayload | null>(null);
+  const [loadError, setLoadError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch(`/api/demo-video?panel=${panel}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (!data.url) {
+          setLoadError(true);
+          return;
+        }
+        setDemo({
+          url: data.url,
+          clipStart: data.clipStart ?? 0,
+          clipEnd: data.clipEnd ?? null,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [panel]);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !demo) return;
+
+    const { clipStart, clipEnd } = demo;
+    const useSegmentLoop = clipEnd != null && clipEnd > clipStart;
+
+    const seekToStart = () => {
+      if (useSegmentLoop) {
+        video.currentTime = clipStart;
+      }
+    };
+
+    const onTimeUpdate = () => {
+      if (useSegmentLoop && video.currentTime >= clipEnd!) {
+        video.currentTime = clipStart;
+      }
+    };
+
+    video.addEventListener('loadedmetadata', seekToStart);
+    if (useSegmentLoop) {
+      video.addEventListener('timeupdate', onTimeUpdate);
+    }
+
+    return () => {
+      video.removeEventListener('loadedmetadata', seekToStart);
+      video.removeEventListener('timeupdate', onTimeUpdate);
+    };
+  }, [demo]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !demo) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -32,7 +103,7 @@ export default function HeroDemoVideo({ src, className, controlClassName, ariaLa
 
     observer.observe(video);
     return () => observer.disconnect();
-  }, [isPlaying]);
+  }, [isPlaying, demo]);
 
   const togglePlayback = useCallback(() => {
     const video = videoRef.current;
@@ -53,19 +124,26 @@ export default function HeroDemoVideo({ src, className, controlClassName, ariaLa
       className={`hero-demo-video-btn${className ? ` ${className}` : ''}`}
       onClick={togglePlayback}
       aria-label={isPlaying ? `Pause ${ariaLabel}` : `Play ${ariaLabel}`}
+      disabled={!demo && !loadError}
     >
-      <video
-        ref={videoRef}
-        className="hero-demo-video"
-        src={src}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="metadata"
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-      />
+      {demo ? (
+        <video
+          ref={videoRef}
+          className="hero-demo-video"
+          src={demo.url}
+          autoPlay
+          muted
+          playsInline
+          preload="metadata"
+          loop={demo.clipEnd == null}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+        />
+      ) : (
+        <div className="hero-demo-video-placeholder" aria-hidden="true">
+          {loadError ? 'Preview unavailable' : 'Loading preview…'}
+        </div>
+      )}
       <span
         className={`hero-demo-video-control${isPlaying ? ' hero-demo-video-control--playing' : ''}${controlClassName ? ` ${controlClassName}` : ''}`}
         aria-hidden="true"
