@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import ReferralCard from '@/components/dashboard/ReferralCard';
+import StudioHelpShell from '@/components/help/StudioHelpShell';
 
 const PLATFORMS = [
   { id: 'youtube', label: 'YouTube Shorts' },
@@ -93,6 +94,7 @@ export default function AccountSettingsPage() {
   };
 
   return (
+    <StudioHelpShell>
     <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh' }}>
       <div className="vesper-mesh-bg" />
       <div
@@ -226,5 +228,6 @@ export default function AccountSettingsPage() {
         )}
       </div>
     </main>
+    </StudioHelpShell>
   );
 }

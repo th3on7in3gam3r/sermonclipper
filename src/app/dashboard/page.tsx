@@ -16,6 +16,7 @@ import ThemeToggle from '@/components/shared/ThemeToggle';
 import { ShortcutsHelpPanel, useKeyboardShortcuts } from '@/lib/useKeyboardShortcuts';
 import SiteFooter from '@/components/layout/SiteFooter';
 import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
+import StudioHelpShell from '@/components/help/StudioHelpShell';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 
 function DashboardContent() {
@@ -307,7 +308,9 @@ function DashboardContent() {
 export default function Dashboard() {
   return (
     <Suspense fallback={null}>
-      <DashboardContent />
+      <StudioHelpShell>
+        <DashboardContent />
+      </StudioHelpShell>
     </Suspense>
   );
 }

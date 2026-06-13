@@ -19,6 +19,7 @@ import { isDownloadableMasterUrl, isR2StorageUrl } from '@/lib/videoSource';
 import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
 import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
 import SiteFooter from '@/components/layout/SiteFooter';
+import StudioHelpShell from '@/components/help/StudioHelpShell';
 import EmptyState from '@/components/shared/EmptyState';
 import { planAllowsExport, UPGRADE_COPY } from '@/lib/plans';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
@@ -1500,11 +1501,13 @@ class ResultsErrorBoundary extends React.Component<
 export default function Results() {
   return (
     <ResultsErrorBoundary>
-      <main style={{ minHeight: '100vh', background: 'var(--background)', color: '#fff' }}>
-        <Suspense fallback={null}>
-          <ResultsContent />
-        </Suspense>
-      </main>
+      <StudioHelpShell>
+        <main style={{ minHeight: '100vh', background: 'var(--background)', color: '#fff' }}>
+          <Suspense fallback={null}>
+            <ResultsContent />
+          </Suspense>
+        </main>
+      </StudioHelpShell>
     </ResultsErrorBoundary>
   );
 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth, UserButton } from '@clerk/nextjs';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 import SiteFooter from '@/components/layout/SiteFooter';
+import StudioHelpShell from '@/components/help/StudioHelpShell';
 
 type BillingSummary = {
   planLabel: string;
@@ -46,6 +47,7 @@ export default function BillingPage() {
   }
 
   return (
+    <StudioHelpShell>
     <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh' }}>
       <div className="vesper-mesh-bg" />
       <div
@@ -213,5 +215,6 @@ export default function BillingPage() {
       </div>
       <SiteFooter />
     </main>
+    </StudioHelpShell>
   );
 }

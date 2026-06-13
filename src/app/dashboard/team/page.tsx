@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import StudioHelpShell from '@/components/help/StudioHelpShell';
 
 type TeamData = {
   name: string;
@@ -59,6 +60,7 @@ export default function TeamSettingsPage() {
   };
 
   return (
+    <StudioHelpShell>
     <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh' }}>
       <div className="vesper-mesh-bg" />
       <div
@@ -200,5 +202,6 @@ export default function TeamSettingsPage() {
         ) : null}
       </div>
     </main>
+    </StudioHelpShell>
   );
 }

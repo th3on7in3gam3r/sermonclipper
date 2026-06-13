@@ -16,6 +16,7 @@ export default function SiteFooter() {
         <nav className="site-footer-links" aria-label="Footer">
           <Link href="/privacy">Privacy Policy</Link>
           <Link href="/terms">Terms of Service</Link>
+          <Link href="/help">Help Center</Link>
           <CookiePreferencesLink />
           <a href={`mailto:${SUPPORT_EMAIL}`}>Contact / Support</a>
           <a href="/sitemap.xml">Sitemap</a>
