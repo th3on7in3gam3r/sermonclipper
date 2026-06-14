@@ -1,0 +1,140 @@
+{
+  "common": {
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "copy": "Copy",
+    "download": "Download",
+    "share": "Share",
+    "previewOnly": "PREVIEW ONLY",
+    "language": "Language"
+  },
+  "nav": {
+    "howItWorks": "How it Works",
+    "forChurches": "For Churches",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "logIn": "Log In",
+    "goToStudio": "Go to Studio",
+    "home": "Home",
+    "archive": "Archive",
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "billing": "Billing",
+    "team": "Team"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "help": "Help Center",
+    "contact": "Contact / Support",
+    "sitemap": "Sitemap",
+    "copyright": "© 2025 Vesper Studio. All rights reserved."
+  },
+  "settings": {
+    "languageTitle": "Language",
+    "languageDesc": "Choose your preferred interface language. Sermon captions are not translated.",
+    "saved": "Language preference saved"
+  },
+  "upload": {
+    "buttonLabel": "Upload Sermon",
+    "pasteManuscript": "Paste Sermon Notes / Manuscript (optional)",
+    "manuscriptHint": "Improves clip detection and section titles when provided.",
+    "youtubePlaceholder": "Paste YouTube URL…",
+    "processing": "Processing your sermon…"
+  },
+  "studio": {
+    "title": "VESPER STUDIO",
+    "subtitle": "NEURAL EDITING SUITE",
+    "previewOnlyBadge": "PREVIEW ONLY",
+    "generateReel": "Generate Reel",
+    "profileSaved": "Profile saved — your defaults are kept for next session",
+    "liveCaption": "LIVE CAPTION",
+    "mediaKit": "MEDIA KIT",
+    "socialDistribution": "Social Distribution",
+    "copyCaption": "COPY CAPTION",
+    "neuralHook": "NEURAL HOOK",
+    "tabs": {
+      "style": "Style",
+      "filter": "Filter",
+      "font": "Font",
+      "motion": "Motion",
+      "captions": "Captions",
+      "audio": "Audio",
+      "trim": "Trim",
+      "sync": "Sync",
+      "export": "Export"
+    },
+    "trim": {
+      "start": "START",
+      "end": "END",
+      "ready": "READY",
+      "overLimit": "OVER 60s LIMIT"
+    },
+    "preview": {
+      "loading": "Preview loading",
+      "loadingHint": "Resolving your sermon video. If this persists, refresh or re-open Studio from the clip card.",
+      "errorTitle": "Couldn't load preview",
+      "errorHint": "The video URL may have expired. Try playing again or close and reopen Studio.",
+      "retryPreview": "Retry preview"
+    },
+    "export": {
+      "readyTitle": "Your reel is ready",
+      "readySub": "Download the MP4 or share to social.",
+      "generating": "Generating… {{progress}}%",
+      "uploadToExport": "Upload MP4 to export",
+      "tryAgain": "Try again"
+    },
+    "captions": {
+      "animationStyle": "Caption Animation",
+      "animationHint": "Burned into the exported MP4 during cloud render.",
+      "wordPop": "Word-by-word pop",
+      "slideUp": "Slide up",
+      "typewriter": "Typewriter",
+      "highlight": "Karaoke highlight",
+      "scalePulse": "Scale pulse"
+    },
+    "audio": {
+      "title": "Background Music",
+      "toggle": "Music on/off",
+      "volume": "Volume",
+      "fade": "Fade in / out",
+      "autoMatch": "Auto-match mood",
+      "categories": {
+        "inspiring": "Inspiring / Uplifting",
+        "calm": "Calm / Reflective",
+        "epic": "Epic / Cinematic",
+        "acoustic": "Acoustic / Warm"
+      }
+    },
+    "cta": {
+      "title": "End Card CTA",
+      "subscribe": "Subscribe / Follow",
+      "watchFull": "Watch Full Sermon",
+      "joinSunday": "Join Us Sunday",
+      "give": "Give / Donate",
+      "prayer": "Prayer Request",
+      "custom": "Custom text",
+      "customText": "CTA text",
+      "customUrl": "Link URL"
+    },
+    "bumper": {
+      "title": "Intro / Outro",
+      "includeIntro": "Include intro bumper",
+      "includeOutro": "Include outro",
+      "churchName": "Church name",
+      "tagline": "Tagline",
+      "website": "Website",
+      "socialHandle": "Social handle"
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Check your connection.",
+    "unauthorized": "Please sign in to continue.",
+    "rateLimit": "You're moving fast! Please wait a moment before trying again.",
+    "moderationBlocked": "This content was flagged by our automated moderation system and cannot be processed. If you believe this is an error, contact support."
+  }
+}

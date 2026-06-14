@@ -9,6 +9,102 @@ import { getShotstackConfig, mapShotstackHttpError, parseShotstackErrorBody } fr
 import { resolveShotstackVideoUrl } from '../../../lib/shotstackVideoUrl';
 import { isDownloadableMasterUrl, isYouTubeUrl } from '../../../lib/videoSource';
 import { isAudioMediaUrl } from '@/lib/mediaDetection';
+import {
+  BACKGROUND_MUSIC_TRACKS,
+  CAPTION_ANIMATION_MAP,
+  pickMusicForMood,
+  resolveCtaText,
+  type CtaTypeId,
+} from '@/lib/studio/exportOptions';
+
+const INTRO_DURATION = 2.5;
+const OUTRO_DURATION = 4;
+const CTA_DURATION = 4;
+
+const BUMPER_BACKGROUNDS: Record<string, string> = {
+  minimal: '#0a0a0f',
+  cinematic: '#050508',
+  bold: '#7c3aed',
+  warm: '#78350f',
+  dark: '#000000',
+  light: '#f4f4f5',
+};
+
+function buildCaptionTextClips(
+  captionLines: string[],
+  segmentStart: number,
+  segmentDuration: number,
+  captionAnimation: string,
+  fontFamily: string,
+  captionColor: string,
+  transitionIn: string
+) {
+  const capAnim = CAPTION_ANIMATION_MAP[captionAnimation] || CAPTION_ANIMATION_MAP.slideUp;
+  const perLine = captionLines.length > 0 ? segmentDuration / captionLines.length : segmentDuration;
+
+  if (captionAnimation === 'wordPop' || captionAnimation === 'typewriter' || captionAnimation === 'highlight') {
+    const clips: Record<string, unknown>[] = [];
+
+    captionLines.forEach((line, lineIndex) => {
+      const words = line.split(/\s+/).filter(Boolean);
+      const lineStart = segmentStart + lineIndex * perLine;
+      const wordDuration = perLine / Math.max(words.length, 1);
+
+      words.forEach((word, wordIndex) => {
+        clips.push({
+          asset: {
+            type: 'text',
+            text: word.toUpperCase(),
+            font: { family: fontFamily, size: 72, color: captionColor },
+          },
+          width: 1080,
+          height: 200,
+          start: lineStart + wordIndex * wordDuration,
+          length: wordDuration,
+          position: 'bottom',
+          transition: { in: capAnim.in, out: 'fade' },
+        });
+      });
+    });
+
+    return clips;
+  }
+
+  return captionLines.map((text: string, i: number) => ({
+    asset: {
+      type: 'text',
+      text: text.toUpperCase(),
+      font: { family: fontFamily, size: 80, color: captionColor },
+    },
+    width: 1080,
+    height: 200,
+    start: segmentStart + i * perLine,
+    length: perLine,
+    position: 'bottom',
+    transition: { in: capAnim.in, out: capAnim.out || transitionIn },
+  }));
+}
+
+function buildBumperHtml(
+  style: string,
+  title: string,
+  subtitle: string,
+  brandColor: string,
+  logoUrl?: string
+) {
+  const bg = BUMPER_BACKGROUNDS[style] || BUMPER_BACKGROUNDS.minimal;
+  const textColor = style === 'light' ? '#18181b' : '#ffffff';
+  const logoBlock = logoUrl
+    ? `<img src="${logoUrl}" style="width:140px;height:140px;object-fit:contain;margin-bottom:24px;" />`
+    : '';
+  const html = `<div class="wrap">${logoBlock}<h1>${title}</h1><p>${subtitle}</p></div>`;
+  const css = `
+    .wrap { width:100%; height:100%; background:${bg}; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px; text-align:center; }
+    h1 { color:${textColor}; font-size:64px; font-weight:800; margin:0 0 16px; letter-spacing:0.04em; }
+    p { color:${brandColor}; font-size:32px; margin:0; opacity:0.95; }
+  `;
+  return { html, css };
+}
 
 const parseTime = (timeVal: unknown): number => {
   if (typeof timeVal === 'number') return timeVal;
@@ -91,6 +187,23 @@ export async function POST(req: NextRequest) {
       videoUrl: bodyVideoUrl,
       format = '9:16',
       quality = 'standard',
+      captionAnimation = 'slideUp',
+      musicEnabled = false,
+      musicTrackId = 'inspire-01',
+      musicVolume = 0.1,
+      musicFade = true,
+      musicAutoMatch = false,
+      ctaEnabled = false,
+      ctaType = 'subscribe',
+      ctaText: bodyCtaText = '',
+      ctaUrl: _ctaUrl = '',
+      includeIntro = false,
+      includeOutro = false,
+      bumperStyle = 'minimal',
+      churchName = '',
+      tagline = '',
+      website = '',
+      socialHandle = '',
     } = body;
 
     if (!jobId || !clip) {
@@ -177,6 +290,9 @@ export async function POST(req: NextRequest) {
     const start = parseTime(clip.start);
     const end = parseTime(clip.end);
     const duration = Math.max(end - start, 1);
+    const introLen = includeIntro ? INTRO_DURATION : 0;
+    const outroLen = includeOutro ? OUTRO_DURATION : 0;
+    const totalDuration = introLen + duration + outroLen;
     const videoUrl = resolvedVideoUrl;
 
     const captionColor = TEMPLATE_COLORS[template] || '#FFFFFF';
@@ -189,32 +305,71 @@ export async function POST(req: NextRequest) {
 
     const fallbackCaption = String(clip.main_quote || clip.hook_title || 'SERMON HIGHLIGHT').trim();
     const captionLines = captions.length > 0 ? captions : [fallbackCaption];
-    const captionDuration = captionLines.length > 0 ? duration / captionLines.length : duration;
-
-    // Build caption clips
-    const captionClips = captionLines.map((text: string, i: number) => ({
-      asset: {
-        type: 'text',
-        text: text.toUpperCase(),
-        font: {
-          family: fontFamily,
-          size: 80,
-          color: captionColor,
-        },
-      },
-      width: 1080,
-      height: 200,
-      start: i * captionDuration,
-      length: captionDuration,
-      position: 'bottom',
-      transition: { in: transitionIn, out: 'fade' },
-    }));
-
-    const isAudio = isAudioMediaUrl(videoUrl);
 
     const brandColor =
       (dbUser?.whiteLabel as { primaryColor?: string } | undefined)?.primaryColor || '#7c3aed';
     const logoUrl = (dbUser?.whiteLabel as { logoUrl?: string } | undefined)?.logoUrl;
+    const churchLabel = churchName || (dbUser?.whiteLabel as { churchName?: string } | undefined)?.churchName || 'Your Church';
+
+    const captionClips = buildCaptionTextClips(
+      captionLines,
+      introLen,
+      duration,
+      captionAnimation,
+      fontFamily,
+      captionColor,
+      transitionIn
+    );
+
+    const overlayClips: Record<string, unknown>[] = [];
+
+    if (ctaEnabled) {
+      const ctaLabel = resolveCtaText(ctaType as CtaTypeId, bodyCtaText).toUpperCase();
+      overlayClips.push({
+        asset: {
+          type: 'text',
+          text: ctaLabel,
+          font: { family: fontFamily, size: 56, color: captionColor },
+        },
+        width: 980,
+        height: 260,
+        start: introLen + Math.max(duration - CTA_DURATION, 0),
+        length: Math.min(CTA_DURATION, duration),
+        position: 'center',
+        transition: { in: 'zoom', out: 'fade' },
+      });
+    }
+
+    if (includeIntro) {
+      const intro = buildBumperHtml(bumperStyle, churchLabel, tagline || 'Sermon Highlights', brandColor, logoUrl);
+      overlayClips.push({
+        asset: { type: 'html', html: intro.html, css: intro.css, width: 1080, height: 1920 },
+        start: 0,
+        length: INTRO_DURATION,
+        fit: 'none',
+      });
+    }
+
+    if (includeOutro) {
+      const outroLines = [
+        website ? `Watch the full sermon at ${website}` : 'Watch the full sermon online',
+        socialHandle ? `@${socialHandle.replace(/^@/, '')}` : '',
+        'Like & Follow for more',
+      ]
+        .filter(Boolean)
+        .join(' · ');
+      const outro = buildBumperHtml(bumperStyle, churchLabel, outroLines, brandColor, logoUrl);
+      overlayClips.push({
+        asset: { type: 'html', html: outro.html, css: outro.css, width: 1080, height: 1920 },
+        start: introLen + duration,
+        length: OUTRO_DURATION,
+        fit: 'none',
+      });
+    }
+
+    // Build caption clips (legacy path removed — handled above)
+
+    const isAudio = isAudioMediaUrl(videoUrl);
 
     let tracks: Record<string, unknown>[] = [];
 
@@ -238,14 +393,14 @@ export async function POST(req: NextRequest) {
           height: 1920,
         },
         start: 0,
-        length: duration,
+        length: totalDuration,
         fit: 'none',
       };
 
       const logoClip = logoUrl
         ? {
             asset: { type: 'image', src: logoUrl },
-            start: 0,
+            start: introLen,
             length: duration,
             width: 220,
             height: 220,
@@ -254,22 +409,22 @@ export async function POST(req: NextRequest) {
           }
         : null;
 
-      const audioCaptionClips = captionLines.map((text: string, i: number) => ({
+      const audioCaptionClips = buildCaptionTextClips(
+        captionLines,
+        introLen,
+        duration,
+        captionAnimation,
+        fontFamily,
+        captionColor,
+        transitionIn
+      ).map((clipDef) => ({
+        ...clipDef,
         asset: {
-          type: 'text',
-          text: text.toUpperCase(),
-          font: {
-            family: fontFamily,
-            size: 64,
-            color: captionColor,
-          },
+          ...(clipDef.asset as Record<string, unknown>),
+          font: { family: fontFamily, size: 64, color: captionColor },
         },
         width: 980,
         height: 220,
-        start: i * captionDuration,
-        length: captionDuration,
-        position: 'bottom',
-        transition: { in: transitionIn, out: 'fade' },
       }));
 
       const audioClip = {
@@ -278,11 +433,12 @@ export async function POST(req: NextRequest) {
           src: shotstackVideoUrl,
           trim: start,
         },
-        start: 0,
+        start: introLen,
         length: duration,
       };
 
       tracks = [
+        ...(overlayClips.length > 0 ? [{ clips: overlayClips }] : []),
         ...(audioCaptionClips.length > 0 ? [{ clips: audioCaptionClips }] : []),
         ...(logoClip ? [{ clips: [logoClip] }] : []),
         { clips: [bgClip] },
@@ -292,7 +448,7 @@ export async function POST(req: NextRequest) {
       // Build video clip
       const videoClip: Record<string, unknown> = {
         asset: { type: 'video', src: shotstackVideoUrl, trim: start },
-        start: 0,
+        start: introLen,
         length: duration,
         fit: 'cover',
       };
@@ -304,10 +460,34 @@ export async function POST(req: NextRequest) {
       }
 
       tracks = [
-        // Captions on top (first track = topmost layer in Shotstack)
+        ...(overlayClips.length > 0 ? [{ clips: overlayClips }] : []),
         ...(captionClips.length > 0 ? [{ clips: captionClips }] : []),
         { clips: [videoClip] },
       ];
+    }
+
+    if (musicEnabled) {
+      const mood = musicAutoMatch ? 'uplifting' : undefined;
+      const resolvedTrackId = musicAutoMatch ? pickMusicForMood(mood || 'uplifting') : musicTrackId;
+      const track = BACKGROUND_MUSIC_TRACKS.find((t) => t.id === resolvedTrackId);
+      if (track) {
+        const origin = req.nextUrl.origin;
+        const musicSrc = `${origin}${track.src}`;
+        tracks.push({
+          clips: [
+            {
+              asset: {
+                type: 'audio',
+                src: musicSrc,
+                volume: Math.min(Math.max(musicVolume, 0), 0.3),
+              },
+              start: musicFade ? 0.5 : 0,
+              length: musicFade ? Math.max(totalDuration - 1, 1) : totalDuration,
+              transition: musicFade ? { in: 'fade', out: 'fade' } : undefined,
+            },
+          ],
+        });
+      }
     }
 
     if (plan === 'free') {
@@ -317,7 +497,7 @@ export async function POST(req: NextRequest) {
           text: 'VESPER',
           font: { family: 'Montserrat SemiBold', size: 28, color: '#FFFFFF' },
         },
-        start: 0,
+        start: introLen,
         length: duration,
         position: 'bottomRight',
         opacity: 0.35,
@@ -327,6 +507,7 @@ export async function POST(req: NextRequest) {
 
     const shotstackEdit = {
       timeline: {
+        background: '#000000',
         tracks,
       },
       output: {
@@ -337,7 +518,7 @@ export async function POST(req: NextRequest) {
     };
 
     console.log(
-      `[Shotstack] Render: env=${shotstackEnv}, template=${template}, filter=${filter}, font=${font}, animation=${animation}, duration=${duration}s`
+      `[Shotstack] Render: env=${shotstackEnv}, template=${template}, filter=${filter}, font=${font}, animation=${animation}, captionAnimation=${captionAnimation}, duration=${duration}s, total=${totalDuration}s`
     );
 
     const response = await fetch(SHOTSTACK_URL, {

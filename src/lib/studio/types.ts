@@ -17,6 +17,23 @@ export interface ExportSettings {
   trimStart: number;
   trimEnd: number;
   caption: string;
+  captionAnimation?: string;
+  musicEnabled?: boolean;
+  musicTrackId?: string;
+  musicVolume?: number;
+  musicFade?: boolean;
+  musicAutoMatch?: boolean;
+  ctaEnabled?: boolean;
+  ctaType?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  includeIntro?: boolean;
+  includeOutro?: boolean;
+  bumperStyle?: string;
+  churchName?: string;
+  tagline?: string;
+  website?: string;
+  socialHandle?: string;
 }
 
 export interface RenderState {

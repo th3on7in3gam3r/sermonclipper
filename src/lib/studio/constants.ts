@@ -127,6 +127,8 @@ export const STUDIO_TABS = [
   { id: 'filters', icon: '◐', label: 'Filter' },
   { id: 'fonts', icon: 'Aa', label: 'Font' },
   { id: 'motion', icon: '▷', label: 'Motion' },
+  { id: 'captions', icon: '▤', label: 'Captions' },
+  { id: 'audio', icon: '♫', label: 'Audio' },
   { id: 'trim', icon: '✂', label: 'Trim' },
   { id: 'publish', icon: '↗', label: 'Sync' },
 ] as const;

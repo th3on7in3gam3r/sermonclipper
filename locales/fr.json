@@ -1,0 +1,134 @@
+{
+  "common": {
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "loading": "Chargement…",
+    "retry": "Réessayer",
+    "copy": "Copier",
+    "download": "Télécharger",
+    "share": "Partager",
+    "previewOnly": "APERÇU UNIQUEMENT",
+    "language": "Langue"
+  },
+  "nav": {
+    "howItWorks": "Comment ça marche",
+    "forChurches": "Pour les églises",
+    "pricing": "Tarifs",
+    "faq": "FAQ",
+    "logIn": "Connexion",
+    "goToStudio": "Aller au Studio",
+    "home": "Accueil",
+    "archive": "Archives",
+    "dashboard": "Tableau de bord",
+    "settings": "Paramètres",
+    "billing": "Facturation",
+    "team": "Équipe"
+  },
+  "footer": {
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "help": "Centre d'aide",
+    "contact": "Contact / Support",
+    "sitemap": "Plan du site",
+    "copyright": "© 2025 Vesper Studio. Tous droits réservés."
+  },
+  "settings": {
+    "languageTitle": "Langue",
+    "languageDesc": "Choisissez la langue de l'interface. Les sous-titres du sermon ne sont pas traduits.",
+    "saved": "Préférence de langue enregistrée"
+  },
+  "upload": {
+    "buttonLabel": "Téléverser un sermon",
+    "pasteManuscript": "Coller les notes / manuscrit du sermon (facultatif)",
+    "manuscriptHint": "Améliore la détection des clips et les titres de section.",
+    "youtubePlaceholder": "Collez l'URL YouTube…",
+    "processing": "Traitement de votre sermon…"
+  },
+  "studio": {
+    "title": "VESPER STUDIO",
+    "subtitle": "SUITE D'ÉDITION NEURALE",
+    "previewOnlyBadge": "APERÇU UNIQUEMENT",
+    "generateReel": "Générer le reel",
+    "liveCaption": "SOUS-TITRE EN DIRECT",
+    "mediaKit": "KIT MÉDIA",
+    "socialDistribution": "Distribution sociale",
+    "copyCaption": "COPIER LE SOUS-TITRE",
+    "neuralHook": "ACCROCHE NEURALE",
+    "tabs": {
+      "style": "Style",
+      "filter": "Filtre",
+      "font": "Police",
+      "motion": "Mouvement",
+      "captions": "Sous-titres",
+      "audio": "Audio",
+      "trim": "Découper",
+      "sync": "Synchroniser",
+      "export": "Exporter"
+    },
+    "trim": { "start": "DÉBUT", "end": "FIN", "ready": "PRÊT", "overLimit": "PLUS DE 60s" },
+    "preview": {
+      "loading": "Chargement de l'aperçu",
+      "loadingHint": "Résolution de la vidéo du sermon. Si cela persiste, actualisez ou rouvrez Studio.",
+      "errorTitle": "Impossible de charger l'aperçu",
+      "errorHint": "L'URL de la vidéo a peut-être expiré. Réessayez ou fermez et rouvrez Studio.",
+      "retryPreview": "Réessayer l'aperçu"
+    },
+    "export": {
+      "readyTitle": "Votre reel est prêt",
+      "readySub": "Téléchargez le MP4 ou partagez sur les réseaux.",
+      "generating": "Génération… {{progress}}%",
+      "uploadToExport": "Téléversez un MP4 pour exporter",
+      "tryAgain": "Réessayer"
+    },
+    "captions": {
+      "animationStyle": "Animation des sous-titres",
+      "animationHint": "Intégrée au MP4 exporté lors du rendu cloud.",
+      "wordPop": "Mot par mot",
+      "slideUp": "Glisser vers le haut",
+      "typewriter": "Machine à écrire",
+      "highlight": "Surlignage karaoke",
+      "scalePulse": "Pulsation d'échelle"
+    },
+    "audio": {
+      "title": "Musique de fond",
+      "toggle": "Musique activée/désactivée",
+      "volume": "Volume",
+      "fade": "Fondu entrant / sortant",
+      "autoMatch": "Correspondance d'humeur auto",
+      "categories": {
+        "inspiring": "Inspirant / Édifiant",
+        "calm": "Calme / Réfléchi",
+        "epic": "Épique / Cinématique",
+        "acoustic": "Acoustique / Chaleureux"
+      }
+    },
+    "cta": {
+      "title": "CTA de fin",
+      "subscribe": "S'abonner / Suivre",
+      "watchFull": "Voir le sermon complet",
+      "joinSunday": "Rejoignez-nous dimanche",
+      "give": "Donner",
+      "prayer": "Demande de prière",
+      "custom": "Texte personnalisé",
+      "customText": "Texte du CTA",
+      "customUrl": "URL du lien"
+    },
+    "bumper": {
+      "title": "Intro / Outro",
+      "includeIntro": "Inclure l'intro",
+      "includeOutro": "Inclure l'outro",
+      "churchName": "Nom de l'église",
+      "tagline": "Slogan",
+      "website": "Site web",
+      "socialHandle": "Réseau social"
+    }
+  },
+  "errors": {
+    "generic": "Une erreur s'est produite. Veuillez réessayer.",
+    "network": "Erreur réseau. Vérifiez votre connexion.",
+    "unauthorized": "Veuillez vous connecter pour continuer.",
+    "rateLimit": "Vous allez trop vite ! Attendez un moment.",
+    "moderationBlocked": "Ce contenu a été signalé par notre modération automatique et ne peut pas être traité. Contactez le support si vous pensez qu'il s'agit d'une erreur."
+  }
+}

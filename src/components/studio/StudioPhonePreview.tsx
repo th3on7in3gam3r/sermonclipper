@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { STUDIO_ANIMATIONS, STUDIO_FILTERS, STUDIO_FONTS, STUDIO_TEMPLATES } from '@/lib/studio/constants';
+import { STUDIO_FILTERS, STUDIO_FONTS, STUDIO_TEMPLATES } from '@/lib/studio/constants';
+import { CAPTION_ANIMATIONS, resolveCtaText, type CaptionAnimationId, type CtaTypeId } from '@/lib/studio/exportOptions';
 import type { SermonClip } from '@/lib/studio/types';
 
 type MediaState = 'idle' | 'loading' | 'ready' | 'error';
@@ -17,6 +18,10 @@ interface StudioPhonePreviewProps {
   selectedFilter: string;
   selectedFont: string;
   selectedAnimation: string;
+  captionAnimation?: CaptionAnimationId;
+  ctaEnabled?: boolean;
+  ctaType?: CtaTypeId;
+  ctaText?: string;
   caption: string;
   selectedPlatform: string;
   isPlaying: boolean;
@@ -37,6 +42,10 @@ export default function StudioPhonePreview({
   selectedFilter,
   selectedFont,
   selectedAnimation,
+  captionAnimation = 'slideUp',
+  ctaEnabled = false,
+  ctaType = 'subscribe',
+  ctaText = '',
   caption,
   selectedPlatform,
   isPlaying,
@@ -51,8 +60,9 @@ export default function StudioPhonePreview({
   const filterCss = STUDIO_FILTERS.find((f) => f.id === selectedFilter)?.css || 'none';
   const template = STUDIO_TEMPLATES.find((t) => t.id === selectedTemplate);
   const font = STUDIO_FONTS.find((f) => f.id === selectedFont);
-  const animationClass =
-    STUDIO_ANIMATIONS.find((a) => a.id === selectedAnimation)?.class || 'animate-studio-fade';
+  const captionAnimClass =
+    CAPTION_ANIMATIONS.find((a) => a.id === captionAnimation)?.previewClass || 'animate-caption-slide-up';
+  const endCardText = ctaEnabled ? resolveCtaText(ctaType, ctaText) : '';
 
   const src = playableVideoUrl || videoUrl || '';
   const isAudio =
@@ -560,8 +570,8 @@ export default function StudioPhonePreview({
 
           <div style={{ position: 'absolute', bottom: '22%', left: '8%', right: '8%', zIndex: 20 }}>
             <div
-              key={`${selectedAnimation}-${selectedClip.index}`}
-              className={animationClass}
+              key={`${captionAnimation}-${selectedClip.index}`}
+              className={captionAnimClass}
               style={{
                 textAlign: 'center',
                 color: template?.color || '#fff',
@@ -577,6 +587,31 @@ export default function StudioPhonePreview({
               {caption}
             </div>
           </div>
+
+          {endCardText ? (
+            <div
+              className="animate-caption-scale-pulse"
+              style={{
+                position: 'absolute',
+                bottom: '38%',
+                left: '10%',
+                right: '10%',
+                zIndex: 25,
+                textAlign: 'center',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                background: 'rgba(0,0,0,0.55)',
+                border: `2px solid ${template?.color || '#fff'}`,
+                color: template?.color || '#fff',
+                fontFamily: font?.family || 'inherit',
+                fontWeight: 900,
+                fontSize: isMobile ? '14px' : '13px',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {endCardText}
+            </div>
+          ) : null}
 
           <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none', opacity: 0.8 }}>
             {selectedPlatform === 'tiktok' && (

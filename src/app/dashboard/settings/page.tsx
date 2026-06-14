@@ -9,6 +9,7 @@ import ProfileSettingsPanel from '@/components/dashboard/ProfileSettingsPanel';
 import DeveloperSettingsPanel from '@/components/dashboard/DeveloperSettingsPanel';
 import BetaProgramPanel from '@/components/dashboard/BetaProgramPanel';
 import StudioHelpShell from '@/components/help/StudioHelpShell';
+import LanguageSelector from '@/components/shared/LanguageSelector';
 
 const PLATFORMS = [
   { id: 'youtube', label: 'YouTube Shorts' },
@@ -120,6 +121,10 @@ export default function AccountSettingsPage() {
         <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
           Connected accounts, webhooks, and privacy controls.
         </p>
+
+        <div className="glass-card premium-border" style={{ padding: '24px', marginBottom: '24px' }}>
+          <LanguageSelector />
+        </div>
 
         <div className="glass-card premium-border" style={{ padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '16px' }}>Social accounts</h2>

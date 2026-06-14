@@ -71,6 +71,7 @@ export interface IUser extends Document {
   betaChangelogOptIn?: boolean;
   betaFeedbackCount?: number;
   preferredBibleTranslation?: 'KJV' | 'NIV' | 'ESV' | 'NKJV' | 'NLT';
+  locale?: string;
   createdAt: Date;
 }
 
@@ -128,6 +129,7 @@ const UserSchema: Schema = new Schema({
     enum: ['KJV', 'NIV', 'ESV', 'NKJV', 'NLT'],
     default: 'ESV',
   },
+  locale: { type: String, default: 'en' },
   createdAt: { type: Date, default: Date.now },
 });
 

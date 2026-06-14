@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
 import { resolveClientPlaybackUrl } from '@/lib/resolvePlaybackUrl';
 import StudioPhonePreview from './StudioPhonePreview';
 import StudioExportPanel from './StudioExportPanel';
+import StudioExportExtrasPanel, { DEFAULT_EXPORT_EXTRAS } from './StudioExportExtrasPanel';
 import HelpTooltip from '@/components/help/HelpTooltip';
 import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
 import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
@@ -24,6 +26,44 @@ import {
 } from '@/lib/studio/constants';
 import type { ExportSettings, RenderState, SermonClip, UserStatus } from '@/lib/studio/types';
 import { triggerReelDownload } from '@/lib/reelDownload';
+import type { ExportExtras } from '@/lib/studio/exportOptions';
+import { CAPTION_ANIMATIONS } from '@/lib/studio/exportOptions';
+
+const STUDIO_TAB_LABEL_KEYS: Record<string, string> = {
+  templates: 'style',
+  filters: 'filter',
+  fonts: 'font',
+  motion: 'motion',
+  captions: 'captions',
+  audio: 'audio',
+  trim: 'trim',
+  publish: 'sync',
+};
+
+function getInitialExportExtras(): ExportExtras {
+  const kit = loadBrandKit();
+  if (!kit) return { ...DEFAULT_EXPORT_EXTRAS };
+  return {
+    ...DEFAULT_EXPORT_EXTRAS,
+    captionAnimation: (kit.captionAnimation as ExportExtras['captionAnimation']) || DEFAULT_EXPORT_EXTRAS.captionAnimation,
+    musicEnabled: Boolean(kit.musicEnabled),
+    musicTrackId: (kit.musicTrackId as string) || DEFAULT_EXPORT_EXTRAS.musicTrackId,
+    musicVolume: typeof kit.musicVolume === 'number' ? kit.musicVolume : DEFAULT_EXPORT_EXTRAS.musicVolume,
+    musicFade: kit.musicFade !== false,
+    musicAutoMatch: Boolean(kit.musicAutoMatch),
+    ctaEnabled: Boolean(kit.ctaEnabled),
+    ctaType: (kit.ctaType as ExportExtras['ctaType']) || DEFAULT_EXPORT_EXTRAS.ctaType,
+    ctaText: (kit.ctaText as string) || '',
+    ctaUrl: (kit.ctaUrl as string) || '',
+    includeIntro: Boolean(kit.includeIntro),
+    includeOutro: Boolean(kit.includeOutro),
+    bumperStyle: (kit.bumperStyle as string) || DEFAULT_EXPORT_EXTRAS.bumperStyle,
+    churchName: (kit.churchName as string) || '',
+    tagline: (kit.tagline as string) || '',
+    website: (kit.website as string) || '',
+    socialHandle: (kit.socialHandle as string) || '',
+  };
+}
 
 interface VesperStudioProps {
   selectedClip: SermonClip & { index: number };
@@ -66,6 +106,7 @@ export default function VesperStudio({
   userStatus,
   isYouTubeSource,
 }: VesperStudioProps) {
+  const { t } = useTranslation();
   const { isLoaded: authLoaded, userId } = useAuth();
   const clipStart = parseTime(selectedClip.start);
   const clipEnd = parseTime(selectedClip.end);
@@ -91,6 +132,11 @@ export default function VesperStudio({
   const [selectedPlatform, setSelectedPlatform] = useState('tiktok');
   const [isUploadingYT, setIsUploadingYT] = useState(false);
   const [upgradePrompt, setUpgradePrompt] = useState<UpgradeFeature | null>(null);
+  const [exportExtras, setExportExtras] = useState<ExportExtras>(getInitialExportExtras);
+
+  const patchExportExtras = useCallback((patch: Partial<ExportExtras>) => {
+    setExportExtras((prev) => ({ ...prev, ...patch }));
+  }, []);
 
   const clipIndex = selectedClip.index;
   const renderState = rendering[clipIndex];
@@ -144,8 +190,9 @@ export default function VesperStudio({
       filter: selectedFilter,
       font: selectedFont,
       animation: selectedAnimation,
+      ...exportExtras,
     });
-    toast.success('Profile saved — your defaults are kept for next session');
+    toast.success(t('studio.profileSaved'));
   };
 
   const handleSelectTemplate = (templateId: string) => {
@@ -180,6 +227,7 @@ export default function VesperStudio({
       trimStart,
       trimEnd,
       caption,
+      ...exportExtras,
     };
     startExport(selectedClip, settings);
   };
@@ -295,7 +343,7 @@ export default function VesperStudio({
           className="vesper-btn-outline shimmer-effect"
           style={{ padding: '10px 20px' }}
         >
-          ✕ CLOSE
+          ✕ {t('common.close').toUpperCase()}
         </button>
       </header>
 
@@ -344,7 +392,7 @@ export default function VesperStudio({
               >
                 <span style={{ fontSize: '20px' }}>{tab.icon}</span>
                 <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.08em' }}>
-                  {tab.label}
+                  {t(`studio.tabs.${STUDIO_TAB_LABEL_KEYS[tab.id]}` as 'studio.tabs.style')}
                 </span>
               </button>
             ))}
@@ -427,6 +475,18 @@ export default function VesperStudio({
                 />
               ))}
 
+            {activeTab === 'captions' && (
+              <StudioExportExtrasPanel
+                extras={exportExtras}
+                onChange={patchExportExtras}
+                activeSection="captions"
+              />
+            )}
+
+            {activeTab === 'audio' && (
+              <StudioExportExtrasPanel extras={exportExtras} onChange={patchExportExtras} activeSection="audio" />
+            )}
+
             {activeTab === 'trim' && (
               <div
                 style={{
@@ -485,6 +545,11 @@ export default function VesperStudio({
 
             {activeTab === 'publish' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <StudioExportExtrasPanel
+                  extras={exportExtras}
+                  onChange={patchExportExtras}
+                  activeSection="export"
+                />
                 {!hasExport ? (
                   <EmptyState
                     compact
@@ -575,6 +640,10 @@ export default function VesperStudio({
             selectedFilter={selectedFilter}
             selectedFont={selectedFont}
             selectedAnimation={selectedAnimation}
+            captionAnimation={exportExtras.captionAnimation}
+            ctaEnabled={exportExtras.ctaEnabled}
+            ctaText={exportExtras.ctaText}
+            ctaType={exportExtras.ctaType}
             caption={caption}
             selectedPlatform={selectedPlatform}
             isPlaying={isPlaying}

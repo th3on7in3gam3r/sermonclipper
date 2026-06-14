@@ -1,0 +1,134 @@
+{
+  "common": {
+    "close": "닫기",
+    "save": "저장",
+    "cancel": "취소",
+    "loading": "로딩 중…",
+    "retry": "다시 시도",
+    "copy": "복사",
+    "download": "다운로드",
+    "share": "공유",
+    "previewOnly": "미리보기 전용",
+    "language": "언어"
+  },
+  "nav": {
+    "howItWorks": "작동 방식",
+    "forChurches": "교회를 위해",
+    "pricing": "요금",
+    "faq": "자주 묻는 질문",
+    "logIn": "로그인",
+    "goToStudio": "스튜디오로 이동",
+    "home": "홈",
+    "archive": "보관함",
+    "dashboard": "대시보드",
+    "settings": "설정",
+    "billing": "결제",
+    "team": "팀"
+  },
+  "footer": {
+    "privacy": "개인정보 처리방침",
+    "terms": "서비스 약관",
+    "help": "도움말 센터",
+    "contact": "문의 / 지원",
+    "sitemap": "사이트맵",
+    "copyright": "© 2025 Vesper Studio. All rights reserved."
+  },
+  "settings": {
+    "languageTitle": "언어",
+    "languageDesc": "인터페이스 언어를 선택하세요. 설교 자막은 번역되지 않습니다.",
+    "saved": "언어 설정이 저장되었습니다"
+  },
+  "upload": {
+    "buttonLabel": "설교 업로드",
+    "pasteManuscript": "설교 노트 / 원고 붙여넣기 (선택)",
+    "manuscriptHint": "제공 시 클립 감지 및 섹션 제목이 개선됩니다.",
+    "youtubePlaceholder": "YouTube URL 붙여넣기…",
+    "processing": "설교 처리 중…"
+  },
+  "studio": {
+    "title": "VESPER STUDIO",
+    "subtitle": "뉴럴 편집 스위트",
+    "previewOnlyBadge": "미리보기 전용",
+    "generateReel": "릴 생성",
+    "liveCaption": "실시간 자막",
+    "mediaKit": "미디어 키트",
+    "socialDistribution": "소셜 배포",
+    "copyCaption": "자막 복사",
+    "neuralHook": "뉴럴 훅",
+    "tabs": {
+      "style": "스타일",
+      "filter": "필터",
+      "font": "글꼴",
+      "motion": "모션",
+      "captions": "자막",
+      "audio": "오디오",
+      "trim": "트림",
+      "sync": "동기화",
+      "export": "내보내기"
+    },
+    "trim": { "start": "시작", "end": "끝", "ready": "준비됨", "overLimit": "60초 초과" },
+    "preview": {
+      "loading": "미리보기 로딩 중",
+      "loadingHint": "설교 영상을 불러오는 중입니다. 계속되면 새로고침하거나 스튜디오를 다시 여세요.",
+      "errorTitle": "미리보기를 불러올 수 없습니다",
+      "errorHint": "영상 URL이 만료되었을 수 있습니다. 다시 시도하거나 스튜디오를 다시 여세요.",
+      "retryPreview": "미리보기 다시 시도"
+    },
+    "export": {
+      "readyTitle": "릴이 준비되었습니다",
+      "readySub": "MP4를 다운로드하거나 소셜에 공유하세요.",
+      "generating": "생성 중… {{progress}}%",
+      "uploadToExport": "내보내려면 MP4 업로드",
+      "tryAgain": "다시 시도"
+    },
+    "captions": {
+      "animationStyle": "자막 애니메이션",
+      "animationHint": "클라우드 렌더링 시 내보낸 MP4에 포함됩니다.",
+      "wordPop": "단어별 팝",
+      "slideUp": "위로 슬라이드",
+      "typewriter": "타자기",
+      "highlight": "카라오케 하이라이트",
+      "scalePulse": "스케일 펄스"
+    },
+    "audio": {
+      "title": "배경 음악",
+      "toggle": "음악 켜기/끄기",
+      "volume": "볼륨",
+      "fade": "페이드 인 / 아웃",
+      "autoMatch": "분위기 자동 매칭",
+      "categories": {
+        "inspiring": "영감 / 고양",
+        "calm": "차분 / 성찰",
+        "epic": "웅장 / 시네마",
+        "acoustic": "어쿠스틱 / 따뜻함"
+      }
+    },
+    "cta": {
+      "title": "엔드 카드 CTA",
+      "subscribe": "구독 / 팔로우",
+      "watchFull": "전체 설교 보기",
+      "joinSunday": "주일 예배에 참여",
+      "give": "헌금 / 기부",
+      "prayer": "기도 요청",
+      "custom": "사용자 지정 텍스트",
+      "customText": "CTA 텍스트",
+      "customUrl": "링크 URL"
+    },
+    "bumper": {
+      "title": "인트로 / 아웃트로",
+      "includeIntro": "인트로 포함",
+      "includeOutro": "아웃트로 포함",
+      "churchName": "교회 이름",
+      "tagline": "태그라인",
+      "website": "웹사이트",
+      "socialHandle": "소셜 핸들"
+    }
+  },
+  "errors": {
+    "generic": "문제가 발생했습니다. 다시 시도해 주세요.",
+    "network": "네트워크 오류. 연결을 확인하세요.",
+    "unauthorized": "계속하려면 로그인하세요.",
+    "rateLimit": "너무 빠릅니다! 잠시 후 다시 시도하세요.",
+    "moderationBlocked": "자동 검열 시스템에 의해 이 콘텐츠가 차단되었습니다. 오류라고 생각되면 지원팀에 문의하세요."
+  }
+}

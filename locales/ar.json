@@ -1,0 +1,134 @@
+{
+  "common": {
+    "close": "إغلاق",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "loading": "جاري التحميل…",
+    "retry": "إعادة المحاولة",
+    "copy": "نسخ",
+    "download": "تنزيل",
+    "share": "مشاركة",
+    "previewOnly": "معاينة فقط",
+    "language": "اللغة"
+  },
+  "nav": {
+    "howItWorks": "كيف يعمل",
+    "forChurches": "للكنائس",
+    "pricing": "الأسعار",
+    "faq": "الأسئلة الشائعة",
+    "logIn": "تسجيل الدخول",
+    "goToStudio": "الذهاب إلى الاستوديو",
+    "home": "الرئيسية",
+    "archive": "الأرشيف",
+    "dashboard": "لوحة التحكم",
+    "settings": "الإعدادات",
+    "billing": "الفوترة",
+    "team": "الفريق"
+  },
+  "footer": {
+    "privacy": "سياسة الخصوصية",
+    "terms": "شروط الخدمة",
+    "help": "مركز المساعدة",
+    "contact": "اتصل / الدعم",
+    "sitemap": "خريطة الموقع",
+    "copyright": "© 2025 Vesper Studio. جميع الحقوق محفوظة."
+  },
+  "settings": {
+    "languageTitle": "اللغة",
+    "languageDesc": "اختر لغة الواجهة. لا تُترجم ترجمات العظة تلقائياً.",
+    "saved": "تم حفظ تفضيل اللغة"
+  },
+  "upload": {
+    "buttonLabel": "رفع العظة",
+    "pasteManuscript": "لصق ملاحظات / مخطوطة العظة (اختياري)",
+    "manuscriptHint": "يحسّن اكتشاف المقاطع وعناوين الأقسام.",
+    "youtubePlaceholder": "الصق رابط YouTube…",
+    "processing": "جاري معالجة عظتك…"
+  },
+  "studio": {
+    "title": "VESPER STUDIO",
+    "subtitle": "مجموعة التحرير العصبية",
+    "previewOnlyBadge": "معاينة فقط",
+    "generateReel": "إنشاء ريل",
+    "liveCaption": "ترجمة مباشرة",
+    "mediaKit": "مجموعة الوسائط",
+    "socialDistribution": "التوزيع الاجتماعي",
+    "copyCaption": "نسخ الترجمة",
+    "neuralHook": "خطاف عصبي",
+    "tabs": {
+      "style": "النمط",
+      "filter": "الفلتر",
+      "font": "الخط",
+      "motion": "الحركة",
+      "captions": "الترجمات",
+      "audio": "الصوت",
+      "trim": "قص",
+      "sync": "مزامنة",
+      "export": "تصدير"
+    },
+    "trim": { "start": "البداية", "end": "النهاية", "ready": "جاهز", "overLimit": "أكثر من 60 ثانية" },
+    "preview": {
+      "loading": "تحميل المعاينة",
+      "loadingHint": "جاري تحميل فيdeo العظة. إذا استمر، حدّث أو أعد فتح الاستوديو.",
+      "errorTitle": "تعذر تحميل المعاينة",
+      "errorHint": "ربما انتهت صلاحية رابط الفيديو. حاول مرة أخرى أو أغلق وأعد فتح الاستوديو.",
+      "retryPreview": "إعادة محاولة المعاينة"
+    },
+    "export": {
+      "readyTitle": "الريل جاهز",
+      "readySub": "حمّل MP4 أو شاركه على وسائل التواصل.",
+      "generating": "جاري الإنشاء… {{progress}}%",
+      "uploadToExport": "ارفع MP4 للتصدير",
+      "tryAgain": "حاول مرة أخرى"
+    },
+    "captions": {
+      "animationStyle": "حركة الترجمة",
+      "animationHint": "تُدمج في MP4 المصدّر أثناء العرض السحابي.",
+      "wordPop": "كلمة بكلمة",
+      "slideUp": "انزلاق للأعلى",
+      "typewriter": "آلة كاتبة",
+      "highlight": "تمييز كaraoke",
+      "scalePulse": "نبض الحجم"
+    },
+    "audio": {
+      "title": "موسيقى خلفية",
+      "toggle": "تشغيل/إيقاف الموسيقى",
+      "volume": "مستوى الصوت",
+      "fade": "تلاشي دخول / خروج",
+      "autoMatch": "مطابقة المزاج تلقائياً",
+      "categories": {
+        "inspiring": "ملهم / مرفّع",
+        "calm": "هادئ / تأملي",
+        "epic": "ملحمي / سينمائي",
+        "acoustic": "أكoustic / دافئ"
+      }
+    },
+    "cta": {
+      "title": "دعوة نهاية الفيديو",
+      "subscribe": "اشترك / تابع",
+      "watchFull": "شاهد العظة كاملة",
+      "joinSunday": "انضم إلينا يوم الأحد",
+      "give": "تبرع",
+      "prayer": "طلب صلاة",
+      "custom": "نص مخصص",
+      "customText": "نص الدعوة",
+      "customUrl": "رابط URL"
+    },
+    "bumper": {
+      "title": "مقدمة / خاتمة",
+      "includeIntro": "تضمين المقدمة",
+      "includeOutro": "تضمين الخاتمة",
+      "churchName": "اسم الكنيسة",
+      "tagline": "الشعار",
+      "website": "الموقع",
+      "socialHandle": "حساب التواصل"
+    }
+  },
+  "errors": {
+    "generic": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+    "network": "خطأ في الشبكة. تحقق من اتصالك.",
+    "unauthorized": "يرجى تسجيل الدخول للمتابعة.",
+    "rateLimit": "أنت سريع جداً! انتظر لحظة.",
+    "moderationBlocked": "تم标记 هذا المحتوى بواسطة نظام الإشراف الآلي ولا يمكن معالجته. اتصل بالدعم إذا كنت تعتقد أن هذا خطأ."
+  }
+}

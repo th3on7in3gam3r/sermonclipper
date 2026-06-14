@@ -1,8 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import { SITE_URL, SUPPORT_EMAIL } from '@/lib/siteConfig';
 import { CookiePreferencesLink } from '@/components/consent/CookieConsent';
+import LanguageSelector from '@/components/shared/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 export default function SiteFooter() {
+  const { t } = useTranslation();
+
   return (
     <footer className="site-footer glass-card">
       <div className="site-footer-inner">
@@ -14,15 +20,19 @@ export default function SiteFooter() {
         </Link>
 
         <nav className="site-footer-links" aria-label="Footer">
-          <Link href="/privacy">Privacy Policy</Link>
-          <Link href="/terms">Terms of Service</Link>
-          <Link href="/help">Help Center</Link>
+          <Link href="/privacy">{t('footer.privacy')}</Link>
+          <Link href="/terms">{t('footer.terms')}</Link>
+          <Link href="/help">{t('footer.help')}</Link>
           <CookiePreferencesLink />
-          <a href={`mailto:${SUPPORT_EMAIL}`}>Contact / Support</a>
-          <a href="/sitemap.xml">Sitemap</a>
+          <a href={`mailto:${SUPPORT_EMAIL}`}>{t('footer.contact')}</a>
+          <a href="/sitemap.xml">{t('footer.sitemap')}</a>
         </nav>
 
-        <p className="site-footer-copy">© 2025 Vesper Studio. All rights reserved.</p>
+        <div className="site-footer-lang">
+          <LanguageSelector compact />
+        </div>
+
+        <p className="site-footer-copy">{t('footer.copyright')}</p>
       </div>
     </footer>
   );

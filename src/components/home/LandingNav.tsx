@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
@@ -8,15 +9,16 @@ import ThemeToggle from '@/components/shared/ThemeToggle';
 import { useHeroCtaTest } from '@/lib/useHeroCtaTest';
 
 const NAV_LINKS = [
-  { href: '/how-it-works', label: 'How it Works' },
-  { href: '/for-churches', label: 'For Churches' },
-  { href: '/#pricing', label: 'Pricing' },
-  { href: '/#faq', label: 'FAQ' },
+  { href: '/how-it-works', key: 'howItWorks' },
+  { href: '/for-churches', key: 'forChurches' },
+  { href: '/#pricing', key: 'pricing' },
+  { href: '/#faq', key: 'faq' },
 ] as const;
 
 function AuthActions({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: () => void }) {
   const { isLoaded, userId } = useAuth();
   const { label, onCtaClick } = useHeroCtaTest(userId);
+  const { t } = useTranslation();
 
   const wrapClass = stacked ? 'landing-nav-mobile-auth' : 'landing-nav-actions';
 
@@ -25,7 +27,7 @@ function AuthActions({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: 
       <div className={wrapClass}>
         <div className="landing-nav-user-row">
           <Link href="/dashboard" className="landing-nav-studio-btn" onClick={onNavigate}>
-            Go to Studio
+            {t('nav.goToStudio')}
           </Link>
           <UserButton
             appearance={vesperClerkAppearance}
@@ -44,7 +46,7 @@ function AuthActions({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: 
           className="vesper-btn vesper-btn-outline landing-nav-ghost"
           onClick={onNavigate}
         >
-          Log In
+          {t('nav.logIn')}
         </button>
       </SignInButton>
       <SignUpButton
@@ -69,6 +71,14 @@ function AuthActions({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: 
 
 export default function LandingNav() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { t } = useTranslation();
+
+  const tabLabelKey: Record<(typeof NAV_LINKS)[number]['key'], string> = {
+    howItWorks: 'nav.howItWorks',
+    forChurches: 'nav.forChurches',
+    pricing: 'nav.pricing',
+    faq: 'nav.faq',
+  };
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
@@ -92,7 +102,7 @@ export default function LandingNav() {
         <nav className="landing-nav-links landing-nav-links--desktop" aria-label="Primary">
           {NAV_LINKS.map((link) => (
             <Link key={link.href} href={link.href} className="landing-nav-link">
-              {link.label}
+              {t(tabLabelKey[link.key])}
             </Link>
           ))}
         </nav>
@@ -118,7 +128,7 @@ export default function LandingNav() {
           <nav className="landing-nav-mobile-links" aria-label="Mobile primary">
             {NAV_LINKS.map((link) => (
               <Link key={link.href} href={link.href} className="landing-nav-mobile-link" onClick={closeMenu}>
-                {link.label}
+                {t(tabLabelKey[link.key])}
               </Link>
             ))}
           </nav>

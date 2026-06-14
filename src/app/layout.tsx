@@ -22,6 +22,7 @@ import { Suspense } from 'react';
 import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
 import { FeatureFlagsProvider } from '@/components/providers/FeatureFlagsProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { I18nProvider } from '@/components/providers/I18nProvider';
 import VesperErrorBoundary from '@/components/shared/VesperErrorBoundary';
 import CookieConsent from '@/components/consent/CookieConsent';
 import PwaProvider from '@/components/pwa/PwaProvider';
@@ -105,6 +106,7 @@ export default function RootLayout({
         <body className="antialiased">
           <Suspense fallback={null}>
             <ThemeProvider>
+              <I18nProvider>
               <FeatureFlagsProvider>
                 <AnalyticsProvider>
                   <VesperErrorBoundary>
@@ -135,6 +137,7 @@ export default function RootLayout({
                   </VesperErrorBoundary>
                 </AnalyticsProvider>
               </FeatureFlagsProvider>
+              </I18nProvider>
             </ThemeProvider>
           </Suspense>
         </body>
