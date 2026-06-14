@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/auto-clip-sunday",
       "schedule": "0 14 * * 1"
+    },
+    {
+      "path": "/api/cron/analytics-sync",
+      "schedule": "0 */6 * * *"
     }
   ]
 }

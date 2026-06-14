@@ -222,3 +222,30 @@ export async function sendAccountDeletedEmail(to: string, brand?: WhiteLabelConf
   await resend.emails.send({ ...sendOpts(brand), to, subject: 'Your account has been deleted', html });
   return { ok: true };
 }
+
+export async function sendDataExportReadyEmail(
+  to: string,
+  downloadUrl: string,
+  unsubscribeToken?: string,
+  brand?: WhiteLabelConfig | null
+) {
+  const resend = getResend();
+  if (!resend) return { ok: false, skipped: true };
+
+  const html = emailShell(
+    `<h1 style="margin:0 0 12px;font-size:22px;">Your Vesper data export is ready</h1>
+     <p style="color:#D4D4D8;line-height:1.6;margin:0;">Download your ZIP within 48 hours. The link expires automatically for your security.</p>
+     ${cta(downloadUrl, 'Download My Data →', brand)}
+     <p style="color:#71717A;font-size:13px;margin-top:16px;">Includes account settings, clip metadata, social posts, billing summary, and exported MP4s we have on file.</p>`,
+    unsubscribeToken,
+    brand
+  );
+
+  await resend.emails.send({
+    ...sendOpts(brand),
+    to,
+    subject: 'Your Vesper data export is ready',
+    html,
+  });
+  return { ok: true };
+}

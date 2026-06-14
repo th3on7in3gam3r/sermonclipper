@@ -6,6 +6,7 @@ import {
   STUDIO_TEMPLATES,
   type BrandKit,
 } from './constants';
+import { SEASONAL_TEMPLATES } from '@/lib/seasonalTemplates';
 
 /** Map pre-refactor Studio IDs to current Shotstack-aligned IDs. */
 const LEGACY_TEMPLATE_MAP: Record<string, string> = {
@@ -31,7 +32,10 @@ const LEGACY_ANIMATION_MAP: Record<string, string> = {
   glitch: 'carve',
 };
 
-const VALID_TEMPLATES = new Set(STUDIO_TEMPLATES.map((t) => t.id));
+const VALID_TEMPLATES = new Set([
+  ...STUDIO_TEMPLATES.map((t) => t.id),
+  ...SEASONAL_TEMPLATES.map((t) => t.id),
+]);
 const VALID_FILTERS = new Set(STUDIO_FILTERS.map((f) => f.id));
 const VALID_FONTS = new Set(STUDIO_FONTS.map((f) => f.id));
 const VALID_ANIMATIONS = new Set(STUDIO_ANIMATIONS.map((a) => a.id));

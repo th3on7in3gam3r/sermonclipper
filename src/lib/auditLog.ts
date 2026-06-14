@@ -15,7 +15,9 @@ export type AuditEventType =
   | 'admin.plan_changed'
   | 'moderation.flagged'
   | 'moderation.blocked'
-  | 'moderation.approved';
+  | 'moderation.approved'
+  | 'data.export_requested'
+  | 'social.published';
 
 export async function logAuditEvent(event: {
   userId: string;

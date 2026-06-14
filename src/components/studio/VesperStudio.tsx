@@ -8,6 +8,8 @@ import { resolveClientPlaybackUrl } from '@/lib/resolvePlaybackUrl';
 import StudioPhonePreview from './StudioPhonePreview';
 import StudioExportPanel from './StudioExportPanel';
 import StudioExportExtrasPanel, { DEFAULT_EXPORT_EXTRAS } from './StudioExportExtrasPanel';
+import StudioClipAnalyticsPanel from './StudioClipAnalyticsPanel';
+import { getStudioTemplateOptions, type SeasonalTemplate } from '@/lib/seasonalTemplates';
 import HelpTooltip from '@/components/help/HelpTooltip';
 import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
 import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
@@ -38,6 +40,7 @@ const STUDIO_TAB_LABEL_KEYS: Record<string, string> = {
   audio: 'audio',
   trim: 'trim',
   publish: 'sync',
+  analytics: 'analytics',
 };
 
 function getInitialExportExtras(): ExportExtras {
@@ -71,6 +74,7 @@ interface VesperStudioProps {
   videoId: string | null;
   videoUrl: string | null;
   playableVideoUrl: string | null;
+  jobId: string | null;
   rendering: Record<number, RenderState>;
   renderProgress: Record<number, number>;
   startExport: (clip: SermonClip & { index: number }, settings: ExportSettings) => void;
@@ -99,6 +103,7 @@ export default function VesperStudio({
   videoId,
   videoUrl,
   playableVideoUrl,
+  jobId,
   rendering,
   renderProgress,
   startExport,
@@ -139,6 +144,12 @@ export default function VesperStudio({
   }, []);
 
   const clipIndex = selectedClip.index;
+  const clipId = jobId ? `${jobId}:${clipIndex}` : null;
+  const customSeasonalTemplates = (loadBrandKit()?.customSeasonalTemplates as SeasonalTemplate[]) || [];
+  const templateOptions = useMemo(
+    () => getStudioTemplateOptions(customSeasonalTemplates),
+    [customSeasonalTemplates]
+  );
   const renderState = rendering[clipIndex];
   const caption = useMemo(
     () => getDefaultCaption(selectedClip, captionOverrides),
@@ -256,10 +267,25 @@ export default function VesperStudio({
           videoUrl: renderState.url,
           title: selectedClip.hook_title || 'Sermon Clip',
           description: caption,
+          clipId,
+          clipIndex,
         }),
       });
 
       if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      if (clipId && data.youtubeId) {
+        await fetch('/api/clips/publication', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clipId,
+            platform: 'youtube',
+            externalId: data.youtubeId,
+            postUrl: `https://youtube.com/shorts/${data.youtubeId}`,
+          }),
+        });
+      }
       toast.success('Published to YouTube Shorts', { id: toastId });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Upload failed';
@@ -409,14 +435,14 @@ export default function VesperStudio({
             }}
           >
             {activeTab === 'templates' &&
-              STUDIO_TEMPLATES.map((t) => (
+              templateOptions.map((t) => (
                 <OptionCard
                   key={t.id}
                   selected={selectedTemplate === t.id}
                   onSelect={() => handleSelectTemplate(t.id)}
                   title={t.name}
                   desc={t.desc}
-                  swatch={t.color}
+                  swatch={'color' in t ? t.color : '#fff'}
                   locked={!planAllowsTemplate(userStatus?.plan, t.id)}
                 />
               ))}
@@ -541,6 +567,10 @@ export default function VesperStudio({
                   </span>
                 </div>
               </div>
+            )}
+
+            {activeTab === 'analytics' && clipId && (
+              <StudioClipAnalyticsPanel clipId={clipId} clipTitle={selectedClip.hook_title || selectedClip.main_quote || 'Sermon clip'} />
             )}
 
             {activeTab === 'publish' && (

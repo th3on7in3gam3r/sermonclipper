@@ -199,6 +199,27 @@ export default function AccountSettingsPage() {
         <ReferralCard />
 
         <div className="glass-card premium-border" style={{ padding: '24px', marginTop: '24px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>Privacy & data export</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '12px', lineHeight: 1.5 }}>
+            Your data export will be ready in 5–15 minutes. We&apos;ll email you a download link that expires in 48
+            hours.
+          </p>
+          <button
+            type="button"
+            className="vesper-btn-outline"
+            onClick={async () => {
+              const res = await fetch('/api/account/export', { method: 'POST' });
+              const data = await res.json();
+              if (res.ok) toast.success(data.message || 'Export started — check your email.');
+              else toast.error(data.error || 'Export failed');
+            }}
+            style={{ marginRight: '8px' }}
+          >
+            Export My Data
+          </button>
+        </div>
+
+        <div className="glass-card premium-border" style={{ padding: '24px', marginTop: '24px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>Your data</h2>
           <button
             type="button"
@@ -206,7 +227,7 @@ export default function AccountSettingsPage() {
             onClick={exportData}
             style={{ marginRight: '8px' }}
           >
-            Export My Data
+            Quick JSON export
           </button>
           <button
             type="button"

@@ -49,7 +49,50 @@ export async function POST(req: NextRequest) {
     };
     const origin = req.nextUrl.origin;
 
-    if (payload.type === 'youtube' && payload.url) {
+    if (payload.type === 'data_export' && payload.userId) {
+      const DataExportRequest = (await import('@/models/DataExportRequest')).default;
+      const User = (await import('@/models/User')).default;
+      const { buildUserDataExportZip } = await import('@/lib/dataExport/buildUserExport');
+      const { sendDataExportReadyEmail } = await import('@/lib/email');
+
+      await DataExportRequest.updateOne({ jobId }, { $set: { status: 'processing' } });
+      await updateJobQueue(jobId, {
+        step: 'Export',
+        message: 'Assembling your data package…',
+        progress: 20,
+      });
+
+      const { downloadUrl } = await buildUserDataExportZip(String(payload.userId));
+      const expiresAt = new Date(Date.now() + 48 * 3600 * 1000);
+
+      await DataExportRequest.updateOne(
+        { jobId },
+        {
+          $set: {
+            status: 'complete',
+            downloadUrl,
+            expiresAt,
+            completedAt: new Date(),
+          },
+        }
+      );
+
+      const dbUser = await User.findOne({ clerkId: payload.userId }).lean();
+      if (dbUser?.email) {
+        await sendDataExportReadyEmail(dbUser.email, downloadUrl, dbUser.emailUnsubscribeToken);
+      }
+
+      await updateJobQueue(jobId, {
+        queueStatus: 'complete',
+        status: 'completed',
+        step: 'Complete',
+        message: 'Data export ready',
+        progress: 100,
+        outputUrls: [downloadUrl],
+      });
+
+      return NextResponse.json({ success: true, jobId, downloadUrl });
+    } else if (payload.type === 'youtube' && payload.url) {
       const secret = process.env.CRON_SECRET;
       const res = await fetch(`${origin}/api/download-youtube`, {
         method: 'POST',

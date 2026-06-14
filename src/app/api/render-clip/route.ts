@@ -124,6 +124,14 @@ const TEMPLATE_COLORS: Record<string, string> = {
   cinematic: '#FFFF00',
   modern: '#C4B5FD',
   fire: '#FCD34D',
+  easter_glory: '#E9D5FF',
+  christmas_advent: '#FDE68A',
+  thanksgiving_gratitude: '#FCD34D',
+  newyear_vision: '#FDE047',
+  mothers_day_warm: '#FECDD3',
+  fathers_day_warm: '#BFDBFE',
+  back_to_school: '#67E8F9',
+  special_series: '#C4B5FD',
 };
 
 // Map font id → Shotstack font family

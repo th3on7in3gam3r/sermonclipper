@@ -65,7 +65,8 @@
       "audio": "Audio",
       "trim": "Trim",
       "sync": "Sync",
-      "export": "Export"
+      "export": "Export",
+      "analytics": "Analytics"
     },
     "trim": {
       "start": "START",

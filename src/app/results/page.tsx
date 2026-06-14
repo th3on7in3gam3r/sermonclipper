@@ -475,6 +475,13 @@ function ResultsContent() {
         toast.success('Your reel is ready — download or share below.', { id: toastId, duration: 6000 });
 
         const clip = analysis?.clips?.[index];
+        if (jobId && data.url) {
+          fetch('/api/clips/export-record', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clipId: `${jobId}:${index}`, renderUrl: data.url }),
+          }).catch(() => {});
+        }
         fetch('/api/email/render-complete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1413,6 +1420,7 @@ function ResultsContent() {
             videoId={videoId}
             videoUrl={sessionVideoSource}
             playableVideoUrl={playableVideoUrl}
+            jobId={jobId}
             rendering={rendering}
             renderProgress={renderProgress}
             startExport={startExport}

@@ -131,6 +131,7 @@ export const STUDIO_TABS = [
   { id: 'audio', icon: '♫', label: 'Audio' },
   { id: 'trim', icon: '✂', label: 'Trim' },
   { id: 'publish', icon: '↗', label: 'Sync' },
+  { id: 'analytics', icon: '📊', label: 'Stats' },
 ] as const;
 
 export const MOBILE_TABS = [

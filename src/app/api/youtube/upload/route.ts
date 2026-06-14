@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     const { userId } = await auth();
     if (!userId) return new NextResponse('Unauthorized', { status: 401 });
 
-    const { videoUrl, title, description, thumbnailUrl, clipIndex, hasTextOverlay, style } =
+    const { videoUrl, title, description, thumbnailUrl, clipIndex, hasTextOverlay, style, clipId } =
       await req.json();
 
     await connectDB();
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
         {
           videoId: result.id,
           clipIndex: typeof clipIndex === 'number' ? clipIndex : 0,
+          clipId: clipId || undefined,
           thumbnailUrl: thumbnailUrl || undefined,
           hasTextOverlay: Boolean(hasTextOverlay),
           style: style || undefined,
@@ -39,6 +40,21 @@ export async function POST(req: Request) {
         },
       ];
       await dbUser.save();
+
+      if (clipId) {
+        const ClipPublication = (await import('@/models/ClipPublication')).default;
+        await ClipPublication.findOneAndUpdate(
+          { userId, clipId, platform: 'youtube' },
+          {
+            $set: {
+              externalId: result.id,
+              postUrl: `https://youtube.com/shorts/${result.id}`,
+              publishedAt: new Date(),
+            },
+          },
+          { upsert: true }
+        );
+      }
     }
 
     return NextResponse.json({ success: true, youtubeId: result.id });
