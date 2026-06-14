@@ -1,6 +1,7 @@
 import type { NextRequest, NextResponse } from 'next/server';
+import { normalizeCdnHost } from '@/lib/cdnHost';
 
-const CDN_HOST = process.env.BUNNY_CDN_HOST?.replace(/^https?:\/\//, '');
+const CDN_HOST = normalizeCdnHost(process.env.BUNNY_CDN_HOST);
 const isProd = process.env.NODE_ENV === 'production';
 
 export function applySecurityHeaders(response: NextResponse, request?: NextRequest): NextResponse {

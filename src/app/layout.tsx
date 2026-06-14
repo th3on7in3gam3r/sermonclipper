@@ -101,7 +101,6 @@ export default function RootLayout({
           <link rel="icon" href="/favicon.png" />
           <link rel="shortcut icon" href="/favicon.png" />
           <link rel="apple-touch-icon" href="/vesper-logo.png" />
-          <link rel="preload" href="/vesper-logo.png" as="image" type="image/png" />
         </head>
         <body className="antialiased">
           <Suspense fallback={null}>

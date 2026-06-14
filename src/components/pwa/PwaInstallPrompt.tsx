@@ -20,8 +20,12 @@ export function PwaInstallPrompt() {
     if (localStorage.getItem(DISMISS_KEY)) return;
 
     const onBip = (e: Event) => {
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
+      const event = e as BeforeInstallPromptEvent;
+      setDeferred(event);
+      if (getClipCountForInstall() >= MIN_CLIPS) {
+        e.preventDefault();
+        setVisible(true);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', onBip);

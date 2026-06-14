@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { getMediaDeliveryUrl } from '@/lib/cdn';
 import { getR2ObjectUrl } from '@/lib/r2';
-import { extractR2Key, isR2StorageUrl } from '@/lib/videoSource';
+import { extractR2Key, extractStorageKeyFromDeliveryUrl, isR2StorageUrl } from '@/lib/videoSource';
 
 /**
  * Returns a short-lived delivery URL for private storage (CDN or app-signed).
@@ -24,7 +24,10 @@ export async function GET(req: NextRequest) {
 
     let key = keyParam || '';
     if (!key && rawUrl) {
-      if (isR2StorageUrl(rawUrl)) {
+      const extracted = extractStorageKeyFromDeliveryUrl(rawUrl);
+      if (extracted) {
+        key = extracted;
+      } else if (isR2StorageUrl(rawUrl)) {
         key = extractR2Key(rawUrl);
       } else if (!rawUrl.includes('://')) {
         key = rawUrl;

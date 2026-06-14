@@ -1,8 +1,9 @@
 import { createHmac } from 'crypto';
 import { generatePresignedGetUrl } from './r2';
-import { extractR2Key, isR2StorageUrl } from './videoSource';
+import { normalizeCdnHost } from './cdnHost';
+import { extractR2Key, extractStorageKeyFromDeliveryUrl, isR2StorageUrl } from './videoSource';
 
-const CDN_HOST = process.env.BUNNY_CDN_HOST?.replace(/\/$/, '');
+const CDN_HOST = normalizeCdnHost(process.env.BUNNY_CDN_HOST);
 const BUNNY_TOKEN_KEY = process.env.BUNNY_TOKEN_AUTHENTICATION_KEY;
 const MEDIA_SIGNING_SECRET =
   process.env.MEDIA_SIGNING_SECRET || process.env.CLERK_SECRET_KEY || 'dev-media-secret';
@@ -30,12 +31,26 @@ export async function getMediaDeliveryUrl(
   keyOrUrl: string,
   expiresInSec = MEDIA_URL_EXPIRY_SEC
 ): Promise<string> {
-  const key = isR2StorageUrl(keyOrUrl) ? extractR2Key(keyOrUrl) : keyOrUrl.replace(/^\/+/, '');
+  const storageKey = extractStorageKeyFromDeliveryUrl(keyOrUrl);
+  if (storageKey) {
+    const bunny = bunnySignedUrl(`/${storageKey}`, expiresInSec);
+    if (bunny) return bunny;
 
+    const exp = Math.floor(Date.now() / 1000) + expiresInSec;
+    const payload = `${storageKey}:${exp}`;
+    const sig = createHmac('sha256', MEDIA_SIGNING_SECRET).update(payload).digest('hex');
+    const params = new URLSearchParams({ key: storageKey, exp: String(exp), sig });
+    return `/api/media?${params.toString()}`;
+  }
+
+  if (keyOrUrl.includes('://')) {
+    return keyOrUrl;
+  }
+
+  const key = keyOrUrl.replace(/^\/+/, '');
   const bunny = bunnySignedUrl(`/${key}`, expiresInSec);
   if (bunny) return bunny;
 
-  // App-signed redirect — never expose raw R2 URLs to clients
   const exp = Math.floor(Date.now() / 1000) + expiresInSec;
   const payload = `${key}:${exp}`;
   const sig = createHmac('sha256', MEDIA_SIGNING_SECRET).update(payload).digest('hex');

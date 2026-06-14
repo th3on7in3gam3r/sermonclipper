@@ -16,7 +16,7 @@ import QuoteCardModal from '@/components/results/QuoteCardModal';
 import { THUMB_STYLES, type ThumbStyleId } from '@/lib/thumbnailStyles';
 import { parseTime } from '@/lib/parseTime';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
-import { isDownloadableMasterUrl, isR2StorageUrl } from '@/lib/videoSource';
+import { isDownloadableMasterUrl, isYouTubeUrl, needsMediaDeliveryResolve } from '@/lib/videoSource';
 import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
 import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
 import SiteFooter from '@/components/layout/SiteFooter';
@@ -64,7 +64,8 @@ function ResultsContent() {
     (effectiveVideoUrl && isDownloadableMasterUrl(effectiveVideoUrl) ? effectiveVideoUrl : null);
 
   const resolvePlayableUrl = async (url: string) => {
-    if (!isR2StorageUrl(url) || url.includes('X-Amz-Signature')) return url;
+    if (isYouTubeUrl(url)) return url;
+    if (!needsMediaDeliveryResolve(url)) return url;
     const res = await fetch(`/api/video-url?url=${encodeURIComponent(url)}`);
     const data = await res.json();
     return data.url || url;
