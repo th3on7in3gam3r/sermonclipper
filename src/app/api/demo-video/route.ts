@@ -43,6 +43,15 @@ export async function GET(req: NextRequest) {
     fallbackUrl: streamUrl,
   };
 
+  if (clip.externalUrl) {
+    return NextResponse.json({
+      ...payload,
+      url: clip.externalUrl,
+      fallbackUrl: streamUrl,
+      source: 'external',
+    });
+  }
+
   const preferPublic = process.env.HERO_DEMO_PREFER_CDN !== 'true';
 
   if (preferPublic) {
