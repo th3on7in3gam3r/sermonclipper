@@ -10,6 +10,10 @@ import { resolveShotstackVideoUrl } from '../../../lib/shotstackVideoUrl';
 import { isDownloadableMasterUrl, isYouTubeUrl } from '../../../lib/videoSource';
 import { isAudioMediaUrl } from '@/lib/mediaDetection';
 import {
+  getMarketplaceStyleConfig,
+  applyStyleConfigToRender,
+} from '@/lib/marketplace/templateEngine';
+import {
   BACKGROUND_MUSIC_TRACKS,
   CAPTION_ANIMATION_MAP,
   pickMusicForMood,
@@ -303,8 +307,22 @@ export async function POST(req: NextRequest) {
     const totalDuration = introLen + duration + outroLen;
     const videoUrl = resolvedVideoUrl;
 
-    const captionColor = TEMPLATE_COLORS[template] || '#FFFFFF';
-    const fontFamily = FONT_FAMILIES[font] || 'Montserrat';
+    let captionColor = TEMPLATE_COLORS[template] || '#FFFFFF';
+    let fontFamily = FONT_FAMILIES[font] || 'Montserrat';
+    let resolvedCaptionAnimation = captionAnimation;
+
+    const marketplaceStyle = await getMarketplaceStyleConfig(template, userId);
+    if (marketplaceStyle) {
+      const applied = applyStyleConfigToRender(marketplaceStyle, {
+        captionColor,
+        fontFamily,
+        captionAnimation: resolvedCaptionAnimation,
+      });
+      captionColor = applied.captionColor;
+      fontFamily = applied.fontFamily;
+      resolvedCaptionAnimation = applied.captionAnimation;
+    }
+
     const transitionIn = ANIMATION_MAP[animation] || 'fade';
 
     const captions = (clip.suggested_captions || [])
@@ -323,7 +341,7 @@ export async function POST(req: NextRequest) {
       captionLines,
       introLen,
       duration,
-      captionAnimation,
+      resolvedCaptionAnimation,
       fontFamily,
       captionColor,
       transitionIn
@@ -421,7 +439,7 @@ export async function POST(req: NextRequest) {
         captionLines,
         introLen,
         duration,
-        captionAnimation,
+        resolvedCaptionAnimation,
         fontFamily,
         captionColor,
         transitionIn
@@ -561,6 +579,9 @@ export async function POST(req: NextRequest) {
       try {
         const { markChecklist } = await import('@/lib/checklist');
         await markChecklist(userId, 'exportedReel');
+        const { awardMilestone, notifyMilestoneUnlocks } = await import('@/lib/gamification');
+        const unlocked = await awardMilestone(userId, 'first_export');
+        await notifyMilestoneUnlocks(userId, unlocked);
       } catch {
         /* non-blocking */
       }

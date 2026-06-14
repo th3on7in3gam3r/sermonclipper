@@ -124,6 +124,7 @@ export const STUDIO_PLATFORMS = [
 
 export const STUDIO_TABS = [
   { id: 'templates', icon: '◈', label: 'Style' },
+  { id: 'marketplace', icon: '🛒', label: 'Marketplace' },
   { id: 'filters', icon: '◐', label: 'Filter' },
   { id: 'fonts', icon: 'Aa', label: 'Font' },
   { id: 'motion', icon: '▷', label: 'Motion' },

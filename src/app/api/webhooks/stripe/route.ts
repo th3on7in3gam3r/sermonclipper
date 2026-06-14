@@ -24,9 +24,38 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
     if (!session?.metadata?.clerkId) return new NextResponse('Missing metadata', { status: 400 });
 
+    await connectDB();
+
+    if (session.metadata.type === 'marketplace_template' && session.metadata.templateId) {
+      const TemplatePurchase = (await import('@/models/TemplatePurchase')).default;
+      const MarketplaceTemplate = (await import('@/models/MarketplaceTemplate')).default;
+
+      await TemplatePurchase.findOneAndUpdate(
+        { userId: session.metadata.clerkId, templateId: session.metadata.templateId },
+        {
+          $set: {
+            priceCents: session.amount_total || 0,
+            stripeSessionId: session.id,
+            purchasedAt: new Date(),
+          },
+        },
+        { upsert: true }
+      );
+
+      await MarketplaceTemplate.updateOne(
+        { _id: session.metadata.templateId },
+        { $inc: { purchaseCount: 1 } }
+      );
+
+      return new NextResponse('Template purchase recorded', { status: 200 });
+    }
+
+    if (!session.subscription) {
+      return new NextResponse('Webhook processed', { status: 200 });
+    }
+
     const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
 
-    await connectDB();
     await User.findOneAndUpdate(
       { clerkId: session.metadata.clerkId },
       {

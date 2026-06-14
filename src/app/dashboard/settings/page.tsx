@@ -10,6 +10,7 @@ import DeveloperSettingsPanel from '@/components/dashboard/DeveloperSettingsPane
 import BetaProgramPanel from '@/components/dashboard/BetaProgramPanel';
 import StudioHelpShell from '@/components/help/StudioHelpShell';
 import LanguageSelector from '@/components/shared/LanguageSelector';
+import AchievementsSettingsPanel from '@/components/dashboard/AchievementsSettingsPanel';
 
 const PLATFORMS = [
   { id: 'youtube', label: 'YouTube Shorts' },
@@ -197,6 +198,10 @@ export default function AccountSettingsPage() {
         </div>
 
         <ReferralCard />
+
+        <div id="achievements">
+          <AchievementsSettingsPanel />
+        </div>
 
         <div className="glass-card premium-border" style={{ padding: '24px', marginTop: '24px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>Privacy & data export</h2>

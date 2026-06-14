@@ -2,6 +2,7 @@ import { currentUser } from '@clerk/nextjs/server';
 import User from '@/models/User';
 import { PLAN_LIMITS, formatResetDate, getUsageResetDate } from '@/lib/plans';
 import { sendQuotaReachedEmail, sendQuotaWarningEmail } from '@/lib/email';
+import { createNotification } from '@/lib/notifications';
 
 export async function maybeSendQuotaEmails(dbUser: InstanceType<typeof User>) {
   if (dbUser.emailUnsubscribed) return;
@@ -41,6 +42,13 @@ export async function maybeSendQuotaEmails(dbUser: InstanceType<typeof User>) {
       await sendQuotaWarningEmail(email, { used, limit, resetDate }, token, dbUser.whiteLabel);
       dbUser.quotaWarningSentAt = now;
       await dbUser.save();
+      await createNotification({
+        userId: dbUser.clerkId,
+        type: 'quota_warning',
+        message: `You've used ${Math.round(pct * 100)}% of your clips this month`,
+        link: '/dashboard#quota',
+        pushTitle: 'Clip quota warning',
+      });
     }
   }
 }

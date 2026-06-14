@@ -62,5 +62,24 @@ export async function POST(req: NextRequest) {
   team.pendingInvites.splice(inviteIdx, 1);
   await team.save();
 
+  try {
+    const { awardMilestone, notifyMilestoneUnlocks } = await import('@/lib/gamification');
+    const { createNotification } = await import('@/lib/notifications');
+    const ownerId = team.ownerId;
+    if (ownerId) {
+      const unlocked = await awardMilestone(ownerId, 'first_team_member');
+      await notifyMilestoneUnlocks(ownerId, unlocked);
+      await createNotification({
+        userId: ownerId,
+        type: 'team_member_joined',
+        message: `${clerkUser.fullName || clerkUser.firstName || 'A teammate'} joined your team`,
+        link: '/dashboard/team',
+        pushTitle: 'Team update',
+      });
+    }
+  } catch {
+    /* non-blocking */
+  }
+
   return NextResponse.json({ ok: true, teamName: team.name });
 }

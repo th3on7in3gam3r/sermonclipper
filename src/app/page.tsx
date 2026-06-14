@@ -8,6 +8,7 @@ import HeroDemo from '@/components/home/HeroDemo';
 import LandingNav from '@/components/home/LandingNav';
 import HeroUploadZone from '@/components/home/HeroUploadZone';
 import HeroYouTubeInput from '@/components/home/HeroYouTubeInput';
+import HeroPodcastInput from '@/components/home/HeroPodcastInput';
 import ChurchSocialProof from '@/components/home/ChurchSocialProof';
 import FAQ from '@/components/FAQ';
 import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
@@ -442,6 +443,17 @@ export default function Home() {
             isValidating={youtubeValidating}
             onUrlChange={handleUrlChange}
             onSubmit={handleProcess}
+          />
+
+          <HeroPodcastInput
+            isMobile={isMobile}
+            onProcessingStart={(newJobId) => {
+              setJobId(newJobId);
+              setProcessingError(null);
+              setProcessingStartedAt(Date.now());
+              setStatus(null);
+              setIsProcessing(true);
+            }}
           />
         </div>
       </section>

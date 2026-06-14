@@ -32,6 +32,9 @@ export default function PwaProvider({ children }: { children: React.ReactNode })
       if (event.data?.type === 'VESPER_SYNC_OFFLINE_QUEUE') {
         void flushOfflineQueue();
       }
+      if (event.data?.type === 'VESPER_NAVIGATE' && event.data.url) {
+        window.location.href = event.data.url;
+      }
     };
 
     setOffline(!navigator.onLine);

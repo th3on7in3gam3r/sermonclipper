@@ -42,6 +42,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    try {
+      const { awardMilestone, notifyMilestoneUnlocks } = await import('@/lib/gamification');
+      const unlocked = await awardMilestone(userId, 'first_social_post');
+      await notifyMilestoneUnlocks(userId, unlocked);
+    } catch {
+      /* non-blocking */
+    }
+
     return NextResponse.json({
       postUrl: data.url || `https://youtube.com/shorts/${data.videoId}`,
       videoId: data.videoId,

@@ -9,6 +9,7 @@ import StudioPhonePreview from './StudioPhonePreview';
 import StudioExportPanel from './StudioExportPanel';
 import StudioExportExtrasPanel, { DEFAULT_EXPORT_EXTRAS } from './StudioExportExtrasPanel';
 import StudioClipAnalyticsPanel from './StudioClipAnalyticsPanel';
+import MarketplaceTemplatesPanel from './MarketplaceTemplatesPanel';
 import { getStudioTemplateOptions, type SeasonalTemplate } from '@/lib/seasonalTemplates';
 import HelpTooltip from '@/components/help/HelpTooltip';
 import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
@@ -33,6 +34,7 @@ import { CAPTION_ANIMATIONS } from '@/lib/studio/exportOptions';
 
 const STUDIO_TAB_LABEL_KEYS: Record<string, string> = {
   templates: 'style',
+  marketplace: 'marketplace',
   filters: 'filter',
   fonts: 'font',
   motion: 'motion',
@@ -447,6 +449,13 @@ export default function VesperStudio({
                 />
               ))}
 
+            {activeTab === 'marketplace' && (
+              <MarketplaceTemplatesPanel
+                selectedTemplate={selectedTemplate}
+                onSelect={setSelectedTemplate}
+              />
+            )}
+
             {activeTab === 'filters' && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 {STUDIO_FILTERS.map((f) => (
@@ -575,6 +584,25 @@ export default function VesperStudio({
 
             {activeTab === 'publish' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {clipId && (
+                  <div className="glass-card" style={{ padding: '14px' }}>
+                    <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                      Share this clip in your church app or website.
+                    </p>
+                    <button
+                      type="button"
+                      className="vesper-btn-outline"
+                      style={{ width: '100%' }}
+                      onClick={() => {
+                        const watchUrl = `${window.location.origin}/watch/${encodeURIComponent(clipId)}`;
+                        void navigator.clipboard.writeText(watchUrl);
+                        toast.success('Watch link copied');
+                      }}
+                    >
+                      Copy Watch Link
+                    </button>
+                  </div>
+                )}
                 <StudioExportExtrasPanel
                   extras={exportExtras}
                   onChange={patchExportExtras}

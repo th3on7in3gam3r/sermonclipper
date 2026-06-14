@@ -406,6 +406,13 @@ export async function POST(req: NextRequest) {
       /* non-blocking */
     }
 
+    try {
+      const { recordClipGamification } = await import('@/lib/gamification');
+      await recordClipGamification(userId);
+    } catch {
+      /* non-blocking */
+    }
+
     return NextResponse.json({ success: true, jobId });
   } catch (e: unknown) {
     const errorMsg = e instanceof Error ? e.message : 'Unknown Neural Error';

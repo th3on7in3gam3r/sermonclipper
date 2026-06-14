@@ -65,6 +65,8 @@ export interface IUser extends Document {
   networkRole?: 'admin' | 'church';
   reEngagementSent?: string[];
   analytics?: { embedViews?: number };
+  gamification?: { currentStreak?: number; bestStreak?: number; lastClipWeek?: string };
+  pushPromptDismissed?: boolean;
   isBetaTester?: boolean;
   betaChurchType?: string;
   betaUsageFrequency?: string;
@@ -119,6 +121,8 @@ const UserSchema: Schema = new Schema({
   networkRole: { type: String, enum: ['admin', 'church'] },
   reEngagementSent: { type: [String], default: [] },
   analytics: { type: Schema.Types.Mixed, default: {} },
+  gamification: { type: Schema.Types.Mixed, default: {} },
+  pushPromptDismissed: { type: Boolean, default: false },
   isBetaTester: { type: Boolean, default: false },
   betaChurchType: { type: String },
   betaUsageFrequency: { type: String },

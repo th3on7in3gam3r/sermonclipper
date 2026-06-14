@@ -19,6 +19,14 @@
     {
       "path": "/api/cron/analytics-sync",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/podcast-poll",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/streak-reminder",
+      "schedule": "0 16 * * 5"
     }
   ]
 }

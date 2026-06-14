@@ -127,11 +127,21 @@ export async function POST(req: NextRequest) {
     });
 
     if (job.userId) {
+      const Sermon = (await import('@/models/Sermon')).default;
+      const connectDB = (await import('@/lib/mongodb')).default;
+      await connectDB();
+      const sermon = await Sermon.findOne({ jobId }).lean();
+      const clipTitle =
+        sermon?.analysis?.clips?.[0]?.hook_title ||
+        sermon?.analysis?.clips?.[0]?.main_quote ||
+        sermon?.title ||
+        'Your clip';
       await createNotification({
         userId: job.userId,
         type: 'clip_ready',
-        message: 'Your clip is ready!',
+        message: `Your clip is ready: "${clipTitle}" — tap to view`,
         link: `/results?jobId=${jobId}`,
+        pushTitle: 'Clip ready',
       });
     }
 
