@@ -330,6 +330,16 @@ select:focus-visible,
   }
 }
 
+@keyframes studio-preview-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.studio-preview-spinner {
+  animation: studio-preview-spin 0.8s linear infinite;
+}
+
 @keyframes spinGlow {
   0% {
     transform: rotate(0deg);

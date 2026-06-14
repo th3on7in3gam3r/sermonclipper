@@ -36,36 +36,41 @@ export const STUDIO_TEMPLATES = [
 ] as const;
 
 export const STUDIO_FILTERS = [
-  { id: 'none', name: 'Original', css: 'none', preview: 'bg-gradient-to-br from-zinc-700 to-zinc-900' },
+  {
+    id: 'none',
+    name: 'Original',
+    css: 'none',
+    previewGradient: 'linear-gradient(135deg, #52525b 0%, #18181b 100%)',
+  },
   {
     id: 'vintage',
     name: 'Vintage Grace',
     css: 'sepia(0.55) contrast(1.15) brightness(0.95)',
-    preview: 'bg-gradient-to-br from-amber-900 to-yellow-800',
+    previewGradient: 'linear-gradient(135deg, #78350f 0%, #854d0e 100%)',
   },
   {
     id: 'cold',
     name: 'Cold Truth',
     css: 'saturate(0.4) brightness(1.1) hue-rotate(200deg)',
-    preview: 'bg-gradient-to-br from-blue-900 to-slate-700',
+    previewGradient: 'linear-gradient(135deg, #1e3a8a 0%, #334155 100%)',
   },
   {
     id: 'warm',
     name: 'Warm Spirit',
     css: 'sepia(0.3) saturate(1.4) hue-rotate(15deg)',
-    preview: 'bg-gradient-to-br from-orange-900 to-red-800',
+    previewGradient: 'linear-gradient(135deg, #7c2d12 0%, #991b1b 100%)',
   },
   {
     id: 'noir',
     name: 'Noir Prophet',
     css: 'grayscale(0.9) contrast(1.3)',
-    preview: 'bg-gradient-to-br from-zinc-900 to-zinc-600',
+    previewGradient: 'linear-gradient(135deg, #18181b 0%, #52525b 100%)',
   },
   {
     id: 'glory',
     name: 'Glory Light',
     css: 'brightness(1.15) saturate(1.3) contrast(0.95)',
-    preview: 'bg-gradient-to-br from-violet-800 to-purple-600',
+    previewGradient: 'linear-gradient(135deg, #5b21b6 0%, #9333ea 100%)',
   },
 ] as const;
 

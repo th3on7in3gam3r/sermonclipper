@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { STUDIO_ANIMATIONS, STUDIO_FILTERS, STUDIO_FONTS, STUDIO_TEMPLATES } from '@/lib/studio/constants';
 import type { SermonClip } from '@/lib/studio/types';
+
+type MediaState = 'idle' | 'loading' | 'ready' | 'error';
 
 interface StudioPhonePreviewProps {
   videoId: string | null;
@@ -44,6 +46,8 @@ export default function StudioPhonePreview({
   onMutedChange,
 }: StudioPhonePreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [mediaState, setMediaState] = useState<MediaState>('idle');
+
   const filterCss = STUDIO_FILTERS.find((f) => f.id === selectedFilter)?.css || 'none';
   const template = STUDIO_TEMPLATES.find((t) => t.id === selectedTemplate);
   const font = STUDIO_FONTS.find((f) => f.id === selectedFont);
@@ -53,25 +57,72 @@ export default function StudioPhonePreview({
   const src = playableVideoUrl || videoUrl || '';
   const isAudio =
     src.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) || src.toLowerCase().includes('audio');
+  const hasSource = Boolean(videoId || src);
+  const showPlayOverlay = !isPlaying && hasSource && mediaState !== 'error';
+
+  useEffect(() => {
+    if (videoId) {
+      setMediaState('ready');
+      return;
+    }
+    if (!src) {
+      setMediaState('idle');
+      return;
+    }
+    setMediaState('loading');
+  }, [src, videoId]);
 
   const playPreview = useCallback(async () => {
     const video = videoRef.current;
-    if (!video) {
+    if (videoId) {
       onPlayingChange(true);
       return;
     }
-    try {
-      if (previewEnd > previewStart && video.readyState >= 1) {
-        if (video.currentTime < previewStart || video.currentTime >= previewEnd) {
-          video.currentTime = previewStart;
-        }
+    if (!video || !src) return;
+
+    const seekToStart = () => {
+      if (previewEnd > previewStart && Number.isFinite(previewStart)) {
+        video.currentTime = previewStart;
       }
+    };
+
+    try {
+      if (video.readyState < 1) {
+        await new Promise<void>((resolve, reject) => {
+          const onReady = () => {
+            cleanup();
+            resolve();
+          };
+          const onFail = () => {
+            cleanup();
+            reject(new Error('Video failed to load'));
+          };
+          const cleanup = () => {
+            video.removeEventListener('loadedmetadata', onReady);
+            video.removeEventListener('error', onFail);
+          };
+          video.addEventListener('loadedmetadata', onReady);
+          video.addEventListener('error', onFail);
+          video.load();
+        });
+      }
+
+      seekToStart();
+      video.muted = isMuted;
       await video.play();
       onPlayingChange(true);
     } catch {
-      onPlayingChange(false);
+      try {
+        video.muted = true;
+        onMutedChange(true);
+        await video.play();
+        onPlayingChange(true);
+      } catch {
+        onPlayingChange(false);
+        setMediaState('error');
+      }
     }
-  }, [onPlayingChange, previewEnd, previewStart]);
+  }, [videoId, src, previewEnd, previewStart, isMuted, onPlayingChange, onMutedChange]);
 
   const pausePreview = useCallback(() => {
     videoRef.current?.pause();
@@ -86,13 +137,6 @@ export default function StudioPhonePreview({
   useEffect(() => {
     if (!isPlaying) videoRef.current?.pause();
   }, [isPlaying]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !src || videoId || !isPlaying) return;
-    video.muted = isMuted;
-    void video.play().catch(() => onPlayingChange(false));
-  }, [src, videoId, isMuted, isPlaying, onPlayingChange]);
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = isMuted;
@@ -215,6 +259,7 @@ export default function StudioPhonePreview({
         <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
           {videoId ? (
             <iframe
+              key={`${videoId}-${isPlaying}-${isMuted}`}
               style={{
                 width: '100%',
                 height: '100%',
@@ -222,7 +267,7 @@ export default function StudioPhonePreview({
                 transform: 'scale(1.05)',
                 filter: filterCss,
               }}
-              src={`https://www.youtube.com/embed/${videoId}?start=${previewStart}&end=${previewEnd}&autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`}
+              src={`https://www.youtube.com/embed/${videoId}?start=${previewStart}&end=${previewEnd}&autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`}
               allow="autoplay; encrypted-media"
               title="Clip preview"
             />
@@ -286,21 +331,120 @@ export default function StudioPhonePreview({
                 playsInline
                 muted={isMuted}
                 preload="auto"
+                onLoadedData={() => setMediaState('ready')}
                 onPlay={() => onPlayingChange(true)}
                 onPause={() => onPlayingChange(false)}
-                onError={() => onPlayingChange(false)}
+                onError={() => {
+                  onPlayingChange(false);
+                  setMediaState('error');
+                }}
                 style={{
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
-                  opacity: isAudio ? 0 : 1,
+                  opacity: isAudio ? 0 : mediaState === 'ready' || isPlaying ? 1 : 0.35,
                   filter: filterCss,
+                  transition: 'opacity 0.25s ease',
                 }}
               />
             </div>
-          ) : null}
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px',
+                padding: '32px',
+                textAlign: 'center',
+                background: 'radial-gradient(circle at 50% 30%, rgba(139,92,246,0.12), transparent 60%)',
+              }}
+            >
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: 'rgba(139,92,246,0.15)',
+                  border: '1px solid rgba(139,92,246,0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                }}
+              >
+                🎬
+              </div>
+              <p style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>Preview loading</p>
+              <p style={{ fontSize: '12px', color: '#71717A', lineHeight: 1.5, maxWidth: '220px' }}>
+                Resolving your sermon video. If this persists, refresh or re-open Studio from the clip card.
+              </p>
+            </div>
+          )}
 
-          {!isPlaying && !videoId && src && (
+          {mediaState === 'loading' && src && !videoId && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(5,5,8,0.55)',
+                zIndex: 70,
+              }}
+            >
+              <div
+                className="studio-preview-spinner"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  border: '3px solid rgba(139,92,246,0.25)',
+                  borderTopColor: '#8B5CF6',
+                }}
+              />
+            </div>
+          )}
+
+          {mediaState === 'error' && !videoId && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px',
+                padding: '24px',
+                background: 'rgba(5,5,8,0.85)',
+                zIndex: 75,
+                textAlign: 'center',
+              }}
+            >
+              <p style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>Couldn&apos;t load preview</p>
+              <p style={{ fontSize: '12px', color: '#71717A', lineHeight: 1.5 }}>
+                The video URL may have expired. Try playing again or close and reopen Studio.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setMediaState('loading');
+                  void playPreview();
+                }}
+                className="vesper-btn vesper-btn-outline shimmer-effect"
+                style={{ padding: '10px 18px', fontSize: '12px' }}
+              >
+                Retry preview
+              </button>
+            </div>
+          )}
+
+          {showPlayOverlay && (
             <div
               style={{
                 position: 'absolute',
@@ -313,14 +457,29 @@ export default function StudioPhonePreview({
               <button
                 type="button"
                 onClick={() => void playPreview()}
+                aria-label="Play preview"
                 style={{
-                  background: 'rgba(139,92,246,0.8)',
-                  border: 'none',
+                  background: 'linear-gradient(135deg, rgba(139,92,246,0.95), rgba(109,40,217,0.95))',
+                  border: '1px solid rgba(255,255,255,0.2)',
                   color: '#fff',
-                  width: '64px',
-                  height: '64px',
+                  width: '72px',
+                  height: '72px',
                   borderRadius: '50%',
                   cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '28px',
+                  boxShadow: '0 8px 32px rgba(139,92,246,0.45)',
+                  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.06)';
+                  e.currentTarget.style.boxShadow = '0 12px 40px rgba(139,92,246,0.55)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(139,92,246,0.45)';
                 }}
               >
                 ▶
@@ -347,6 +506,8 @@ export default function StudioPhonePreview({
               <button
                 type="button"
                 onClick={() => void togglePreview()}
+                disabled={!hasSource || mediaState === 'error'}
+                aria-label={isPlaying ? 'Pause preview' : 'Play preview'}
                 style={{
                   background: 'rgba(255,255,255,0.1)',
                   border: '1px solid rgba(255,255,255,0.1)',
@@ -354,7 +515,8 @@ export default function StudioPhonePreview({
                   width: '40px',
                   height: '40px',
                   borderRadius: '12px',
-                  cursor: 'pointer',
+                  cursor: hasSource && mediaState !== 'error' ? 'pointer' : 'not-allowed',
+                  opacity: hasSource && mediaState !== 'error' ? 1 : 0.45,
                 }}
               >
                 {isPlaying ? '⏸' : '▶'}
@@ -362,6 +524,8 @@ export default function StudioPhonePreview({
               <button
                 type="button"
                 onClick={() => onMutedChange(!isMuted)}
+                disabled={!hasSource}
+                aria-label={isMuted ? 'Unmute preview' : 'Mute preview'}
                 style={{
                   background: 'rgba(255,255,255,0.1)',
                   border: '1px solid rgba(255,255,255,0.1)',
@@ -369,13 +533,24 @@ export default function StudioPhonePreview({
                   width: '40px',
                   height: '40px',
                   borderRadius: '12px',
-                  cursor: 'pointer',
+                  cursor: hasSource ? 'pointer' : 'not-allowed',
+                  opacity: hasSource ? 1 : 0.45,
                 }}
               >
                 {isMuted ? '🔇' : '🔊'}
               </button>
             </div>
-            <span style={{ fontSize: '12px', fontWeight: 900, color: '#fff', opacity: 0.8 }}>PREVIEW</span>
+            <span
+              style={{
+                fontSize: '10px',
+                fontWeight: 900,
+                color: '#fff',
+                opacity: 0.75,
+                letterSpacing: '0.12em',
+              }}
+            >
+              PREVIEW ONLY
+            </span>
           </div>
 
           <div style={{ position: 'absolute', bottom: '22%', left: '8%', right: '8%', zIndex: 20 }}>

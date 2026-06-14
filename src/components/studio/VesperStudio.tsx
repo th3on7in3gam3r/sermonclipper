@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
+import { resolveClientPlaybackUrl } from '@/lib/resolvePlaybackUrl';
 import StudioPhonePreview from './StudioPhonePreview';
 import StudioExportPanel from './StudioExportPanel';
 import HelpTooltip from '@/components/help/HelpTooltip';
@@ -64,9 +66,11 @@ export default function VesperStudio({
   userStatus,
   isYouTubeSource,
 }: VesperStudioProps) {
+  const { isLoaded: authLoaded, userId } = useAuth();
   const clipStart = parseTime(selectedClip.start);
   const clipEnd = parseTime(selectedClip.end);
   const initialStyle = getInitialStyleState();
+  const [studioPlaybackUrl, setStudioPlaybackUrl] = useState<string | null>(playableVideoUrl);
 
   const [activeTab, setActiveTab] = useState<string>('templates');
   const [mobileTab, setMobileTab] = useState('style');
@@ -82,7 +86,7 @@ export default function VesperStudio({
   const [previewEnd, setPreviewEnd] = useState(clipEnd);
 
   const [captionOverrides, setCaptionOverrides] = useState<Record<number, string>>({});
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [selectedPlatform, setSelectedPlatform] = useState('tiktok');
   const [isUploadingYT, setIsUploadingYT] = useState(false);
@@ -98,6 +102,32 @@ export default function VesperStudio({
   useEffect(() => {
     migrateStoredBrandKit();
   }, []);
+
+  // Resolve auth-gated storage keys when parent hasn't finished yet.
+  useEffect(() => {
+    if (playableVideoUrl) {
+      setStudioPlaybackUrl(playableVideoUrl);
+      return;
+    }
+    if (videoId || !videoUrl) {
+      setStudioPlaybackUrl(null);
+      return;
+    }
+    if (!authLoaded || !userId) return;
+
+    let cancelled = false;
+    resolveClientPlaybackUrl(videoUrl)
+      .then((resolved) => {
+        if (!cancelled) setStudioPlaybackUrl(resolved);
+      })
+      .catch(() => {
+        if (!cancelled) setStudioPlaybackUrl(videoUrl);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [playableVideoUrl, videoUrl, videoId, authLoaded, userId]);
 
   const applyTrimPreview = useCallback(() => {
     setPreviewStart(trimStart);
@@ -359,7 +389,13 @@ export default function VesperStudio({
                       overflow: 'hidden',
                     }}
                   >
-                    <div className={f.preview} style={{ height: '64px' }} />
+                    <div
+                      style={{
+                        height: '64px',
+                        background: f.previewGradient,
+                        filter: f.css === 'none' ? undefined : f.css,
+                      }}
+                    />
                     <div style={{ padding: '8px', textAlign: 'center', fontSize: '12px', fontWeight: 800 }}>
                       {f.name}
                     </div>
@@ -531,7 +567,7 @@ export default function VesperStudio({
           <StudioPhonePreview
             videoId={videoId}
             videoUrl={videoUrl}
-            playableVideoUrl={playableVideoUrl}
+            playableVideoUrl={studioPlaybackUrl}
             selectedClip={selectedClip}
             previewStart={previewStart}
             previewEnd={previewEnd}
