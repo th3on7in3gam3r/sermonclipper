@@ -1,0 +1,31 @@
+{
+  "name": "@vesper/sdk",
+  "version": "1.0.0",
+  "description": "Official TypeScript/JavaScript SDK for the Vesper sermon clipping API",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["vesper", "sermon", "church", "video", "api", "sdk"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/th3on7in3gam3r/sermonclipper.git",
+    "directory": "packages/sdk"
+  },
+  "engines": { "node": ">=18" },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

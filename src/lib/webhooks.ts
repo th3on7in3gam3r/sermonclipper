@@ -32,11 +32,12 @@ async function attemptDelivery(
 ) {
   const body = JSON.stringify(payload);
   const sig = createHmac('sha256', secret).update(body).digest('hex');
+  const signature = `sha256=${sig}`;
 
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Vesper-Signature': sig },
+      headers: { 'Content-Type': 'application/json', 'X-Vesper-Signature': signature },
       body,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);

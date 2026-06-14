@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import ReferralCard from '@/components/dashboard/ReferralCard';
 import WhiteLabelSettings from '@/components/dashboard/WhiteLabelSettings';
 import ProfileSettingsPanel from '@/components/dashboard/ProfileSettingsPanel';
+import DeveloperSettingsPanel from '@/components/dashboard/DeveloperSettingsPanel';
+import BetaProgramPanel from '@/components/dashboard/BetaProgramPanel';
 import StudioHelpShell from '@/components/help/StudioHelpShell';
 
 const PLATFORMS = [
@@ -153,6 +155,8 @@ export default function AccountSettingsPage() {
 
         <WhiteLabelSettings />
         <ProfileSettingsPanel />
+        <DeveloperSettingsPanel />
+        <BetaProgramPanel />
 
         <div className="glass-card premium-border" style={{ padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>Planning Center</h2>

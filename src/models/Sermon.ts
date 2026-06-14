@@ -9,6 +9,7 @@ export interface ISermon extends Document {
   mainTheme: string;
   videoUrl: string;
   finalPath?: string;
+  manuscriptText?: string;
   analysis: Record<string, unknown>;
   createdAt: Date;
 }
@@ -22,6 +23,7 @@ const SermonSchema: Schema = new Schema({
   mainTheme: { type: String },
   videoUrl: { type: String, required: true },
   finalPath: { type: String },
+  manuscriptText: { type: String },
   analysis: { type: Schema.Types.Mixed },
   createdAt: { type: Date, default: Date.now },
 });

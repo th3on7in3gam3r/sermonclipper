@@ -65,6 +65,12 @@ export interface IUser extends Document {
   networkRole?: 'admin' | 'church';
   reEngagementSent?: string[];
   analytics?: { embedViews?: number };
+  isBetaTester?: boolean;
+  betaChurchType?: string;
+  betaUsageFrequency?: string;
+  betaChangelogOptIn?: boolean;
+  betaFeedbackCount?: number;
+  preferredBibleTranslation?: 'KJV' | 'NIV' | 'ESV' | 'NKJV' | 'NLT';
   createdAt: Date;
 }
 
@@ -112,6 +118,16 @@ const UserSchema: Schema = new Schema({
   networkRole: { type: String, enum: ['admin', 'church'] },
   reEngagementSent: { type: [String], default: [] },
   analytics: { type: Schema.Types.Mixed, default: {} },
+  isBetaTester: { type: Boolean, default: false },
+  betaChurchType: { type: String },
+  betaUsageFrequency: { type: String },
+  betaChangelogOptIn: { type: Boolean, default: false },
+  betaFeedbackCount: { type: Number, default: 0 },
+  preferredBibleTranslation: {
+    type: String,
+    enum: ['KJV', 'NIV', 'ESV', 'NKJV', 'NLT'],
+    default: 'ESV',
+  },
   createdAt: { type: Date, default: Date.now },
 });
 
