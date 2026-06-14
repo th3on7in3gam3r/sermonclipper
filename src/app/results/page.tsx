@@ -64,13 +64,16 @@ function ResultsContent() {
     (finalPathParam && isDownloadableMasterUrl(finalPathParam) ? finalPathParam : null) ||
     (effectiveVideoUrl && isDownloadableMasterUrl(effectiveVideoUrl) ? effectiveVideoUrl : null);
 
+  /** Master file or legacy URL for this session — works without ?videoUrl= in the query string. */
+  const sessionVideoSource = masterDownloadUrl || effectiveVideoUrl;
+
   const resolvePlayableUrl = async (url: string) => resolveClientPlaybackUrl(url);
 
   // Resolve private storage → signed CDN/app URL (wait for auth so /api/video-url succeeds)
   useEffect(() => {
     if (!isLoaded || !userId) return;
 
-    const source = masterDownloadUrl || effectiveVideoUrl;
+    const source = sessionVideoSource;
     if (!source) {
       setPlayableVideoUrl(null);
       return;
@@ -81,12 +84,12 @@ function ResultsContent() {
         if (!cancelled) setPlayableVideoUrl(resolved);
       })
       .catch(() => {
-        if (!cancelled) setPlayableVideoUrl(source);
+        if (!cancelled) setPlayableVideoUrl(null);
       });
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, userId, effectiveVideoUrl, masterDownloadUrl]);
+  }, [isLoaded, userId, sessionVideoSource]);
 
   // Load harvested master path from archive (dashboard) or job progress
   useEffect(() => {
@@ -821,7 +824,7 @@ function ResultsContent() {
           >
             <SermonContextCard
               summary={analysis?.summary}
-              videoUrl={effectiveVideoUrl}
+              videoUrl={sessionVideoSource}
               playableVideoUrl={playableVideoUrl}
               videoId={videoId}
               masterDownloadUrl={masterDownloadUrl}
@@ -878,10 +881,10 @@ function ResultsContent() {
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       ></iframe>
-                    ) : (
-                      videoUrl && (
+                    ) : sessionVideoSource ? (
+                      playableVideoUrl ? (
                         <video
-                          src={playableVideoUrl || ''}
+                          src={playableVideoUrl}
                           controls
                           preload="metadata"
                           onLoadedMetadata={(e) => {
@@ -891,8 +894,23 @@ function ResultsContent() {
                           }}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
+                      ) : (
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#71717A',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                          }}
+                        >
+                          Loading preview…
+                        </div>
                       )
-                    )}
+                    ) : null}
                     <div
                       className="vesper-badge"
                       style={{
@@ -1318,7 +1336,7 @@ function ResultsContent() {
         {activeThumbnailClip && (
           <ThumbnailStudioModal
             clip={activeThumbnailClip}
-            videoSrc={playableVideoUrl || effectiveVideoUrl}
+            videoSrc={playableVideoUrl || sessionVideoSource}
             isMobile={isMobile}
             thumbPrompt={thumbPrompt}
             onThumbPromptChange={setThumbPrompt}
@@ -1359,7 +1377,7 @@ function ResultsContent() {
             selectedClip={selectedClip}
             onClose={() => setSelectedClip(null)}
             videoId={videoId}
-            videoUrl={effectiveVideoUrl}
+            videoUrl={sessionVideoSource}
             playableVideoUrl={playableVideoUrl}
             rendering={rendering}
             renderProgress={renderProgress}

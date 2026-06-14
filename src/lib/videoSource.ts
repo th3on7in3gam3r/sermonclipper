@@ -40,11 +40,13 @@ export function extractStorageKeyFromDeliveryUrl(urlOrKey: string): string | nul
 
 export function needsMediaDeliveryResolve(url: string): boolean {
   if (isYouTubeUrl(url)) return false;
-  if (url.includes('X-Amz-Signature')) return false;
-  if (extractStorageKeyFromDeliveryUrl(url)) return true;
+  // Never expose raw R2 URLs (including expired presigned PUT/GET) to the browser.
   if (isR2StorageUrl(url)) return true;
+  if (extractStorageKeyFromDeliveryUrl(url)) return true;
   if (/^(uploads|sermons)\//.test(url)) return true;
-  return /\/\/https/i.test(url);
+  if (/\/\/https/i.test(url)) return true;
+  if (url.includes('X-Amz-Signature')) return false;
+  return false;
 }
 
 /** True when Vesper has a harvestable master file (R2 upload, direct MP4, storage key, etc.). */
