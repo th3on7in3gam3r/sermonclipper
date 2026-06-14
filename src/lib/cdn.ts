@@ -5,6 +5,8 @@ import { extractR2Key, extractStorageKeyFromDeliveryUrl, isR2StorageUrl } from '
 
 const CDN_HOST = normalizeCdnHost(process.env.BUNNY_CDN_HOST);
 const BUNNY_TOKEN_KEY = process.env.BUNNY_TOKEN_AUTHENTICATION_KEY;
+/** Bunny pull zone must mirror R2 before browser playback via CDN works. Default: stream via /api/media. */
+const USE_BUNNY_FOR_PLAYBACK = process.env.BUNNY_PLAYBACK_ENABLED === 'true';
 const MEDIA_SIGNING_SECRET =
   process.env.MEDIA_SIGNING_SECRET || process.env.CLERK_SECRET_KEY || 'dev-media-secret';
 
@@ -26,6 +28,22 @@ function bunnySignedUrl(path: string, expiresInSec: number): string | null {
   return `https://${CDN_HOST}${cleanPath}?token=${hash}&expires=${expires}`;
 }
 
+function appSignedMediaUrl(key: string, expiresInSec: number): string {
+  const exp = Math.floor(Date.now() / 1000) + expiresInSec;
+  const payload = `${key}:${exp}`;
+  const sig = createHmac('sha256', MEDIA_SIGNING_SECRET).update(payload).digest('hex');
+  const params = new URLSearchParams({ key, exp: String(exp), sig });
+  return `/api/media?${params.toString()}`;
+}
+
+function deliveryUrlForKey(key: string, expiresInSec: number): string {
+  if (USE_BUNNY_FOR_PLAYBACK) {
+    const bunny = bunnySignedUrl(`/${key}`, expiresInSec);
+    if (bunny) return bunny;
+  }
+  return appSignedMediaUrl(key, expiresInSec);
+}
+
 /** Resolve a storage key or internal R2 URL to a user-safe delivery URL (CDN or app-signed). */
 export async function getMediaDeliveryUrl(
   keyOrUrl: string,
@@ -33,14 +51,7 @@ export async function getMediaDeliveryUrl(
 ): Promise<string> {
   const storageKey = extractStorageKeyFromDeliveryUrl(keyOrUrl);
   if (storageKey) {
-    const bunny = bunnySignedUrl(`/${storageKey}`, expiresInSec);
-    if (bunny) return bunny;
-
-    const exp = Math.floor(Date.now() / 1000) + expiresInSec;
-    const payload = `${storageKey}:${exp}`;
-    const sig = createHmac('sha256', MEDIA_SIGNING_SECRET).update(payload).digest('hex');
-    const params = new URLSearchParams({ key: storageKey, exp: String(exp), sig });
-    return `/api/media?${params.toString()}`;
+    return deliveryUrlForKey(storageKey, expiresInSec);
   }
 
   if (keyOrUrl.includes('://')) {
@@ -48,14 +59,7 @@ export async function getMediaDeliveryUrl(
   }
 
   const key = keyOrUrl.replace(/^\/+/, '');
-  const bunny = bunnySignedUrl(`/${key}`, expiresInSec);
-  if (bunny) return bunny;
-
-  const exp = Math.floor(Date.now() / 1000) + expiresInSec;
-  const payload = `${key}:${exp}`;
-  const sig = createHmac('sha256', MEDIA_SIGNING_SECRET).update(payload).digest('hex');
-  const params = new URLSearchParams({ key, exp: String(exp), sig });
-  return `/api/media?${params.toString()}`;
+  return deliveryUrlForKey(key, expiresInSec);
 }
 
 /** For Shotstack / server-side fetch — presigned R2 GET (not exposed to browsers). */

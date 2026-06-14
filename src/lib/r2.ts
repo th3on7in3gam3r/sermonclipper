@@ -1,4 +1,4 @@
-import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { PutObjectCommand, GetObjectCommand, HeadObjectCommand, DeleteObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Readable } from 'stream';
@@ -184,6 +184,45 @@ export async function getObjectFromR2(key: string) {
 
   const response = await client.send(command);
   return response.Body;
+}
+
+export async function getR2ObjectMetadata(key: string) {
+  const client = getR2Client();
+  if (!client) throw new Error('Missing Cloudflare R2 credentials');
+
+  const response = await client.send(
+    new HeadObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    })
+  );
+
+  return {
+    contentLength: response.ContentLength ?? 0,
+    contentType: response.ContentType || 'video/mp4',
+  };
+}
+
+export async function getR2ObjectRange(key: string, start: number, end: number) {
+  const client = getR2Client();
+  if (!client) throw new Error('Missing Cloudflare R2 credentials');
+
+  const response = await client.send(
+    new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Range: `bytes=${start}-${end}`,
+    })
+  );
+
+  if (!response.Body) {
+    throw new Error('Empty R2 range response');
+  }
+
+  return {
+    body: response.Body,
+    contentType: response.ContentType || 'video/mp4',
+  };
 }
 
 export async function deleteObjectFromR2(key: string) {

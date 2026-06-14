@@ -119,7 +119,11 @@ export default function StudioPhonePreview({
         onPlayingChange(true);
       } catch {
         onPlayingChange(false);
-        setMediaState('error');
+        if (video.readyState >= 2) {
+          setMediaState('ready');
+        } else {
+          setMediaState('error');
+        }
       }
     }
   }, [videoId, src, previewEnd, previewStart, isMuted, onPlayingChange, onMutedChange]);
@@ -338,6 +342,7 @@ export default function StudioPhonePreview({
                   onPlayingChange(false);
                   setMediaState('error');
                 }}
+                onCanPlay={() => setMediaState('ready')}
                 style={{
                   width: '100%',
                   height: '100%',
