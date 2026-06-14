@@ -16,7 +16,8 @@ import QuoteCardModal from '@/components/results/QuoteCardModal';
 import { THUMB_STYLES, type ThumbStyleId } from '@/lib/thumbnailStyles';
 import { parseTime } from '@/lib/parseTime';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
-import { isDownloadableMasterUrl, isYouTubeUrl, needsMediaDeliveryResolve } from '@/lib/videoSource';
+import { isDownloadableMasterUrl } from '@/lib/videoSource';
+import { resolveClientPlaybackUrl } from '@/lib/resolvePlaybackUrl';
 import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
 import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
 import SiteFooter from '@/components/layout/SiteFooter';
@@ -63,16 +64,12 @@ function ResultsContent() {
     (finalPathParam && isDownloadableMasterUrl(finalPathParam) ? finalPathParam : null) ||
     (effectiveVideoUrl && isDownloadableMasterUrl(effectiveVideoUrl) ? effectiveVideoUrl : null);
 
-  const resolvePlayableUrl = async (url: string) => {
-    if (isYouTubeUrl(url)) return url;
-    if (!needsMediaDeliveryResolve(url)) return url;
-    const res = await fetch(`/api/video-url?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
-    return data.url || url;
-  };
+  const resolvePlayableUrl = async (url: string) => resolveClientPlaybackUrl(url);
 
-  // Resolve private R2 URL → presigned GET URL so the browser can play it
+  // Resolve private storage → signed CDN/app URL (wait for auth so /api/video-url succeeds)
   useEffect(() => {
+    if (!isLoaded || !userId) return;
+
     const source = masterDownloadUrl || effectiveVideoUrl;
     if (!source) {
       setPlayableVideoUrl(null);
@@ -89,7 +86,7 @@ function ResultsContent() {
     return () => {
       cancelled = true;
     };
-  }, [effectiveVideoUrl, masterDownloadUrl]);
+  }, [isLoaded, userId, effectiveVideoUrl, masterDownloadUrl]);
 
   // Load harvested master path from archive (dashboard) or job progress
   useEffect(() => {

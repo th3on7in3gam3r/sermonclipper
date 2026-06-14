@@ -68,6 +68,33 @@ export default function StudioPhonePreview({
   const isAudio =
     src.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) || src.toLowerCase().includes('audio');
 
+  // Loop clip segment via currentTime — #t= fragments break many signed CDN URLs.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !src || videoId) return;
+
+    const seekToStart = () => {
+      if (Number.isFinite(previewStart)) {
+        video.currentTime = previewStart;
+      }
+    };
+
+    const onTimeUpdate = () => {
+      if (previewEnd > previewStart && video.currentTime >= previewEnd) {
+        video.currentTime = previewStart;
+      }
+    };
+
+    video.addEventListener('loadedmetadata', seekToStart);
+    video.addEventListener('timeupdate', onTimeUpdate);
+    if (video.readyState >= 1) seekToStart();
+
+    return () => {
+      video.removeEventListener('loadedmetadata', seekToStart);
+      video.removeEventListener('timeupdate', onTimeUpdate);
+    };
+  }, [src, previewStart, previewEnd, videoId]);
+
   return (
     <div style={{ position: 'relative' }}>
       <div
@@ -169,7 +196,7 @@ export default function StudioPhonePreview({
               allow="autoplay; encrypted-media"
               title="Clip preview"
             />
-          ) : videoUrl ? (
+          ) : src ? (
             <div style={{ width: '100%', height: '100%', position: 'relative', background: '#050508' }}>
               {isAudio && (
                 <div
@@ -223,13 +250,16 @@ export default function StudioPhonePreview({
               )}
               <video
                 ref={videoRef}
-                src={`${src}#t=${previewStart},${previewEnd}`}
+                key={src}
+                src={src}
                 loop
                 playsInline
                 autoPlay
                 muted={isMuted}
+                preload="auto"
                 onPlay={() => onPlayingChange(true)}
                 onPause={() => onPlayingChange(false)}
+                onError={() => onPlayingChange(false)}
                 style={{
                   width: '100%',
                   height: '100%',
