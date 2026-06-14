@@ -4,10 +4,14 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vesper.biblefunland.
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-    },
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/admin', '/admin/', '/api/', '/dashboard/', '/results', '/sign-in', '/sign-up'],
+      },
+    ],
     sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   };
 }

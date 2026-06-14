@@ -67,7 +67,9 @@
       "sync": "Sync",
       "export": "Export",
       "analytics": "Analytics",
-      "marketplace": "Marketplace"
+      "marketplace": "Marketplace",
+      "quotes": "Quotes",
+      "inspiration": "Inspiration"
     },
     "trim": {
       "start": "START",

@@ -13,6 +13,8 @@ import SermonContextCard from '@/components/results/SermonContextCard';
 import ClipActionBar from '@/components/results/ClipActionBar';
 import ThumbnailStudioModal from '@/components/results/ThumbnailStudioModal';
 import QuoteCardModal from '@/components/results/QuoteCardModal';
+import SermonNotesEditor from '@/components/results/SermonNotesEditor';
+import NewsletterEmbedModal from '@/components/results/NewsletterEmbedModal';
 import { THUMB_STYLES, type ThumbStyleId } from '@/lib/thumbnailStyles';
 import { parseTime } from '@/lib/parseTime';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
@@ -199,6 +201,7 @@ function ResultsContent() {
   const [thumbStyle, setThumbStyle] = useState<ThumbStyleId>('cinematic');
   const [isGeneratingThumb, setIsGeneratingThumb] = useState(false);
   const [activeQuoteClip, setActiveQuoteClip] = useState<any>(null);
+  const [newsletterClip, setNewsletterClip] = useState<{ index: number; title: string } | null>(null);
 
   const openThumbnailStudio = (clip: { hook_title?: string; main_quote?: string; start?: string; end?: string }, index: number) => {
     setActiveThumbnailClip({ ...clip, index });
@@ -249,6 +252,8 @@ function ResultsContent() {
       setIsGeneratingThumb(false);
     }
   };
+
+  const topQuote = analysis?.quotable_moments?.[0]?.text as string | undefined;
 
   const PLATFORMS = [
     { id: 'instagram', label: 'Instagram', icon: '📸', prefix: '✨ ', format: 'Feed / Reels', limit: 2200 },
@@ -876,6 +881,8 @@ function ResultsContent() {
               onDownloadMaster={handleMasterDownload}
             />
 
+            {jobId && <SermonNotesEditor jobId={jobId} />}
+
             {analysis?.clips && analysis.clips.length > 0 && (
               <div
                 style={{
@@ -1050,6 +1057,13 @@ function ResultsContent() {
                       renderUrl={rendering[i]?.url}
                       onOpenThumbnail={() => openThumbnailStudio(clip, i)}
                       onOpenQuoteCard={() => setActiveQuoteClip({ ...clip, index: i })}
+                      onOpenNewsletterEmbed={() =>
+                        setNewsletterClip({
+                          index: i,
+                          title: clip.hook_title || clip.main_quote || 'Sermon clip',
+                        })
+                      }
+                      topQuote={topQuote}
                       onCustomize={() => handleCustomize(clip, i)}
                     />
                   </div>
@@ -1403,6 +1417,24 @@ function ResultsContent() {
           />
         )}
 
+        {newsletterClip && jobId && (
+          <NewsletterEmbedModal
+            watchUrl={`${typeof window !== 'undefined' ? window.location.origin : 'https://vesper.biblefunland.com'}/watch/${encodeURIComponent(`${jobId}:${newsletterClip.index}`)}`}
+            thumbnailUrl={
+              thumbnails[newsletterClip.index]?.url
+                ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/proxy-image?url=${encodeURIComponent(thumbnails[newsletterClip.index]!.url!)}`
+                : `${typeof window !== 'undefined' ? window.location.origin : 'https://vesper.biblefunland.com'}/opengraph-image`
+            }
+            title={newsletterClip.title}
+            durationLabel={
+              analysis?.clips?.[newsletterClip.index]
+                ? `${Math.round(parseTime(analysis.clips[newsletterClip.index].end) - parseTime(analysis.clips[newsletterClip.index].start))}s`
+                : undefined
+            }
+            onClose={() => setNewsletterClip(null)}
+          />
+        )}
+
         {activeQuoteClip && (
           <QuoteCardModal
             quote={activeQuoteClip.main_quote || activeQuoteClip.hook_title || ''}
@@ -1427,6 +1459,8 @@ function ResultsContent() {
             isMobile={isMobile}
             userStatus={userStatus}
             isYouTubeSource={isYouTubeSource}
+            quotableMoments={analysis?.quotable_moments || []}
+            onOpenQuoteCard={(quote) => setActiveQuoteClip({ ...selectedClip, main_quote: quote })}
           />
         )}
         <VesperTour forceOpen={showTour} onClose={() => setShowTour(false)} />

@@ -68,6 +68,8 @@ export const CHURCH_SEGMENTS: Record<
   },
 };
 
+export const CHURCH_SEGMENT_SLUGS = Object.keys(CHURCH_SEGMENTS) as ChurchSegment[];
+
 export function parseSegment(raw: string): ChurchSegment | null {
   if (raw in CHURCH_SEGMENTS) return raw as ChurchSegment;
   return null;

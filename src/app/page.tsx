@@ -11,6 +11,7 @@ import HeroYouTubeInput from '@/components/home/HeroYouTubeInput';
 import HeroPodcastInput from '@/components/home/HeroPodcastInput';
 import ChurchSocialProof from '@/components/home/ChurchSocialProof';
 import FAQ from '@/components/FAQ';
+import { LandingStructuredData } from '@/components/seo/StructuredData';
 import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import VideoTrimmer from '@/components/VideoTrimmer';
 import { useRouter } from 'next/navigation';
@@ -344,6 +345,8 @@ export default function Home() {
   }
 
   return (
+    <>
+      <LandingStructuredData />
     <main
       className="vesper-mesh-bg-container"
       style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
@@ -617,5 +620,6 @@ export default function Home() {
       {/* Onboarding Modal — shows on first visit */}
       {showOnboarding && <OnboardingModal onComplete={finishOnboarding} onSkip={finishOnboarding} />}
     </main>
+    </>
   );
 }

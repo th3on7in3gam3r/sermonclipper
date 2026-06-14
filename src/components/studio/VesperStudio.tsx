@@ -10,6 +10,9 @@ import StudioExportPanel from './StudioExportPanel';
 import StudioExportExtrasPanel, { DEFAULT_EXPORT_EXTRAS } from './StudioExportExtrasPanel';
 import StudioClipAnalyticsPanel from './StudioClipAnalyticsPanel';
 import MarketplaceTemplatesPanel from './MarketplaceTemplatesPanel';
+import QuotableMomentsPanel from './QuotableMomentsPanel';
+import InspirationPanel from './InspirationPanel';
+import type { QuotableMoment } from '@/lib/quotes/extractQuotables';
 import { getStudioTemplateOptions, type SeasonalTemplate } from '@/lib/seasonalTemplates';
 import HelpTooltip from '@/components/help/HelpTooltip';
 import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
@@ -35,6 +38,8 @@ import { CAPTION_ANIMATIONS } from '@/lib/studio/exportOptions';
 const STUDIO_TAB_LABEL_KEYS: Record<string, string> = {
   templates: 'style',
   marketplace: 'marketplace',
+  quotes: 'quotes',
+  inspiration: 'inspiration',
   filters: 'filter',
   fonts: 'font',
   motion: 'motion',
@@ -83,6 +88,8 @@ interface VesperStudioProps {
   isMobile: boolean;
   userStatus: UserStatus | null;
   isYouTubeSource: boolean;
+  quotableMoments?: QuotableMoment[];
+  onOpenQuoteCard?: (quote: string) => void;
 }
 
 function getDefaultCaption(clip: SermonClip, overrides: Record<number, string>): string {
@@ -112,6 +119,8 @@ export default function VesperStudio({
   isMobile,
   userStatus,
   isYouTubeSource,
+  quotableMoments = [],
+  onOpenQuoteCard,
 }: VesperStudioProps) {
   const { t } = useTranslation();
   const { isLoaded: authLoaded, userId } = useAuth();
@@ -298,7 +307,10 @@ export default function VesperStudio({
   };
 
   const selectedPlatformConfig = STUDIO_PLATFORMS.find((p) => p.id === selectedPlatform);
-  const platformCaption = `${selectedPlatformConfig?.prefix ?? ''}${caption}`;
+  const topQuote = quotableMoments[0]?.text;
+  const platformCaption = topQuote
+    ? `${selectedPlatformConfig?.prefix ?? ''}"${topQuote}"\n\n${caption}`
+    : `${selectedPlatformConfig?.prefix ?? ''}${caption}`;
   const charCount = platformCaption.length;
   const overLimit = selectedPlatformConfig?.limit ? charCount > selectedPlatformConfig.limit : false;
   const trimDuration = trimEnd - trimStart;
@@ -455,6 +467,20 @@ export default function VesperStudio({
                 onSelect={setSelectedTemplate}
               />
             )}
+
+            {activeTab === 'quotes' && (
+              <QuotableMomentsPanel
+                quotes={quotableMoments}
+                onSeek={(seconds) => {
+                  setPreviewStart(seconds);
+                  setPreviewEnd(Math.max(seconds + 15, clipEnd));
+                  toast.success(`Preview at ${formatTime(seconds)}`);
+                }}
+                onCreateQuoteCard={(quote) => onOpenQuoteCard?.(quote)}
+              />
+            )}
+
+            {activeTab === 'inspiration' && <InspirationPanel />}
 
             {activeTab === 'filters' && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

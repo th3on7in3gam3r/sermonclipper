@@ -67,6 +67,9 @@ export interface IUser extends Document {
   analytics?: { embedViews?: number };
   gamification?: { currentStreak?: number; bestStreak?: number; lastClipWeek?: string };
   pushPromptDismissed?: boolean;
+  mailchimpApiKey?: string;
+  mailchimpServer?: string;
+  quoteOfWeekSentAt?: Date;
   isBetaTester?: boolean;
   betaChurchType?: string;
   betaUsageFrequency?: string;
@@ -123,6 +126,9 @@ const UserSchema: Schema = new Schema({
   analytics: { type: Schema.Types.Mixed, default: {} },
   gamification: { type: Schema.Types.Mixed, default: {} },
   pushPromptDismissed: { type: Boolean, default: false },
+  mailchimpApiKey: { type: String },
+  mailchimpServer: { type: String },
+  quoteOfWeekSentAt: { type: Date },
   isBetaTester: { type: Boolean, default: false },
   betaChurchType: { type: String },
   betaUsageFrequency: { type: String },

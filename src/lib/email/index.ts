@@ -249,3 +249,41 @@ export async function sendDataExportReadyEmail(
   });
   return { ok: true };
 }
+
+export async function sendQuoteOfTheWeekEmail(
+  to: string,
+  quotes: { text: string; sermonTitle: string }[],
+  unsubscribeToken?: string,
+  brand?: WhiteLabelConfig | null
+) {
+  const resend = getResend();
+  if (!resend || quotes.length === 0) return { ok: false, skipped: true };
+
+  const quoteHtml = quotes
+    .slice(0, 3)
+    .map(
+      (q, i) =>
+        `<blockquote style="margin:0 0 20px;padding:16px 20px;border-left:4px solid #8B5CF6;background:#1a1a24;border-radius:8px;">
+          <p style="margin:0 0 8px;color:#fff;font-size:16px;line-height:1.6;font-style:italic;">&ldquo;${q.text}&rdquo;</p>
+          <p style="margin:0;color:#71717A;font-size:12px;">${i + 1}. From ${q.sermonTitle}</p>
+        </blockquote>`
+    )
+    .join('');
+
+  const html = emailShell(
+    `<h1 style="margin:0 0 12px;font-size:22px;">Quote of the Week</h1>
+     <p style="color:#D4D4D8;line-height:1.6;margin:0 0 20px;">Copy any of these lines into your church bulletin, newsletter, or social posts.</p>
+     ${quoteHtml}
+     ${cta(`${SITE_URL}/dashboard`, 'Open Vesper Dashboard →', brand)}`,
+    unsubscribeToken,
+    brand
+  );
+
+  await resend.emails.send({
+    ...sendOpts(brand),
+    to,
+    subject: 'Your Quote of the Week — ready for your newsletter',
+    html,
+  });
+  return { ok: true };
+}

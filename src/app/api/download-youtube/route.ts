@@ -12,6 +12,7 @@ import * as dns from 'dns';
 import { auth } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import { enrichAnalysisWithQuotes } from '@/lib/quotes/extractQuotables';
 
 function authorizeInternal(req: NextRequest): string | null {
   const secret = process.env.CRON_SECRET;
@@ -224,7 +225,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
         status: 'completed',
         message: 'Master Download Complete',
         finalPath: r2Url,
-        analysis: analysisResult,
+        analysis: enrichAnalysisWithQuotes(analysisResult),
       });
       if (existsSync(filePath)) unlinkSync(filePath);
     } catch {
@@ -233,7 +234,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
         status: 'completed',
         message: 'Analysis Ready (Download Sync Pending)',
         finalPath: url,
-        analysis: analysisResult,
+        analysis: enrichAnalysisWithQuotes(analysisResult),
       });
     }
   } else {
@@ -261,7 +262,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
         mainTheme: analysisResult.main_theme || '',
         videoUrl: url,
         finalPath: downloadSuccess ? (await progressManager.get(jobId))?.finalPath : url,
-        analysis: analysisResult,
+        analysis: enrichAnalysisWithQuotes(analysisResult),
         createdAt: new Date(),
       },
       { upsert: true }
@@ -371,7 +372,7 @@ export async function POST(req: NextRequest) {
         mainTheme: analysisResult.main_theme || '',
         videoUrl: url,
         finalPath: url,
-        analysis: analysisResult,
+        analysis: enrichAnalysisWithQuotes(analysisResult),
         createdAt: new Date(),
       },
       { upsert: true }

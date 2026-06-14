@@ -31,6 +31,8 @@ interface ClipActionBarProps {
   renderUrl?: string;
   onOpenThumbnail: () => void;
   onOpenQuoteCard?: () => void;
+  onOpenNewsletterEmbed?: () => void;
+  topQuote?: string;
   onCustomize: () => void;
 }
 
@@ -61,6 +63,8 @@ export default function ClipActionBar({
   renderUrl,
   onOpenThumbnail,
   onOpenQuoteCard,
+  onOpenNewsletterEmbed,
+  topQuote,
   onCustomize,
 }: ClipActionBarProps) {
   const hasThumbnail = thumbnail?.status === 'done' && thumbnail?.url;
@@ -138,7 +142,8 @@ export default function ClipActionBar({
                 platforms.map((p, pi) => {
                   const caption =
                     clip.suggested_captions?.[pi] || clip.suggested_captions?.[0] || clip.main_quote || '';
-                  const text = `${p.prefix}${caption}`;
+                  const body = topQuote && !caption.startsWith(topQuote) ? `"${topQuote}"\n\n${caption}` : caption;
+                  const text = `${p.prefix}${body}`;
                   return (
                     <button
                       key={p.id}
@@ -236,6 +241,16 @@ export default function ClipActionBar({
             style={{ ...btnBase, width: '100%', marginBottom: 10, fontSize: '11px' }}
           >
             GET EMBED CODE
+          </button>
+        )}
+        {onOpenNewsletterEmbed && (
+          <button
+            type="button"
+            onClick={onOpenNewsletterEmbed}
+            className="vesper-btn-outline"
+            style={{ ...btnBase, width: '100%', marginBottom: 10, fontSize: '11px' }}
+          >
+            NEWSLETTER EMBED
           </button>
         )}
         {onOpenQuoteCard && (
