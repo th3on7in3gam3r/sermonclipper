@@ -7,6 +7,13 @@ export function buildStudioHref(jobId: string, clipIndex: number): string {
   return `/results?${params.toString()}`;
 }
 
+/** Full-page navigation — reliable even when the PWA service worker is active. */
+export function openStudio(jobId: string, clipIndex: number): boolean {
+  if (!jobId) return false;
+  window.location.assign(buildStudioHref(jobId, clipIndex));
+  return true;
+}
+
 /** Normalize legacy or mixed analysis shapes into { clips: [...] }. */
 export function normalizeSermonAnalysis(
   analysis: unknown

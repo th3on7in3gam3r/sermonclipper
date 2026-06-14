@@ -1,8 +1,8 @@
 'use client';
 
 import type { LibraryItem } from '@/components/dashboard/ClipLibrary';
-import Link from 'next/link';
 import { useEffect, useRef } from 'react';
+import { openStudio } from '@/lib/studioNavigation';
 import { triggerReelDownload } from '@/lib/reelDownload';
 
 type ClipPreviewPanelProps = {
@@ -85,9 +85,13 @@ export default function ClipPreviewPanel({
           >
             Download
           </button>
-          <Link href={resultsHref} className="vesper-btn-outline clip-preview-action-link">
+          <button
+            type="button"
+            className="vesper-btn-outline clip-preview-action-link"
+            onClick={() => openStudio(item.jobId, item.clipIndex)}
+          >
             Open in Studio
-          </Link>
+          </button>
           <button type="button" className="vesper-btn-outline" onClick={() => onShare(item)}>
             Share
           </button>

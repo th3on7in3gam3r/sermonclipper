@@ -14,6 +14,12 @@ export default function PwaProvider({ children }: { children: React.ReactNode })
 
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
+      .then((registration) => {
+        registration.update().catch(() => {});
+        if (registration.waiting) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+      })
       .catch((err) => console.warn('[PWA] SW registration failed:', err));
 
     const onOnline = () => {

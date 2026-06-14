@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import HelpInlineLink from '@/components/help/HelpInlineLink';
 
@@ -93,9 +92,15 @@ export default function GettingStartedChecklist() {
                 {done ? (
                   <span className="getting-started-label">{item.label}</span>
                 ) : (
-                  <Link href={item.href} className="getting-started-label">
+                  <button
+                    type="button"
+                    className="getting-started-label getting-started-label--action"
+                    onClick={() => {
+                      window.location.assign(item.href);
+                    }}
+                  >
                     {item.label}
-                  </Link>
+                  </button>
                 )}
                 {!done && (
                   <HelpInlineLink

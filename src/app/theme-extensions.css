@@ -164,6 +164,15 @@ html {
   color: var(--text-primary);
 }
 
+.getting-started-label--action {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
 .whats-new-btn {
   position: relative;
   background: none;

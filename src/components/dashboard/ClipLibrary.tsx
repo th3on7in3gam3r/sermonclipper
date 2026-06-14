@@ -2,9 +2,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { buildStudioHref } from '@/lib/studioNavigation';
+import { buildStudioHref, openStudio } from '@/lib/studioNavigation';
 import EmptyState from '@/components/shared/EmptyState';
 import ExportFlowModal from '@/components/dashboard/ExportFlowModal';
 import ShareExportModal from '@/components/dashboard/ShareExportModal';
@@ -199,12 +198,10 @@ export default function ClipLibrary({
     toast.success('Deleted selected clips');
   };
 
-  const studioHref = (item: LibraryItem) => {
-    if (!item.jobId) {
+  const openStudioFromLibrary = (item: LibraryItem) => {
+    if (!openStudio(item.jobId, item.clipIndex)) {
       toast.error('This clip is missing a session ID.');
-      return '#';
     }
-    return buildStudioHref(item.jobId, item.clipIndex);
   };
 
   const openPreview = (item: LibraryItem) => {
@@ -371,9 +368,16 @@ export default function ClipLibrary({
                 >
                   Download
                 </button>
-                <Link href={studioHref(item)} className="vesper-btn-outline clip-library-action">
+                <button
+                  type="button"
+                  className="vesper-btn-outline clip-library-action"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openStudioFromLibrary(item);
+                  }}
+                >
                   Studio
-                </Link>
+                </button>
                 <button
                   type="button"
                   className="vesper-btn-outline clip-library-action"
