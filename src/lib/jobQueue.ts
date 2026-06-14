@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import connectDB from '@/lib/mongodb';
 import JobProgress from '@/models/JobProgress';
+import { setQueueDepth } from '@/lib/telemetry/metrics';
 
 export type JobQueueStatus = 'queued' | 'processing' | 'complete' | 'failed';
 
@@ -27,6 +28,13 @@ export async function createQueuedJob(
     { upsert: true, new: true }
   );
   return jobId;
+}
+
+export async function getJobQueueDepth() {
+  await connectDB();
+  const depth = await JobProgress.countDocuments({ queueStatus: { $in: ['queued', 'processing'] } });
+  setQueueDepth(depth);
+  return depth;
 }
 
 export async function getJob(jobId: string) {

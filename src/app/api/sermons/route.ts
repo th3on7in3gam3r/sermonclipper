@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import Sermon from '@/models/Sermon';
 import Team from '@/models/Team';
+import { withTelemetry } from '@/lib/telemetry/apiHandler';
 
 async function getAccessibleUserIds(userId: string): Promise<string[]> {
   const team =
@@ -15,7 +16,7 @@ async function getAccessibleUserIds(userId: string): Promise<string[]> {
   return [...ids];
 }
 
-export async function GET(req: Request) {
+async function getHandler(req: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -52,7 +53,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function DELETE(req: Request) {
+async function deleteHandler(req: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -78,3 +79,6 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: 'Internal Error' }, { status: 500 });
   }
 }
+
+export const GET = withTelemetry(getHandler, 'GET /api/sermons');
+export const DELETE = withTelemetry(deleteHandler, 'DELETE /api/sermons');

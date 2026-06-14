@@ -8,8 +8,8 @@
  *   const pool = wrapPoolWithQueryLogger(new Pool({ connectionString: process.env.DATABASE_URL }));
  */
 
-const SLOW_MS = Number(process.env.PG_SLOW_QUERY_MS ?? 100);
-const ENABLED = process.env.NODE_ENV === 'development' || process.env.PG_QUERY_LOG === '1';
+const SLOW_MS = Number(process.env.PG_SLOW_QUERY_MS ?? (process.env.NODE_ENV === 'production' ? 500 : 100));
+const ENABLED = process.env.NODE_ENV === 'development' || process.env.PG_QUERY_LOG === '1' || process.env.NODE_ENV === 'production';
 
 type QueryablePool = {
   query: (...args: unknown[]) => Promise<unknown>;
@@ -34,6 +34,9 @@ export function wrapPoolWithQueryLogger<T extends QueryablePool>(pool: T): T {
       const ms = performance.now() - started;
       if (ms >= SLOW_MS) {
         console.warn(`[PG SLOW ${ms.toFixed(1)}ms] ${truncate(text)}`);
+        void import('@/lib/telemetry/spans').then(({ captureSlowRoute }) =>
+          captureSlowRoute('postgres.query', ms, 200)
+        );
       }
       return result;
     } catch (err) {

@@ -1,9 +1,10 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import Stripe from 'stripe';
+import { constructStripeEvent } from '@/lib/stripeWebhook';
+import { getStripe } from '@/lib/stripe';
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = constructStripeEvent(body, signature);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Webhook Error';
     return new NextResponse(`Webhook Error: ${msg}`, { status: 400 });
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
       return new NextResponse('Webhook processed', { status: 200 });
     }
 
-    const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+    const subscription = await getStripe().subscriptions.retrieve(session.subscription as string);
 
     await User.findOneAndUpdate(
       { clerkId: session.metadata.clerkId },

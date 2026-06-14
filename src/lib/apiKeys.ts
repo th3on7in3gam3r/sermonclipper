@@ -80,7 +80,33 @@ export async function listApiKeys(userId: string) {
     mode: k.mode,
     createdAt: k.createdAt,
     lastUsedAt: k.lastUsedAt,
+    deprecatedAt: k.deprecatedAt,
+    expiresAt: k.expiresAt,
   }));
+}
+
+/** Rotate API key: new key active, old key deprecated for 7 days. */
+export async function rotateApiKey(userId: string, keyId: string) {
+  await connectDB();
+  const existing = await ApiKey.findOne({ _id: keyId, userId });
+  if (!existing) return null;
+
+  const created = await createApiKey(userId, { name: `${existing.name} (rotated)`, mode: existing.mode as ApiKeyMode });
+  const graceUntil = new Date(Date.now() + 7 * 86400000);
+
+  await ApiKey.updateOne(
+    { _id: keyId },
+    { $set: { deprecatedAt: new Date(), expiresAt: graceUntil, successorKeyId: created.id } }
+  );
+
+  await logAuditEvent({
+    userId,
+    actorId: userId,
+    eventType: 'api_key.rotation_scheduled',
+    metadata: { oldKeyId: keyId, newKeyId: created.id, expiresAt: graceUntil.toISOString() },
+  });
+
+  return created;
 }
 
 export async function authenticateApiKey(rawKey: string) {
@@ -91,6 +117,8 @@ export async function authenticateApiKey(rawKey: string) {
   const keyHash = hashApiKey(rawKey);
   const doc = await ApiKey.findOne({ keyHash }).lean();
   if (!doc) return null;
+
+  if (doc.expiresAt && doc.expiresAt < new Date()) return null;
 
   await ApiKey.updateOne({ _id: doc._id }, { $set: { lastUsedAt: new Date() } });
 

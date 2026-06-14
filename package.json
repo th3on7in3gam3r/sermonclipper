@@ -12,6 +12,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:load": "k6 run loadtests/01-landing-browse.js && k6 run loadtests/02-simultaneous-uploads.js && k6 run loadtests/03-studio-library.js && k6 run loadtests/04-spike-sunday.js",
+    "test:load:landing": "k6 run loadtests/01-landing-browse.js",
+    "test:load:uploads": "k6 run loadtests/02-simultaneous-uploads.js",
+    "test:load:studio": "k6 run loadtests/03-studio-library.js",
+    "test:load:spike": "k6 run loadtests/04-spike-sunday.js",
     "db:migrate": "node scripts/migrate-postgres.mjs"
   },
   "dependencies": {

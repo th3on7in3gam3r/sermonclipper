@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { withTelemetry } from '@/lib/telemetry/apiHandler';
 
-export async function GET(req: NextRequest) {
+async function getHandler(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const jobId = searchParams.get('jobId');
@@ -38,3 +39,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
+
+export const GET = withTelemetry(getHandler, 'GET /api/clips');

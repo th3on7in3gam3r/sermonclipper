@@ -105,7 +105,9 @@ export default function AdminPage() {
     <main className="admin-page">
       <header className="admin-header">
         <h1>Vesper Admin</h1>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <Link href="/admin/performance">Performance</Link>
+          <Link href="/admin/secrets-health">Secrets Health</Link>
           <Link href="/admin/flags">Feature Flags</Link>
           <Link href="/dashboard">← Dashboard</Link>
         </div>

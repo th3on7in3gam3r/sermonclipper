@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { applySecurityHeaders } from '@/lib/securityHeaders';
 import { checkApiRateLimit, RATE_LIMIT_MESSAGE } from '@/lib/rateLimit';
 import { resolveTenantByHost } from '@/lib/tenant';
+import { generateRequestId, requestIdHeaderName } from '@/lib/telemetry/requestId';
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
@@ -28,7 +29,9 @@ export const proxy = clerkMiddleware(async (auth, request) => {
   if (path.startsWith('/api/')) {
     const limit = await checkApiRateLimit(request, userId);
     if (!limit.success) {
+      const requestId = request.headers.get(requestIdHeaderName()) || generateRequestId();
       const res = NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+      res.headers.set(requestIdHeaderName(), requestId);
       if (limit.retryAfterSec) {
         res.headers.set('Retry-After', String(limit.retryAfterSec));
       }
@@ -44,7 +47,9 @@ export const proxy = clerkMiddleware(async (auth, request) => {
 
   const host = request.headers.get('host') || '';
   const tenant = await resolveTenantByHost(host);
+  const requestId = request.headers.get(requestIdHeaderName()) || generateRequestId();
   const response = NextResponse.next();
+  response.headers.set(requestIdHeaderName(), requestId);
   if (tenant) {
     response.headers.set('x-vesper-tenant-id', tenant.clerkId);
     if (tenant.whiteLabel?.churchName) {

@@ -13,6 +13,7 @@ import { auth } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { enrichAnalysisWithQuotes } from '@/lib/quotes/extractQuotables';
+import { withTelemetry } from '@/lib/telemetry/apiHandler';
 
 function authorizeInternal(req: NextRequest): string | null {
   const secret = process.env.CRON_SECRET;
@@ -273,7 +274,7 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
   }
 }
 
-export async function POST(req: NextRequest) {
+async function postHandler(req: NextRequest) {
   const internalUserId = authorizeInternal(req);
   const { userId: clerkUserId } = await auth();
   const userId = clerkUserId || internalUserId;
@@ -436,3 +437,5 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export const POST = withTelemetry(postHandler, 'POST /api/download-youtube');

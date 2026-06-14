@@ -8,6 +8,9 @@ export interface IApiKey extends Document {
   last4: string;
   mode: 'live' | 'test';
   lastUsedAt?: Date;
+  deprecatedAt?: Date;
+  expiresAt?: Date;
+  successorKeyId?: string;
   createdAt: Date;
 }
 
@@ -19,6 +22,9 @@ const ApiKeySchema = new Schema({
   last4: { type: String, required: true },
   mode: { type: String, enum: ['live', 'test'], default: 'live' },
   lastUsedAt: { type: Date },
+  deprecatedAt: { type: Date },
+  expiresAt: { type: Date },
+  successorKeyId: { type: String },
   createdAt: { type: Date, default: Date.now },
 });
 

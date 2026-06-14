@@ -17,7 +17,9 @@ export type AuditEventType =
   | 'moderation.blocked'
   | 'moderation.approved'
   | 'data.export_requested'
-  | 'social.published';
+  | 'social.published'
+  | 'secret.accessed'
+  | 'api_key.rotation_scheduled';
 
 export async function logAuditEvent(event: {
   userId: string;

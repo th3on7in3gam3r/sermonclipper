@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
-import { getJob, updateJobQueue } from '@/lib/jobQueue';
+import { getJob, updateJobQueue, getJobQueueDepth } from '@/lib/jobQueue';
 import { createNotification } from '@/lib/notifications';
 import { progressManager } from '@/lib/progress';
+import { traceJob } from '@/lib/telemetry/spans';
+import { withTelemetry } from '@/lib/telemetry/apiHandler';
 
 const MAX_RETRIES = 3;
 
 function authorize(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
+  const previous = process.env.CRON_SECRET_PREVIOUS;
   if (!secret) return process.env.NODE_ENV === 'development';
-  return req.headers.get('authorization') === `Bearer ${secret}`;
+  const authHeader = req.headers.get('authorization');
+  return authHeader === `Bearer ${secret}` || (!!previous && authHeader === `Bearer ${previous}`);
 }
 
 /** Background worker entry — processes one queued job. */
-export async function POST(req: NextRequest) {
+async function postHandler(req: NextRequest) {
   if (!authorize(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -40,110 +44,115 @@ export async function POST(req: NextRequest) {
     message: 'Starting pipeline…',
   });
 
+  await getJobQueueDepth();
+
   try {
-    const payload = (job.payload || {}) as {
-      type?: string;
-      url?: string;
-      userId?: string;
-      finalPath?: string;
-    };
-    const origin = req.nextUrl.origin;
+    await traceJob(jobId, async () => {
+      const payload = (job.payload || {}) as {
+        type?: string;
+        url?: string;
+        userId?: string;
+        finalPath?: string;
+      };
+      const origin = req.nextUrl.origin;
 
-    if (payload.type === 'data_export' && payload.userId) {
-      const DataExportRequest = (await import('@/models/DataExportRequest')).default;
-      const User = (await import('@/models/User')).default;
-      const { buildUserDataExportZip } = await import('@/lib/dataExport/buildUserExport');
-      const { sendDataExportReadyEmail } = await import('@/lib/email');
+      if (payload.type === 'data_export' && payload.userId) {
+        const DataExportRequest = (await import('@/models/DataExportRequest')).default;
+        const User = (await import('@/models/User')).default;
+        const { buildUserDataExportZip } = await import('@/lib/dataExport/buildUserExport');
+        const { sendDataExportReadyEmail } = await import('@/lib/email');
 
-      await DataExportRequest.updateOne({ jobId }, { $set: { status: 'processing' } });
-      await updateJobQueue(jobId, {
-        step: 'Export',
-        message: 'Assembling your data package…',
-        progress: 20,
-      });
+        await DataExportRequest.updateOne({ jobId }, { $set: { status: 'processing' } });
+        await updateJobQueue(jobId, {
+          step: 'Export',
+          message: 'Assembling your data package…',
+          progress: 20,
+        });
 
-      const { downloadUrl } = await buildUserDataExportZip(String(payload.userId));
-      const expiresAt = new Date(Date.now() + 48 * 3600 * 1000);
+        const { downloadUrl } = await buildUserDataExportZip(String(payload.userId));
+        const expiresAt = new Date(Date.now() + 48 * 3600 * 1000);
 
-      await DataExportRequest.updateOne(
-        { jobId },
-        {
-          $set: {
-            status: 'complete',
-            downloadUrl,
-            expiresAt,
-            completedAt: new Date(),
-          },
+        await DataExportRequest.updateOne(
+          { jobId },
+          {
+            $set: {
+              status: 'complete',
+              downloadUrl,
+              expiresAt,
+              completedAt: new Date(),
+            },
+          }
+        );
+
+        const dbUser = await User.findOne({ clerkId: payload.userId }).lean();
+        if (dbUser?.email) {
+          await sendDataExportReadyEmail(dbUser.email, downloadUrl, dbUser.emailUnsubscribeToken);
         }
-      );
 
-      const dbUser = await User.findOne({ clerkId: payload.userId }).lean();
-      if (dbUser?.email) {
-        await sendDataExportReadyEmail(dbUser.email, downloadUrl, dbUser.emailUnsubscribeToken);
+        await updateJobQueue(jobId, {
+          queueStatus: 'complete',
+          status: 'completed',
+          step: 'Complete',
+          message: 'Data export ready',
+          progress: 100,
+          outputUrls: [downloadUrl],
+        });
+        return;
       }
 
+      if (payload.type === 'youtube' && payload.url) {
+        const secret = process.env.CRON_SECRET;
+        const res = await fetch(`${origin}/api/download-youtube`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(secret
+              ? {
+                  Authorization: `Bearer ${secret}`,
+                  'x-vesper-user-id': job.userId || '',
+                }
+              : { Cookie: req.headers.get('cookie') || '' }),
+          },
+          body: JSON.stringify({ url: payload.url, jobId, userId: job.userId }),
+        });
+        if (!res.ok) throw new Error(`Pipeline failed (${res.status})`);
+      } else if (payload.type === 'upload') {
+        await progressManager.update(jobId, {
+          step: 'Upload',
+          status: 'completed',
+          message: 'Upload validated',
+          finalPath: payload.finalPath || '',
+        });
+      }
+
+      const final = await getJob(jobId);
       await updateJobQueue(jobId, {
         queueStatus: 'complete',
         status: 'completed',
         step: 'Complete',
-        message: 'Data export ready',
-        progress: 100,
-        outputUrls: [downloadUrl],
+        message: 'Processing complete',
+        outputUrls: final?.finalPath ? [final.finalPath] : [],
       });
 
-      return NextResponse.json({ success: true, jobId, downloadUrl });
-    } else if (payload.type === 'youtube' && payload.url) {
-      const secret = process.env.CRON_SECRET;
-      const res = await fetch(`${origin}/api/download-youtube`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(secret
-            ? {
-                Authorization: `Bearer ${secret}`,
-                'x-vesper-user-id': job.userId || '',
-              }
-            : { Cookie: req.headers.get('cookie') || '' }),
-        },
-        body: JSON.stringify({ url: payload.url, jobId, userId: job.userId }),
-      });
-      if (!res.ok) throw new Error(`Pipeline failed (${res.status})`);
-    } else if (payload.type === 'upload') {
-      await progressManager.update(jobId, {
-        step: 'Upload',
-        status: 'completed',
-        message: 'Upload validated',
-        finalPath: payload.finalPath || '',
-      });
-    }
-
-    const final = await getJob(jobId);
-    await updateJobQueue(jobId, {
-      queueStatus: 'complete',
-      status: 'completed',
-      step: 'Complete',
-      message: 'Processing complete',
-      outputUrls: final?.finalPath ? [final.finalPath] : [],
+      if (job.userId) {
+        const Sermon = (await import('@/models/Sermon')).default;
+        const connectDB = (await import('@/lib/mongodb')).default;
+        await connectDB();
+        const sermon = await Sermon.findOne({ jobId }).lean();
+        const clipTitle =
+          sermon?.analysis?.clips?.[0]?.hook_title ||
+          sermon?.analysis?.clips?.[0]?.main_quote ||
+          sermon?.title ||
+          'Your clip';
+        await createNotification({
+          userId: job.userId,
+          type: 'clip_ready',
+          message: `Your clip is ready: "${clipTitle}" — tap to view`,
+          link: `/results?jobId=${jobId}`,
+          pushTitle: 'Clip ready',
+        });
+      }
     });
-
-    if (job.userId) {
-      const Sermon = (await import('@/models/Sermon')).default;
-      const connectDB = (await import('@/lib/mongodb')).default;
-      await connectDB();
-      const sermon = await Sermon.findOne({ jobId }).lean();
-      const clipTitle =
-        sermon?.analysis?.clips?.[0]?.hook_title ||
-        sermon?.analysis?.clips?.[0]?.main_quote ||
-        sermon?.title ||
-        'Your clip';
-      await createNotification({
-        userId: job.userId,
-        type: 'clip_ready',
-        message: `Your clip is ready: "${clipTitle}" — tap to view`,
-        link: `/results?jobId=${jobId}`,
-        pushTitle: 'Clip ready',
-      });
-    }
 
     return NextResponse.json({ success: true, jobId });
   } catch (error) {
@@ -176,3 +185,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg, retryCount: nextRetry }, { status: 500 });
   }
 }
+
+export const POST = withTelemetry(postHandler, 'POST /api/jobs/process');

@@ -1,0 +1,37 @@
+# Local PgBouncer in transaction pooling mode (mirrors Neon/Supabase pooler).
+# Usage: docker compose -f infra/pgbouncer/docker-compose.yml up -d
+# Set DATABASE_URL=postgresql://vesper:vesper@localhost:6432/vesper
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: vesper
+      POSTGRES_PASSWORD: vesper
+      POSTGRES_DB: vesper
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U vesper']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  pgbouncer:
+    image: edoburu/pgbouncer:1.22.1-p0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '6432:6432'
+    volumes:
+      - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./userlist.txt.example:/etc/pgbouncer/userlist.txt:ro
+    environment:
+      DB_USER: vesper
+      DB_PASSWORD: vesper
+      DB_HOST: postgres
+      DB_NAME: vesper
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 200
+      DEFAULT_POOL_SIZE: 20
