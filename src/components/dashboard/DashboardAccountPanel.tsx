@@ -1,7 +1,7 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
-import Link from 'next/link';
+import HardLink from '@/components/shared/HardLink';
 
 interface DashboardAccountPanelProps {
   userData: {
@@ -72,9 +72,9 @@ export default function DashboardAccountPanel({
 
       <nav className="dashboard-account-nav" aria-label="Account shortcuts">
         {links.map((link) => (
-          <Link key={link.href} href={link.href} className="dashboard-account-nav-link">
+          <HardLink key={link.href} href={link.href} className="dashboard-account-nav-link">
             {link.label}
-          </Link>
+          </HardLink>
         ))}
       </nav>
     </section>

@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useAuth, UserButton } from '@clerk/nextjs';
-import Link from 'next/link';
+import HardLink from '@/components/shared/HardLink';
 import { useSearchParams } from 'next/navigation';
 import DashboardOverview from '@/components/dashboard/DashboardOverview';
 import DashboardSignInGate from '@/components/dashboard/DashboardSignInGate';
@@ -149,7 +149,7 @@ function DashboardContent() {
           gap: '8px',
         }}
       >
-        <Link
+        <HardLink
           href="/"
           style={{
             textDecoration: 'none',
@@ -169,7 +169,7 @@ function DashboardContent() {
               <span style={{ color: '#8B5CF6' }}>VES</span>PER
             </div>
           )}
-        </Link>
+        </HardLink>
         <div
           style={{
             display: 'flex',
@@ -190,7 +190,7 @@ function DashboardContent() {
           <WhatsNewBell />
           <HelpNavButton />
           <ThemeToggle />
-          <Link
+          <HardLink
             href="/"
             className="vesper-btn-outline"
             style={{
@@ -202,7 +202,7 @@ function DashboardContent() {
             }}
           >
             HOME
-          </Link>
+          </HardLink>
           <UserButton
             userProfileMode="modal"
             appearance={vesperClerkAppearance}

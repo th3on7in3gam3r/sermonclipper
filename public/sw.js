@@ -1,6 +1,6 @@
 /* Vesper PWA service worker — app shell + thumbnail cache + offline queue sync */
 
-const CACHE_VERSION = 'vesper-v2';
+const CACHE_VERSION = 'vesper-v3';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const THUMB_CACHE = `${CACHE_VERSION}-thumbs`;
 
@@ -32,7 +32,10 @@ function shouldBypassServiceWorker(request, url) {
     url.pathname.startsWith('/api/') ||
     request.headers.get('RSC') === '1' ||
     request.headers.get('Next-Router-Prefetch') ||
-    request.headers.get('Next-Router-Segment-Prefetch')
+    request.headers.get('Next-Router-Segment-Prefetch') ||
+    request.headers.get('Next-Router-State-Tree') ||
+    request.headers.get('Next-Url') ||
+    (request.headers.get('Accept') || '').includes('text/x-component')
   ) {
     return true;
   }
