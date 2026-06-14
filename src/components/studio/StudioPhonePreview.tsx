@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { STUDIO_ANIMATIONS, STUDIO_FILTERS, STUDIO_FONTS, STUDIO_TEMPLATES } from '@/lib/studio/constants';
 import type { SermonClip } from '@/lib/studio/types';
 
@@ -50,23 +50,53 @@ export default function StudioPhonePreview({
   const animationClass =
     STUDIO_ANIMATIONS.find((a) => a.id === selectedAnimation)?.class || 'animate-studio-fade';
 
+  const src = playableVideoUrl || videoUrl || '';
+  const isAudio =
+    src.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) || src.toLowerCase().includes('audio');
+
+  const playPreview = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video) {
+      onPlayingChange(true);
+      return;
+    }
+    try {
+      if (previewEnd > previewStart && video.readyState >= 1) {
+        if (video.currentTime < previewStart || video.currentTime >= previewEnd) {
+          video.currentTime = previewStart;
+        }
+      }
+      await video.play();
+      onPlayingChange(true);
+    } catch {
+      onPlayingChange(false);
+    }
+  }, [onPlayingChange, previewEnd, previewStart]);
+
+  const pausePreview = useCallback(() => {
+    videoRef.current?.pause();
+    onPlayingChange(false);
+  }, [onPlayingChange]);
+
+  const togglePreview = useCallback(() => {
+    if (isPlaying) pausePreview();
+    else void playPreview();
+  }, [isPlaying, pausePreview, playPreview]);
+
+  useEffect(() => {
+    if (!isPlaying) videoRef.current?.pause();
+  }, [isPlaying]);
+
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
-    if (isPlaying) {
-      video.play().catch(() => onPlayingChange(false));
-    } else {
-      video.pause();
-    }
-  }, [isPlaying, onPlayingChange]);
+    if (!video || !src || videoId || !isPlaying) return;
+    video.muted = isMuted;
+    void video.play().catch(() => onPlayingChange(false));
+  }, [src, videoId, isMuted, isPlaying, onPlayingChange]);
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = isMuted;
   }, [isMuted]);
-
-  const src = playableVideoUrl || videoUrl || '';
-  const isAudio =
-    src.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) || src.toLowerCase().includes('audio');
 
   // Loop clip segment via currentTime — #t= fragments break many signed CDN URLs.
   useEffect(() => {
@@ -254,7 +284,6 @@ export default function StudioPhonePreview({
                 src={src}
                 loop
                 playsInline
-                autoPlay
                 muted={isMuted}
                 preload="auto"
                 onPlay={() => onPlayingChange(true)}
@@ -271,19 +300,19 @@ export default function StudioPhonePreview({
             </div>
           ) : null}
 
-          {!isPlaying && !videoId && (
+          {!isPlaying && !videoId && src && (
             <div
               style={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                zIndex: 50,
+                zIndex: 80,
               }}
             >
               <button
                 type="button"
-                onClick={() => onPlayingChange(true)}
+                onClick={() => void playPreview()}
                 style={{
                   background: 'rgba(139,92,246,0.8)',
                   border: 'none',
@@ -317,7 +346,7 @@ export default function StudioPhonePreview({
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 type="button"
-                onClick={() => onPlayingChange(!isPlaying)}
+                onClick={() => void togglePreview()}
                 style={{
                   background: 'rgba(255,255,255,0.1)',
                   border: '1px solid rgba(255,255,255,0.1)',
