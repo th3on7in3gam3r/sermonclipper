@@ -41,6 +41,8 @@
   "upload": {
     "buttonLabel": "Upload Sermon",
     "pasteManuscript": "Paste Sermon Notes / Manuscript (optional)",
+    "preacherName": "Pastor / preacher name",
+    "preacherNamePlaceholder": "e.g. Pastor James Wilson",
     "manuscriptHint": "Improves clip detection and section titles when provided.",
     "youtubePlaceholder": "Paste YouTube URL…",
     "processing": "Processing your sermon…"

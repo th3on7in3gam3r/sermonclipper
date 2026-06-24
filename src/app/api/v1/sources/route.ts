@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     url?: string;
     storageKey?: string;
     manuscript?: string;
+    preacherName?: string;
   };
   try {
     body = await req.json();
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
     url: sourceUrl,
   };
   if (body.manuscript?.trim()) payload.manuscript = body.manuscript.trim();
+  if (body.preacherName?.trim()) payload.preacherName = body.preacherName.trim();
 
   const jobId = await createQueuedJob(ctx.userId, payload);
   triggerJobProcessor(jobId, req.nextUrl.origin);

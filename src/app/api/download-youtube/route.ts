@@ -66,8 +66,24 @@ async function resolveMirror(
 }
 
 // ── OpenAI Strategy ──────────────────────────────────────────────────────────
+type SermonContext = {
+  manuscript?: string;
+  preacherName?: string;
+};
+
+type AnalysisResult = {
+  success?: boolean;
+  sermon_title?: string;
+  main_theme?: string;
+  summary?: string;
+  speaker?: string;
+  source_type?: string;
+  clips?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
+};
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function runOpenAIPrimary(url: string, _jobId: string) {
+async function runOpenAIPrimary(url: string, _jobId: string, context: SermonContext = {}): Promise<AnalysisResult> {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('Missing OPENAI_API_KEY in Settings');
   }
@@ -75,6 +91,13 @@ async function runOpenAIPrimary(url: string, _jobId: string) {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
+
+  const manuscriptBlock = context.manuscript
+    ? `\n\nSERMON NOTES / MANUSCRIPT (use for section titles, clip hooks, and themes):\n${context.manuscript}`
+    : '';
+  const speakerBlock = context.preacherName
+    ? `\n\nThe preacher/pastor for this sermon is: ${context.preacherName}. Set "speaker" in the JSON to this name.`
+    : '';
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o',
@@ -88,7 +111,7 @@ async function runOpenAIPrimary(url: string, _jobId: string) {
       },
       {
         role: 'user',
-        content: `Analyze this sermon: ${url}
+        content: `Analyze this sermon: ${url}${manuscriptBlock}${speakerBlock}
         
         CRITICAL SELECTION CRITERIA:
         1. THE MIC DROP: Find moments where the speaker makes a definitive, life-changing point.
@@ -102,6 +125,7 @@ async function runOpenAIPrimary(url: string, _jobId: string) {
           "sermon_title": "Cinematic Sermon Title",
           "main_theme": "The deep spiritual core of this message",
           "summary": "A 3-sentence theological summary for descriptions",
+          "speaker": "Pastor or preacher name if known",
           "clips": [
             {
               "start": 245,
@@ -121,11 +145,20 @@ async function runOpenAIPrimary(url: string, _jobId: string) {
   });
 
   const text = completion.choices[0]?.message?.content || '{}';
-  return JSON.parse(text);
+  const parsed = JSON.parse(text) as AnalysisResult;
+  if (context.preacherName && !parsed.speaker) {
+    parsed.speaker = context.preacherName;
+  }
+  return parsed;
 }
 
 // ── Main Job ─────────────────────────────────────────────────────────────────
-async function runSermonPipeline(url: string, jobId: string, userId: string): Promise<void> {
+async function runSermonPipeline(
+  url: string,
+  jobId: string,
+  userId: string,
+  context: SermonContext = {}
+): Promise<void> {
   const filePath = join(TMP_DIR, `${jobId}.mp4`);
 
   // 1. PRIMARY: NEURAL BRAIN (Instant Analysis)
@@ -135,10 +168,10 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
     message: 'Neural Engine: Harvesting viral spiritual moments...',
   });
 
-  let analysisResult = null;
+  let analysisResult: AnalysisResult | null = null;
   const isAudioSource = isAudioMediaUrl(url);
   try {
-    analysisResult = await runOpenAIPrimary(url, jobId);
+    analysisResult = await runOpenAIPrimary(url, jobId, context);
     if (analysisResult) {
       analysisResult.source_type = isAudioSource ? 'audio' : 'video';
       if (isAudioSource && Array.isArray(analysisResult.clips)) {
@@ -263,7 +296,11 @@ async function runSermonPipeline(url: string, jobId: string, userId: string): Pr
         mainTheme: analysisResult.main_theme || '',
         videoUrl: url,
         finalPath: downloadSuccess ? (await progressManager.get(jobId))?.finalPath : url,
-        analysis: enrichAnalysisWithQuotes(analysisResult),
+        manuscriptText: context.manuscript || '',
+        analysis: enrichAnalysisWithQuotes({
+          ...analysisResult,
+          speaker: analysisResult.speaker || context.preacherName || undefined,
+        }),
         createdAt: new Date(),
       },
       { upsert: true }
@@ -282,8 +319,13 @@ async function postHandler(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized. Please sign in.' }, { status: 401 });
   }
 
-  const { url, jobId } = await req.json();
+  const { url, jobId, manuscript, preacherName } = await req.json();
   if (!url || !jobId) return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+
+  const sermonContext: SermonContext = {
+    manuscript: typeof manuscript === 'string' ? manuscript.trim() : undefined,
+    preacherName: typeof preacherName === 'string' ? preacherName.trim() : undefined,
+  };
 
   // ── Usage Limit Enforcement ──
   await connectDB();
@@ -351,7 +393,7 @@ async function postHandler(req: NextRequest) {
     });
 
     console.log(`[Engine] Starting Synchronous Analysis for ${jobId}`);
-    const analysisResult = await runOpenAIPrimary(url, jobId);
+    const analysisResult = await runOpenAIPrimary(url, jobId, sermonContext);
 
     await progressManager.update(jobId, {
       step: 'Analysis',
@@ -364,6 +406,11 @@ async function postHandler(req: NextRequest) {
     const Sermon = (await import('../../../models/Sermon')).default;
     await connectDB();
 
+    const enrichedAnalysis = enrichAnalysisWithQuotes({
+      ...analysisResult,
+      speaker: analysisResult.speaker || sermonContext.preacherName || undefined,
+    });
+
     await Sermon.findOneAndUpdate(
       { jobId },
       {
@@ -373,7 +420,8 @@ async function postHandler(req: NextRequest) {
         mainTheme: analysisResult.main_theme || '',
         videoUrl: url,
         finalPath: url,
-        analysis: enrichAnalysisWithQuotes(analysisResult),
+        manuscriptText: sermonContext.manuscript || '',
+        analysis: enrichedAnalysis,
         createdAt: new Date(),
       },
       { upsert: true }
@@ -391,11 +439,11 @@ async function postHandler(req: NextRequest) {
       status: 'completed',
       message: `[Neural Pulse] Complete. GPT-4o generated ${analysisResult?.clips?.length || 0} clips.`,
       finalPath: url,
-      analysis: analysisResult,
+      analysis: enrichedAnalysis,
     });
 
     // 5. Kick off download as a "Best Effort" background task
-    runSermonPipeline(url, jobId, userId).catch((e) => {
+    runSermonPipeline(url, jobId, userId, sermonContext).catch((e) => {
       console.error('[Engine] BG Pipeline Error:', e);
     });
 

@@ -53,6 +53,8 @@ async function postHandler(req: NextRequest) {
         url?: string;
         userId?: string;
         finalPath?: string;
+        manuscript?: string;
+        preacherName?: string;
       };
       const origin = req.nextUrl.origin;
 
@@ -113,7 +115,13 @@ async function postHandler(req: NextRequest) {
                 }
               : { Cookie: req.headers.get('cookie') || '' }),
           },
-          body: JSON.stringify({ url: payload.url, jobId, userId: job.userId }),
+          body: JSON.stringify({
+            url: payload.url,
+            jobId,
+            userId: job.userId,
+            manuscript: payload.manuscript,
+            preacherName: payload.preacherName,
+          }),
         });
         if (!res.ok) throw new Error(`Pipeline failed (${res.status})`);
       } else if (payload.type === 'upload') {

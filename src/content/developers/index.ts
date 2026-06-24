@@ -16,7 +16,8 @@ export const API_ENDPOINTS = [
     request: `{
   "type": "youtube",
   "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-  "manuscript": "Optional sermon outline text"
+  "manuscript": "Optional sermon outline text",
+  "preacherName": "Optional pastor or preacher name for attribution"
 }`,
     response: `{
   "ok": true,
