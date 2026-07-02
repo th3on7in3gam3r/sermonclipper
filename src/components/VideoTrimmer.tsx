@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { FFMPEG_WASM_URLS } from '@/lib/ffmpegWasm';
+import { resolveFfmpegWasmUrls } from '@/lib/ffmpegWasm';
 import { MAX_DIRECT_UPLOAD_BYTES, MAX_DIRECT_UPLOAD_MB, MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
 
 type FFmpegInstance = {
@@ -63,11 +63,8 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
           setTrimProgress(Math.round(progress * 100));
         });
 
-        await ffmpeg.load({
-          coreURL: FFMPEG_WASM_URLS.coreURL,
-          wasmURL: FFMPEG_WASM_URLS.wasmURL,
-          workerURL: FFMPEG_WASM_URLS.workerURL,
-        });
+        const wasmUrls = await resolveFfmpegWasmUrls();
+        await ffmpeg.load(wasmUrls);
 
         ffmpegRef.current = ffmpeg as unknown as FFmpegInstance;
         setFfmpegLoaded(true);

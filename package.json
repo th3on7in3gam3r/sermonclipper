@@ -17,7 +17,8 @@
     "test:load:uploads": "k6 run loadtests/02-simultaneous-uploads.js",
     "test:load:studio": "k6 run loadtests/03-studio-library.js",
     "test:load:spike": "k6 run loadtests/04-spike-sunday.js",
-    "db:migrate": "node scripts/migrate-postgres.mjs"
+    "db:migrate": "node scripts/migrate-postgres.mjs",
+    "postinstall": "node scripts/postinstall-ffmpeg.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.94.0",
@@ -26,6 +27,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1047.0",
     "@clerk/nextjs": "^7.3.3",
     "@clerk/themes": "^2.4.57",
+    "@ffmpeg/core": "^0.12.6",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@google/generative-ai": "^0.24.1",
