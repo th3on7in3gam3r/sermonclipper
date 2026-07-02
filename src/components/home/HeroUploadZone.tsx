@@ -29,9 +29,10 @@ function UploadIcon({ size }: { size: number }) {
 interface HeroUploadZoneProps {
   isMobile: boolean;
   onFileSelect: (file: File) => void;
+  embedded?: boolean;
 }
 
-export default function HeroUploadZone({ isMobile, onFileSelect }: HeroUploadZoneProps) {
+export default function HeroUploadZone({ isMobile, onFileSelect, embedded = false }: HeroUploadZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const dragDepth = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -63,7 +64,11 @@ export default function HeroUploadZone({ isMobile, onFileSelect }: HeroUploadZon
     if (file) onFileSelect(file);
   };
 
-  const zoneClass = ['hero-upload-zone', 'animate-in', isDragging ? 'hero-upload-zone--dragging' : '']
+  const zoneClass = [
+    'hero-upload-zone',
+    embedded ? 'hero-upload-zone--embedded' : 'animate-in',
+    isDragging ? 'hero-upload-zone--dragging' : '',
+  ]
     .filter(Boolean)
     .join(' ');
 
@@ -99,7 +104,7 @@ export default function HeroUploadZone({ isMobile, onFileSelect }: HeroUploadZon
         onDragOver={(e) => e.preventDefault()}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        style={{ animationDelay: '0.2s' }}
+        style={embedded ? undefined : { animationDelay: '0.2s' }}
       >
         <div className="hero-upload-icon-wrap">
           <UploadIcon size={isMobile ? 40 : 48} />

@@ -16,9 +16,10 @@ type Episode = {
 type Props = {
   isMobile: boolean;
   onProcessingStart: (jobId: string) => void;
+  embedded?: boolean;
 };
 
-export default function HeroPodcastInput({ isMobile, onProcessingStart }: Props) {
+export default function HeroPodcastInput({ isMobile, onProcessingStart, embedded = false }: Props) {
   const [feedUrl, setFeedUrl] = useState('');
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [feedTitle, setFeedTitle] = useState('');
@@ -72,6 +73,80 @@ export default function HeroPodcastInput({ isMobile, onProcessingStart }: Props)
     }
   };
 
+  const body = (
+    <>
+      <label htmlFor="podcast-feed-input" className="hero-youtube-label">
+        Podcast RSS feed
+      </label>
+      <div className={`hero-youtube-row${isMobile ? ' hero-youtube-row--stack' : ''}`}>
+        <input
+          id="podcast-feed-input"
+          type="url"
+          placeholder="https://feeds.buzzsprout.com/…"
+          value={feedUrl}
+          onChange={(e) => setFeedUrl(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && !loading && void loadFeed()}
+          className="hero-youtube-input"
+        />
+        <button
+          type="button"
+          onClick={() => void loadFeed()}
+          disabled={loading || !feedUrl.trim()}
+          className="vesper-btn vesper-btn-outline shimmer-effect hero-youtube-btn"
+        >
+          {loading ? 'Loading…' : 'Load episodes'}
+        </button>
+      </div>
+
+      {episodes.length > 0 && (
+        <div className="hero-podcast-episodes">
+          <p className="hero-podcast-feed-title">{feedTitle}</p>
+          <div className="hero-podcast-episode-list">
+            {episodes.map((ep) => (
+              <label key={ep.guid} className="hero-podcast-episode">
+                <input
+                  type="checkbox"
+                  checked={selected.has(ep.guid)}
+                  onChange={(e) => {
+                    setSelected((prev) => {
+                      const next = new Set(prev);
+                      if (e.target.checked) next.add(ep.guid);
+                      else next.delete(ep.guid);
+                      return next;
+                    });
+                  }}
+                />
+                <span>
+                  <strong className="hero-podcast-episode-title">{ep.title}</strong>
+                  <span className="hero-podcast-episode-meta">
+                    {ep.publishedAt}
+                    {ep.speaker ? ` · ${ep.speaker}` : ''}
+                    {ep.durationSeconds ? ` · ${Math.round(ep.durationSeconds / 60)} min` : ''}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <label className="hero-podcast-auto">
+            <input type="checkbox" checked={autoProcess} onChange={(e) => setAutoProcess(e.target.checked)} />
+            Auto-process new episodes daily
+          </label>
+          <button
+            type="button"
+            className="vesper-btn vesper-btn-primary shimmer-effect hero-podcast-submit"
+            onClick={() => void processSelected()}
+          >
+            Process selected episode
+          </button>
+        </div>
+      )}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="hero-youtube-embedded">{body}</div>;
+  }
+
   return (
     <div className="hero-youtube-section">
       <div className="hero-youtube-divider" aria-hidden="true">
@@ -80,77 +155,7 @@ export default function HeroPodcastInput({ isMobile, onProcessingStart }: Props)
         <span className="hero-youtube-divider-line" />
       </div>
 
-      <div className="hero-youtube-card glass-card">
-        <label htmlFor="podcast-feed-input" className="hero-youtube-label">
-          Podcast RSS Feed
-        </label>
-        <div className={`hero-youtube-row${isMobile ? ' hero-youtube-row--stack' : ''}`}>
-          <input
-            id="podcast-feed-input"
-            type="url"
-            placeholder="https://feeds.buzzsprout.com/…"
-            value={feedUrl}
-            onChange={(e) => setFeedUrl(e.target.value)}
-            className="hero-youtube-input"
-          />
-          <button
-            type="button"
-            onClick={() => void loadFeed()}
-            disabled={loading || !feedUrl.trim()}
-            className="vesper-btn vesper-btn-outline shimmer-effect hero-youtube-btn"
-          >
-            {loading ? 'Loading…' : 'Load episodes'}
-          </button>
-        </div>
-
-        {episodes.length > 0 && (
-          <>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '16px 0 8px' }}>{feedTitle}</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
-              {episodes.map((ep) => (
-                <label
-                  key={ep.guid}
-                  className="glass-card"
-                  style={{ display: 'flex', gap: '10px', padding: '10px', cursor: 'pointer', alignItems: 'flex-start' }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected.has(ep.guid)}
-                    onChange={(e) => {
-                      setSelected((prev) => {
-                        const next = new Set(prev);
-                        if (e.target.checked) next.add(ep.guid);
-                        else next.delete(ep.guid);
-                        return next;
-                      });
-                    }}
-                  />
-                  <span>
-                    <strong style={{ display: 'block', fontSize: '14px' }}>{ep.title}</strong>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      {ep.publishedAt}
-                      {ep.speaker ? ` · ${ep.speaker}` : ''}
-                      {ep.durationSeconds ? ` · ${Math.round(ep.durationSeconds / 60)} min` : ''}
-                    </span>
-                  </span>
-                </label>
-              ))}
-            </div>
-            <label style={{ display: 'flex', gap: '8px', marginTop: '12px', fontSize: '13px' }}>
-              <input type="checkbox" checked={autoProcess} onChange={(e) => setAutoProcess(e.target.checked)} />
-              Auto-process new episodes daily
-            </label>
-            <button
-              type="button"
-              className="vesper-btn vesper-btn-primary shimmer-effect"
-              style={{ marginTop: '12px', width: '100%' }}
-              onClick={() => void processSelected()}
-            >
-              Process selected episode
-            </button>
-          </>
-        )}
-      </div>
+      <div className="hero-youtube-card glass-card">{body}</div>
     </div>
   );
 }

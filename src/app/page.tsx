@@ -6,9 +6,7 @@ import ProcessingView from '@/components/home/ProcessingView';
 import Pricing from '@/components/home/Pricing';
 import HeroDemo from '@/components/home/HeroDemo';
 import LandingNav from '@/components/home/LandingNav';
-import HeroUploadZone from '@/components/home/HeroUploadZone';
-import HeroYouTubeInput from '@/components/home/HeroYouTubeInput';
-import HeroPodcastInput from '@/components/home/HeroPodcastInput';
+import HeroImportHub from '@/components/home/HeroImportHub';
 import ChurchSocialProof from '@/components/home/ChurchSocialProof';
 import FAQ from '@/components/FAQ';
 import { LandingStructuredData } from '@/components/seo/StructuredData';
@@ -445,21 +443,16 @@ export default function Home() {
 
           <HeroDemo />
 
-          <HeroUploadZone isMobile={isMobile} onFileSelect={handleFileUpload} />
-
-          <HeroYouTubeInput
+          <HeroImportHub
             isMobile={isMobile}
-            url={url}
-            error={youtubeError}
-            notice={youtubeNotice}
-            isValidating={youtubeValidating}
-            onUrlChange={handleUrlChange}
-            onSubmit={handleProcess}
-          />
-
-          <HeroPodcastInput
-            isMobile={isMobile}
-            onProcessingStart={(newJobId) => {
+            onFileSelect={handleFileUpload}
+            youtubeUrl={url}
+            youtubeError={youtubeError}
+            youtubeNotice={youtubeNotice}
+            youtubeValidating={youtubeValidating}
+            onYoutubeUrlChange={handleUrlChange}
+            onYoutubeSubmit={handleProcess}
+            onPodcastProcessingStart={(newJobId) => {
               setJobId(newJobId);
               setProcessingError(null);
               setProcessingStartedAt(Date.now());

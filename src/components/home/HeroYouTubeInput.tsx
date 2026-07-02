@@ -10,6 +10,7 @@ interface HeroYouTubeInputProps {
   isValidating?: boolean;
   onUrlChange: (url: string) => void;
   onSubmit: () => void;
+  embedded?: boolean;
 }
 
 type RecentStream = { videoId: string; title: string; url: string; publishedAt?: string };
@@ -22,6 +23,7 @@ export default function HeroYouTubeInput({
   isValidating,
   onUrlChange,
   onSubmit,
+  embedded = false,
 }: HeroYouTubeInputProps) {
   const [recentStreams, setRecentStreams] = useState<RecentStream[]>([]);
   const [youtubeConnected, setYoutubeConnected] = useState(false);
@@ -37,6 +39,69 @@ export default function HeroYouTubeInput({
       .catch(() => {});
   }, []);
 
+  const body = (
+    <>
+      <label htmlFor="youtube-url-input" className="hero-youtube-label">
+        Paste YouTube link
+      </label>
+      <div className={`hero-youtube-row${isMobile ? ' hero-youtube-row--stack' : ''}`}>
+        <input
+          id="youtube-url-input"
+          type="url"
+          inputMode="url"
+          placeholder="https://youtube.com/watch?v=…"
+          value={url}
+          onChange={(e) => onUrlChange(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && !isValidating && onSubmit()}
+          className={`hero-youtube-input${error ? ' hero-youtube-input--error' : ''}`}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? inputErrorId : undefined}
+        />
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={isValidating || !url.trim()}
+          className="vesper-btn vesper-btn-outline shimmer-effect hero-youtube-btn"
+        >
+          {isValidating ? 'Checking…' : 'Analyze sermon'}
+        </button>
+      </div>
+
+      {youtubeConnected && recentStreams.length > 0 && (
+        <div className="hero-youtube-recent">
+          <p className="hero-youtube-recent-label">Recent streams</p>
+          <div className="hero-youtube-recent-list">
+            {recentStreams.map((stream) => (
+              <button
+                key={stream.videoId}
+                type="button"
+                className="hero-youtube-recent-item"
+                onClick={() => onUrlChange(stream.url)}
+              >
+                {stream.title || stream.videoId}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {notice && !error && (
+        <p className="hero-youtube-notice" role="status">
+          {notice}
+        </p>
+      )}
+      {error ? (
+        <p id={inputErrorId} className="hero-youtube-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="hero-youtube-embedded">{body}</div>;
+  }
+
   return (
     <div className="hero-youtube-section">
       <div className="hero-youtube-divider" aria-hidden="true">
@@ -46,65 +111,11 @@ export default function HeroYouTubeInput({
       </div>
 
       <div className="hero-youtube-card glass-card">
-        <label htmlFor="youtube-url-input" className="hero-youtube-label">
-          Paste YouTube Link
-        </label>
-        <div className={`hero-youtube-row${isMobile ? ' hero-youtube-row--stack' : ''}`}>
-          <input
-            id="youtube-url-input"
-            type="url"
-            inputMode="url"
-            placeholder="https://youtube.com/watch?v=…"
-            value={url}
-            onChange={(e) => onUrlChange(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !isValidating && onSubmit()}
-            className={`hero-youtube-input${error ? ' hero-youtube-input--error' : ''}`}
-            aria-invalid={Boolean(error)}
-            aria-describedby={error ? inputErrorId : undefined}
-          />
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={isValidating || !url.trim()}
-            className="vesper-btn vesper-btn-outline shimmer-effect hero-youtube-btn"
-          >
-            {isValidating ? 'Checking…' : 'Analyze from YouTube'}
-          </button>
-        </div>
-
-        {youtubeConnected && recentStreams.length > 0 && (
-          <div className="hero-youtube-recent">
-            <p className="hero-youtube-recent-label">Recent Streams</p>
-            <div className="hero-youtube-recent-list">
-              {recentStreams.map((stream) => (
-                <button
-                  key={stream.videoId}
-                  type="button"
-                  className="hero-youtube-recent-item"
-                  onClick={() => onUrlChange(stream.url)}
-                >
-                  {stream.title || stream.videoId}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {notice && !error && (
-          <p className="hero-youtube-notice" role="status">
-            {notice}
+        {body}
+        {!notice && !error && (
+          <p className="hero-youtube-hint">
+            Preview and clip discovery — upload a video or audio file above to export rendered reels.
           </p>
-        )}
-        {error ? (
-          <p id={inputErrorId} className="hero-youtube-error" role="alert">
-            {error}
-          </p>
-        ) : (
-          !notice && (
-            <p className="hero-youtube-hint">
-              Preview and clip discovery — upload a video or audio file above to export rendered reels.
-            </p>
-          )
         )}
       </div>
     </div>
