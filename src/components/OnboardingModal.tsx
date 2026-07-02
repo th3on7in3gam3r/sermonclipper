@@ -10,7 +10,7 @@ const SLIDES = [
   {
     icon: '📤',
     title: 'Step 1: Upload or Paste',
-    body: `Welcome to Vesper Studio — we transform your sermons into professional short-form content for social media.\n\nYou have two options:\n\n• Upload an MP4 file directly (max ${MAX_DIRECT_UPLOAD_LABEL} — recommended for full export)\n• Paste a YouTube link (AI analysis only — no reel export)\n\nImportant: YouTube blocks direct file access from servers, so pasted links cannot be exported as reels. Download the sermon from YouTube first, then re-upload the MP4 for full power.\n\nFor large sermons, compress to 720p MP4 first or use a YouTube link for preview.`,
+    body: `Welcome to Vesper — we turn sermons into shareable reels.\n\nFor full export (recommended):\n1. Copy your YouTube sermon link\n2. Convert to MP4 or MP3 at media.ytmp3.gg (or similar) and download the file\n3. If it's over ${MAX_DIRECT_UPLOAD_LABEL}, compress with HandBrake (720p preset)\n4. Upload the file here on Vesper\n\nYouTube links pasted directly are preview-only — no rendered reel export.\n\nOnce your file is ready, upload it and Vesper handles clip detection, captions, and export.`,
     highlight: 'Upload MP4 for the complete experience.',
   },
   {

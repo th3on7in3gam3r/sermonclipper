@@ -4,6 +4,7 @@ import { useState } from 'react';
 import HeroUploadZone from '@/components/home/HeroUploadZone';
 import HeroYouTubeInput from '@/components/home/HeroYouTubeInput';
 import HeroPodcastInput from '@/components/home/HeroPodcastInput';
+import PrepareFileGuide from '@/components/home/PrepareFileGuide';
 
 type ImportTab = 'upload' | 'youtube' | 'podcast';
 
@@ -15,9 +16,9 @@ const TABS: { id: ImportTab; label: string; badge?: string }[] = [
 
 const TAB_NOTES: Record<ImportTab, string> = {
   upload:
-    'Best for full exports — upload an MP4, MOV, or M4A file (download from YouTube first if needed). Vesper renders 9:16 reels with captions.',
+    'Full reel export — MP4, MOV, MP3, or M4A up to 500MB. See the guide below if your sermon is still on YouTube.',
   youtube:
-    'Preview and clip discovery only. For exportable reels, download the sermon as MP4 or M4A, then switch to Upload file.',
+    'Preview and clip discovery only. To export reels, convert the YouTube link to MP4/MP3, compress if needed, then use Upload file.',
   podcast: 'Load episodes from your feed and turn audio sermons into clips automatically.',
 };
 
@@ -103,6 +104,10 @@ export default function HeroImportHub({
             <HeroPodcastInput embedded isMobile={isMobile} onProcessingStart={onPodcastProcessingStart} />
           )}
         </div>
+
+        {(activeTab === 'upload' || activeTab === 'youtube') && (
+          <PrepareFileGuide showYoutubePreviewNote={activeTab === 'youtube'} compact={activeTab === 'upload'} />
+        )}
 
         <p className="hero-import-footnote">{TAB_NOTES[activeTab]}</p>
       </div>

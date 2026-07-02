@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { YOUTUBE_PREVIEW_ONLY_NOTE } from '@/content/prepareSermonFile';
 
 interface HeroYouTubeInputProps {
   isMobile: boolean;
@@ -101,10 +102,7 @@ export default function HeroYouTubeInput({
   if (embedded) {
     return (
       <div className="hero-youtube-embedded">
-        <p className="hero-youtube-preview-banner">
-          YouTube links are for preview only. Download as MP4 or M4A and use <strong>Upload file</strong> to export
-          reels.
-        </p>
+        <p className="hero-youtube-preview-banner">{YOUTUBE_PREVIEW_ONLY_NOTE}</p>
         {body}
       </div>
     );
