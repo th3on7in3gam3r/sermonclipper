@@ -9,7 +9,6 @@ import LandingNav from '@/components/home/LandingNav';
 import HeroUploadZone from '@/components/home/HeroUploadZone';
 import HeroYouTubeInput from '@/components/home/HeroYouTubeInput';
 import HeroPodcastInput from '@/components/home/HeroPodcastInput';
-import HeroManuscriptInput from '@/components/home/HeroManuscriptInput';
 import ChurchSocialProof from '@/components/home/ChurchSocialProof';
 import FAQ from '@/components/FAQ';
 import { LandingStructuredData } from '@/components/seo/StructuredData';
@@ -83,8 +82,6 @@ export default function Home() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [status, setStatus] = useState<Record<string, string> | null>(null);
   const [lastSubmitUrl, setLastSubmitUrl] = useState('');
-  const [preacherName, setPreacherName] = useState('');
-  const [manuscript, setManuscript] = useState('');
   const router = useRouter();
   const { label: heroCtaLabel, onCtaClick: onHeroCtaClick } = useHeroCtaTest();
   const [isMobile, setIsMobile] = useState(false);
@@ -103,11 +100,6 @@ export default function Home() {
     setStatus(null);
     setJobId(null);
   };
-
-  const jobContext = () => ({
-    ...(manuscript.trim() ? { manuscript: manuscript.trim() } : {}),
-    ...(preacherName.trim() ? { preacherName: preacherName.trim() } : {}),
-  });
 
   const handleProcess = async () => {
     setYoutubeError(null);
@@ -133,7 +125,6 @@ export default function Home() {
       const queued = await queueProcessingJob('youtube', {
         url: url.trim(),
         jobId: newJobId,
-        ...jobContext(),
       });
       if ('error' in queued) {
         const message =
@@ -275,7 +266,6 @@ export default function Home() {
       const queued = await queueProcessingJob('upload', {
         url: r2Url,
         jobId: newJobId,
-        ...jobContext(),
       });
       if ('error' in queued) {
         toast.dismiss(loadToast);
@@ -306,7 +296,6 @@ export default function Home() {
       const queued = await queueProcessingJob('upload', {
         url: r2Url,
         jobId: trimJobId,
-        ...jobContext(),
       });
       if ('error' in queued) {
         toast.dismiss(loadToast);
@@ -466,13 +455,6 @@ export default function Home() {
             isValidating={youtubeValidating}
             onUrlChange={handleUrlChange}
             onSubmit={handleProcess}
-          />
-
-          <HeroManuscriptInput
-            preacherName={preacherName}
-            manuscript={manuscript}
-            onPreacherNameChange={setPreacherName}
-            onManuscriptChange={setManuscript}
           />
 
           <HeroPodcastInput
