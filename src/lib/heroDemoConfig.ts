@@ -14,8 +14,20 @@ export type HeroDemoClip = {
 const BEFORE_KEY = process.env.DEMO_VIDEO_BEFORE_KEY || 'demo/sermon-before.mp4';
 const AFTER_KEY = process.env.DEMO_VIDEO_AFTER_KEY || 'demo/reel-after.mp4';
 
-const DEFAULT_AFTER_REEL_URL =
-  'https://shotstack-api-v1-output.s3-ap-southeast-2.amazonaws.com/zr4lvahkq2/0b4b2b61-1a2e-4121-b0c6-6c630b12fdc0.mp4';
+/** Accept only direct media URLs (not bare bucket roots). Override via DEMO_VIDEO_AFTER_URL when you have a hosted reel. */
+export function resolveHeroDemoExternalUrl(raw?: string): string | undefined {
+  const candidate = raw?.trim();
+  if (!candidate) return undefined;
+
+  try {
+    const parsed = new URL(candidate);
+    const path = parsed.pathname.replace(/\/+$/, '');
+    if (!path || path === '' || !/\.(mp4|webm|mov)$/i.test(path)) return undefined;
+    return candidate;
+  } catch {
+    return undefined;
+  }
+}
 
 /** Public previews are ~18s — do not seek to 360s unless you upload a full sermon to CDN. */
 const BEFORE_CLIP_START = Number(process.env.DEMO_VIDEO_BEFORE_START ?? 0);
@@ -35,7 +47,7 @@ export const HERO_DEMO_CLIPS: Record<HeroDemoPanel, HeroDemoClip> = {
     clipStart: 0,
     clipEnd: null,
     publicSrc: '/demo/reel-after.mp4',
-    externalUrl: process.env.DEMO_VIDEO_AFTER_URL || DEFAULT_AFTER_REEL_URL,
+    externalUrl: resolveHeroDemoExternalUrl(process.env.DEMO_VIDEO_AFTER_URL),
   },
 };
 

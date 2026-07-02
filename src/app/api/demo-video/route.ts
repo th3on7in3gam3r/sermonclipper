@@ -35,19 +35,20 @@ export async function GET(req: NextRequest) {
 
   const clip = getHeroDemoClip(panel);
   const clipEnd = panel === 'before' ? clip.clipEnd : null;
+  const publicUrl = clip.publicSrc;
   const streamUrl = `/api/demo-video?panel=${panel}&stream=1`;
 
   const payload = {
     clipStart: clip.clipStart,
     clipEnd,
-    fallbackUrl: streamUrl,
+    fallbackUrl: publicUrl,
   };
 
   if (clip.externalUrl) {
     return NextResponse.json({
       ...payload,
       url: clip.externalUrl,
-      fallbackUrl: streamUrl,
+      fallbackUrl: publicUrl,
       source: 'external',
     });
   }
@@ -57,7 +58,8 @@ export async function GET(req: NextRequest) {
   if (preferPublic) {
     return NextResponse.json({
       ...payload,
-      url: streamUrl,
+      url: publicUrl,
+      fallbackUrl: streamUrl,
       source: 'public',
     });
   }
