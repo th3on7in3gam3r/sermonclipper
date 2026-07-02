@@ -18,7 +18,7 @@
     },
     {
       "path": "/api/cron/analytics-sync",
-      "schedule": "0 */6 * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/podcast-poll",

@@ -24,7 +24,7 @@ jobs:
       - name: Deploy preview to Vercel
         id: vercel
         run: |
-          URL=$(npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(npx vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$URL" >> "$GITHUB_OUTPUT"
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
