@@ -114,6 +114,9 @@ export default function HeroUploadZone({ isMobile, onFileSelect, embedded = fals
         <p className="hero-upload-sub">
           or click to browse — MP4, MOV, WEBM, MP3, or M4A up to {MAX_DIRECT_UPLOAD_LABEL}
         </p>
+        <p className="hero-upload-tip">
+          Have a YouTube link? Download the sermon as MP4 or M4A first, then upload here for full reel export.
+        </p>
 
         <div className="hero-upload-badges">
           <span className="vesper-badge badge-violet">Best for exports</span>

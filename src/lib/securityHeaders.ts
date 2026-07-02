@@ -24,7 +24,7 @@ export function applySecurityHeaders(response: NextResponse, request?: NextReque
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "frame-src 'self' https://challenges.cloudflare.com https://clerk.vesper.biblefunland.com https://accounts.vesper.biblefunland.com https://vesper.biblefunland.com https://www.youtube.com https://*.youtube.com https://vercel.live https://js.stripe.com",
-    "worker-src 'self' blob:",
+    "worker-src 'self' blob: https://unpkg.com",
   ].join('; ');
 
   response.headers.set('Content-Security-Policy', csp);

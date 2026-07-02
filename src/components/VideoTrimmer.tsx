@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import { FFMPEG_WASM_URLS } from '@/lib/ffmpegWasm';
+import { MAX_DIRECT_UPLOAD_BYTES, MAX_DIRECT_UPLOAD_MB, MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
 
 type FFmpegInstance = {
   on: (event: string, cb: (data: { progress: number }) => void) => void;
@@ -17,8 +19,6 @@ interface VideoTrimmerProps {
   onTrimComplete: (trimmedFile: File, jobId: string) => void;
   onCancel: () => void;
 }
-
-import { MAX_DIRECT_UPLOAD_BYTES, MAX_DIRECT_UPLOAD_MB, MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
 
 export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: VideoTrimmerProps) {
   const [file, setFile] = useState<File | null>(initialFile || null);
@@ -63,18 +63,19 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
           setTrimProgress(Math.round(progress * 100));
         });
 
-        // All files are same-origin from public/ffmpeg/
         await ffmpeg.load({
-          coreURL: '/ffmpeg/ffmpeg-core.js',
-          wasmURL: '/ffmpeg/ffmpeg-core.wasm',
-          workerURL: '/ffmpeg/worker.js',
+          coreURL: FFMPEG_WASM_URLS.coreURL,
+          wasmURL: FFMPEG_WASM_URLS.wasmURL,
+          workerURL: FFMPEG_WASM_URLS.workerURL,
         });
 
         ffmpegRef.current = ffmpeg as unknown as FFmpegInstance;
         setFfmpegLoaded(true);
       } catch (err) {
         console.error('FFmpeg load failed:', err);
-        toast.error('Failed to load video engine. Try refreshing.');
+        toast.error(
+          'Could not load the in-browser trimmer. Compress or split the file under 500MB with HandBrake or VLC, then upload again.'
+        );
       } finally {
         setFfmpegLoading(false);
       }

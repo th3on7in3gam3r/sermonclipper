@@ -99,7 +99,15 @@ export default function HeroYouTubeInput({
   );
 
   if (embedded) {
-    return <div className="hero-youtube-embedded">{body}</div>;
+    return (
+      <div className="hero-youtube-embedded">
+        <p className="hero-youtube-preview-banner">
+          YouTube links are for preview only. Download as MP4 or M4A and use <strong>Upload file</strong> to export
+          reels.
+        </p>
+        {body}
+      </div>
+    );
   }
 
   return (

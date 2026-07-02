@@ -242,8 +242,8 @@ export default function Home() {
         return;
       }
       toast(
-        `File is ${Math.round(file.size / 1024 / 1024)}MB — opening trimmer to split it under ${MAX_DIRECT_UPLOAD_LABEL}.`,
-        { icon: '✂️' }
+        `File is ${Math.round(file.size / 1024 / 1024)}MB — opening trimmer to split it under ${MAX_DIRECT_UPLOAD_LABEL}. Tip: you can also download from YouTube as MP4 and compress with HandBrake first.`,
+        { icon: '✂️', duration: 6000 }
       );
       setLargeFile(file);
       setShowTrimmer(true);

@@ -14,8 +14,10 @@ const TABS: { id: ImportTab; label: string; badge?: string }[] = [
 ];
 
 const TAB_NOTES: Record<ImportTab, string> = {
-  upload: 'Best for full exports — AI clip detection plus rendered 9:16 reels with captions and filters.',
-  youtube: 'Fast preview from a link. Clip discovery works; reel export requires uploading the source MP4.',
+  upload:
+    'Best for full exports — upload an MP4, MOV, or M4A file (download from YouTube first if needed). Vesper renders 9:16 reels with captions.',
+  youtube:
+    'Preview and clip discovery only. For exportable reels, download the sermon as MP4 or M4A, then switch to Upload file.',
   podcast: 'Load episodes from your feed and turn audio sermons into clips automatically.',
 };
 

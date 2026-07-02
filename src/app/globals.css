@@ -1271,7 +1271,16 @@ select:focus-visible,
   font-size: clamp(15px, 2vw, 17px);
   line-height: 1.55;
   max-width: 540px;
+  margin: 0 auto 12px;
+}
+
+.hero-upload-tip {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 520px;
   margin: 0 auto 28px;
+  opacity: 0.9;
 }
 
 .hero-upload-badges {
@@ -1404,6 +1413,21 @@ select:focus-visible,
 
 .hero-youtube-embedded .hero-youtube-label {
   margin-top: 0;
+}
+
+.hero-youtube-preview-banner {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #fde68a;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+}
+
+.hero-youtube-preview-banner strong {
+  color: #fef3c7;
 }
 
 .hero-podcast-episodes {

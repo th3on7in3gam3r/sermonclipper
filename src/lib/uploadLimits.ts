@@ -9,5 +9,5 @@ export function isWithinDirectUploadLimit(bytes: number): boolean {
 
 export function formatUploadLimitError(sizeBytes: number): string {
   const sizeMb = Math.round(sizeBytes / (1024 * 1024));
-  return `File is ${sizeMb}MB — maximum direct upload is ${MAX_DIRECT_UPLOAD_LABEL}. Compress the video, split it with the trimmer (desktop), or use a YouTube link for preview.`;
+  return `File is ${sizeMb}MB — maximum direct upload is ${MAX_DIRECT_UPLOAD_LABEL}. Download the sermon as MP4 or M4A first (from YouTube or your editor), compress if needed, then upload here.`;
 }
