@@ -237,7 +237,7 @@ function DashboardContent() {
           </p>
         </div>
 
-        <DashboardOverview userData={userData} isPhone={isPhone} />
+        <DashboardOverview userData={userData} isPhone={isPhone} sermons={sermons} sermonsLoading={loading} />
 
         {isPhone && userData && (
           <div style={{ marginBottom: '24px' }}>
