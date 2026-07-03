@@ -1,10 +1,10 @@
 /* Vesper PWA service worker — app shell + thumbnail cache + offline queue sync */
 
-const CACHE_VERSION = 'vesper-v3';
+const CACHE_VERSION = 'vesper-v4';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const THUMB_CACHE = `${CACHE_VERSION}-thumbs`;
 
-const SHELL_URLS = ['/', '/dashboard', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png'];
+const SHELL_URLS = ['/', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -91,7 +91,7 @@ async function networkFirstShell(request) {
   } catch {
     const cached = await cache.match(request);
     if (cached) return cached;
-    const fallback = await cache.match('/dashboard') || (await cache.match('/'));
+    const fallback = await cache.match('/');
     if (fallback) return fallback;
     return new Response('Offline', { status: 503, statusText: 'Offline' });
   }

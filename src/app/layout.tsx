@@ -26,6 +26,7 @@ import { I18nProvider } from '@/components/providers/I18nProvider';
 import VesperErrorBoundary from '@/components/shared/VesperErrorBoundary';
 import CookieConsent from '@/components/consent/CookieConsent';
 import PwaProvider from '@/components/pwa/PwaProvider';
+import AuthSessionWatcher from '@/components/auth/AuthSessionWatcher';
 import { vesperClerkAppearance, vesperClerkLocalization } from '@/lib/clerkAppearance';
 
 let hasWarnedMissingClerkKey = false;
@@ -132,6 +133,7 @@ export default function RootLayout({
                       }}
                     />
                     <PwaProvider>
+                      <AuthSessionWatcher />
                       {children}
                       <CookieConsent />
                     </PwaProvider>
