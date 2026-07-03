@@ -10,6 +10,7 @@ import { isAudioMediaUrl } from '@/lib/mediaDetection';
 import { uploadStreamToR2 } from '@/lib/r2';
 import { TMP_DIR } from '@/lib/paths';
 import { enrichAnalysisWithQuotes } from '@/lib/quotes/extractQuotables';
+import { parseTime } from '@/lib/parseTime';
 
 export type SermonContext = {
   manuscript?: string;
@@ -295,19 +296,21 @@ export async function processSermonAnalysis(opts: {
   const Sermon = (await import('@/models/Sermon')).default;
   await connectDB();
 
+  const normalizedClips = Array.isArray(analysisResult.clips)
+    ? analysisResult.clips.map((clip) => {
+        const c = clip as Record<string, unknown>;
+        return {
+          ...clip,
+          start: parseTime(c.start ?? c.start_time ?? 0),
+          end: parseTime(c.end ?? c.end_time ?? 0),
+        };
+      })
+    : [];
+
   const enrichedAnalysis = enrichAnalysisWithQuotes({
     ...analysisResult,
     speaker: analysisResult.speaker || context.preacherName || undefined,
-    clips: Array.isArray(analysisResult.clips)
-      ? analysisResult.clips.map((clip) => {
-          const c = clip as Record<string, unknown>;
-          return {
-            ...c,
-            start: c.start ?? c.start_time ?? 0,
-            end: c.end ?? c.end_time ?? 0,
-          };
-        })
-      : [],
+    clips: normalizedClips,
   });
 
   await Sermon.findOneAndUpdate(
