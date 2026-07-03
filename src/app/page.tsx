@@ -68,6 +68,13 @@ export default function Home() {
       document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   }, [completeOnboarding]);
+
+  useEffect(() => {
+    if (window.location.hash !== '#upload') return;
+    requestAnimationFrame(() => {
+      document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }, []);
   const [url, setUrl] = useState('');
   const [youtubeError, setYoutubeError] = useState<string | null>(null);
   const [youtubeNotice, setYoutubeNotice] = useState<string | null>(null);
@@ -78,6 +85,7 @@ export default function Home() {
   const [showTrimmer, setShowTrimmer] = useState(false);
   const [largeFile, setLargeFile] = useState<File | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [jobPollReady, setJobPollReady] = useState(false);
   const [status, setStatus] = useState<Record<string, string> | null>(null);
   const [lastSubmitUrl, setLastSubmitUrl] = useState('');
   const router = useRouter();
@@ -97,6 +105,16 @@ export default function Home() {
     setProcessingStartedAt(null);
     setStatus(null);
     setJobId(null);
+    setJobPollReady(false);
+  };
+
+  const beginProcessing = (id: string) => {
+    setJobId(id);
+    setProcessingError(null);
+    setProcessingStartedAt(Date.now());
+    setStatus(null);
+    setIsProcessing(true);
+    setJobPollReady(true);
   };
 
   const handleProcess = async () => {
@@ -113,11 +131,6 @@ export default function Home() {
 
     const newJobId = Math.random().toString(36).substring(7);
     setLastSubmitUrl(url.trim());
-    setJobId(newJobId);
-    setProcessingError(null);
-    setProcessingStartedAt(Date.now());
-    setStatus(null);
-    setIsProcessing(true);
 
     try {
       const queued = await queueProcessingJob('youtube', {
@@ -129,13 +142,13 @@ export default function Home() {
           queued.code === 'LIMIT_REACHED'
             ? 'You have used all your clips this month. Upgrade to get more.'
             : queued.error;
-        setProcessingError(message);
+        toast.error(message);
         return;
       }
-      setJobId(queued.jobId);
+      beginProcessing(queued.jobId);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'Connection failed';
-      setProcessingError(msg);
+      toast.error(msg);
     }
   };
 
@@ -146,7 +159,9 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (!jobId || !isProcessing) return;
+    if (!jobId || !isProcessing || !jobPollReady) return;
+
+    let missingPolls = 0;
 
     const interval = setInterval(async () => {
       try {
@@ -156,6 +171,16 @@ export default function Home() {
         ]);
         const data = progressRes.ok ? await progressRes.json() : null;
         const job = jobRes.ok ? await jobRes.json() : null;
+
+        if (jobRes.status === 404) {
+          missingPolls += 1;
+          if (missingPolls >= 5) {
+            setProcessingError('Lost track of your processing job. Please try again.');
+            clearInterval(interval);
+          }
+          return;
+        }
+        missingPolls = 0;
 
         if (data) setStatus(data);
 
@@ -179,7 +204,7 @@ export default function Home() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [jobId, isProcessing, router]);
+  }, [jobId, isProcessing, jobPollReady, router]);
 
   // Handle trimmed file upload
   // Upload directly to R2 using presigned URL (bypasses server size limits)
@@ -252,11 +277,6 @@ export default function Home() {
 
     const loadToast = toast.loading(/\.(mp3|m4a|aac)$/i.test(file.name) ? 'Uploading audio file…' : 'Uploading media file…');
     const newJobId = Math.random().toString(36).substring(7);
-    setJobId(newJobId);
-    setProcessingError(null);
-    setProcessingStartedAt(Date.now());
-    setStatus(null);
-    setIsProcessing(true);
 
     try {
       const r2Url = await uploadDirectToR2(file, newJobId);
@@ -266,26 +286,20 @@ export default function Home() {
         jobId: newJobId,
       });
       if ('error' in queued) {
-        toast.dismiss(loadToast);
-        setProcessingError(queued.error);
+        toast.error(queued.error, { id: loadToast });
         return;
       }
 
+      beginProcessing(queued.jobId);
       toast.success('Upload complete. Analysis queued!', { id: loadToast });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Upload failed';
       toast.error(msg, { id: loadToast });
-      resetProcessing();
     }
   };
 
   const handleTrimComplete = async (trimmedFile: File, trimJobId: string) => {
     setShowTrimmer(false);
-    setJobId(trimJobId);
-    setProcessingError(null);
-    setProcessingStartedAt(Date.now());
-    setStatus(null);
-    setIsProcessing(true);
 
     const loadToast = toast.loading('Uploading trimmed video...');
     try {
@@ -296,16 +310,15 @@ export default function Home() {
         jobId: trimJobId,
       });
       if ('error' in queued) {
-        toast.dismiss(loadToast);
-        setProcessingError(queued.error);
+        toast.error(queued.error, { id: loadToast });
         return;
       }
 
+      beginProcessing(queued.jobId);
       toast.success('Trimmed video uploaded! Processing queued.', { id: loadToast });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Upload failed';
       toast.error(msg, { id: loadToast });
-      resetProcessing();
     }
   };
 
@@ -452,13 +465,7 @@ export default function Home() {
             youtubeValidating={youtubeValidating}
             onYoutubeUrlChange={handleUrlChange}
             onYoutubeSubmit={handleProcess}
-            onPodcastProcessingStart={(newJobId) => {
-              setJobId(newJobId);
-              setProcessingError(null);
-              setProcessingStartedAt(Date.now());
-              setStatus(null);
-              setIsProcessing(true);
-            }}
+            onPodcastProcessingStart={beginProcessing}
           />
         </div>
       </section>

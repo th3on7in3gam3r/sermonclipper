@@ -1,4 +1,6 @@
-import Link from 'next/link';
+'use client';
+
+import HardLink from '@/components/shared/HardLink';
 
 interface EmptyStateProps {
   icon?: string;
@@ -34,9 +36,9 @@ export default function EmptyState({
           {ctaLabel}
         </button>
       ) : (
-        <Link href={ctaHref} className={ctaClass}>
+        <HardLink href={ctaHref} className={ctaClass}>
           {ctaLabel}
-        </Link>
+        </HardLink>
       )}
     </div>
   );

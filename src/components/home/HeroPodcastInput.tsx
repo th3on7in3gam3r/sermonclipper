@@ -62,12 +62,12 @@ export default function HeroPodcastInput({ isMobile, onProcessingStart, embedded
 
     for (const episode of picks) {
       const jobId = Math.random().toString(36).substring(7);
-      onProcessingStart(jobId);
       const queued = await queueProcessingJob('youtube', { url: episode.audioUrl, jobId });
       if ('error' in queued) {
         toast.error(queued.error);
         return;
       }
+      onProcessingStart(queued.jobId);
       toast.success(`Processing "${episode.title}"`);
       break;
     }
