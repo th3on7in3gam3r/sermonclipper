@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import ProcessingView from '@/components/home/ProcessingView';
 import Pricing from '@/components/home/Pricing';
 import HeroDemo from '@/components/home/HeroDemo';
+import ShowcasePromo from '@/components/showcase/ShowcasePromo';
 import LandingNav from '@/components/home/LandingNav';
 import HeroImportHub from '@/components/home/HeroImportHub';
 import ChurchSocialProof from '@/components/home/ChurchSocialProof';
@@ -474,6 +475,7 @@ export default function Home() {
           </p>
 
           <HeroDemo />
+          <ShowcasePromo variant="public" />
 
           <HeroImportHub
             isMobile={isMobile}

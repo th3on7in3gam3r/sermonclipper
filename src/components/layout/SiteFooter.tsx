@@ -23,6 +23,7 @@ export default function SiteFooter() {
           <Link href="/privacy">{t('footer.privacy')}</Link>
           <Link href="/terms">{t('footer.terms')}</Link>
           <Link href="/help">{t('footer.help')}</Link>
+          <Link href="/showcase">{t('footer.showcase')}</Link>
           <CookiePreferencesLink />
           <a href={`mailto:${SUPPORT_EMAIL}`}>{t('footer.contact')}</a>
           <a href="/sitemap.xml">{t('footer.sitemap')}</a>

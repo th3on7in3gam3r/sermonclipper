@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import DashboardOverview from '@/components/dashboard/DashboardOverview';
 import DashboardSignInGate from '@/components/dashboard/DashboardSignInGate';
 import ClipLibrary, { type SermonRecord } from '@/components/dashboard/ClipLibrary';
+import ShowcasePromo from '@/components/showcase/ShowcasePromo';
 import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
 import NotificationBell from '@/components/dashboard/NotificationBell';
 import NpsSurvey from '@/components/dashboard/NpsSurvey';
@@ -258,13 +259,16 @@ function DashboardContent() {
             </p>
           </div>
         ) : (
-          <ClipLibrary
+          <>
+            <ShowcasePromo variant="member" />
+            <ClipLibrary
             sermons={sermons}
             plan={userData?.plan}
             onDelete={handleDelete}
             isPhone={isPhone}
             registerActions={setClipActions}
           />
+          </>
         )}
       </div>
 

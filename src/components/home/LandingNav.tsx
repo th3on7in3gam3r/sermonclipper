@@ -11,6 +11,7 @@ import { useHeroCtaTest } from '@/lib/useHeroCtaTest';
 const NAV_LINKS = [
   { href: '/how-it-works', key: 'howItWorks' },
   { href: '/for-churches', key: 'forChurches' },
+  { href: '/showcase', key: 'showcase' },
   { href: '/#pricing', key: 'pricing' },
   { href: '/#faq', key: 'faq' },
 ] as const;
@@ -76,6 +77,7 @@ export default function LandingNav() {
   const tabLabelKey: Record<(typeof NAV_LINKS)[number]['key'], string> = {
     howItWorks: 'nav.howItWorks',
     forChurches: 'nav.forChurches',
+    showcase: 'nav.showcase',
     pricing: 'nav.pricing',
     faq: 'nav.faq',
   };

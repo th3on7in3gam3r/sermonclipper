@@ -24,6 +24,7 @@ import ClipPreviewVideo, { clipDurationLabel } from '@/components/results/ClipPr
 import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
 import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
 import SiteFooter from '@/components/layout/SiteFooter';
+import ShowcasePromo from '@/components/showcase/ShowcasePromo';
 import StudioHelpShell from '@/components/help/StudioHelpShell';
 import HelpTooltip from '@/components/help/HelpTooltip';
 import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
@@ -895,6 +896,12 @@ function ResultsContent() {
             />
 
             {jobId && <SermonNotesEditor jobId={jobId} />}
+
+            {analysis?.clips && analysis.clips.length > 0 && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <ShowcasePromo variant="member" />
+              </div>
+            )}
 
             {analysis?.clips && analysis.clips.length > 0 && (
               <div
