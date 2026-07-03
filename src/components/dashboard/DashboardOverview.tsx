@@ -30,15 +30,9 @@ export default function DashboardOverview({
     <section className="dashboard-overview" aria-label="Dashboard overview">
       <MilestoneToastListener />
       <PushNotificationPrompt />
-
-      <div className="dashboard-overview-row dashboard-overview-row--top">
-        <div className="dashboard-overview-left">
-          <DashboardStreakPanel />
-          <DashboardQuickPanel sermons={sermons} loading={sermonsLoading} />
-        </div>
-        <GettingStartedChecklist compact />
-      </div>
-
+      <DashboardStreakPanel />
+      <GettingStartedChecklist compact />
+      <DashboardQuickPanel sermons={sermons} loading={sermonsLoading} />
       <DashboardAccountPanel userData={userData} isMobile={isPhone} plan={userData?.plan} />
     </section>
   );
