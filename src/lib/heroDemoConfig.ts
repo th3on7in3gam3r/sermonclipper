@@ -28,6 +28,7 @@ export const HERO_DEMO_CLIPS: Record<HeroDemoPanel, HeroDemoClip> = {
     clipStart: BEFORE_CLIP_START,
     clipEnd: BEFORE_CLIP_END,
     publicSrc: '/demo/sermon-before.mp4',
+    externalUrl: getDemoReelUrl(),
   },
   after: {
     storageKey: AFTER_KEY,

@@ -468,10 +468,7 @@ export default function Home() {
             }}
           >
             Automatically distill your powerful sermons into high-impact cinematic reels that reach more
-            hearts on every platform.{' '}
-            <Link href="/showcase" style={{ color: 'var(--accent-violet)', fontWeight: 700 }}>
-              See what churches are creating →
-            </Link>
+            hearts on every platform.
           </p>
 
           <HeroDemo />
