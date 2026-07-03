@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { createQueuedJob, triggerJobProcessor } from '@/lib/jobQueue';
+import { runQueuedJob } from '@/lib/processJob';
 
 /** Create async processing job — returns immediately (202). */
 export async function POST(req: NextRequest) {
@@ -17,6 +19,12 @@ export async function POST(req: NextRequest) {
 
   const jobId = await createQueuedJob(userId, { type, ...payload }, requestedJobId);
   const origin = req.nextUrl.origin;
+
+  after(() => {
+    void runQueuedJob(jobId, origin).catch((err) => {
+      console.error('[JobQueue] Inline process failed:', err);
+    });
+  });
   triggerJobProcessor(jobId, origin);
 
   return NextResponse.json({ jobId, status: 'queued' }, { status: 202 });

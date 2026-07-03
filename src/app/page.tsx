@@ -38,10 +38,12 @@ const PROCESSING_STEPS = [
 function getProcessingStepIndex(step?: string): number {
   if (!step) return 0;
   const normalized = step.toLowerCase();
+  if (normalized.includes('queue') || normalized.includes('wait')) return 0;
   if (normalized.includes('upload')) return 0;
   if (normalized.includes('transcrib') || normalized.includes('engine')) return 1;
-  if (normalized.includes('analy')) return 2;
-  return 3;
+  if (normalized.includes('analy') || normalized.includes('process')) return 2;
+  if (normalized.includes('download')) return 3;
+  return 2;
 }
 
 async function validateYoutubeUrl(inputUrl: string): Promise<{ error: string | null; notice: string | null }> {
@@ -194,8 +196,12 @@ export default function Home() {
         }
 
         const finalPath = job?.finalPath || data?.finalPath;
-        if (job?.status === 'complete' || (data?.status === 'completed' && finalPath)) {
-          router.push(`/results?jobId=${jobId}&videoUrl=${encodeURIComponent(finalPath)}`);
+        const hasAnalysis = Boolean(job?.analysis || data?.analysis);
+        if (
+          job?.status === 'complete' ||
+          (data?.status === 'completed' && (finalPath || hasAnalysis))
+        ) {
+          router.push(`/results?jobId=${jobId}&videoUrl=${encodeURIComponent(finalPath || '')}`);
           clearInterval(interval);
         }
       } catch (e) {
