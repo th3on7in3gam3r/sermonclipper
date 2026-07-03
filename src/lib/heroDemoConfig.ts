@@ -60,3 +60,9 @@ export const HERO_DEMO_CLIPS: Record<HeroDemoPanel, HeroDemoClip> = {
 export function getHeroDemoClip(panel: HeroDemoPanel): HeroDemoClip {
   return HERO_DEMO_CLIPS[panel];
 }
+
+/** Resolved playback URL for a hero demo panel (external Shotstack/CDN or local public file). */
+export function getHeroDemoPlaybackUrl(panel: HeroDemoPanel): string {
+  const clip = HERO_DEMO_CLIPS[panel];
+  return clip.externalUrl || clip.publicSrc;
+}

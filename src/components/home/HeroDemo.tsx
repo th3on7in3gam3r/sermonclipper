@@ -1,6 +1,7 @@
 'use client';
 
 import HeroDemoVideo from '@/components/home/HeroDemoVideo';
+import { getHeroDemoClip } from '@/lib/heroDemoConfig';
 
 const CAPTIONS = [
   'Your confession has power.',
@@ -9,6 +10,8 @@ const CAPTIONS = [
 ];
 
 export default function HeroDemo() {
+  const afterUsesHostedReel = Boolean(getHeroDemoClip('after').externalUrl);
+
   return (
     <div className="hero-demo-shell glass-card premium-border animate-in">
       <div className="hero-demo-row">
@@ -39,17 +42,18 @@ export default function HeroDemo() {
               className="hero-demo-video--after"
               ariaLabel="cinematic reel preview video"
             />
-            <div className="hero-demo-scanline" aria-hidden="true" />
-            {CAPTIONS.map((caption, i) => (
-              <div
-                key={caption}
-                className="hero-demo-caption"
-                style={{ animationDelay: `${i * 2.4}s` }}
-                aria-hidden="true"
-              >
-                {caption}
-              </div>
-            ))}
+            {!afterUsesHostedReel && <div className="hero-demo-scanline" aria-hidden="true" />}
+            {!afterUsesHostedReel &&
+              CAPTIONS.map((caption, i) => (
+                <div
+                  key={caption}
+                  className="hero-demo-caption"
+                  style={{ animationDelay: `${i * 2.4}s` }}
+                  aria-hidden="true"
+                >
+                  {caption}
+                </div>
+              ))}
             <div className="hero-demo-phone-meta">
               <span>9:16</span>
               <span className="vesper-badge badge-violet hero-demo-reel-badge">REEL</span>

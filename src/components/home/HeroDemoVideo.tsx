@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { HeroDemoPanel } from '@/lib/heroDemoConfig';
+import { getHeroDemoClip } from '@/lib/heroDemoConfig';
 
 interface HeroDemoVideoProps {
   panel: HeroDemoPanel;
@@ -18,10 +19,21 @@ type DemoPayload = {
   clipEnd: number | null;
 };
 
+function buildDemoPayload(panel: HeroDemoPanel): DemoPayload | null {
+  const clip = getHeroDemoClip(panel);
+  const url = clip.externalUrl || clip.publicSrc;
+  return {
+    url,
+    fallbackUrl: clip.publicSrc,
+    clipStart: clip.clipStart,
+    clipEnd: panel === 'before' ? clip.clipEnd : null,
+  };
+}
+
 export default function HeroDemoVideo({ panel, className, controlClassName, ariaLabel }: HeroDemoVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [demo, setDemo] = useState<DemoPayload | null>(null);
+  const [demo, setDemo] = useState<DemoPayload | null>(() => buildDemoPayload(panel));
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
@@ -44,7 +56,7 @@ export default function HeroDemoVideo({ panel, className, controlClassName, aria
         });
       })
       .catch(() => {
-        if (!cancelled) setLoadError(true);
+        /* keep config-based initial demo */
       });
 
     return () => {

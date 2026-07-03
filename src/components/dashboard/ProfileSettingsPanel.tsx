@@ -52,10 +52,17 @@ export default function ProfileSettingsPanel() {
     <div className="glass-card premium-border" style={{ padding: 24, marginBottom: 24 }}>
       <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 16 }}>Bio Page & Showcase</h2>
 
-      <label className="settings-toggle" style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
+      <label className="settings-toggle" style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 4 }}>
         <input type="checkbox" checked={showcaseOptIn} onChange={(e) => setShowcaseOptIn(e.target.checked)} />
         Allow Vesper to showcase my clips publicly
       </label>
+      <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12, paddingLeft: 28 }}>
+        Opted-in clips may appear on the public{' '}
+        <a href="/showcase" style={{ color: 'var(--accent-violet)' }}>
+          Showcase
+        </a>{' '}
+        page. You can turn this off anytime.
+      </p>
 
       <label className="settings-toggle" style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16 }}>
         <input
