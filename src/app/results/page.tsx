@@ -20,6 +20,7 @@ import { parseTime } from '@/lib/parseTime';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 import { isDownloadableMasterUrl } from '@/lib/videoSource';
 import { resolveClientPlaybackUrl } from '@/lib/resolvePlaybackUrl';
+import ClipPreviewVideo, { clipDurationLabel } from '@/components/results/ClipPreviewVideo';
 import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
 import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
 import SiteFooter from '@/components/layout/SiteFooter';
@@ -931,16 +932,10 @@ function ResultsContent() {
                       ></iframe>
                     ) : sessionVideoSource ? (
                       playableVideoUrl ? (
-                        <video
+                        <ClipPreviewVideo
                           src={playableVideoUrl}
-                          controls
-                          preload="metadata"
-                          onLoadedMetadata={(e) => {
-                            const vid = e.currentTarget;
-                            const start = parseTime(clip.start);
-                            vid.currentTime = start;
-                          }}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          start={clip.start ?? clip.start_time}
+                          end={clip.end ?? clip.end_time}
                         />
                       ) : (
                         <div
@@ -1013,8 +1008,7 @@ function ResultsContent() {
                         fontFamily: 'monospace',
                       }}
                     >
-                      {Math.floor((parseTime(clip.end) - parseTime(clip.start)) / 60)}:
-                      {String((parseTime(clip.end) - parseTime(clip.start)) % 60).padStart(2, '0')}
+                      {clipDurationLabel(clip.start ?? clip.start_time, clip.end ?? clip.end_time)}
                     </div>
                   </div>
 

@@ -298,6 +298,16 @@ export async function processSermonAnalysis(opts: {
   const enrichedAnalysis = enrichAnalysisWithQuotes({
     ...analysisResult,
     speaker: analysisResult.speaker || context.preacherName || undefined,
+    clips: Array.isArray(analysisResult.clips)
+      ? analysisResult.clips.map((clip) => {
+          const c = clip as Record<string, unknown>;
+          return {
+            ...c,
+            start: c.start ?? c.start_time ?? 0,
+            end: c.end ?? c.end_time ?? 0,
+          };
+        })
+      : [],
   });
 
   await Sermon.findOneAndUpdate(
