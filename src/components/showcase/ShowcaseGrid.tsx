@@ -10,6 +10,7 @@ type ShowcaseClip = {
   churchName: string;
   caption: string;
   videoUrl: string;
+  featured?: boolean;
 };
 
 export default function ShowcaseGrid() {
@@ -23,7 +24,11 @@ export default function ShowcaseGrid() {
   }, []);
 
   if (!clips.length) {
-    return <p style={{ color: 'var(--text-muted)' }}>Featured clips load here when churches opt in.</p>;
+    return (
+      <p style={{ color: 'var(--text-muted)' }}>
+        Showcase examples are loading — refresh in a moment. Churches can opt in under Dashboard → Settings.
+      </p>
+    );
   }
 
   return (
@@ -43,7 +48,7 @@ export default function ShowcaseGrid() {
                 e.currentTarget.currentTime = 0;
               }}
             />
-            <span className="showcase-badge">Made with Vesper</span>
+            <span className="showcase-badge">{clip.featured ? 'Featured example' : 'Made with Vesper'}</span>
           </div>
           <div className="showcase-card-body">
             <p className="showcase-church">{clip.churchName}</p>
@@ -67,7 +72,8 @@ export function ShowcasePageShell() {
           See what churches are <span className="accent-text">creating</span>
         </h1>
         <p style={{ color: 'var(--text-muted)', marginBottom: 40 }}>
-          Featured reels from churches who opted in to public showcase. Enable in Account Settings → Showcase.
+          Example reels from Vesper, plus clips from churches who opt in under Dashboard → Settings → Bio Page &
+          Showcase.
         </p>
         <ShowcaseGrid />
       </div>
