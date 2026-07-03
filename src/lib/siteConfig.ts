@@ -9,4 +9,4 @@ export const OG_IMAGE_PATH = '/opengraph-image';
 
 export const OG_IMAGE_URL = `${SITE_URL}${OG_IMAGE_PATH}`;
 
-export const SUPPORT_EMAIL = 'support@biblefunland.com';
+export const SUPPORT_EMAIL = 'support@vesper.biblefunland.com';

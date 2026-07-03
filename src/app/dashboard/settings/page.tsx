@@ -7,7 +7,6 @@ import ReferralCard from '@/components/dashboard/ReferralCard';
 import WhiteLabelSettings from '@/components/dashboard/WhiteLabelSettings';
 import ProfileSettingsPanel from '@/components/dashboard/ProfileSettingsPanel';
 import DeveloperSettingsPanel from '@/components/dashboard/DeveloperSettingsPanel';
-import BetaProgramPanel from '@/components/dashboard/BetaProgramPanel';
 import StudioHelpShell from '@/components/help/StudioHelpShell';
 import LanguageSelector from '@/components/shared/LanguageSelector';
 import AchievementsSettingsPanel from '@/components/dashboard/AchievementsSettingsPanel';
@@ -92,13 +91,6 @@ export default function AccountSettingsPage() {
     }
   };
 
-  const connectPlanningCenter = async () => {
-    const res = await fetch('/api/planning-center/connect');
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-    else toast(data.message || 'Planning Center not configured yet');
-  };
-
   return (
     <StudioHelpShell>
     <main className="vesper-mesh-bg-container" style={{ minHeight: '100vh' }}>
@@ -162,17 +154,6 @@ export default function AccountSettingsPage() {
         <WhiteLabelSettings />
         <ProfileSettingsPanel />
         <DeveloperSettingsPanel />
-        <BetaProgramPanel />
-
-        <div className="glass-card premium-border" style={{ padding: '24px', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>Planning Center</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '12px' }}>
-            Import upcoming sermons and pre-fill clip metadata from your service plan.
-          </p>
-          <button type="button" className="vesper-btn-outline" onClick={connectPlanningCenter}>
-            Connect Planning Center
-          </button>
-        </div>
 
         <div className="glass-card premium-border" style={{ padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px' }}>Webhooks</h2>
