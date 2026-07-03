@@ -2,7 +2,6 @@
 
 import DashboardAccountPanel from '@/components/dashboard/DashboardAccountPanel';
 import GettingStartedChecklist from '@/components/dashboard/GettingStartedChecklist';
-import DashboardAnalyticsPanel from '@/components/dashboard/DashboardAnalyticsPanel';
 import DashboardStreakPanel from '@/components/dashboard/DashboardStreakPanel';
 import DashboardQuickPanel from '@/components/dashboard/DashboardQuickPanel';
 import PushNotificationPrompt from '@/components/pwa/PushNotificationPrompt';
@@ -40,10 +39,7 @@ export default function DashboardOverview({
         <GettingStartedChecklist compact />
       </div>
 
-      <div className="dashboard-overview-row dashboard-overview-row--bottom">
-        <DashboardAnalyticsPanel />
-        <DashboardAccountPanel userData={userData} isMobile={isPhone} plan={userData?.plan} />
-      </div>
+      <DashboardAccountPanel userData={userData} isMobile={isPhone} plan={userData?.plan} />
     </section>
   );
 }
