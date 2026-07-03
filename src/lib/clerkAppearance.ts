@@ -9,7 +9,10 @@ export const vesperClerkAppearance = {
     colorSuccess: '#10B981',
     colorWarning: '#F4B942',
     colorBackground: '#14141D',
+    colorForeground: '#FFFFFF',
+    colorInput: '#242436',
     colorInputBackground: '#212130',
+    colorInputForeground: '#FFFFFF',
     colorInputText: '#FFFFFF',
     colorText: '#FFFFFF',
     colorTextSecondary: '#E5E7EB',
@@ -61,6 +64,7 @@ export const vesperClerkAppearance = {
     },
     formFieldInput: {
       background: '#242436',
+      color: '#FFFFFF',
       border: '1px solid rgba(255, 255, 255, 0.22)',
       boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.25)',
       '&:focus-within': {
@@ -69,6 +73,12 @@ export const vesperClerkAppearance = {
       },
     },
     formFieldInput__input: {
+      color: '#FFFFFF',
+      '&::placeholder': {
+        color: '#C4C4CF',
+      },
+    },
+    input: {
       color: '#FFFFFF',
       '&::placeholder': {
         color: '#C4C4CF',

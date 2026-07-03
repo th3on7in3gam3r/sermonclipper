@@ -1,0 +1,31 @@
+/* Clerk auth modals — prevent light-theme body text color from leaking into inputs */
+.cl-rootBox,
+.cl-modalContent,
+.cl-card {
+  color: #ffffff;
+}
+
+.cl-rootBox input[type='email'],
+.cl-rootBox input[type='password'],
+.cl-rootBox input[type='text'],
+.cl-rootBox input[type='tel'],
+.cl-formFieldInput input,
+[class*='cl-formFieldInput'] input {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff;
+}
+
+.cl-rootBox input::placeholder,
+[class*='cl-formFieldInput'] input::placeholder {
+  color: #c4c4cf !important;
+  -webkit-text-fill-color: #c4c4cf !important;
+}
+
+.cl-rootBox input:-webkit-autofill,
+.cl-rootBox input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff;
+  transition: background-color 9999s ease-out 0s;
+  box-shadow: 0 0 0 1000px #242436 inset !important;
+}

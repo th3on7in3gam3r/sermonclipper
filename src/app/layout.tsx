@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Outfit } from 'next/font/google';
 import './globals.css';
 import './theme-extensions.css';
+import './clerk-overrides.css';
 import { OG_IMAGE_PATH, SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from '@/lib/siteConfig';
 
 const inter = Inter({
