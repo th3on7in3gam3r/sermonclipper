@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
 import { captureEvent } from '@/lib/analytics';
+import { isPaidPlan } from '@/lib/stripePlans';
 
 const plans = [
   {
@@ -12,7 +13,6 @@ const plans = [
     price: '$0',
     desc: 'For individual creators exploring the AI neural engine.',
     features: ['2 Clips / mo', 'Standard Rendering', 'Basic Caption Templates', 'Standard Support'],
-    priceId: null,
     plan: 'free',
     popular: false,
   },
@@ -28,7 +28,6 @@ const plans = [
       'Custom Branding',
       'Email Support',
     ],
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_CREATOR,
     plan: 'creator',
     popular: true,
   },
@@ -44,7 +43,6 @@ const plans = [
       'White-Label Branding',
       'Priority Phone Support',
     ],
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_CHURCH_PRO,
     plan: 'church_pro',
     popular: false,
   },
@@ -60,7 +58,6 @@ const plans = [
       'Dedicated support',
       'Custom billing',
     ],
-    priceId: null,
     plan: 'network',
     popular: false,
     contact: true as const,
@@ -91,8 +88,7 @@ export default function Pricing() {
       .catch(() => setCurrentPlan('free'));
   }, [userId]);
 
-  const handleSubscription = async (priceId: string | null, plan: string) => {
-    if (!priceId) return;
+  const handleSubscription = async (plan: string) => {
     captureEvent('pricing_plan_clicked', { plan_name: plan });
     setLoading(plan);
 
@@ -100,7 +96,7 @@ export default function Pricing() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId, plan }),
+        body: JSON.stringify({ plan }),
       });
 
       const responseText = await res.text();
@@ -123,7 +119,7 @@ export default function Pricing() {
     }
   };
 
-  const handlePlanClick = (planId: string, priceId: string | null, contact?: boolean) => {
+  const handlePlanClick = (planId: string, contact?: boolean) => {
     if (!isLoaded) return;
 
     if (contact || planId === 'network') {
@@ -141,9 +137,9 @@ export default function Pricing() {
     }
 
     if (planId === currentPlan) return;
-    if (!priceId) return;
+    if (!isPaidPlan(planId)) return;
 
-    handleSubscription(priceId, planId);
+    void handleSubscription(planId);
   };
 
   return (
@@ -215,18 +211,20 @@ export default function Pricing() {
                   onClick={() =>
                     handlePlanClick(
                       p.plan,
-                      p.priceId as string | null,
                       'contact' in p ? Boolean(p.contact) : false
                     )
                   }
                   disabled={
                     isCurrent ||
                     loading !== null ||
-                    (isSignedIn && !isCurrent && !p.priceId && !('contact' in p && p.contact))
+                    (isSignedIn && !isCurrent && !isPaidPlan(p.plan) && !('contact' in p && p.contact))
                   }
                   className={`vesper-btn ${p.popular && !isCurrent ? 'vesper-btn-primary' : 'vesper-btn-outline'} shimmer-effect pricing-card-cta`}
                   style={{
-                    opacity: isCurrent || (isSignedIn && !isCurrent && !p.priceId) ? 0.55 : 1,
+                    opacity:
+                      isCurrent || (isSignedIn && !isCurrent && !isPaidPlan(p.plan) && !('contact' in p && p.contact))
+                        ? 0.55
+                        : 1,
                   }}
                 >
                   {loading === p.plan ? 'Redirecting…' : label}
