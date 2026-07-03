@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
-import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { useAuth, SignInButton, SignUpButton } from '@clerk/nextjs';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
 import ThemeToggle from '@/components/shared/ThemeToggle';
+import VesperUserButton from '@/components/shared/VesperUserButton';
 import { useHeroCtaTest } from '@/lib/useHeroCtaTest';
 
 const NAV_LINKS = [
@@ -30,7 +31,7 @@ function AuthActions({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: 
           <Link href="/dashboard" className="landing-nav-studio-btn" onClick={onNavigate}>
             {t('nav.goToStudio')}
           </Link>
-          <UserButton
+          <VesperUserButton
             appearance={vesperClerkAppearance}
             userProfileProps={{ appearance: vesperClerkAppearance }}
           />

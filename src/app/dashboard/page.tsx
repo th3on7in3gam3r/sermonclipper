@@ -1,11 +1,12 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useAuth, UserButton } from '@clerk/nextjs';
+import { useAuth } from '@clerk/nextjs';
 import HardLink from '@/components/shared/HardLink';
+import VesperUserButton from '@/components/shared/VesperUserButton';
+import { navigateTo } from '@/lib/navigate';
 import { useSearchParams } from 'next/navigation';
 import DashboardOverview from '@/components/dashboard/DashboardOverview';
-import DashboardSignInGate from '@/components/dashboard/DashboardSignInGate';
 import ClipLibrary, { type SermonRecord } from '@/components/dashboard/ClipLibrary';
 import ShowcasePromo from '@/components/showcase/ShowcasePromo';
 import QuotaDisplay from '@/components/dashboard/QuotaDisplay';
@@ -75,6 +76,12 @@ function DashboardContent() {
   );
 
   useEffect(() => {
+    if (isLoaded && !userId) {
+      navigateTo('/');
+    }
+  }, [isLoaded, userId]);
+
+  useEffect(() => {
     if (forceOnboarding && userId) {
       void import('@/lib/useHeroCtaTest').then((m) => m.trackHeroSignupConversion(userId));
     }
@@ -119,8 +126,8 @@ function DashboardContent() {
     }
   };
 
-  if (isLoaded && !userId) {
-    return <DashboardSignInGate />;
+  if (!isLoaded || !userId) {
+    return null;
   }
 
   return (
@@ -204,7 +211,7 @@ function DashboardContent() {
           >
             HOME
           </HardLink>
-          <UserButton
+          <VesperUserButton
             userProfileMode="modal"
             appearance={vesperClerkAppearance}
             userProfileProps={{ appearance: vesperClerkAppearance }}

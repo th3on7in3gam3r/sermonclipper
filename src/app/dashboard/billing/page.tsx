@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useAuth, UserButton } from '@clerk/nextjs';
+import { useAuth } from '@clerk/nextjs';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
+import VesperUserButton from '@/components/shared/VesperUserButton';
 import SiteFooter from '@/components/layout/SiteFooter';
 import CancelSaveFlowModal from '@/components/billing/CancelSaveFlowModal';
 import StudioHelpShell from '@/components/help/StudioHelpShell';
@@ -189,7 +190,7 @@ export default function BillingPage() {
       )}
 
       <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 10 }}>
-        <UserButton appearance={vesperClerkAppearance} />
+        <VesperUserButton appearance={vesperClerkAppearance} />
       </div>
       <SiteFooter />
     </main>

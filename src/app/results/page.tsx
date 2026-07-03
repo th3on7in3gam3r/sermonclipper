@@ -4,7 +4,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
+import { useAuth, SignInButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import VesperTour from '@/components/VesperTour';
@@ -18,6 +18,7 @@ import NewsletterEmbedModal from '@/components/results/NewsletterEmbedModal';
 import { THUMB_STYLES, type ThumbStyleId } from '@/lib/thumbnailStyles';
 import { parseTime } from '@/lib/parseTime';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
+import VesperUserButton from '@/components/shared/VesperUserButton';
 import { isDownloadableMasterUrl } from '@/lib/videoSource';
 import { resolveClientPlaybackUrl } from '@/lib/resolvePlaybackUrl';
 import ClipPreviewVideo, { clipDurationLabel } from '@/components/results/ClipPreviewVideo';
@@ -743,7 +744,7 @@ function ResultsContent() {
               >
                 ?
               </button>
-              <UserButton
+              <VesperUserButton
                 appearance={vesperClerkAppearance}
                 userProfileProps={{ appearance: vesperClerkAppearance }}
               />

@@ -96,6 +96,7 @@ export default function RootLayout({
       localization={vesperClerkLocalization}
       signInFallbackRedirectUrl="/dashboard"
       signUpFallbackRedirectUrl="/dashboard?onboarding=1"
+      afterSignOutUrl="/"
     >
       <html lang="en" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
         <head>
