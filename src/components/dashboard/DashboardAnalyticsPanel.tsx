@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import type { DashboardAnalyticsSummary } from '@/lib/analytics/types';
 
 export default function DashboardAnalyticsPanel() {
@@ -21,13 +20,13 @@ export default function DashboardAnalyticsPanel() {
     wow.changePercent > 0 ? `+${wow.changePercent}%` : wow.changePercent < 0 ? `${wow.changePercent}%` : '—';
 
   return (
-    <div className="glass-card premium-border dashboard-analytics-panel" style={{ padding: '24px', marginBottom: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Reach & performance</h2>
-        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Refreshed every 6h</span>
+    <div className="glass-card premium-border dashboard-analytics-panel">
+      <div className="dashboard-analytics-header">
+        <h2>Reach & performance</h2>
+        <span>Refreshed every 6h</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+      <div className="dashboard-analytics-stats">
         <StatCard label="Total reach (month)" value={data.totalReachThisMonth.toLocaleString()} />
         <StatCard
           label="Avg watch time"
@@ -37,32 +36,32 @@ export default function DashboardAnalyticsPanel() {
         <StatCard label="Week vs last week" value={wowLabel} sub={`${wow.viewsThisWeek.toLocaleString()} views`} />
       </div>
 
-      {data.topClip ? (
-        <div style={{ marginTop: '16px', padding: '14px', borderRadius: '12px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }}>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--primary)', marginBottom: '4px' }}>
-            TOP CLIP THIS MONTH
+      <div className="dashboard-analytics-footer">
+        {data.topClip ? (
+          <div className="dashboard-analytics-top-clip">
+            <div className="dashboard-analytics-top-label">Top clip this month</div>
+            <p className="dashboard-analytics-top-title">{data.topClip.title}</p>
+            <p className="dashboard-analytics-top-meta">
+              {data.topClip.views.toLocaleString()} views across platforms
+            </p>
           </div>
-          <p style={{ margin: 0, fontWeight: 700 }}>{data.topClip.title}</p>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
-            {data.topClip.views.toLocaleString()} views across platforms
+        ) : (
+          <p className="dashboard-analytics-empty">
+            Publish reels to connected platforms to see performance insights here.
           </p>
-        </div>
-      ) : (
-        <p style={{ marginTop: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
-          Publish reels to connected platforms to see performance insights here.
-        </p>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
 function StatCard({ label, value, sub, hint }: { label: string; value: string; sub?: string; hint?: string }) {
   return (
-    <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 800 }}>{label}</div>
-      <div style={{ fontSize: '22px', fontWeight: 900, marginTop: '4px' }}>{value}</div>
-      {sub && <div style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '2px' }}>{sub}</div>}
-      {hint && <div style={{ fontSize: '11px', color: '#10B981', marginTop: '4px' }}>{hint}</div>}
+    <div className="dashboard-analytics-stat">
+      <div className="dashboard-analytics-stat-label">{label}</div>
+      <div className="dashboard-analytics-stat-value">{value}</div>
+      {sub && <div className="dashboard-analytics-stat-sub">{sub}</div>}
+      {hint && <div className="dashboard-analytics-stat-hint">{hint}</div>}
     </div>
   );
 }

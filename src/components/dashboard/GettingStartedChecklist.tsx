@@ -26,7 +26,11 @@ const ITEMS: {
   },
 ];
 
-export default function GettingStartedChecklist() {
+type GettingStartedChecklistProps = {
+  compact?: boolean;
+};
+
+export default function GettingStartedChecklist({ compact = false }: GettingStartedChecklistProps) {
   const [checklist, setChecklist] = useState<Checklist>({});
   const [completed, setCompleted] = useState(0);
   const [total, setTotal] = useState(6);
@@ -47,24 +51,27 @@ export default function GettingStartedChecklist() {
   }, []);
 
   const visibleItems = ITEMS.filter((i) => !i.churchProOnly || plan === 'church_pro');
+  const doneCount = visibleItems.filter((i) => checklist[i.key]).length;
+  const progressPct = visibleItems.length ? Math.round((doneCount / visibleItems.length) * 100) : 0;
+  const pendingItems = visibleItems.filter((i) => !checklist[i.key]);
+  const listItems = compact && pendingItems.length > 0 ? pendingItems : visibleItems;
 
   if (collapsed && completed >= total) {
     return (
-      <div className="getting-started getting-started-done glass-card premium-border">
+      <div className={`getting-started getting-started-done glass-card premium-border${compact ? ' getting-started--compact' : ''}`}>
         <p>You&apos;re all set — happy clipping!</p>
       </div>
     );
   }
 
-  const doneCount = visibleItems.filter((i) => checklist[i.key]).length;
-  const progressPct = visibleItems.length ? Math.round((doneCount / visibleItems.length) * 100) : 0;
-
   return (
-    <div className="getting-started glass-card premium-border">
+    <div className={`getting-started glass-card premium-border${compact ? ' getting-started--compact' : ''}`}>
       <div className="getting-started-header">
         <div>
           <h3>Getting started</h3>
-          <p className="getting-started-subtitle">Complete these steps to get the most from Vesper</p>
+          {!compact && (
+            <p className="getting-started-subtitle">Complete these steps to get the most from Vesper</p>
+          )}
         </div>
         <span className="getting-started-count">
           {doneCount}/{visibleItems.length}
@@ -81,7 +88,7 @@ export default function GettingStartedChecklist() {
         <div className="getting-started-bar-fill" style={{ width: `${progressPct}%` }} />
       </div>
       <ul className="getting-started-list">
-        {visibleItems.map((item) => {
+        {listItems.map((item) => {
           const done = Boolean(checklist[item.key]);
           return (
             <li key={item.key} className={done ? 'done' : ''}>
@@ -105,7 +112,7 @@ export default function GettingStartedChecklist() {
                 {!done && (
                   <HelpInlineLink
                     slug={item.helpSlug}
-                    label="Guide"
+                    label={compact ? '?' : 'Guide'}
                     className="help-inline-link help-inline-link--compact"
                   />
                 )}
@@ -114,6 +121,12 @@ export default function GettingStartedChecklist() {
           );
         })}
       </ul>
+      {compact && pendingItems.length === 0 && doneCount > 0 && (
+        <p className="getting-started-compact-done">All steps complete — you&apos;re ready to clip every week.</p>
+      )}
+      {compact && (
+        <p className="getting-started-footer">Tap a step to jump there · ? opens the guide</p>
+      )}
     </div>
   );
 }

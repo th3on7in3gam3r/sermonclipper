@@ -31,13 +31,19 @@ export default function DashboardOverview({
     <section className="dashboard-overview" aria-label="Dashboard overview">
       <MilestoneToastListener />
       <PushNotificationPrompt />
-      <div className="dashboard-overview-left">
-        <DashboardStreakPanel />
-        <DashboardQuickPanel sermons={sermons} loading={sermonsLoading} />
+
+      <div className="dashboard-overview-row dashboard-overview-row--top">
+        <div className="dashboard-overview-left">
+          <DashboardStreakPanel />
+          <DashboardQuickPanel sermons={sermons} loading={sermonsLoading} />
+        </div>
+        <GettingStartedChecklist compact />
       </div>
-      <GettingStartedChecklist />
-      <DashboardAnalyticsPanel />
-      <DashboardAccountPanel userData={userData} isMobile={isPhone} plan={userData?.plan} />
+
+      <div className="dashboard-overview-row dashboard-overview-row--bottom">
+        <DashboardAnalyticsPanel />
+        <DashboardAccountPanel userData={userData} isMobile={isPhone} plan={userData?.plan} />
+      </div>
     </section>
   );
 }
