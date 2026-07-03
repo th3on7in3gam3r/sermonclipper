@@ -4,7 +4,7 @@ import Sermon from '@/models/Sermon';
 import User from '@/models/User';
 import ClipExport from '@/models/ClipExport';
 import { getBrowserPlaybackUrl } from '@/lib/cdn';
-import { SHOWCASE_FEATURED_CLIPS } from '@/lib/demoReelUrl';
+import { getDemoReelUrl, resolveValidMp4Url, SHOWCASE_FEATURED_CLIPS } from '@/lib/demoReelUrl';
 import { isYouTubeUrl } from '@/lib/videoSource';
 
 type ShowcaseClip = {
@@ -18,7 +18,7 @@ type ShowcaseClip = {
 async function resolveShowcaseVideoUrl(raw: string): Promise<string | null> {
   if (!raw || isYouTubeUrl(raw)) return null;
   if (raw.includes('://') && !raw.includes('.r2.cloudflarestorage.com')) {
-    return raw;
+    return resolveValidMp4Url(raw) ?? null;
   }
   try {
     return await getBrowserPlaybackUrl(raw);
@@ -30,6 +30,7 @@ async function resolveShowcaseVideoUrl(raw: string): Promise<string | null> {
 export async function GET() {
   const clips: ShowcaseClip[] = SHOWCASE_FEATURED_CLIPS.map((clip) => ({
     ...clip,
+    videoUrl: getDemoReelUrl(),
     featured: true,
   }));
 

@@ -1,6 +1,6 @@
 /** Hero demo clips — public /demo/*.mp4 in repo; optional CDN via signed URLs. */
 
-import { VESPER_DEMO_REEL_URL } from '@/lib/demoReelUrl';
+import { getDemoReelUrl } from '@/lib/demoReelUrl';
 
 export type HeroDemoPanel = 'before' | 'after';
 
@@ -17,7 +17,7 @@ const BEFORE_KEY = process.env.DEMO_VIDEO_BEFORE_KEY || 'demo/sermon-before.mp4'
 const AFTER_KEY = process.env.DEMO_VIDEO_AFTER_KEY || 'demo/reel-after.mp4';
 
 /** Default hosted reel for the homepage “After” demo (Shotstack export). Override with DEMO_VIDEO_AFTER_URL. */
-const DEFAULT_AFTER_EXTERNAL_URL = VESPER_DEMO_REEL_URL;
+const DEFAULT_AFTER_EXTERNAL_URL = getDemoReelUrl();
 
 /** Accept only direct media URLs (not bare bucket roots). Override via DEMO_VIDEO_AFTER_URL when you have a hosted reel. */
 export function resolveHeroDemoExternalUrl(raw?: string): string | undefined {
@@ -52,9 +52,7 @@ export const HERO_DEMO_CLIPS: Record<HeroDemoPanel, HeroDemoClip> = {
     clipStart: 0,
     clipEnd: null,
     publicSrc: '/demo/reel-after.mp4',
-    externalUrl: resolveHeroDemoExternalUrl(
-      process.env.DEMO_VIDEO_AFTER_URL ?? DEFAULT_AFTER_EXTERNAL_URL
-    ),
+    externalUrl: resolveHeroDemoExternalUrl(process.env.DEMO_VIDEO_AFTER_URL) ?? DEFAULT_AFTER_EXTERNAL_URL,
   },
 };
 
