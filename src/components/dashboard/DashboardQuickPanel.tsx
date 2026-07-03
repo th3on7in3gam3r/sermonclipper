@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import HardLink from '@/components/shared/HardLink';
 import { buildStudioHref } from '@/lib/studioNavigation';
 import type { SermonRecord } from '@/components/dashboard/ClipLibrary';
 
@@ -17,6 +17,7 @@ export default function DashboardQuickPanel({ sermons, loading }: DashboardQuick
   const latest = sermons[0];
   const clipCount = countClips(sermons);
   const latestClipCount = latest?.analysis?.clips?.length ?? 0;
+  const studioHref = latest ? buildStudioHref(latest.jobId, 0) : null;
 
   return (
     <div className="dashboard-quick-panel glass-card premium-border">
@@ -37,17 +38,19 @@ export default function DashboardQuickPanel({ sermons, loading }: DashboardQuick
             </div>
           </div>
 
-          <div className="dashboard-quick-continue">
-            <span className="dashboard-quick-continue-label">Continue editing</span>
-            <p className="dashboard-quick-continue-title">{latest.title}</p>
-            <p className="dashboard-quick-continue-meta">
-              {latestClipCount} clip{latestClipCount === 1 ? '' : 's'} ·{' '}
-              {new Date(latest.createdAt).toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-              })}
-            </p>
-          </div>
+          {studioHref ? (
+            <HardLink href={studioHref} className="dashboard-quick-continue">
+              <span className="dashboard-quick-continue-label">Continue editing</span>
+              <p className="dashboard-quick-continue-title">{latest.title}</p>
+              <p className="dashboard-quick-continue-meta">
+                {latestClipCount} clip{latestClipCount === 1 ? '' : 's'} ·{' '}
+                {new Date(latest.createdAt).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </p>
+            </HardLink>
+          ) : null}
         </>
       ) : (
         <p className="dashboard-quick-empty">
@@ -56,21 +59,21 @@ export default function DashboardQuickPanel({ sermons, loading }: DashboardQuick
       )}
 
       <div className="dashboard-quick-actions">
-        <Link href="/#upload" className="dashboard-quick-action dashboard-quick-action--primary">
+        <HardLink href="/#upload" className="dashboard-quick-action dashboard-quick-action--primary">
           Upload sermon
-        </Link>
-        {latest ? (
-          <Link href={buildStudioHref(latest.jobId, 0)} className="dashboard-quick-action">
+        </HardLink>
+        {studioHref ? (
+          <HardLink href={studioHref} className="dashboard-quick-action">
             Open in Studio
-          </Link>
+          </HardLink>
         ) : (
-          <Link href="/showcase" className="dashboard-quick-action">
+          <HardLink href="/showcase" className="dashboard-quick-action">
             View showcase
-          </Link>
+          </HardLink>
         )}
-        <Link href="/dashboard/settings" className="dashboard-quick-action">
+        <HardLink href="/dashboard/settings" className="dashboard-quick-action">
           Settings
-        </Link>
+        </HardLink>
       </div>
     </div>
   );

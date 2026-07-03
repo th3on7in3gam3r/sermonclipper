@@ -841,6 +841,17 @@ html {
   border-radius: 14px;
   background: rgba(139, 92, 246, 0.08);
   border: 1px solid rgba(139, 92, 246, 0.2);
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.dashboard-quick-continue:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.12);
 }
 
 .dashboard-quick-continue-label {
@@ -875,6 +886,8 @@ html {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-top: auto;
+  position: relative;
+  z-index: 2;
 }
 
 .dashboard-quick-action {
@@ -891,6 +904,9 @@ html {
   color: var(--text-muted);
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
@@ -1043,7 +1059,11 @@ html {
 }
 
 .getting-started--compact .getting-started-list li {
-  padding: 5px 8px;
+  padding: 4px 8px;
+}
+
+.getting-started--compact .getting-started-list li.done {
+  opacity: 0.72;
 }
 
 .getting-started--compact .getting-started-label {

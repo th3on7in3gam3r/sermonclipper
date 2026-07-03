@@ -53,8 +53,6 @@ export default function GettingStartedChecklist({ compact = false }: GettingStar
   const visibleItems = ITEMS.filter((i) => !i.churchProOnly || plan === 'church_pro');
   const doneCount = visibleItems.filter((i) => checklist[i.key]).length;
   const progressPct = visibleItems.length ? Math.round((doneCount / visibleItems.length) * 100) : 0;
-  const pendingItems = visibleItems.filter((i) => !checklist[i.key]);
-  const listItems = compact && pendingItems.length > 0 ? pendingItems : visibleItems;
 
   if (collapsed && completed >= total) {
     return (
@@ -78,7 +76,7 @@ export default function GettingStartedChecklist({ compact = false }: GettingStar
           )}
         </div>
         <span className="getting-started-count" title={`${doneCount} of ${visibleItems.length} steps complete`}>
-          {compact ? `${pendingItems.length} left` : `${doneCount}/${visibleItems.length}`}
+          {doneCount}/{visibleItems.length}
         </span>
       </div>
       <div
@@ -92,7 +90,7 @@ export default function GettingStartedChecklist({ compact = false }: GettingStar
         <div className="getting-started-bar-fill" style={{ width: `${progressPct}%` }} />
       </div>
       <ul className="getting-started-list">
-        {listItems.map((item) => {
+        {visibleItems.map((item) => {
           const done = Boolean(checklist[item.key]);
           return (
             <li key={item.key} className={done ? 'done' : ''}>
@@ -125,7 +123,7 @@ export default function GettingStartedChecklist({ compact = false }: GettingStar
           );
         })}
       </ul>
-      {compact && pendingItems.length === 0 && doneCount > 0 && (
+      {compact && doneCount >= visibleItems.length && visibleItems.length > 0 && (
         <p className="getting-started-compact-done">All steps complete — you&apos;re ready to clip every week.</p>
       )}
       {compact && (
