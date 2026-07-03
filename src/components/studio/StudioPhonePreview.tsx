@@ -29,6 +29,7 @@ interface StudioPhonePreviewProps {
   isMobile: boolean;
   onPlayingChange: (playing: boolean) => void;
   onMutedChange: (muted: boolean) => void;
+  onRefreshSrc?: () => Promise<string | null>;
 }
 
 export default function StudioPhonePreview({
@@ -53,9 +54,12 @@ export default function StudioPhonePreview({
   isMobile,
   onPlayingChange,
   onMutedChange,
+  onRefreshSrc,
 }: StudioPhonePreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mediaState, setMediaState] = useState<MediaState>('idle');
+  const [activeSrc, setActiveSrc] = useState('');
+  const retriedRef = useRef(false);
 
   const filterCss = STUDIO_FILTERS.find((f) => f.id === selectedFilter)?.css || 'none';
   const template = STUDIO_TEMPLATES.find((t) => t.id === selectedTemplate);
@@ -66,9 +70,15 @@ export default function StudioPhonePreview({
 
   const src = playableVideoUrl || videoUrl || '';
   const isAudio =
-    src.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) || src.toLowerCase().includes('audio');
-  const hasSource = Boolean(videoId || src);
+    activeSrc.match(/\.(mp3|m4a|wav|aac|ogg|flac|wma|mp4a|m4b)($|\?)/i) ||
+    activeSrc.toLowerCase().includes('audio');
+  const hasSource = Boolean(videoId || activeSrc);
   const showPlayOverlay = !isPlaying && hasSource && mediaState !== 'error';
+
+  useEffect(() => {
+    setActiveSrc(src);
+    retriedRef.current = false;
+  }, [src, videoId]);
 
   useEffect(() => {
     if (videoId) {
@@ -80,7 +90,7 @@ export default function StudioPhonePreview({
       return;
     }
     setMediaState('loading');
-  }, [src, videoId]);
+  }, [activeSrc, videoId]);
 
   const playPreview = useCallback(async () => {
     const video = videoRef.current;
@@ -88,7 +98,7 @@ export default function StudioPhonePreview({
       onPlayingChange(true);
       return;
     }
-    if (!video || !src) return;
+    if (!video || !activeSrc) return;
 
     const seekToStart = () => {
       if (previewEnd > previewStart && Number.isFinite(previewStart)) {
@@ -136,7 +146,7 @@ export default function StudioPhonePreview({
         }
       }
     }
-  }, [videoId, src, previewEnd, previewStart, isMuted, onPlayingChange, onMutedChange]);
+  }, [videoId, activeSrc, previewEnd, previewStart, isMuted, onPlayingChange, onMutedChange]);
 
   const pausePreview = useCallback(() => {
     videoRef.current?.pause();
@@ -159,7 +169,7 @@ export default function StudioPhonePreview({
   // Loop clip segment via currentTime — #t= fragments break many signed CDN URLs.
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !src || videoId) return;
+    if (!video || !activeSrc || videoId) return;
 
     const seekToStart = () => {
       if (Number.isFinite(previewStart)) {
@@ -181,7 +191,7 @@ export default function StudioPhonePreview({
       video.removeEventListener('loadedmetadata', seekToStart);
       video.removeEventListener('timeupdate', onTimeUpdate);
     };
-  }, [src, previewStart, previewEnd, videoId]);
+  }, [activeSrc, previewStart, previewEnd, videoId]);
 
   return (
     <div style={{ position: 'relative' }}>
@@ -339,8 +349,8 @@ export default function StudioPhonePreview({
               )}
               <video
                 ref={videoRef}
-                key={src}
-                src={src}
+                key={activeSrc}
+                src={activeSrc}
                 loop
                 playsInline
                 muted={isMuted}
@@ -350,6 +360,19 @@ export default function StudioPhonePreview({
                 onPause={() => onPlayingChange(false)}
                 onError={() => {
                   onPlayingChange(false);
+                  if (!retriedRef.current && onRefreshSrc) {
+                    retriedRef.current = true;
+                    setMediaState('loading');
+                    void onRefreshSrc().then((fresh) => {
+                      if (fresh) {
+                        setActiveSrc(fresh);
+                        setMediaState('loading');
+                      } else {
+                        setMediaState('error');
+                      }
+                    });
+                    return;
+                  }
                   setMediaState('error');
                 }}
                 onCanPlay={() => setMediaState('ready')}
@@ -400,7 +423,7 @@ export default function StudioPhonePreview({
             </div>
           )}
 
-          {mediaState === 'loading' && src && !videoId && (
+          {mediaState === 'loading' && activeSrc && !videoId && (
             <div
               style={{
                 position: 'absolute',

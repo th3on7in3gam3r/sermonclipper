@@ -18,6 +18,32 @@ export function fixMalformedMediaUrl(url: string): string {
  * Extract an R2/CDN storage key (uploads/… or sermons/…) from a key or delivery URL.
  * Returns null for external URLs that are not Vesper storage.
  */
+/** Normalize any legacy reference (R2 URL, /api/media link, key) to a storage key. */
+export function toStorageKey(urlOrKey: string): string | null {
+  const cleaned = fixMalformedMediaUrl(urlOrKey.trim());
+  const fromDelivery = extractStorageKeyFromDeliveryUrl(cleaned);
+  if (fromDelivery) return fromDelivery;
+
+  if (isR2StorageUrl(cleaned)) {
+    try {
+      return extractR2Key(cleaned);
+    } catch {
+      return null;
+    }
+  }
+
+  if (cleaned.includes('/api/media')) {
+    try {
+      const key = new URL(cleaned, 'https://vesper.local').searchParams.get('key');
+      if (key) return key.replace(/^\/+/, '');
+    } catch {
+      /* ignore */
+    }
+  }
+
+  return null;
+}
+
 export function extractStorageKeyFromDeliveryUrl(urlOrKey: string): string | null {
   const trimmed = fixMalformedMediaUrl(urlOrKey.trim());
   if (/^(uploads|sermons)\//.test(trimmed)) {
@@ -45,7 +71,8 @@ export function needsMediaDeliveryResolve(url: string): boolean {
   if (extractStorageKeyFromDeliveryUrl(url)) return true;
   if (/^(uploads|sermons)\//.test(url)) return true;
   if (/\/\/https/i.test(url)) return true;
-  if (url.includes('X-Amz-Signature')) return false;
+  // Expired presigned R2 URLs should be refreshed via /api/video-url.
+  if (url.includes('X-Amz-Signature') && isR2StorageUrl(url)) return true;
   return false;
 }
 

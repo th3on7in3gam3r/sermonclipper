@@ -11,6 +11,8 @@ import { uploadStreamToR2 } from '@/lib/r2';
 import { TMP_DIR } from '@/lib/paths';
 import { enrichAnalysisWithQuotes } from '@/lib/quotes/extractQuotables';
 import { parseTime } from '@/lib/parseTime';
+import { buildSermonKey } from '@/lib/storageKeys';
+import { isYouTubeUrl, toStorageKey } from '@/lib/videoSource';
 
 export type SermonContext = {
   manuscript?: string;
@@ -235,14 +237,18 @@ async function runSermonDownloadPipeline(
         status: 'loading',
         message: 'Cloud Sync: Finalizing Media Kit...',
       });
-      const r2Url = await uploadStreamToR2(`sermons/${jobId}.mp4`, createReadStream(filePath), 'video/mp4');
+      await uploadStreamToR2(`sermons/${jobId}.mp4`, createReadStream(filePath), 'video/mp4');
+      const sermonKey = buildSermonKey(jobId);
       await progressManager.update(jobId, {
         step: 'Downloading',
         status: 'completed',
         message: 'Master Download Complete',
-        finalPath: r2Url,
+        finalPath: sermonKey,
         analysis: enrichAnalysisWithQuotes(analysisResult),
       });
+      const Sermon = (await import('@/models/Sermon')).default;
+      await connectDB();
+      await Sermon.findOneAndUpdate({ jobId }, { finalPath: sermonKey });
       if (existsSync(filePath)) unlinkSync(filePath);
     } catch {
       await progressManager.update(jobId, {
@@ -296,6 +302,9 @@ export async function processSermonAnalysis(opts: {
   const Sermon = (await import('@/models/Sermon')).default;
   await connectDB();
 
+  const storedMediaRef = toStorageKey(url) || url;
+  const isYoutube = isYouTubeUrl(url);
+
   const normalizedClips = Array.isArray(analysisResult.clips)
     ? analysisResult.clips.map((clip) => {
         const c = clip as Record<string, unknown>;
@@ -320,8 +329,8 @@ export async function processSermonAnalysis(opts: {
       jobId,
       title: analysisResult.sermon_title || 'Untitled Sermon',
       mainTheme: analysisResult.main_theme || '',
-      videoUrl: url,
-      finalPath: url,
+      videoUrl: isYoutube ? url : storedMediaRef,
+      finalPath: isYoutube ? '' : storedMediaRef,
       manuscriptText: context.manuscript || '',
       analysis: enrichedAnalysis,
       createdAt: new Date(),
@@ -333,7 +342,7 @@ export async function processSermonAnalysis(opts: {
     step: 'Analysis',
     status: 'completed',
     message: `[Neural Pulse] Complete. GPT-4o generated ${analysisResult?.clips?.length || 0} clips.`,
-    finalPath: url,
+    finalPath: isYoutube ? '' : storedMediaRef,
     analysis: enrichedAnalysis,
   });
 
@@ -343,7 +352,6 @@ export async function processSermonAnalysis(opts: {
 
   try {
     const { markChecklist } = await import('@/lib/checklist');
-    const isYoutube = Boolean(extractVideoId(url));
     if (!isYoutube) await markChecklist(userId, 'uploadedSermon');
     await markChecklist(userId, 'createdClip');
   } catch {

@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useSearchParams } from 'next/navigation';
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -72,7 +72,19 @@ function ResultsContent() {
 
   const resolvePlayableUrl = async (url: string) => resolveClientPlaybackUrl(url);
 
-  // Resolve private storage → signed CDN/app URL (wait for auth so /api/video-url succeeds)
+  const refreshPlayableUrl = useCallback(async () => {
+    if (!sessionVideoSource || !userId) return null;
+    try {
+      const resolved = await resolvePlayableUrl(sessionVideoSource);
+      setPlayableVideoUrl(resolved);
+      return resolved;
+    } catch {
+      setPlayableVideoUrl(null);
+      return null;
+    }
+  }, [sessionVideoSource, userId]);
+
+  // Resolve private storage → presigned R2 URL (wait for auth so /api/video-url succeeds)
   useEffect(() => {
     if (!isLoaded || !userId) return;
 
@@ -936,6 +948,7 @@ function ResultsContent() {
                           src={playableVideoUrl}
                           start={clip.start ?? clip.start_time}
                           end={clip.end ?? clip.end_time}
+                          onRefreshSrc={refreshPlayableUrl}
                         />
                       ) : (
                         <div

@@ -171,6 +171,19 @@ export default function VesperStudio({
     migrateStoredBrandKit();
   }, []);
 
+  const refreshStudioPlayback = useCallback(async () => {
+    const source = videoUrl || playableVideoUrl;
+    if (!source || videoId) return null;
+    try {
+      const resolved = await resolveClientPlaybackUrl(source);
+      setStudioPlaybackUrl(resolved);
+      return resolved;
+    } catch {
+      setStudioPlaybackUrl(null);
+      return null;
+    }
+  }, [videoUrl, playableVideoUrl, videoId]);
+
   // Resolve auth-gated storage keys when parent hasn't finished yet.
   useEffect(() => {
     if (playableVideoUrl) {
@@ -189,7 +202,7 @@ export default function VesperStudio({
         if (!cancelled) setStudioPlaybackUrl(resolved);
       })
       .catch(() => {
-        if (!cancelled) setStudioPlaybackUrl(videoUrl);
+        if (!cancelled) setStudioPlaybackUrl(null);
       });
 
     return () => {
@@ -735,6 +748,7 @@ export default function VesperStudio({
             isMobile={isMobile}
             onPlayingChange={setIsPlaying}
             onMutedChange={setIsMuted}
+            onRefreshSrc={refreshStudioPlayback}
           />
 
           <div style={{ width: '100%', maxWidth: '330px', marginTop: '24px' }}>

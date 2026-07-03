@@ -260,9 +260,8 @@ export default function Home() {
       const err = await confirmRes.json();
       throw new Error(err.error || 'Upload validation failed');
     }
-    const { internalUrl } = await confirmRes.json();
     captureEvent('clip_created', { source_type: 'upload' });
-    return internalUrl as string;
+    return key;
   };
 
   const handleFileUpload = async (file: File) => {

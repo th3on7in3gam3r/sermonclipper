@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { getMediaDeliveryUrl } from '@/lib/cdn';
+import { getBrowserPlaybackUrl } from '@/lib/cdn';
 import { getR2ObjectUrl } from '@/lib/r2';
-import { extractR2Key, extractStorageKeyFromDeliveryUrl, isR2StorageUrl } from '@/lib/videoSource';
+import { extractR2Key, extractStorageKeyFromDeliveryUrl, isR2StorageUrl, toStorageKey } from '@/lib/videoSource';
 
 /**
  * Returns a short-lived delivery URL for private storage (CDN or app-signed).
@@ -22,17 +22,20 @@ export async function GET(req: NextRequest) {
     const keyParam = searchParams.get('key');
     const rawUrl = searchParams.get('url');
 
-    let key = keyParam || '';
+    let key = keyParam ? keyParam.replace(/^\/+/, '') : '';
     if (!key && rawUrl) {
-      const extracted = extractStorageKeyFromDeliveryUrl(rawUrl);
-      if (extracted) {
-        key = extracted;
-      } else if (isR2StorageUrl(rawUrl)) {
-        key = extractR2Key(rawUrl);
-      } else if (!rawUrl.includes('://')) {
-        key = rawUrl;
-      } else {
-        return NextResponse.json({ url: rawUrl });
+      key = toStorageKey(rawUrl) || '';
+      if (!key) {
+        const extracted = extractStorageKeyFromDeliveryUrl(rawUrl);
+        if (extracted) {
+          key = extracted;
+        } else if (isR2StorageUrl(rawUrl)) {
+          key = extractR2Key(rawUrl);
+        } else if (!rawUrl.includes('://')) {
+          key = rawUrl.replace(/^\/+/, '');
+        } else {
+          return NextResponse.json({ url: rawUrl });
+        }
       }
     }
 
@@ -40,7 +43,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Missing key or url param' }, { status: 400 });
     }
 
-    const playbackUrl = await getMediaDeliveryUrl(key);
+    const playbackUrl = await getBrowserPlaybackUrl(key);
     const internalUrl = getR2ObjectUrl(key);
 
     return NextResponse.json({ url: playbackUrl, key, internalUrl });

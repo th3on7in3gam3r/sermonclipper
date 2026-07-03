@@ -43,9 +43,13 @@ export default function FrameFilmstrip({
     const load = async () => {
       setLoading(true);
       video.src = videoSrc;
-      video.crossOrigin = 'anonymous';
       video.muted = true;
       video.playsInline = true;
+      if (videoSrc.startsWith('/')) {
+        video.crossOrigin = 'anonymous';
+      } else {
+        video.removeAttribute('crossorigin');
+      }
 
       await new Promise<void>((resolve, reject) => {
         video.onloadedmetadata = () => resolve();

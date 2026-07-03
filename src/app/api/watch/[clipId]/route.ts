@@ -4,7 +4,7 @@ import Sermon from '@/models/Sermon';
 import ClipExport from '@/models/ClipExport';
 import User from '@/models/User';
 import { parseClipId, formatClipId } from '@/lib/api/v1/clips';
-import { getMediaDeliveryUrl } from '@/lib/cdn';
+import { getBrowserPlaybackUrl } from '@/lib/cdn';
 
 function normalizeClipId(raw: string) {
   if (raw.includes(':')) return raw;
@@ -38,7 +38,7 @@ export async function GET(
 
   let videoUrl = exportRow?.renderUrl || sermon.videoUrl;
   if (!exportRow?.renderUrl && sermon.finalPath) {
-    videoUrl = await getMediaDeliveryUrl(sermon.finalPath);
+    videoUrl = await getBrowserPlaybackUrl(sermon.finalPath);
   }
 
   const title =

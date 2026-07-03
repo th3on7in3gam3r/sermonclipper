@@ -1,7 +1,14 @@
 import { createHmac } from 'crypto';
 import { generatePresignedGetUrl } from './r2';
 import { normalizeCdnHost } from './cdnHost';
-import { extractR2Key, extractStorageKeyFromDeliveryUrl, isR2StorageUrl } from './videoSource';
+import {
+  extractR2Key,
+  extractStorageKeyFromDeliveryUrl,
+  fixMalformedMediaUrl,
+  isR2StorageUrl,
+  isYouTubeUrl,
+  toStorageKey,
+} from './videoSource';
 
 const CDN_HOST = normalizeCdnHost(process.env.BUNNY_CDN_HOST);
 const BUNNY_TOKEN_KEY = process.env.BUNNY_TOKEN_AUTHENTICATION_KEY;
@@ -60,6 +67,28 @@ export async function getMediaDeliveryUrl(
 
   const key = keyOrUrl.replace(/^\/+/, '');
   return deliveryUrlForKey(key, expiresInSec);
+}
+
+/**
+ * Browser-safe playback URL — presigned R2 GET with Range support.
+ * More reliable than /api/media proxy streaming on serverless hosts.
+ */
+export async function getBrowserPlaybackUrl(
+  keyOrUrl: string,
+  expiresInSec = MEDIA_URL_EXPIRY_SEC
+): Promise<string> {
+  const cleaned = fixMalformedMediaUrl(keyOrUrl);
+  if (isYouTubeUrl(cleaned)) return cleaned;
+
+  const storageKey = toStorageKey(cleaned);
+  if (storageKey) {
+    return generatePresignedGetUrl(storageKey, expiresInSec);
+  }
+
+  if (cleaned.includes('://')) return cleaned;
+
+  const bareKey = cleaned.replace(/^\/+/, '');
+  return generatePresignedGetUrl(bareKey, expiresInSec);
 }
 
 /** For Shotstack / server-side fetch — presigned R2 GET (not exposed to browsers). */

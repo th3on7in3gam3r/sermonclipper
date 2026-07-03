@@ -7,19 +7,27 @@ type ClipPreviewVideoProps = {
   src: string;
   start?: unknown;
   end?: unknown;
+  onRefreshSrc?: () => Promise<string | null>;
 };
 
 /** In-browser clip preview with seek-to-start and a captured poster frame. */
-export default function ClipPreviewVideo({ src, start, end }: ClipPreviewVideoProps) {
+export default function ClipPreviewVideo({ src, start, end, onRefreshSrc }: ClipPreviewVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [activeSrc, setActiveSrc] = useState(src);
   const [poster, setPoster] = useState<string>();
   const [error, setError] = useState(false);
+  const retriedRef = useRef(false);
   const startSec = parseTime(start);
+
+  useEffect(() => {
+    setActiveSrc(src);
+    retriedRef.current = false;
+  }, [src]);
 
   useEffect(() => {
     setPoster(undefined);
     setError(false);
-  }, [src, startSec]);
+  }, [activeSrc, startSec]);
 
   useEffect(() => {
     const vid = videoRef.current;
@@ -60,7 +68,21 @@ export default function ClipPreviewVideo({ src, start, end }: ClipPreviewVideoPr
     };
 
     const onLoadedData = () => seekToClipStart();
-    const onError = () => setError(true);
+    const onError = () => {
+      if (!retriedRef.current && onRefreshSrc) {
+        retriedRef.current = true;
+        void onRefreshSrc().then((fresh) => {
+          if (fresh) {
+            setActiveSrc(fresh);
+            setError(false);
+          } else {
+            setError(true);
+          }
+        });
+        return;
+      }
+      setError(true);
+    };
 
     vid.addEventListener('loadeddata', onLoadedData);
     vid.addEventListener('error', onError);
@@ -72,7 +94,7 @@ export default function ClipPreviewVideo({ src, start, end }: ClipPreviewVideoPr
       vid.removeEventListener('loadeddata', onLoadedData);
       vid.removeEventListener('error', onError);
     };
-  }, [src, startSec]);
+  }, [activeSrc, startSec, onRefreshSrc]);
 
   if (error) {
     return (
@@ -98,7 +120,8 @@ export default function ClipPreviewVideo({ src, start, end }: ClipPreviewVideoPr
   return (
     <video
       ref={videoRef}
-      src={src}
+      key={activeSrc}
+      src={activeSrc}
       poster={poster}
       controls
       preload="metadata"
