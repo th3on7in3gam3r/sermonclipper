@@ -3,6 +3,7 @@ import { getJob, updateJobQueue, getJobQueueDepth } from '@/lib/jobQueue';
 import { createNotification } from '@/lib/notifications';
 import { progressManager } from '@/lib/progress';
 import { traceJob } from '@/lib/telemetry/spans';
+import { PlanLimitError, processSermonAnalysis } from '@/lib/sermonAnalysis';
 
 const MAX_RETRIES = 3;
 const STALE_PROCESSING_MS = 10 * 60 * 1000;
@@ -20,45 +21,25 @@ export type ProcessJobResult =
   | { ok: true; jobId: string }
   | { ok: false; skipped?: boolean; error?: string; retryCount?: number };
 
-async function runMediaPipeline(
-  origin: string,
-  jobId: string,
-  userId: string | undefined,
-  payload: JobPayload,
-  cookieHeader?: string
-) {
+async function runMediaPipeline(jobId: string, userId: string | undefined, payload: JobPayload) {
+  if (!userId) {
+    throw new Error('Missing user for processing job');
+  }
+
   const mediaUrl = payload.url || payload.finalPath;
   if (!mediaUrl) {
     throw new Error('Missing media URL for processing job');
   }
 
-  const secret = process.env.CRON_SECRET;
-  const res = await fetch(`${origin}/api/download-youtube`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(secret
-        ? {
-            Authorization: `Bearer ${secret}`,
-            'x-vesper-user-id': userId || '',
-          }
-        : cookieHeader
-          ? { Cookie: cookieHeader }
-          : {}),
-    },
-    body: JSON.stringify({
-      url: mediaUrl,
-      jobId,
-      userId,
+  await processSermonAnalysis({
+    url: mediaUrl,
+    jobId,
+    userId,
+    context: {
       manuscript: payload.manuscript,
       preacherName: payload.preacherName,
-    }),
+    },
   });
-
-  if (!res.ok) {
-    const errBody = (await res.json().catch(() => ({}))) as { details?: string; error?: string };
-    throw new Error(errBody.details || errBody.error || `Pipeline failed (${res.status})`);
-  }
 }
 
 async function notifyClipReady(jobId: string, userId: string) {
@@ -195,7 +176,7 @@ export async function runQueuedJob(
       }
 
       if ((payload.type === 'youtube' || payload.type === 'upload') && (payload.url || payload.finalPath)) {
-        await runMediaPipeline(origin, jobId, job.userId, payload, options?.cookieHeader);
+        await runMediaPipeline(jobId, job.userId, payload);
         await finalizeSuccessfulJob(jobId, job.userId);
         return;
       }
@@ -205,7 +186,12 @@ export async function runQueuedJob(
 
     return { ok: true, jobId };
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Processing failed';
+    const msg =
+      error instanceof PlanLimitError
+        ? error.message
+        : error instanceof Error
+          ? error.message
+          : 'Processing failed';
     Sentry.captureException(error, { tags: { jobId } });
 
     const nextRetry = retryCount + 1;
