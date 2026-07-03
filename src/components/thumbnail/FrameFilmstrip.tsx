@@ -7,6 +7,9 @@ import {
   pickBestFrames,
   type ThumbnailExportKey,
 } from '@/lib/thumbnailFrames';
+import { getThumbnailCaptureVideoUrl } from '@/lib/thumbnailVideoUrl';
+import { resolveClientPlaybackUrl } from '@/lib/resolvePlaybackUrl';
+import { isYouTubeUrl, needsMediaDeliveryResolve } from '@/lib/videoSource';
 
 export type FilmstripFrame = { time: number; dataUrl: string; score: number };
 
@@ -16,6 +19,17 @@ interface FrameFilmstripProps {
   clipEnd: number;
   selectedTime: number;
   onSelectTime: (time: number, dataUrl: string) => void;
+}
+
+async function resolveCaptureVideoSrc(raw: string): Promise<string> {
+  const proxyUrl = getThumbnailCaptureVideoUrl(raw);
+  if (proxyUrl) return proxyUrl;
+
+  if (needsMediaDeliveryResolve(raw)) {
+    return resolveClientPlaybackUrl(raw);
+  }
+
+  return raw;
 }
 
 export default function FrameFilmstrip({
@@ -31,6 +45,7 @@ export default function FrameFilmstrip({
   onSelectRef.current = onSelectTime;
   const [frames, setFrames] = useState<FilmstripFrame[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [bestTimes, setBestTimes] = useState<number[]>([]);
   const [dragging, setDragging] = useState(false);
 
@@ -38,36 +53,57 @@ export default function FrameFilmstrip({
     const video = videoRef.current;
     if (!video || !videoSrc) return;
 
+    if (isYouTubeUrl(videoSrc)) {
+      setLoading(false);
+      setError('Frame pick requires an uploaded video — YouTube sources use AI thumbnails.');
+      return;
+    }
+
     let cancelled = false;
 
     const load = async () => {
       setLoading(true);
-      video.src = videoSrc;
-      video.muted = true;
-      video.playsInline = true;
-      if (videoSrc.startsWith('/')) {
+      setError(null);
+      setFrames([]);
+
+      try {
+        const src = await resolveCaptureVideoSrc(videoSrc);
+        if (cancelled) return;
+
         video.crossOrigin = 'anonymous';
-      } else {
-        video.removeAttribute('crossorigin');
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.src = src;
+
+        await new Promise<void>((resolve, reject) => {
+          video.onloadedmetadata = () => resolve();
+          video.onerror = () => reject(new Error('Video load failed'));
+        });
+
+        const end = clipEnd > clipStart ? clipEnd : clipStart + 30;
+        const generated = await generateFilmstripFrames(video, clipStart, end, 1);
+        if (cancelled) return;
+
+        if (!generated.length) {
+          setError('No frames could be captured from this clip.');
+          setLoading(false);
+          return;
+        }
+
+        setFrames(generated);
+        setBestTimes(pickBestFrames(generated));
+        onSelectRef.current(generated[0].time, generated[0].dataUrl);
+        setLoading(false);
+      } catch {
+        if (!cancelled) {
+          setError('Could not load video frames. Try again or use AI Styles.');
+          setLoading(false);
+        }
       }
-
-      await new Promise<void>((resolve, reject) => {
-        video.onloadedmetadata = () => resolve();
-        video.onerror = () => reject(new Error('Video load failed'));
-      });
-
-      const generated = await generateFilmstripFrames(video, clipStart, clipEnd, 1);
-      if (cancelled) return;
-
-      setFrames(generated);
-      setBestTimes(pickBestFrames(generated));
-      if (generated[0]) onSelectRef.current(generated[0].time, generated[0].dataUrl);
-      setLoading(false);
     };
 
-    load().catch(() => {
-      if (!cancelled) setLoading(false);
-    });
+    void load();
 
     return () => {
       cancelled = true;
@@ -96,7 +132,7 @@ export default function FrameFilmstrip({
 
   return (
     <div className="thumb-filmstrip">
-      <video ref={videoRef} style={{ display: 'none' }} preload="auto" />
+      <video ref={videoRef} style={{ display: 'none' }} preload="auto" crossOrigin="anonymous" />
 
       <div className="thumb-filmstrip-header">
         <span className="thumb-filmstrip-timecode">{formatTimecode(selectedTime)}</span>
@@ -107,6 +143,8 @@ export default function FrameFilmstrip({
 
       {loading ? (
         <p className="thumb-filmstrip-loading">Building frame strip…</p>
+      ) : error ? (
+        <p className="thumb-filmstrip-loading">{error}</p>
       ) : (
         <div
           ref={stripRef}
