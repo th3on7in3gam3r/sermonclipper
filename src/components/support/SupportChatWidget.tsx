@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuth, useUser } from '@clerk/nextjs';
 import Script from 'next/script';
 import { buildBugReportTemplate, detectClientContext } from '@/lib/support/chatHelpers';
@@ -15,6 +16,7 @@ type ChatMessage = {
 };
 
 export default function SupportChatWidget() {
+  const pathname = usePathname();
   const { isSignedIn } = useAuth();
   const { user } = useUser();
   const [open, setOpen] = useState(false);
@@ -78,6 +80,8 @@ export default function SupportChatWidget() {
     setInput(buildBugReportTemplate(ctx));
     setOpen(true);
   };
+
+  if (pathname === '/') return null;
 
   if (!open) {
     return (
