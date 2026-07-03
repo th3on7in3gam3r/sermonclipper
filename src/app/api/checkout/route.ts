@@ -3,12 +3,7 @@ import { stripe } from '@/lib/stripe';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import {
-  getStripePriceIdForPlan,
-  isPaidPlan,
-  PLAN_AMOUNT_CENTS,
-  PLAN_LABELS,
-} from '@/lib/stripePlans';
+import { isPaidPlan, resolveStripePriceForPlan } from '@/lib/stripePlans';
 
 export async function POST(req: Request) {
   try {
@@ -24,27 +19,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid plan selected.' }, { status: 400 });
     }
 
-    const priceId = getStripePriceIdForPlan(plan);
-    if (!priceId) {
-      console.error('[STRIPE_ERROR] Missing price ID for plan:', plan);
-      return NextResponse.json(
-        { error: `${PLAN_LABELS[plan]} billing is not configured yet. Please contact support.` },
-        { status: 400 }
-      );
-    }
-
-    const stripePrice = await stripe.prices.retrieve(priceId);
-    const expectedAmount = PLAN_AMOUNT_CENTS[plan];
-    if (stripePrice.unit_amount !== expectedAmount) {
-      console.error(
-        `[STRIPE_ERROR] Price ID ${priceId} for ${plan} is ${stripePrice.unit_amount} cents; expected ${expectedAmount}. Check STRIPE_PRICE_ID_* env vars.`
-      );
-      return NextResponse.json(
-        {
-          error: `${PLAN_LABELS[plan]} checkout is misconfigured. Please contact support.`,
-        },
-        { status: 500 }
-      );
+    const resolved = await resolveStripePriceForPlan(plan, stripe);
+    if (!resolved.ok) {
+      console.error('[STRIPE_ERROR]', resolved.error);
+      return NextResponse.json({ error: resolved.error }, { status: 500 });
     }
 
     if (!process.env.NEXT_PUBLIC_APP_URL) {
@@ -79,7 +57,7 @@ export async function POST(req: Request) {
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{ price: resolved.priceId, quantity: 1 }],
       mode: 'subscription',
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/#pricing?canceled=true`,
