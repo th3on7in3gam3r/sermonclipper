@@ -69,12 +69,16 @@ export default function GettingStartedChecklist({ compact = false }: GettingStar
       <div className="getting-started-header">
         <div>
           <h3>Getting started</h3>
-          {!compact && (
+          {compact ? (
+            <p className="getting-started-subtitle getting-started-subtitle--compact">
+              {doneCount} of {visibleItems.length} complete
+            </p>
+          ) : (
             <p className="getting-started-subtitle">Complete these steps to get the most from Vesper</p>
           )}
         </div>
-        <span className="getting-started-count">
-          {doneCount}/{visibleItems.length}
+        <span className="getting-started-count" title={`${doneCount} of ${visibleItems.length} steps complete`}>
+          {compact ? `${pendingItems.length} left` : `${doneCount}/${visibleItems.length}`}
         </span>
       </div>
       <div
