@@ -8,6 +8,7 @@ import VesperUserButton from '@/components/shared/VesperUserButton';
 import SiteFooter from '@/components/layout/SiteFooter';
 import CancelSaveFlowModal from '@/components/billing/CancelSaveFlowModal';
 import StudioHelpShell from '@/components/help/StudioHelpShell';
+import { openBillingPortal } from '@/lib/billingPortal';
 
 type BillingSummary = {
   planLabel: string;
@@ -33,11 +34,7 @@ export default function BillingPage() {
       .finally(() => setLoading(false));
   }, [userId]);
 
-  const openPortal = async () => {
-    const res = await fetch('/api/billing/portal', { method: 'POST' });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-  };
+  const openPortal = (options?: { cancel?: boolean }) => openBillingPortal(options);
 
   if (!isLoaded || !userId) {
     return (
@@ -96,7 +93,7 @@ export default function BillingPage() {
             <button
               type="button"
               className="vesper-btn vesper-btn-primary shimmer-effect"
-              onClick={openPortal}
+              onClick={() => void openPortal()}
               style={{ width: '100%', marginBottom: '12px' }}
             >
               Upgrade or change plan
@@ -121,7 +118,7 @@ export default function BillingPage() {
                   type="button"
                   className="vesper-btn-outline"
                   style={{ marginTop: '12px' }}
-                  onClick={openPortal}
+                  onClick={() => void openPortal()}
                 >
                   Update card
                 </button>
@@ -186,7 +183,10 @@ export default function BillingPage() {
       </div>
 
       {showCancelModal && (
-        <CancelSaveFlowModal onClose={() => setShowCancelModal(false)} onOpenStripePortal={openPortal} />
+        <CancelSaveFlowModal
+          onClose={() => setShowCancelModal(false)}
+          onOpenStripePortal={(options) => openBillingPortal(options)}
+        />
       )}
 
       <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 10 }}>

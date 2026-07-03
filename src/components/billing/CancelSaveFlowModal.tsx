@@ -15,7 +15,7 @@ const REASONS: { id: CancelReason; label: string }[] = [
 
 interface CancelSaveFlowModalProps {
   onClose: () => void;
-  onOpenStripePortal: () => void;
+  onOpenStripePortal: (options?: { cancel?: boolean }) => void | Promise<boolean>;
 }
 
 export default function CancelSaveFlowModal({ onClose, onOpenStripePortal }: CancelSaveFlowModalProps) {
@@ -23,6 +23,7 @@ export default function CancelSaveFlowModal({ onClose, onOpenStripePortal }: Can
   const [reason, setReason] = useState<CancelReason | null>(null);
   const [feedback, setFeedback] = useState('');
   const [competitor, setCompetitor] = useState('');
+  const [openingPortal, setOpeningPortal] = useState(false);
 
   const submitFeedback = async (acceptedOffer?: string) => {
     await fetch('/api/billing/cancel-feedback', {
@@ -59,7 +60,7 @@ export default function CancelSaveFlowModal({ onClose, onOpenStripePortal }: Can
           className="vesper-btn vesper-btn-primary"
           style={{ marginTop: '20px', width: '100%' }}
           disabled={!reason}
-          onClick={() => setStep(2)}
+          onClick={() => setStep(reason === 'other' ? 3 : 2)}
         >
           Continue
         </button>
@@ -157,12 +158,18 @@ export default function CancelSaveFlowModal({ onClose, onOpenStripePortal }: Can
       <button
         type="button"
         className="vesper-btn vesper-btn-primary upgrade-modal-cta"
+        disabled={openingPortal}
         onClick={async () => {
-          await submitFeedback();
-          onOpenStripePortal();
+          setOpeningPortal(true);
+          void submitFeedback();
+          try {
+            await onOpenStripePortal({ cancel: true });
+          } finally {
+            setOpeningPortal(false);
+          }
         }}
       >
-        Confirm in Stripe
+        {openingPortal ? 'Opening Stripe…' : 'Confirm in Stripe'}
       </button>
       <button type="button" className="vesper-btn-outline upgrade-modal-cta" onClick={onClose}>
         Keep subscription
