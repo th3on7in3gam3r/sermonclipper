@@ -1,5 +1,4 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -13,72 +12,47 @@ type ShowcaseClip = {
   featured?: boolean;
 };
 
-const FEATURED_FALLBACK: ShowcaseClip[] = [
-  {
-    clipId: 'featured-vesper-demo',
-    churchName: 'Vesper Studio',
-    caption: 'Are You Living Your True Calling?',
-    videoUrl: '',
-    featured: true,
-  },
-];
-
-function ShowcaseCard({ clip, fallbackUrl }: { clip: ShowcaseClip; fallbackUrl: string }) {
-  const [src, setSrc] = useState(clip.videoUrl || fallbackUrl);
-
-  useEffect(() => {
-    setSrc(clip.videoUrl || fallbackUrl);
-  }, [clip.videoUrl, fallbackUrl]);
-
-  return (
-    <article className="showcase-card glass-card premium-border">
-      <div className="showcase-card-video-wrap">
-        <video
-          src={src}
-          muted
-          loop
-          playsInline
-          autoPlay
-          preload="auto"
-          onError={() => {
-            if (fallbackUrl && src !== fallbackUrl) setSrc(fallbackUrl);
-          }}
-        />
-        <span className="showcase-badge">{clip.featured ? 'Featured example' : 'Made with Vesper'}</span>
-      </div>
-      <div className="showcase-card-body">
-        <p className="showcase-church">{clip.churchName}</p>
-        <p className="showcase-caption">{clip.caption}</p>
-      </div>
-    </article>
-  );
-}
-
 export default function ShowcaseGrid() {
-  const [clips, setClips] = useState<ShowcaseClip[]>(FEATURED_FALLBACK);
-  const [fallbackUrl, setFallbackUrl] = useState('');
+  const [clips, setClips] = useState<ShowcaseClip[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/demo-video?panel=after')
-      .then((r) => r.json())
-      .then((d) => {
-        const url = d.url || d.fallbackUrl;
-        if (url) setFallbackUrl(url);
-      })
-      .catch(() => {});
-
     fetch('/api/showcase')
       .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d.clips) && d.clips.length) setClips(d.clips);
-      })
-      .catch(() => {});
+      .then((d) => setClips(d.clips || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) {
+    return (
+      <p style={{ color: 'var(--text-muted)' }}>
+        Loading showcase clips…
+      </p>
+    );
+  }
+
+  if (!clips.length) {
+    return (
+      <p style={{ color: 'var(--text-muted)' }}>
+        No showcase clips yet. Churches can opt in under Dashboard → Settings.
+      </p>
+    );
+  }
 
   return (
     <div className="showcase-grid">
       {clips.map((clip) => (
-        <ShowcaseCard key={clip.clipId} clip={clip} fallbackUrl={fallbackUrl} />
+        <article key={clip.clipId} className="showcase-card glass-card premium-border">
+          <div className="showcase-card-video-wrap">
+            <video src={clip.videoUrl} muted loop playsInline autoPlay preload="auto" />
+            <span className="showcase-badge">{clip.featured ? 'Featured example' : 'Made with Vesper'}</span>
+          </div>
+          <div className="showcase-card-body">
+            <p className="showcase-church">{clip.churchName}</p>
+            <p className="showcase-caption">{clip.caption}</p>
+          </div>
+        </article>
       ))}
     </div>
   );

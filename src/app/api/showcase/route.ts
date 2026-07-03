@@ -4,7 +4,7 @@ import Sermon from '@/models/Sermon';
 import User from '@/models/User';
 import ClipExport from '@/models/ClipExport';
 import { getBrowserPlaybackUrl } from '@/lib/cdn';
-import { getDemoReelUrl, resolveValidMp4Url, SHOWCASE_FEATURED_CLIPS } from '@/lib/demoReelUrl';
+import { resolveValidMp4Url, SHOWCASE_FEATURED_CLIPS } from '@/lib/demoReelUrl';
 import { isYouTubeUrl } from '@/lib/videoSource';
 
 type ShowcaseClip = {
@@ -30,7 +30,6 @@ async function resolveShowcaseVideoUrl(raw: string): Promise<string | null> {
 export async function GET() {
   const clips: ShowcaseClip[] = SHOWCASE_FEATURED_CLIPS.map((clip) => ({
     ...clip,
-    videoUrl: getDemoReelUrl(),
     featured: true,
   }));
 
