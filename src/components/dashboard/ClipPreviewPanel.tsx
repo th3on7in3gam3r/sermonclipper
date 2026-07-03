@@ -1,9 +1,12 @@
 'use client';
 
 import type { LibraryItem } from '@/components/dashboard/ClipLibrary';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { openStudio } from '@/lib/studioNavigation';
 import { triggerReelDownload } from '@/lib/reelDownload';
+import { resolveClientPlaybackUrl } from '@/lib/resolvePlaybackUrl';
+import { needsMediaDeliveryResolve } from '@/lib/videoSource';
+import { parseTime } from '@/lib/parseTime';
 
 type ClipPreviewPanelProps = {
   item: LibraryItem;
@@ -27,6 +30,54 @@ export default function ClipPreviewPanel({
   captionText,
 }: ClipPreviewPanelProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [playableSrc, setPlayableSrc] = useState<string | null>(null);
+
+  const rawSrc = videoUrl || item.finalPath || item.videoUrl;
+  const clipStartSec = parseTime(item.clipStart);
+
+  useEffect(() => {
+    if (!rawSrc) {
+      setPlayableSrc(null);
+      return;
+    }
+    if (!needsMediaDeliveryResolve(rawSrc)) {
+      setPlayableSrc(rawSrc);
+      return;
+    }
+
+    let cancelled = false;
+    void resolveClientPlaybackUrl(rawSrc)
+      .then((resolved) => {
+        if (!cancelled) setPlayableSrc(resolved);
+      })
+      .catch(() => {
+        if (!cancelled) setPlayableSrc(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [rawSrc]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !playableSrc || clipStartSec <= 0) return;
+
+    const seekToStart = () => {
+      try {
+        video.currentTime = Math.min(clipStartSec, Math.max(video.duration - 0.1, 0));
+      } catch {
+        /* ignore */
+      }
+    };
+
+    video.addEventListener('loadedmetadata', seekToStart);
+    if (video.readyState >= 1) seekToStart();
+
+    return () => {
+      video.removeEventListener('loadedmetadata', seekToStart);
+    };
+  }, [playableSrc, clipStartSec]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -44,8 +95,6 @@ export default function ClipPreviewPanel({
     onClose();
   };
 
-  const src = videoUrl || item.finalPath || item.videoUrl;
-
   return (
     <div className="clip-preview-overlay" onClick={handleClose}>
       <aside className="clip-preview-panel glass-card" onClick={(e) => e.stopPropagation()}>
@@ -53,7 +102,18 @@ export default function ClipPreviewPanel({
           ×
         </button>
         <div className="clip-preview-video-wrap">
-          <video ref={videoRef} className="clip-preview-video" controls playsInline src={src} />
+          {playableSrc ? (
+            <video
+              ref={videoRef}
+              key={playableSrc}
+              className="clip-preview-video"
+              controls
+              playsInline
+              src={playableSrc}
+            />
+          ) : (
+            <div className="clip-preview-video clip-preview-video--loading">Loading preview…</div>
+          )}
           {captionText && <div className="clip-preview-caption">{captionText}</div>}
         </div>
         <div className="clip-preview-meta">

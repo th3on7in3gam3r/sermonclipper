@@ -1,4 +1,12 @@
 /** Whether the URL points at YouTube (not directly downloadable as MP4). */
+/** Extract YouTube video ID from a watch, youtu.be, or embed URL. */
+export function extractYouTubeVideoId(url: string): string | null {
+  const m = url.match(
+    /(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/
+  );
+  return m?.[1] ?? null;
+}
+
 export function isYouTubeUrl(url: string): boolean {
   return /youtu\.be|youtube\.com/i.test(url);
 }

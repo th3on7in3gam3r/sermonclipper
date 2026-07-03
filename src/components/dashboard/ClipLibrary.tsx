@@ -8,6 +8,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import ExportFlowModal from '@/components/dashboard/ExportFlowModal';
 import ShareExportModal from '@/components/dashboard/ShareExportModal';
 import ClipPreviewPanel from '@/components/dashboard/ClipPreviewPanel';
+import ClipLibraryThumb from '@/components/dashboard/ClipLibraryThumb';
 import { parseTime } from '@/lib/parseTime';
 
 export type SermonRecord = {
@@ -59,16 +60,6 @@ interface ClipLibraryProps {
     deleteSelected?: () => void;
     focusIndex?: (delta: number) => void;
   }) => void;
-}
-
-function getYoutubeId(url: string) {
-  try {
-    if (url.includes('youtube.com')) return new URL(url).searchParams.get('v');
-    if (url.includes('youtu.be')) return url.split('/').pop()?.split('?')[0];
-  } catch {
-    return null;
-  }
-  return null;
 }
 
 function flattenSermons(sermons: SermonRecord[]): LibraryItem[] {
@@ -314,8 +305,6 @@ export default function ClipLibrary({
 
       <div className="clip-library-grid">
         {pageItems.map((item, index) => {
-          const ytId = getYoutubeId(item.videoUrl);
-          const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null;
           return (
             <article
               key={item.key}
@@ -336,14 +325,12 @@ export default function ClipLibrary({
                 onClick={() => openPreview(item)}
                 onKeyDown={(e) => e.key === 'Enter' && openPreview(item)}
               >
-                <div className="clip-library-thumb">
-                  {thumb ? (
-                    <img src={thumb} alt="" />
-                  ) : (
-                    <span className="clip-library-thumb-fallback">VESPER</span>
-                  )}
-                  <span className="clip-library-duration">{formatDuration(item.durationSec)}</span>
-                </div>
+                <ClipLibraryThumb
+                  videoUrl={item.videoUrl}
+                  finalPath={item.finalPath}
+                  clipStart={item.clipStart}
+                  durationLabel={formatDuration(item.durationSec)}
+                />
                 <div className="clip-library-body">
                   <h3>
                     {item.title}

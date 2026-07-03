@@ -277,6 +277,16 @@ html {
   object-fit: contain;
 }
 
+.clip-preview-video--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #71717a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .clip-preview-caption {
   position: absolute;
   bottom: 12%;
