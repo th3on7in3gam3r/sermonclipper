@@ -67,27 +67,32 @@ async function runLimit(
 }
 
 export async function checkApiRateLimit(req: NextRequest, userId?: string | null): Promise<LimitResult> {
-  const path = req.nextUrl.pathname;
-  const ip = clientIp(req);
+  try {
+    const path = req.nextUrl.pathname;
+    const ip = clientIp(req);
 
-  if (path.startsWith('/sign-in') || path.startsWith('/sign-up') || path.includes('clerk')) {
-    return runLimit(authIpLimiter, `auth:${ip}`, 10, 15 * 60 * 1000);
+    if (path.startsWith('/sign-in') || path.startsWith('/sign-up') || path.includes('clerk')) {
+      return runLimit(authIpLimiter, `auth:${ip}`, 10, 15 * 60 * 1000);
+    }
+
+    if (path === '/api/upload-url' || path === '/api/upload' || path === '/api/upload-confirm') {
+      const key = userId ? `upload:${userId}` : `upload:ip:${ip}`;
+      return runLimit(uploadLimiter, key, 5, 60 * 60 * 1000);
+    }
+
+    if (path === '/api/download-youtube' || path === '/api/youtube/validate') {
+      const key = userId ? `yt:${userId}` : `yt:ip:${ip}`;
+      return runLimit(youtubeLimiter, key, 10, 60 * 60 * 1000);
+    }
+
+    if (path.startsWith('/api/')) {
+      const key = userId ? `api:${userId}` : `api:ip:${ip}`;
+      return runLimit(generalLimiter, key, 100, 60 * 1000);
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.warn('[RateLimit] Check failed — allowing request:', err);
+    return { success: true };
   }
-
-  if (path === '/api/upload-url' || path === '/api/upload' || path === '/api/upload-confirm') {
-    const key = userId ? `upload:${userId}` : `upload:ip:${ip}`;
-    return runLimit(uploadLimiter, key, 5, 60 * 60 * 1000);
-  }
-
-  if (path === '/api/download-youtube' || path === '/api/youtube/validate') {
-    const key = userId ? `yt:${userId}` : `yt:ip:${ip}`;
-    return runLimit(youtubeLimiter, key, 10, 60 * 60 * 1000);
-  }
-
-  if (path.startsWith('/api/')) {
-    const key = userId ? `api:${userId}` : `api:ip:${ip}`;
-    return runLimit(generalLimiter, key, 100, 60 * 1000);
-  }
-
-  return { success: true };
 }

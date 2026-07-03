@@ -44,6 +44,7 @@ const client = new S3Client({
   endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
   region: 'auto',
   credentials: { accessKeyId, secretAccessKey },
+  forcePathStyle: true,
 });
 
 const command = new PutBucketCorsCommand({

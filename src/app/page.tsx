@@ -14,6 +14,7 @@ import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import VideoTrimmer from '@/components/VideoTrimmer';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@clerk/nextjs';
 import {
   MAX_DIRECT_UPLOAD_BYTES,
   MAX_DIRECT_UPLOAD_LABEL,
@@ -63,6 +64,7 @@ async function validateYoutubeUrl(inputUrl: string): Promise<{ error: string | n
 
 export default function Home() {
   const { showOnboarding, completeOnboarding } = useOnboarding();
+  const { isLoaded: authLoaded, userId } = useAuth();
 
   const finishOnboarding = useCallback(async () => {
     await completeOnboarding();
@@ -247,7 +249,7 @@ export default function Home() {
       headers: { 'Content-Type': contentType },
       body: file,
     });
-    if (!putRes.ok) throw new Error(`R2 upload failed: ${putRes.status}`);
+    if (!putRes.ok) throw new Error(`Cloud storage upload failed (${putRes.status}). Please try again.`);
 
     const confirmRes = await vesperFetch('/api/upload-confirm', {
       method: 'POST',
@@ -264,6 +266,15 @@ export default function Home() {
   };
 
   const handleFileUpload = async (file: File) => {
+    if (!authLoaded) {
+      toast.error('Checking your account… try again in a moment.');
+      return;
+    }
+    if (!userId) {
+      toast.error('Please sign in to upload a sermon.');
+      return;
+    }
+
     if (file.size > MAX_DIRECT_UPLOAD_BYTES) {
       const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent
@@ -299,7 +310,10 @@ export default function Home() {
       beginProcessing(queued.jobId);
       toast.success('Upload complete. Analysis queued!', { id: loadToast });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Upload failed';
+      let msg = err instanceof Error ? err.message : 'Upload failed';
+      if (msg === 'Failed to fetch') {
+        msg = 'Upload connection lost. If you are signed in, wait a moment and try again.';
+      }
       toast.error(msg, { id: loadToast });
     }
   };

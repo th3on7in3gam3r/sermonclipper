@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { getObjectFromR2, deleteObjectFromR2 } from '@/lib/r2';
+import { deleteObjectFromR2, getR2ObjectMetadata, getR2ObjectRange, getR2ObjectUrl } from '@/lib/r2';
 import { isAllowedMediaBuffer, isAudioMediaFormat, detectMediaFormat } from '@/lib/fileValidation';
 import { scanUploadHash } from '@/lib/virusScan';
+
+const SAMPLE_BYTES = 512 * 1024;
 
 /** Validate magic bytes + optional malware scan after client PUT to R2. */
 export async function POST(req: NextRequest) {
@@ -19,13 +21,21 @@ export async function POST(req: NextRequest) {
 
     const fileName = key.split('/').pop() || key;
 
-    const body = await getObjectFromR2(key);
-    if (!body) {
+    let contentLength: number;
+    try {
+      const meta = await getR2ObjectMetadata(key);
+      contentLength = meta.contentLength;
+    } catch {
       return NextResponse.json({ error: 'Upload not found' }, { status: 404 });
     }
 
-    const bytes = await body.transformToByteArray();
-    const sample = bytes.slice(0, Math.min(bytes.length, 512 * 1024));
+    if (contentLength <= 0) {
+      return NextResponse.json({ error: 'Upload is empty' }, { status: 400 });
+    }
+
+    const rangeEnd = Math.min(contentLength - 1, SAMPLE_BYTES - 1);
+    const { body } = await getR2ObjectRange(key, 0, rangeEnd);
+    const sample = await body.transformToByteArray();
 
     if (!isAllowedMediaBuffer(sample, fileName)) {
       await deleteObjectFromR2(key).catch(() => {});
@@ -47,11 +57,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: scan.message || 'File failed security scan' }, { status: 422 });
     }
 
-    const { getR2ObjectUrl } = await import('@/lib/r2');
     return NextResponse.json({
       success: true,
       key,
-      sizeBytes: bytes.length,
+      sizeBytes: contentLength,
       internalUrl: getR2ObjectUrl(key),
       isAudio,
     });
