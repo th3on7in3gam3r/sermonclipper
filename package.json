@@ -44,12 +44,12 @@
     "ioredis": "^5.11.1",
     "jszip": "^3.10.1",
     "mongoose": "^9.6.2",
-    "next": "16.2.4",
+    "next": "^16.2.6",
     "openai": "^6.37.0",
     "pg": "^8.21.0",
     "posthog-js": "^1.386.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "react-hot-toast": "^2.6.0",
     "react-i18next": "^17.0.8",
     "recharts": "^3.8.1",
@@ -70,10 +70,10 @@
     "@types/uuid": "^10.0.0",
     "@types/web-push": "^3.6.4",
     "eslint": "^9",
-    "eslint-config-next": "16.2.4",
+    "eslint-config-next": "^16.2.6",
     "prettier": "^3.6.2",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.6"
   }
 }
