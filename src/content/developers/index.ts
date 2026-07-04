@@ -115,9 +115,10 @@ const ready = await vesper.sources.waitForComplete(source.id);
 const clips = await vesper.clips.list({ sourceId: source.id });
 const exported = await vesper.clips.export(clips[0].id, { format: '9:16' });
 console.log(exported.downloadUrl);`,
-  python: `import requests, time
+  python: `import os
+import requests, time
 
-API_KEY = "vsp_live_..."
+API_KEY = os.environ["VESPER_API_KEY"]
 BASE = "https://vesper.biblefunland.com"
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
@@ -135,7 +136,7 @@ while True:
 
 clips = requests.get(f"{BASE}/api/v1/clips", params={"sourceId": source_id}, headers=headers).json()`,
   curl: `curl -X POST https://vesper.biblefunland.com/api/v1/sources \\
-  -H "Authorization: Bearer vsp_live_YOUR_KEY" \\
+  -H "Authorization: Bearer $VESPER_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"type":"youtube","url":"https://www.youtube.com/watch?v=..."}'`,
 } as const;
