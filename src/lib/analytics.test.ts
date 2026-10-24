@@ -55,7 +55,7 @@ describe('analytics (lazy PostHog)', () => {
     a.identifyUser('user_1');
     a.captureEvent('page_viewed', { page: 'landing' });
     expect(posthog.capture).not.toHaveBeenCalled();
-    await flush();
+    await vi.waitFor(() => expect(posthog.capture).toHaveBeenCalled());
     expect(posthog.init).toHaveBeenCalledTimes(1);
     expect(posthog.identify).toHaveBeenCalledWith('user_1', undefined);
     expect(posthog.capture).toHaveBeenCalledWith('page_viewed', { page: 'landing' });
@@ -69,7 +69,7 @@ describe('analytics (lazy PostHog)', () => {
     a.initAnalytics();
     a.initAnalytics();
     a.captureEvent('one');
-    await flush();
+    await vi.waitFor(() => expect(posthog.capture).toHaveBeenCalledTimes(1));
     a.captureEvent('two');
     expect(posthog.init).toHaveBeenCalledTimes(1);
     expect(posthog.capture).toHaveBeenCalledTimes(2);
