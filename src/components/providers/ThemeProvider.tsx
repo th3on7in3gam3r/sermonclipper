@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from 'react';
-import { LIGHT_QUERY, THEME_STORAGE_KEY, type Theme } from '@/lib/theme';
+import { DEFAULT_THEME, THEME_STORAGE_KEY, type Theme } from '@/lib/theme';
 
 type ThemeContextValue = {
   theme: Theme;
@@ -16,7 +16,7 @@ const ThemeContext = createContext<ThemeContextValue>({
 });
 
 /*
- * Theme lives in a tiny external store (localStorage + OS preference) read via
+ * Theme lives in a tiny external store (localStorage) read via
  * useSyncExternalStore. The provider always renders the same tree: an earlier
  * version swapped `<>children</>` for `<Provider>children</Provider>` after
  * mount, which made React remount the entire app (and re-run every effect and
@@ -32,17 +32,14 @@ function readTheme(): Theme {
   } catch {
     /* storage unavailable */
   }
-  return window.matchMedia(LIGHT_QUERY).matches ? 'light' : 'dark';
+  return DEFAULT_THEME;
 }
 
 function subscribe(onChange: () => void) {
   listeners.add(onChange);
-  const mq = window.matchMedia(LIGHT_QUERY);
-  mq.addEventListener('change', onChange);
-  window.addEventListener('storage', onChange);
+  window.addEventListener('storage', onChange); // other tabs
   return () => {
     listeners.delete(onChange);
-    mq.removeEventListener('change', onChange);
     window.removeEventListener('storage', onChange);
   };
 }
@@ -57,7 +54,7 @@ function writeTheme(next: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const theme = useSyncExternalStore(subscribe, readTheme, () => 'dark' as Theme);
+  const theme = useSyncExternalStore(subscribe, readTheme, () => DEFAULT_THEME);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);

@@ -71,7 +71,7 @@ export default function NewsletterEmbedModal({ watchUrl, thumbnailUrl, title, du
           </p>
         ))}
 
-        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgb(var(--fg-rgb) / 0.08)' }}>
           <p style={{ fontSize: '13px', fontWeight: 800, marginBottom: '8px' }}>Connect Mailchimp</p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input

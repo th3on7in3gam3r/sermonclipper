@@ -1,5 +1,4 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 
 import { useState, useEffect, useCallback } from 'react';
 import Pricing from '@/components/home/Pricing';
@@ -397,84 +396,13 @@ export default function Home() {
 
       <LandingNav />
 
-      {/* Hero Section */}
-      <section
-        style={{
-          padding: isMobile ? '48px 16px 48px' : '64px 20px 80px',
-          textAlign: 'center',
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
-        <div className="animate-in" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div className="vesper-badge badge-violet" style={{ marginBottom: '40px', padding: '12px 24px' }}>
-            <span style={{ fontSize: '16px', marginRight: '8px' }}>✨</span> The next evolution of ministry
-            media
-          </div>
-
-          <div
-            className="animate-in"
-            style={{
-              display: 'flex',
-              flexDirection: isMobile ? 'column' : 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: isMobile ? '24px' : 'clamp(16px, 4vw, 48px)',
-              marginBottom: '48px',
-            }}
-          >
-            <img
-              src="/vesper-logo-icon.png"
-              alt="Vesper Studio logo"
-              style={{
-                height: isMobile ? '120px' : 'clamp(64px, 15vw, 200px)',
-                width: 'auto',
-                filter: 'drop-shadow(0 0 30px rgba(139,92,246,0.3))',
-              }}
-            />
-            <h1
-              className="title-xl"
-              style={{
-                fontSize: isMobile ? '48px' : 'clamp(48px, 12vw, 160px)',
-                letterSpacing: '-0.02em',
-                margin: 0,
-                lineHeight: 1,
-                textAlign: 'center',
-              }}
-            >
-              <span style={{ color: '#8B5CF6' }}>VES</span>PER
-            </h1>
-          </div>
-
-          <p
-            className="title-xl"
-            style={{
-              fontSize: 'clamp(24px, 5vw, 48px)',
-              fontWeight: 300,
-              marginBottom: '48px',
-              color: 'var(--text-muted)',
-              textTransform: 'none',
-            }}
-          >
-            Cinematic Reels. <span className="accent-text">Neural Precision.</span>
+      <section className="landing-hero">
+        <div className="landing-hero-inner">
+          <h1 className="landing-hero-title">Your Sunday sermon, ready for this week&rsquo;s feed.</h1>
+          <p className="landing-hero-lede">
+            Upload the message. Vesper finds the moments worth sharing, captions them, and exports vertical
+            reels for Instagram, TikTok and YouTube Shorts.
           </p>
-
-          <p
-            style={{
-              color: 'var(--text-muted)',
-              fontSize: '20px',
-              maxWidth: '720px',
-              margin: '0 auto 40px',
-              lineHeight: 1.6,
-              fontWeight: 400,
-            }}
-          >
-            Automatically distill your powerful sermons into high-impact cinematic reels that reach more
-            hearts on every platform.
-          </p>
-
-          <HeroDemo />
-          <ShowcasePromo variant="public" />
 
           <HeroImportHub
             isMobile={isMobile}
@@ -487,77 +415,37 @@ export default function Home() {
             onYoutubeSubmit={handleProcess}
             onPodcastProcessingStart={beginProcessing}
           />
+
+          <HeroDemo />
+          <ShowcasePromo variant="public" />
         </div>
       </section>
 
-      {/* Vision Section */}
-      <section
-        id="how-it-works"
-        className="landing-anchor"
-        style={{ padding: '160px 20px', position: 'relative' }}
-      >
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '100px' }}>
-            <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>
-              The Vision
-            </div>
-            <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 5vw, 64px)', marginBottom: '32px' }}>
-              Beyond Technology: <span className="accent-text">Our Ministry</span>
-            </h2>
-            <p
-              style={{
-                color: 'var(--text-muted)',
-                fontSize: '20px',
-                maxWidth: '800px',
-                margin: '0 auto',
-                lineHeight: 1.6,
-              }}
-            >
-              Vesper was born from a simple conviction: the Gospel should be shared with the same cinematic
-              excellence that the world uses to capture attention.
-            </p>
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-              gap: '32px',
-            }}
-          >
+      <section id="how-it-works" className="landing-anchor landing-section">
+        <div className="landing-section-inner">
+          <h2 className="landing-section-title">Made for the people who run church media</h2>
+          <p className="landing-section-lede">
+            Most church media teams are volunteers with an hour on Sunday afternoon. Vesper does the
+            scrubbing, cutting and captioning so that hour goes to choosing what to post.
+          </p>
+          <div className="landing-points">
             {[
               {
-                title: 'Neural Selection',
-                icon: '🧠',
-                desc: "Our AI doesn't just clip video; it understands theological context to find the moments that will change lives.",
+                title: 'It finds the moments',
+                desc: 'Vesper listens to the whole message and pulls out the passages that stand on their own: the illustration, the turn, the line people will repeat.',
               },
               {
-                title: 'Social Stewardship',
-                icon: '📱',
-                desc: 'Direct-to-platform publishing ensures your ministry stays consistent without overwhelming your team.',
+                title: 'It does the formatting',
+                desc: 'Every reel comes cropped to 9:16 with captions in the style you choose, so there is nothing left to fix in another app.',
               },
               {
-                title: 'Global Impact',
-                icon: '🌎',
-                desc: 'By optimizing for short-form, we help your church message cross borders and reach a digital generation.',
+                title: 'You stay in charge',
+                desc: 'Trim, rewrite a caption or swap the style before you export. Nothing posts until you decide it should.',
               },
-            ].map((f, i) => (
-              <div
-                key={i}
-                className="glass-card premium-border animate-in"
-                style={{ padding: '48px', animationDelay: `${i * 0.1}s` }}
-              >
-                <div
-                  style={{
-                    fontSize: '56px',
-                    marginBottom: '32px',
-                    filter: 'drop-shadow(0 0 15px rgba(139,92,246,0.2))',
-                  }}
-                >
-                  {f.icon}
-                </div>
-                <h3 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '20px' }}>{f.title}</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '17px', lineHeight: 1.6 }}>{f.desc}</p>
+            ].map((f) => (
+              <div key={f.title} className="landing-point">
+                <h3>{f.title}</h3>
+                <p>{f.desc}</p>
               </div>
             ))}
           </div>
@@ -595,7 +483,7 @@ export default function Home() {
                   />
                   <div>
                     <div style={{ fontSize: '14px', fontWeight: 800 }}>{t.author}</div>
-                    <div style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '2px' }}>{t.church}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--primary)', marginTop: '2px' }}>{t.church}</div>
                   </div>
                 </div>
               </div>
@@ -604,41 +492,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section style={{ padding: '120px 20px', textAlign: 'center' }}>
-        <div
-          className="glass-card premium-border animate-in"
-          style={{
-            maxWidth: '1000px',
-            margin: '0 auto',
-            padding: '100px 48px',
-            background: 'var(--primary-glow)',
-          }}
-        >
-          <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 6vw, 56px)', marginBottom: '32px' }}>
-            Ready to amplify your message?
-          </h2>
-          <p
-            style={{
-              color: 'var(--text-muted)',
-              fontSize: '20px',
-              marginBottom: '32px',
-              maxWidth: '700px',
-              margin: '0 auto 32px',
-            }}
-          >
-            Join a growing community of churches using Vesper to reach more people with the Gospel.
+      <section className="landing-section landing-final">
+        <div className="landing-final-card">
+          <h2 className="landing-section-title">Turn this Sunday&rsquo;s sermon into a week of posts.</h2>
+          <p className="landing-section-lede">
+            Join the churches already using Vesper to carry the message past Sunday morning.
           </p>
           <ChurchSocialProof />
           <button
+            type="button"
             onClick={() => {
               onHeroCtaClick();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="vesper-btn vesper-btn-primary shimmer-effect"
-            style={{ padding: '16px 48px', fontSize: '18px', marginTop: '40px' }}
+            className="vesper-btn vesper-btn-primary landing-final-cta"
           >
-            {heroCtaLabel.toUpperCase()}
+            {heroCtaLabel}
           </button>
         </div>
       </section>

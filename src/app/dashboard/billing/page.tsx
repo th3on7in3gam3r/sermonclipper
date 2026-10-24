@@ -104,7 +104,7 @@ export default function BillingPage() {
                 style={{
                   padding: '16px',
                   borderRadius: '12px',
-                  background: 'rgba(255,255,255,0.03)',
+                  background: 'rgb(var(--fg-rgb) / 0.03)',
                   marginBottom: '16px',
                 }}
               >
@@ -141,7 +141,7 @@ export default function BillingPage() {
                       alignItems: 'center',
                       padding: '12px',
                       borderRadius: '10px',
-                      background: 'rgba(255,255,255,0.02)',
+                      background: 'rgb(var(--fg-rgb) / 0.02)',
                     }}
                   >
                     <span>

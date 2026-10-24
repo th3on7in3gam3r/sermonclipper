@@ -12,7 +12,6 @@ import ResultsHero, { ToolCard } from '@/components/results/ResultsHero';
 import SiteFooter from '@/components/layout/SiteFooter';
 import ShowcasePromo from '@/components/showcase/ShowcasePromo';
 import HelpTooltip from '@/components/help/HelpTooltip';
-import EmptyState from '@/components/shared/EmptyState';
 import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
 import { UPGRADE_COPY } from '@/lib/plans';
 import { parseTime } from '@/lib/parseTime';
@@ -109,23 +108,17 @@ export default function ResultsView() {
         onOpenTour={() => setShowTour(true)}
       />
 
-      <div style={{ paddingTop: 120, paddingBottom: 100 }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '0 16px' : '0 40px' }}>
+      <div className="results-page">
+        <div className="results-container">
           <ResultsHero
-            isMobile={isMobile}
             isYouTubeSource={isYouTubeSource}
             sermonTitle={analysis?.sermon_title}
             mainTheme={analysis?.main_theme}
+            clipCount={clipCount}
             onBatchExport={renderer.batchExport}
           />
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(400px, 1fr))',
-              gap: 32,
-            }}
-          >
+          <div className="results-overview">
             <SermonContextCard
               summary={analysis?.summary}
               videoUrl={sessionVideoSource}
@@ -140,15 +133,18 @@ export default function ResultsView() {
             />
 
             {jobId && <SermonNotesEditor jobId={jobId} />}
+          </div>
+
+          <div className="clip-grid">
 
             {clipCount > 0 ? (
               <>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <ShowcasePromo variant="member" />
                 </div>
-                <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 4, marginTop: 8 }}>
-                  <h2 style={{ fontSize: 14, fontWeight: 900, letterSpacing: '0.12em', margin: 0 }}>NEURAL SELECTION</h2>
-                  <HelpTooltip content={HELP_TOOLTIPS.neuralSelection} label="About Neural Selection" />
+                <div className="results-section-head" style={{ gridColumn: '1 / -1' }}>
+                  <h2>Clips</h2>
+                  <HelpTooltip content={HELP_TOOLTIPS.neuralSelection} label="How clips are chosen" />
                 </div>
                 {clips!.map((clip, i) => (
                   <ClipCard
@@ -178,61 +174,35 @@ export default function ResultsView() {
                 ))}
               </>
             ) : (
-              <div
-                role="status"
-                style={{ gridColumn: '1/-1', textAlign: 'center', padding: 100, color: 'var(--text-muted)' }}
-              >
-                <div style={{ fontSize: 40, marginBottom: 24, animation: 'pulse 2s infinite' }} aria-hidden>
-                  ◈
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '0.1em' }}>ESTABLISHING NEURAL LINK...</div>
+              <div className="results-pending" style={{ gridColumn: '1/-1' }}>
+                <span className="results-pending-dot" aria-hidden />
+                Vesper is listening through the sermon. Clips appear here as soon as they&rsquo;re ready, usually
+                within a couple of minutes.
               </div>
             )}
           </div>
 
-          {clipCount > 0 && !thumbs.hasAnyThumbnail && (
-            <EmptyState
-              icon="🖼️"
-              headline="No thumbnails generated"
-              subtext="Open Thumbnail Studio on any clip to create a 16:9 YouTube billboard with AI."
-              ctaLabel="Create Thumbnail"
-              onCtaClick={() => thumbs.open(clips![0], 0)}
-            />
-          )}
-
-          {!isYouTubeSource && clipCount > 0 && renderer.completedExportCount === 0 && (
-            <EmptyState
-              icon="📥"
-              headline="No exports yet"
-              subtext="Customize a clip in Studio and render your first cinematic 9:16 reel for social media."
-              ctaLabel="Customize Your First Reel"
-              onCtaClick={() => setSelectedClip({ ...clips![0], index: 0 })}
-            />
-          )}
-
-          <section className="animate-in" style={{ marginTop: 120, marginBottom: 100, textAlign: 'center' }}>
-            <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 5vw, 48px)', marginBottom: 60 }}>
-              EXPAND YOUR <span className="accent-text">MINISTRY</span>
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 32 }}>
+          <section className="results-tools">
+            <h2 className="results-tools-title">More from this sermon</h2>
+            <div className="results-tools-grid">
               <ToolCard
-                title="Social Carousel"
-                desc="Neural-generated multi-slide series."
+                title="Social carousel"
+                desc="A multi-slide post that walks through the sermon’s main points, with a caption."
+                action="Make a carousel"
                 onClick={carousel.generate}
                 loading={carousel.loading}
-                icon="📱"
               />
               <ToolCard
                 title="Quote Vault"
-                desc="Transform powerful sermon quotes."
+                desc="Square graphics of the sermon’s strongest lines, ready for Instagram Stories."
+                action="Open Quote Vault"
                 onClick={() => setShowQuoteVault(true)}
-                icon="💎"
               />
               <ToolCard
-                title="YouTube Description"
-                desc="AI-optimized metadata."
+                title="YouTube description"
+                desc="A description for the full sermon upload, written from the message itself."
+                action="Write the description"
                 onClick={() => setShowYTDesc(true)}
-                icon="📝"
               />
             </div>
           </section>

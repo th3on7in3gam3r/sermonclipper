@@ -347,7 +347,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
       <div
         style={{
           minHeight: '100vh',
-          background: '#0A0A0F',
+          background: 'var(--bg)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -356,24 +356,24 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
       >
         <div style={{ width: '100%', maxWidth: '500px', textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>✂️</div>
-          <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>
+          <h2 style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-main)', marginBottom: '8px' }}>
             Video Trimmer
           </h2>
-          <p style={{ color: '#A1A1AA', fontSize: '16px', marginBottom: '32px' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '16px', marginBottom: '32px' }}>
             Select a large sermon video. We&apos;ll help you split it into uploadable segments.
           </p>
           <div
             onClick={() => document.getElementById('trimmer-input')?.click()}
             style={{
               padding: '48px',
-              border: '2px dashed rgba(139,92,246,0.3)',
+              border: '2px dashed rgb(var(--primary-rgb) / 0.3)',
               borderRadius: '20px',
               cursor: 'pointer',
-              background: 'rgba(139,92,246,0.03)',
+              background: 'rgb(var(--primary-rgb) / 0.03)',
             }}
           >
-            <p style={{ color: '#C4B5FD', fontSize: '15px', fontWeight: 700 }}>Click to select video</p>
-            <p style={{ color: '#52525B', fontSize: '15px', marginTop: '8px' }}>
+            <p style={{ color: 'var(--primary-soft)', fontSize: '15px', fontWeight: 700 }}>Click to select video</p>
+            <p style={{ color: 'var(--text-dim)', fontSize: '15px', marginTop: '8px' }}>
               Any size — stays on your device
             </p>
           </div>
@@ -393,9 +393,9 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
               marginTop: '20px',
               padding: '10px 20px',
               background: 'none',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid rgb(var(--fg-rgb) / 0.1)',
               borderRadius: '10px',
-              color: '#71717A',
+              color: 'var(--text-dim)',
               fontSize: '15px',
               cursor: 'pointer',
             }}
@@ -410,19 +410,19 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
   // ─── SEGMENT PICKER (large file, choose a segment) ───
   if (mode === 'segments' && segments.length > 1) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0A0A0F', color: '#fff', padding: '40px 20px' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text-main)', padding: '40px 20px' }}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>✂️</div>
             <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '8px' }}>
               Your sermon is {Math.round(file.size / (1024 * 1024))}MB
             </h2>
-            <p style={{ color: '#A1A1AA', fontSize: '16px', lineHeight: 1.6 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '16px', lineHeight: 1.6 }}>
               We&apos;ve split it into {segments.length} segments of ~
               {formatTime(segments[0]?.end - segments[0]?.start)} each.
               <br />
-              Click <b style={{ color: '#C4B5FD' }}>✂️ USE THIS</b> to trim & upload that segment instantly,
-              or <b style={{ color: '#A1A1AA' }}>⚙</b> to fine-tune the in/out points.
+              Click <b style={{ color: 'var(--primary-soft)' }}>✂️ USE THIS</b> to trim & upload that segment instantly,
+              or <b style={{ color: 'var(--text-muted)' }}>⚙</b> to fine-tune the in/out points.
             </p>
           </div>
 
@@ -432,7 +432,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
               marginBottom: '32px',
               borderRadius: '12px',
               overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid rgb(var(--fg-rgb) / 0.06)',
             }}
           >
             <video
@@ -470,8 +470,8 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
                     padding: '16px',
                     borderRadius: '14px',
                     transition: 'all 0.2s',
-                    background: isActive ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
-                    border: isActive ? '1px solid #8B5CF6' : '1px solid rgba(255,255,255,0.06)',
+                    background: isActive ? 'rgb(var(--primary-rgb) / 0.12)' : 'rgb(var(--fg-rgb) / 0.03)',
+                    border: isActive ? '1px solid var(--primary)' : '1px solid rgb(var(--fg-rgb) / 0.06)',
                     opacity: isTrimming && !isActive ? 0.4 : 1,
                   }}
                 >
@@ -479,31 +479,31 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
                     style={{
                       fontSize: '15px',
                       fontWeight: 900,
-                      color: '#8B5CF6',
+                      color: 'var(--primary)',
                       letterSpacing: '0.15em',
                       marginBottom: '6px',
                     }}
                   >
                     SEGMENT {i + 1}
                   </div>
-                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
                     {formatTime(seg.start)} → {formatTime(seg.end)}
                   </div>
-                  <div style={{ fontSize: '16px', color: '#71717A', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '16px', color: 'var(--text-dim)', marginBottom: '12px' }}>
                     ~{seg.sizeMB}MB · {formatTime(seg.end - seg.start)} long
                   </div>
 
                   {isProcessing ? (
                     <div>
                       <div
-                        style={{ fontSize: '15px', color: '#C4B5FD', fontWeight: 800, marginBottom: '6px' }}
+                        style={{ fontSize: '15px', color: 'var(--primary-soft)', fontWeight: 800, marginBottom: '6px' }}
                       >
                         TRIMMING... {trimProgress}%
                       </div>
                       <div
                         style={{
                           height: '4px',
-                          background: 'rgba(255,255,255,0.06)',
+                          background: 'rgb(var(--fg-rgb) / 0.06)',
                           borderRadius: '99px',
                           overflow: 'hidden',
                         }}
@@ -512,7 +512,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
                           style={{
                             height: '100%',
                             width: `${trimProgress}%`,
-                            background: 'linear-gradient(90deg, #8B5CF6, #D8B4FE)',
+                            background: 'linear-gradient(90deg, var(--primary), var(--primary-soft))',
                             transition: 'width 0.3s',
                           }}
                         />
@@ -526,7 +526,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
                         style={{
                           flex: 1,
                           padding: '8px',
-                          background: '#8B5CF6',
+                          background: 'var(--primary)',
                           border: 'none',
                           borderRadius: '8px',
                           color: '#fff',
@@ -544,10 +544,10 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
                         disabled={isTrimming}
                         style={{
                           padding: '8px 10px',
-                          background: 'rgba(255,255,255,0.05)',
-                          border: '1px solid rgba(255,255,255,0.08)',
+                          background: 'rgb(var(--fg-rgb) / 0.05)',
+                          border: '1px solid rgb(var(--fg-rgb) / 0.08)',
                           borderRadius: '8px',
-                          color: '#A1A1AA',
+                          color: 'var(--text-muted)',
                           fontSize: '16px',
                           fontWeight: 700,
                           cursor: 'pointer',
@@ -570,10 +570,10 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
               style={{
                 flex: 1,
                 padding: '14px',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgb(var(--fg-rgb) / 0.05)',
+                border: '1px solid rgb(var(--fg-rgb) / 0.1)',
                 borderRadius: '12px',
-                color: '#A1A1AA',
+                color: 'var(--text-muted)',
                 fontSize: '15px',
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -586,9 +586,9 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
               style={{
                 padding: '14px 20px',
                 background: 'none',
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid rgb(var(--fg-rgb) / 0.08)',
                 borderRadius: '12px',
-                color: '#52525B',
+                color: 'var(--text-dim)',
                 fontSize: '15px',
                 cursor: 'pointer',
               }}
@@ -598,7 +598,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
           </div>
 
           {ffmpegLoading && (
-            <p style={{ textAlign: 'center', marginTop: '20px', color: '#8B5CF6', fontSize: '16px' }}>
+            <p style={{ textAlign: 'center', marginTop: '20px', color: 'var(--primary)', fontSize: '16px' }}>
               Loading video engine...
             </p>
           )}
@@ -616,8 +616,8 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
     <div
       style={{
         minHeight: '100vh',
-        background: '#0A0A0F',
-        color: '#fff',
+        background: 'var(--bg)',
+        color: 'var(--text-main)',
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -630,8 +630,8 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 20px',
-          background: '#0D0D12',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--surface)',
+          borderBottom: '1px solid rgb(var(--fg-rgb) / 0.06)',
           flexShrink: 0,
         }}
       >
@@ -644,10 +644,10 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
               style={{
                 marginLeft: '12px',
                 padding: '4px 10px',
-                background: 'rgba(139,92,246,0.1)',
-                border: '1px solid rgba(139,92,246,0.2)',
+                background: 'rgb(var(--primary-rgb) / 0.1)',
+                border: '1px solid rgb(var(--primary-rgb) / 0.2)',
                 borderRadius: '6px',
-                color: '#C4B5FD',
+                color: 'var(--primary-soft)',
                 fontSize: '15px',
                 fontWeight: 800,
                 cursor: 'pointer',
@@ -661,10 +661,10 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
           onClick={onCancel}
           style={{
             padding: '6px 14px',
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'rgb(var(--fg-rgb) / 0.05)',
+            border: '1px solid rgb(var(--fg-rgb) / 0.1)',
             borderRadius: '8px',
-            color: '#A1A1AA',
+            color: 'var(--text-muted)',
             fontSize: '15px',
             fontWeight: 700,
             cursor: 'pointer',
@@ -682,7 +682,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
           alignItems: 'center',
           justifyContent: 'center',
           padding: '16px',
-          background: '#050508',
+          background: 'var(--bg)',
         }}
       >
         <video
@@ -699,8 +699,8 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
       <div
         style={{
           padding: '16px 20px 20px',
-          background: '#0D0D12',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--surface)',
+          borderTop: '1px solid rgb(var(--fg-rgb) / 0.06)',
         }}
       >
         {/* Info row */}
@@ -723,11 +723,11 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
             </span>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <span style={{ fontSize: '16px', color: '#71717A' }}>
-              Duration: <b style={{ color: '#C4B5FD' }}>{formatTime(outPoint - inPoint)}</b>
+            <span style={{ fontSize: '16px', color: 'var(--text-dim)' }}>
+              Duration: <b style={{ color: 'var(--primary-soft)' }}>{formatTime(outPoint - inPoint)}</b>
             </span>
-            <span style={{ fontSize: '16px', color: isOverLimit() ? '#F87171' : '#71717A' }}>
-              Size: <b style={{ color: isOverLimit() ? '#F87171' : '#C4B5FD' }}>{getEstimatedSize()}</b>
+            <span style={{ fontSize: '16px', color: isOverLimit() ? '#F87171' : 'var(--text-dim)' }}>
+              Size: <b style={{ color: isOverLimit() ? '#F87171' : 'var(--primary-soft)' }}>{getEstimatedSize()}</b>
               {isOverLimit() && <span style={{ color: '#F87171' }}> (over limit)</span>}
             </span>
           </div>
@@ -739,9 +739,9 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
           style={{
             position: 'relative',
             height: '44px',
-            background: 'rgba(255,255,255,0.03)',
+            background: 'rgb(var(--fg-rgb) / 0.03)',
             borderRadius: '8px',
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid rgb(var(--fg-rgb) / 0.06)',
             cursor: 'pointer',
             marginBottom: '16px',
           }}
@@ -753,7 +753,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
               bottom: 0,
               left: `${inPercent}%`,
               width: `${outPercent - inPercent}%`,
-              background: isOverLimit() ? 'rgba(239,68,68,0.1)' : 'rgba(139,92,246,0.15)',
+              background: isOverLimit() ? 'rgb(var(--error-rgb) / 0.1)' : 'rgb(var(--primary-rgb) / 0.15)',
               borderLeft: '2px solid #34D399',
               borderRight: '2px solid #F87171',
             }}
@@ -849,7 +849,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
             style={{
               marginTop: '10px',
               height: '4px',
-              background: 'rgba(255,255,255,0.06)',
+              background: 'rgb(var(--fg-rgb) / 0.06)',
               borderRadius: '99px',
               overflow: 'hidden',
             }}
@@ -858,7 +858,7 @@ export default function VideoTrimmer({ initialFile, onTrimComplete, onCancel }: 
               style={{
                 height: '100%',
                 width: `${trimProgress}%`,
-                background: 'linear-gradient(90deg, #8B5CF6, #D8B4FE)',
+                background: 'linear-gradient(90deg, var(--primary), var(--primary-soft))',
                 transition: 'width 0.3s',
               }}
             />

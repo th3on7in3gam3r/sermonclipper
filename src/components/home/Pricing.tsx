@@ -11,7 +11,7 @@ const plans = [
     name: 'Free',
     bestFor: 'Best for individuals trying Vesper',
     price: '$0',
-    desc: 'For individual creators exploring the AI neural engine.',
+    desc: 'Try Vesper on a sermon or two before you commit.',
     features: ['2 Clips / mo', 'Standard Rendering', 'Basic Caption Templates', 'Standard Support'],
     plan: 'free',
     popular: false,
@@ -20,7 +20,7 @@ const plans = [
     name: 'Creator',
     bestFor: 'Best for solo pastors or media leads',
     price: '$19',
-    desc: 'Power your ministry with consistent cinematic short-form.',
+    desc: 'Enough reels to post every week, in your church’s style.',
     features: [
       '20 Clips / mo',
       'High-Priority Rendering',
@@ -35,7 +35,7 @@ const plans = [
     name: 'Church Pro',
     bestFor: 'Best for full ministry teams',
     price: '$49',
-    desc: 'The full Vesper suite for growing churches.',
+    desc: 'For teams posting across every channel, every week.',
     features: [
       'Unlimited Clips',
       'Ultra-Fast Dedicated Rendering',
@@ -146,26 +146,14 @@ export default function Pricing() {
     <section
       id="pricing"
       className="landing-anchor"
-      style={{ padding: '160px 20px', position: 'relative', overflow: 'hidden' }}
+      style={{ padding: 'clamp(72px, 10vw, 128px) 20px', position: 'relative' }}
     >
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-          <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>
-            Investment
-          </div>
-          <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 5vw, 64px)', marginBottom: '32px' }}>
-            Plans for Every <span className="accent-text">Ministry</span>
-          </h2>
-          <p
-            style={{
-              color: 'var(--text-muted)',
-              fontSize: '20px',
-              maxWidth: '800px',
-              margin: '0 auto',
-              lineHeight: 1.6,
-            }}
-          >
-            Empower your church with the tools to reach the next generation.
+        <div style={{ marginBottom: 56 }}>
+          <h2 className="landing-section-title">Start free. Upgrade when Sunday gets busy.</h2>
+          <p className="landing-section-lede" style={{ marginBottom: 0 }}>
+            The free plan shows you the clips Vesper finds in your sermon. Exporting finished reels starts
+            on Creator.
           </p>
         </div>
 
@@ -185,16 +173,15 @@ export default function Pricing() {
               >
                 {p.popular && (
                   <div className="pricing-card-badges">
-                    <span className="pricing-badge pricing-badge--recommended">Recommended</span>
-                    <span className="pricing-badge pricing-badge--popular">Most Popular</span>
+                    <span className="pricing-badge pricing-badge--recommended">Most popular</span>
                   </div>
                 )}
 
                 <h3 className="pricing-card-name">{p.name}</h3>
                 <p className="pricing-card-best-for">{p.bestFor}</p>
                 <div className="pricing-card-price-row">
-                  <span className="title-xl pricing-card-price">{p.price}</span>
-                  <span className="pricing-card-period">/mo</span>
+                  <span className="pricing-card-price">{p.price}</span>
+                  {p.price !== 'Custom' && <span className="pricing-card-period">/mo</span>}
                 </div>
                 <p className="pricing-card-desc">{p.desc}</p>
 

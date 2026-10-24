@@ -111,7 +111,7 @@ export default function HeroUploadZone({ isMobile, onFileSelect, embedded = fals
           <UploadIcon size={isMobile ? 40 : 48} />
         </div>
 
-        <p className="hero-upload-headline">Drop your sermon here to get started</p>
+        <p className="hero-upload-headline">Drop your sermon video or audio here</p>
         <p className="hero-upload-sub">
           or click to browse — MP4, MOV, WEBM, MP3, or M4A up to {MAX_DIRECT_UPLOAD_LABEL}
         </p>

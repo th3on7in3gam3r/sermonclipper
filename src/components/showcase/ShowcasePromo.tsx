@@ -47,7 +47,6 @@ export default function ShowcasePromo({ variant }: ShowcasePromoProps) {
     return (
       <div className="showcase-promo showcase-promo--public">
         <div>
-          <p className="showcase-promo-eyebrow">Community showcase</p>
           <p className="showcase-promo-title">See what churches are creating with Vesper</p>
           <p className="showcase-promo-copy">
             Browse real sermon reels, then share yours when you&apos;re ready.
@@ -63,7 +62,6 @@ export default function ShowcasePromo({ variant }: ShowcasePromoProps) {
   return (
     <div className="showcase-promo">
       <div className="showcase-promo-main">
-        <p className="showcase-promo-eyebrow">Get featured</p>
         <p className="showcase-promo-title">Share your reels on the public Showcase</p>
         <p className="showcase-promo-copy">
           Opt in once in Settings and your exported clips can appear alongside other churches on{' '}

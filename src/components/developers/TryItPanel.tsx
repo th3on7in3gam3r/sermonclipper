@@ -42,7 +42,7 @@ export default function TryItPanel({ method, path, defaultBody }: Props) {
 
   return (
     <div className="glass-card" style={{ padding: '20px', marginTop: '24px' }}>
-      <div style={{ fontSize: '11px', fontWeight: 900, color: '#8B5CF6', marginBottom: '12px' }}>TRY IT</div>
+      <div style={{ fontSize: '11px', fontWeight: 900, color: 'var(--primary)', marginBottom: '12px' }}>TRY IT</div>
       <input
         type="password"
         placeholder="vsp_live_..."
@@ -53,9 +53,9 @@ export default function TryItPanel({ method, path, defaultBody }: Props) {
           marginBottom: '12px',
           padding: '12px',
           borderRadius: '8px',
-          border: '1px solid rgba(255,255,255,0.1)',
-          background: 'rgba(255,255,255,0.03)',
-          color: '#fff',
+          border: '1px solid rgb(var(--fg-rgb) / 0.1)',
+          background: 'rgb(var(--fg-rgb) / 0.03)',
+          color: 'var(--text-main)',
         }}
       />
       {defaultBody && (
@@ -68,9 +68,9 @@ export default function TryItPanel({ method, path, defaultBody }: Props) {
             marginBottom: '12px',
             padding: '12px',
             borderRadius: '8px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            background: 'rgba(255,255,255,0.03)',
-            color: '#fff',
+            border: '1px solid rgb(var(--fg-rgb) / 0.1)',
+            background: 'rgb(var(--fg-rgb) / 0.03)',
+            color: 'var(--text-main)',
             fontFamily: 'monospace',
             fontSize: '12px',
           }}
@@ -88,12 +88,12 @@ export default function TryItPanel({ method, path, defaultBody }: Props) {
       {response && (
         <pre
           style={{
-            background: '#0a0a0f',
+            background: 'var(--bg)',
             padding: '16px',
             borderRadius: '8px',
             overflow: 'auto',
             fontSize: '12px',
-            color: '#E4E4E7',
+            color: 'var(--text-main)',
           }}
         >
           {response}

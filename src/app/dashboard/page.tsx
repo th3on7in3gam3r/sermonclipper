@@ -176,8 +176,8 @@ function DashboardContent() {
             style={{ height: isPhone ? '26px' : '32px', width: 'auto', flexShrink: 0 }}
           />
           {!isPhone && (
-            <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
-              <span style={{ color: '#8B5CF6' }}>VES</span>PER
+            <div style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '0.15em', color: 'var(--text-main)' }}>
+              <span style={{ color: 'var(--primary)' }}>VES</span>PER
             </div>
           )}
         </HardLink>

@@ -33,7 +33,7 @@
     "showcase": "Showcase",
     "contact": "Contact / Support",
     "sitemap": "Sitemap",
-    "copyright": "© 2025 Vesper Studio. All rights reserved."
+    "copyright": "© {{year}} Vesper Studio. All rights reserved."
   },
   "settings": {
     "languageTitle": "Language",

@@ -75,8 +75,8 @@ export default function DeveloperSettingsPanel() {
       {revealedKey && (
         <div
           style={{
-            background: 'rgba(139,92,246,0.1)',
-            border: '1px solid rgba(139,92,246,0.3)',
+            background: 'rgb(var(--primary-rgb) / 0.1)',
+            border: '1px solid rgb(var(--primary-rgb) / 0.3)',
             borderRadius: '12px',
             padding: '16px',
             marginBottom: '16px',
@@ -107,9 +107,9 @@ export default function DeveloperSettingsPanel() {
             flex: 1,
             padding: '10px 14px',
             borderRadius: '8px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            background: 'rgba(255,255,255,0.03)',
-            color: '#fff',
+            border: '1px solid rgb(var(--fg-rgb) / 0.1)',
+            background: 'rgb(var(--fg-rgb) / 0.03)',
+            color: 'var(--text-main)',
           }}
         />
         <button type="button" onClick={() => void createKey()} disabled={loading} className="vesper-btn vesper-btn-primary">
@@ -129,7 +129,7 @@ export default function DeveloperSettingsPanel() {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '12px 0',
-                borderTop: '1px solid rgba(255,255,255,0.06)',
+                borderTop: '1px solid rgb(var(--fg-rgb) / 0.06)',
               }}
             >
               <div>

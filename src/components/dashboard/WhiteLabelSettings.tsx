@@ -107,7 +107,7 @@ export default function WhiteLabelSettings() {
         <label className="thumb-tool-label">Primary color</label>
         <input
           type="color"
-          value={wl.primaryColor || '#8B5CF6'}
+          value={wl.primaryColor || 'var(--primary)'}
           onChange={(e) => setWl((p) => ({ ...p, primaryColor: e.target.value }))}
           style={{ marginBottom: '12px' }}
         />
@@ -128,7 +128,7 @@ export default function WhiteLabelSettings() {
         <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>Custom domain</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '12px' }}>
           Add a CNAME record pointing your subdomain to{' '}
-          <code style={{ color: '#C4B5FD' }}>{cnameTarget}</code>, then verify.
+          <code style={{ color: 'var(--primary-soft)' }}>{cnameTarget}</code>, then verify.
         </p>
         <input
           className="vesper-input"
@@ -137,7 +137,7 @@ export default function WhiteLabelSettings() {
           placeholder="media.gracecommunitychurch.com"
           style={{ marginBottom: '12px', width: '100%' }}
         />
-        <p style={{ fontSize: '13px', color: wl.customDomainVerified ? '#10B981' : 'var(--text-muted)' }}>
+        <p style={{ fontSize: '13px', color: wl.customDomainVerified ? 'var(--success)' : 'var(--text-muted)' }}>
           {wl.customDomainVerified ? '✓ Domain verified' : 'Not verified yet'}
         </p>
         <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
@@ -169,7 +169,7 @@ export default function WhiteLabelSettings() {
           placeholder="Reply-To: support@gracecommunitychurch.com"
           style={{ marginBottom: '12px', width: '100%' }}
         />
-        <p style={{ fontSize: '13px', color: wl.emailDomainVerified ? '#10B981' : 'var(--text-muted)' }}>
+        <p style={{ fontSize: '13px', color: wl.emailDomainVerified ? 'var(--success)' : 'var(--text-muted)' }}>
           {wl.emailDomainVerified ? '✓ Email domain verified' : 'Add DNS records in Resend, then verify.'}
         </p>
         <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>

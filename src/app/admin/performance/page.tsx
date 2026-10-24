@@ -34,7 +34,7 @@ export default function AdminPerformancePage() {
   }, []);
 
   return (
-    <main style={{ maxWidth: '960px', margin: '0 auto', padding: '48px 20px', color: '#fff' }}>
+    <main style={{ maxWidth: '960px', margin: '0 auto', padding: '48px 20px', color: 'var(--text-main)' }}>
       <Link href="/admin" style={{ color: 'var(--primary)' }}>
         ← Admin
       </Link>
@@ -43,7 +43,7 @@ export default function AdminPerformancePage() {
         In-process metrics + Sentry Performance traces. Configure alert rules in Sentry for production paging.
       </p>
 
-      {error && <p style={{ color: '#ef4444' }}>{error}</p>}
+      {error && <p style={{ color: 'var(--error)' }}>{error}</p>}
 
       {data && (
         <>
@@ -60,7 +60,7 @@ export default function AdminPerformancePage() {
               <p style={{ color: 'var(--text-muted)' }}>No samples yet — traffic will populate this dashboard.</p>
             ) : (
               data.slowestEndpoints.map((row) => (
-                <div key={row.route} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div key={row.route} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgb(var(--fg-rgb) / 0.06)' }}>
                   <span>{row.route}</span>
                   <span style={{ fontFamily: 'monospace' }}>{Math.round(row.p95)}ms · {row.count} reqs</span>
                 </div>
@@ -80,7 +80,7 @@ export default function AdminPerformancePage() {
 
 function Stat({ label, value, alert }: { label: string; value: string; alert: boolean }) {
   return (
-    <div className="glass-card" style={{ padding: '16px', borderColor: alert ? '#ef4444' : undefined }}>
+    <div className="glass-card" style={{ padding: '16px', borderColor: alert ? 'var(--error)' : undefined }}>
       <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{label}</div>
       <div style={{ fontSize: '24px', fontWeight: 900 }}>{value}</div>
     </div>

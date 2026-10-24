@@ -295,7 +295,7 @@ export default function ClipLibrary({
           <button
             type="button"
             className="vesper-btn-outline"
-            style={{ color: '#EF4444' }}
+            style={{ color: 'var(--error)' }}
             onClick={bulkDelete}
           >
             Delete selected

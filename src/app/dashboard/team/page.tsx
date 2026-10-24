@@ -110,9 +110,9 @@ export default function TeamSettingsPage() {
                     width: '100%',
                     padding: '12px 16px',
                     borderRadius: '12px',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    background: 'rgba(255,255,255,0.03)',
-                    color: '#fff',
+                    border: '1px solid rgb(var(--fg-rgb) / 0.1)',
+                    background: 'rgb(var(--fg-rgb) / 0.03)',
+                    color: 'var(--text-main)',
                     marginBottom: '12px',
                   }}
                 />
@@ -125,8 +125,8 @@ export default function TeamSettingsPage() {
                     borderRadius: '12px',
                     marginBottom: '16px',
                     background: '#212130',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: 'var(--text-main)',
+                    border: '1px solid rgb(var(--fg-rgb) / 0.1)',
                   }}
                 >
                   <option value="editor">Editor — create and export clips</option>
@@ -154,7 +154,7 @@ export default function TeamSettingsPage() {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     padding: '12px 0',
-                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    borderBottom: '1px solid rgb(var(--fg-rgb) / 0.05)',
                   }}
                 >
                   <div>
@@ -167,7 +167,7 @@ export default function TeamSettingsPage() {
                     <button
                       type="button"
                       className="vesper-btn-outline"
-                      style={{ color: '#EF4444' }}
+                      style={{ color: 'var(--error)' }}
                       onClick={() => removeMember(m.email)}
                     >
                       Remove

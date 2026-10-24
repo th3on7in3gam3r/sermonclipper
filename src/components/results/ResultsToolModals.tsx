@@ -35,7 +35,7 @@ export function YouTubeDescriptionModal({
     <ResultsModal onClose={onClose} isMobile={isMobile} backdropBlur={30} panelStyle={{ maxWidth: 640 }}>
       {(titleId) => (
         <>
-          <div style={headerRow('32px', 'rgba(255,255,255,0.05)')}>
+          <div style={headerRow('32px', 'rgb(var(--fg-rgb) / 0.05)')}>
             <div>
               <div className="vesper-badge badge-violet" style={{ marginBottom: 8 }}>
                 SEO ENGINE
@@ -47,7 +47,7 @@ export function YouTubeDescriptionModal({
             <ModalCloseButton onClose={onClose} />
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: 32, display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div className="glass-card" style={{ padding: 24, background: 'rgba(255,255,255,0.03)' }}>
+            <div className="glass-card" style={{ padding: 24, background: 'rgb(var(--fg-rgb) / 0.03)' }}>
               <h3
                 style={{
                   fontSize: 13,
@@ -59,7 +59,7 @@ export function YouTubeDescriptionModal({
               >
                 OPTIMIZED DESCRIPTION
               </h3>
-              <p style={{ fontSize: 15, color: '#fff', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: 20 }}>
+              <p style={{ fontSize: 15, color: 'var(--text-main)', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: 20 }}>
                 {summary || 'Processing...'}
               </p>
               <button
@@ -100,20 +100,20 @@ export function QuoteVaultModal({
         maxWidth: isMobile ? '100%' : 800,
         maxHeight: isMobile ? '100%' : '85vh',
         borderRadius: isMobile ? 0 : 32,
-        border: isMobile ? 'none' : '1px solid rgba(139,92,246,0.25)',
+        border: isMobile ? 'none' : '1px solid rgb(var(--primary-rgb) / 0.25)',
       }}
     >
       {(titleId) => (
         <>
-          <div style={headerRow('32px 32px 24px', 'rgba(255,255,255,0.07)')}>
+          <div style={headerRow('32px 32px 24px', 'rgb(var(--fg-rgb) / 0.07)')}>
             <div>
-              <div style={{ fontSize: 17, fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em', marginBottom: 6 }}>
+              <div style={{ fontSize: 17, fontWeight: 900, color: 'var(--primary)', letterSpacing: '0.2em', marginBottom: 6 }}>
                 EXPAND YOUR MINISTRY
               </div>
               <h2 id={titleId} style={{ fontSize: 24, fontWeight: 900, letterSpacing: '-0.02em' }}>
                 Quote Vault
               </h2>
-              <p style={{ color: '#A1A1AA', fontSize: 18, marginTop: 4 }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: 18, marginTop: 4 }}>
                 Auto-generated 1080x1080 graphics for Instagram Stories.
               </p>
             </div>
@@ -133,18 +133,18 @@ export function QuoteVaultModal({
               <div
                 key={i}
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'rgb(var(--fg-rgb) / 0.03)',
+                  border: '1px solid rgb(var(--fg-rgb) / 0.08)',
                   borderRadius: 16,
                   padding: 24,
                   display: 'flex',
                   flexDirection: 'column',
                 }}
               >
-                <div style={{ fontSize: 17, fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.1em', marginBottom: 12 }}>
+                <div style={{ fontSize: 17, fontWeight: 900, color: 'var(--primary)', letterSpacing: '0.1em', marginBottom: 12 }}>
                   CLIP {i + 1}
                 </div>
-                <p style={{ flex: 1, marginBottom: 20, fontStyle: 'italic', fontSize: 18, lineHeight: 1.5, color: '#E4E4E7' }}>
+                <p style={{ flex: 1, marginBottom: 20, fontStyle: 'italic', fontSize: 18, lineHeight: 1.5, color: 'var(--text-main)' }}>
                   &ldquo;{clip.main_quote}&rdquo;
                 </p>
                 <button
@@ -174,7 +174,7 @@ export function CarouselModal({ data, onClose }: { data: CarouselData; onClose: 
       onClose={onClose}
       backdropBlur={20}
       panelClassName="animate-up glass-panel"
-      panelStyle={{ maxWidth: 860, border: '1px solid rgba(139, 92, 246, 0.3)' }}
+      panelStyle={{ maxWidth: 860, border: '1px solid rgb(var(--primary-rgb) / 0.3)' }}
     >
       {(titleId) => (
         <div style={{ padding: 48, overflowY: 'auto' }}>
@@ -183,7 +183,7 @@ export function CarouselModal({ data, onClose }: { data: CarouselData; onClose: 
               id={titleId}
               style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase' }}
             >
-              Kingdom <span style={{ color: '#8B5CF6' }}>Carousel</span>
+              Kingdom <span style={{ color: 'var(--primary)' }}>Carousel</span>
             </h2>
             <ModalCloseButton onClose={onClose} />
           </div>
@@ -199,24 +199,24 @@ export function CarouselModal({ data, onClose }: { data: CarouselData; onClose: 
               <div
                 key={slide.slide_number}
                 className="glass-panel"
-                style={{ padding: 28, background: 'rgba(255,255,255,0.03)' }}
+                style={{ padding: 28, background: 'rgb(var(--fg-rgb) / 0.03)' }}
               >
-                <div style={{ fontSize: 15, color: '#8B5CF6', fontWeight: 900, marginBottom: 12, letterSpacing: '0.2em' }}>
+                <div style={{ fontSize: 15, color: 'var(--primary)', fontWeight: 900, marginBottom: 12, letterSpacing: '0.2em' }}>
                   SLIDE {slide.slide_number}
                 </div>
                 <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 12, lineHeight: 1.2 }}>{slide.heading}</h3>
-                <p style={{ fontSize: 15, color: '#A1A1AA', lineHeight: 1.6 }}>{slide.content}</p>
+                <p style={{ fontSize: 15, color: 'var(--text-muted)', lineHeight: 1.6 }}>{slide.content}</p>
               </div>
             ))}
           </div>
           <div
             className="glass-panel"
-            style={{ padding: 32, background: 'rgba(139, 92, 246, 0.05)', border: '1px solid rgba(139, 92, 246, 0.2)' }}
+            style={{ padding: 32, background: 'rgb(var(--primary-rgb) / 0.05)', border: '1px solid rgb(var(--primary-rgb) / 0.2)' }}
           >
-            <h3 style={{ fontSize: 16, fontWeight: 900, marginBottom: 14, color: '#8B5CF6', letterSpacing: '0.2em' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 900, marginBottom: 14, color: 'var(--primary)', letterSpacing: '0.2em' }}>
               OPTIMIZED CAPTION
             </h3>
-            <p style={{ fontSize: 16, color: '#fff', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.post_caption}</p>
+            <p style={{ fontSize: 16, color: 'var(--text-main)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.post_caption}</p>
             <button
               type="button"
               onClick={() => copyToClipboard(data.post_caption, 'Caption copied!')}

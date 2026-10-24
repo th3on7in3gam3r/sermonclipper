@@ -11,7 +11,7 @@ export default function CreatorsTemplatesPage() {
     name: '',
     description: '',
     previewVideoUrl: '',
-    captionColor: '#FFFFFF',
+    captionColor: 'var(--text-main)',
     fontFamily: 'Montserrat ExtraBold',
     captionAnimation: 'slideUp',
     priceCents: 0,

@@ -59,20 +59,20 @@ export default function SermonContextCard({
             left: '16px',
             zIndex: 10,
             backdropFilter: 'blur(8px)',
-            background: 'rgba(139,92,246,0.8)',
-            color: '#fff',
+            background: 'rgb(var(--primary-rgb) / 0.8)',
+            color: 'var(--text-main)',
           }}
         >
-          MASTER SESSION
+          Full sermon
         </div>
       </div>
 
       <div style={{ padding: isMobile ? '20px' : '28px' }}>
         <div className="vesper-badge badge-violet" style={{ marginBottom: '12px' }}>
-          VESPER SERMON CONTEXT
+          Summary
         </div>
         <h3 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, marginBottom: '12px' }}>
-          Full sermon capture
+          About this sermon
         </h3>
         <p
           style={{
@@ -102,10 +102,10 @@ export default function SermonContextCard({
               padding: '12px 16px',
               fontSize: '12px',
               fontWeight: 800,
-              letterSpacing: '0.08em',
+              letterSpacing: '0.01em',
             }}
           >
-            COPY SESSION LINK
+            Copy page link
           </button>
 
           {canDownloadMaster ? (
@@ -119,11 +119,11 @@ export default function SermonContextCard({
                 padding: '12px 16px',
                 fontSize: '12px',
                 fontWeight: 800,
-                letterSpacing: '0.08em',
+                letterSpacing: '0.01em',
                 opacity: isDownloadingMaster ? 0.6 : 1,
               }}
             >
-              {isDownloadingMaster ? 'PREPARING…' : 'DOWNLOAD MASTER'}
+              {isDownloadingMaster ? 'Preparing…' : 'Download full sermon'}
             </button>
           ) : isYouTube ? (
             <a
@@ -136,12 +136,12 @@ export default function SermonContextCard({
                 padding: '12px 16px',
                 fontSize: '12px',
                 fontWeight: 800,
-                letterSpacing: '0.08em',
+                letterSpacing: '0.01em',
                 textDecoration: 'none',
                 textAlign: 'center',
               }}
             >
-              OPEN ON YOUTUBE
+              Open on YouTube
             </a>
           ) : null}
 
@@ -154,12 +154,12 @@ export default function SermonContextCard({
               padding: '12px 16px',
               fontSize: '12px',
               fontWeight: 800,
-              letterSpacing: '0.08em',
+              letterSpacing: '0.01em',
               color: 'var(--primary)',
               borderColor: 'var(--primary-glow)',
             }}
           >
-            YOUTUBE DESCRIPTION
+            YouTube description
           </button>
         </div>
       </div>

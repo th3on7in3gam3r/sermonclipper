@@ -45,19 +45,19 @@ export default async function ComparePage({ params }: Props) {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '15px' }}>
             <thead>
               <tr>
-                <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Feature</th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Vesper</th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{page.competitor}</th>
+                <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid rgb(var(--fg-rgb) / 0.1)' }}>Feature</th>
+                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid rgb(var(--fg-rgb) / 0.1)' }}>Vesper</th>
+                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid rgb(var(--fg-rgb) / 0.1)' }}>{page.competitor}</th>
               </tr>
             </thead>
             <tbody>
               {page.features.map((f) => (
                 <tr key={f.name}>
-                  <td style={{ padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{f.name}</td>
-                  <td style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <td style={{ padding: '12px', borderBottom: '1px solid rgb(var(--fg-rgb) / 0.05)' }}>{f.name}</td>
+                  <td style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid rgb(var(--fg-rgb) / 0.05)' }}>
                     {f.vesper ? '✅' : '❌'}
                   </td>
-                  <td style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <td style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid rgb(var(--fg-rgb) / 0.05)' }}>
                     {f.competitor ? '✅' : '❌'}
                   </td>
                 </tr>

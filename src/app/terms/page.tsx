@@ -10,8 +10,8 @@ export default function TermsOfService() {
       style={{
         minHeight: '100vh',
         padding: '120px 20px',
-        background: '#0A0A0F',
-        color: '#fff',
+        background: 'var(--bg)',
+        color: 'var(--text-main)',
         position: 'relative',
       }}
     >
@@ -22,7 +22,7 @@ export default function TermsOfService() {
           href="/"
           style={{
             textDecoration: 'none',
-            color: '#8B5CF6',
+            color: 'var(--primary)',
             fontSize: '14px',
             fontWeight: 700,
             marginBottom: '40px',
@@ -33,10 +33,10 @@ export default function TermsOfService() {
         </Link>
 
         <h1 style={{ fontSize: '48px', fontWeight: 900, marginBottom: '24px', letterSpacing: '-0.04em' }}>
-          TERMS OF <span style={{ color: '#8B5CF6' }}>SERVICE</span>
+          TERMS OF <span style={{ color: 'var(--primary)' }}>SERVICE</span>
         </h1>
-        <p style={{ color: '#A1A1AA', marginBottom: '48px' }}>Last Updated: June 13, 2026</p>
-        <p style={{ color: '#71717A', fontSize: '14px', marginBottom: '32px' }}>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '48px' }}>Last Updated: June 13, 2026</p>
+        <p style={{ color: 'var(--text-dim)', fontSize: '14px', marginBottom: '32px' }}>
           This is a starting structure only. Have a qualified attorney review before launch.
         </p>
 
@@ -51,12 +51,12 @@ export default function TermsOfService() {
           }}
         >
           <section>
-            <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
               1. Acceptance of Terms
             </h2>
             <p>
               By creating an account or using Vesper, you agree to these Terms of Service and our{' '}
-              <Link href="/privacy" style={{ color: '#8B5CF6' }}>
+              <Link href="/privacy" style={{ color: 'var(--primary)' }}>
                 Privacy Policy
               </Link>
               .
@@ -64,7 +64,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
               2. Acceptable Use
             </h2>
             <p>You agree not to use Vesper to:</p>
@@ -80,12 +80,12 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
               3. Plan Limits
             </h2>
             <p>
               Each plan includes a monthly clip allowance (see{' '}
-              <Link href="/#pricing" style={{ color: '#8B5CF6' }}>
+              <Link href="/#pricing" style={{ color: 'var(--primary)' }}>
                 Pricing
               </Link>
               ). When you exceed your limit, processing is blocked until your quota resets or you upgrade.
@@ -94,7 +94,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
               4. Content Ownership
             </h2>
             <p>
@@ -105,7 +105,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
               5. Refund Policy
             </h2>
             <p>
@@ -116,7 +116,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
               6. Limitation of Liability
             </h2>
             <p>
@@ -128,7 +128,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
               7. Governing Law
             </h2>
             <p>
@@ -141,17 +141,17 @@ export default function TermsOfService() {
           <section
             style={{
               padding: '40px',
-              background: 'rgba(139, 92, 246, 0.05)',
+              background: 'rgb(var(--primary-rgb) / 0.05)',
               borderRadius: '24px',
-              border: '1px solid rgba(139, 92, 246, 0.1)',
+              border: '1px solid rgb(var(--primary-rgb) / 0.1)',
             }}
           >
-            <h2 style={{ color: '#8B5CF6', fontSize: '20px', fontWeight: 700, marginBottom: '12px' }}>
+            <h2 style={{ color: 'var(--primary)', fontSize: '20px', fontWeight: 700, marginBottom: '12px' }}>
               Legal Inquiries
             </h2>
-            <p style={{ fontSize: '14px', color: '#A1A1AA' }}>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
               Questions about these terms:{' '}
-              <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: '#A78BFA' }}>
+              <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: 'var(--primary-soft)' }}>
                 {SUPPORT_EMAIL}
               </a>
             </p>

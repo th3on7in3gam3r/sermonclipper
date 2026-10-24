@@ -1,9 +1,9 @@
 // TODO: Replace placeholder initials with real church logo images once we have permission.
 
 const PLACEHOLDER_CHURCHES = [
-  { name: 'First Baptist', location: 'Nashville', initials: 'FBC', accent: '#8B5CF6' },
-  { name: 'Grace Community', location: 'Austin', initials: 'GCC', accent: '#10B981' },
-  { name: 'Hope Fellowship', location: 'Atlanta', initials: 'HF', accent: '#F4B942' },
+  { name: 'First Baptist', location: 'Nashville', initials: 'FBC', accent: 'var(--primary)' },
+  { name: 'Grace Community', location: 'Austin', initials: 'GCC', accent: 'var(--success)' },
+  { name: 'Hope Fellowship', location: 'Atlanta', initials: 'HF', accent: 'var(--accent)' },
   { name: 'Cornerstone', location: 'Dallas', initials: 'CC', accent: '#6366F1' },
   { name: 'New Life', location: 'Charlotte', initials: 'NL', accent: '#EC4899' },
 ] as const;

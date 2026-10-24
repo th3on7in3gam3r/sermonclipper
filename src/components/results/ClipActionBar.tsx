@@ -40,7 +40,7 @@ const btnBase: CSSProperties = {
   padding: '11px 12px',
   fontSize: '11px',
   fontWeight: 800,
-  letterSpacing: '0.08em',
+  letterSpacing: '0.01em',
   borderRadius: '12px',
   display: 'flex',
   alignItems: 'center',
@@ -108,7 +108,7 @@ export default function ClipActionBar({
             }}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              CAPTION
+              Caption
               <HelpTooltip content={HELP_TOOLTIPS.socialKit} label="About Social Kit" />
             </span>
             <span style={{ opacity: 0.5, fontSize: '10px' }}>{captionOpen ? '▲' : '▼'}</span>
@@ -125,13 +125,13 @@ export default function ClipActionBar({
                 padding: '6px',
                 borderRadius: '14px',
                 boxShadow: '0 16px 40px rgba(0,0,0,0.65)',
-                border: '1px solid rgba(139, 92, 246, 0.25)',
+                border: '1px solid rgb(var(--primary-rgb) / 0.25)',
                 background: 'rgba(12, 12, 18, 0.98)',
               }}
             >
               {!clip.suggested_captions?.length && !clip.main_quote ? (
                 <div style={{ padding: '16px', textAlign: 'center' }}>
-                  <p style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>
+                  <p style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>
                     No Social Kit captions yet
                   </p>
                   <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
@@ -178,10 +178,10 @@ export default function ClipActionBar({
             ...btnBase,
             width: '100%',
             background: hasThumbnail
-              ? 'rgba(139,92,246,0.12)'
-              : 'linear-gradient(135deg, rgba(244,185,66,0.12), rgba(244,185,66,0.04))',
-            color: hasThumbnail ? 'var(--primary)' : '#F4B942',
-            borderColor: hasThumbnail ? 'rgba(139,92,246,0.35)' : 'rgba(244,185,66,0.35)',
+              ? 'rgb(var(--primary-rgb) / 0.12)'
+              : 'linear-gradient(135deg, rgb(var(--accent-rgb) / 0.12), rgb(var(--accent-rgb) / 0.04))',
+            color: hasThumbnail ? 'var(--primary)' : 'var(--accent)',
+            borderColor: hasThumbnail ? 'rgb(var(--primary-rgb) / 0.35)' : 'rgb(var(--accent-rgb) / 0.35)',
             overflow: 'hidden',
             padding: hasThumbnail ? 0 : btnBase.padding,
           }}
@@ -196,7 +196,7 @@ export default function ClipActionBar({
             <>
               <span aria-hidden>🎨</span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                THUMBNAIL
+                Thumbnail
                 <HelpTooltip content={HELP_TOOLTIPS.thumbnailStudio} label="About Thumbnail Studio" />
               </span>
             </>
@@ -209,7 +209,7 @@ export default function ClipActionBar({
           <div
             style={{
               height: '4px',
-              background: 'rgba(255,255,255,0.06)',
+              background: 'rgb(var(--fg-rgb) / 0.06)',
               borderRadius: '99px',
               overflow: 'hidden',
             }}
@@ -240,7 +240,7 @@ export default function ClipActionBar({
             className="vesper-btn-outline"
             style={{ ...btnBase, width: '100%', marginBottom: 10, fontSize: '11px' }}
           >
-            GET EMBED CODE
+            Get embed code
           </button>
         )}
         {onOpenNewsletterEmbed && (
@@ -250,7 +250,7 @@ export default function ClipActionBar({
             className="vesper-btn-outline"
             style={{ ...btnBase, width: '100%', marginBottom: 10, fontSize: '11px' }}
           >
-            NEWSLETTER EMBED
+            Newsletter embed
           </button>
         )}
         {onOpenQuoteCard && (
@@ -260,7 +260,7 @@ export default function ClipActionBar({
             className="vesper-btn-outline"
             style={{ ...btnBase, width: '100%', marginBottom: 10, fontSize: '12px' }}
           >
-            EXPORT QUOTE CARD
+            Quote card
           </button>
         )}
         {renderStatus === 'complete' && renderUrl ? (
@@ -274,11 +274,11 @@ export default function ClipActionBar({
             style={{
               ...btnBase,
               width: '100%',
-              background: 'linear-gradient(135deg, #10B981, #059669)',
+              background: 'linear-gradient(135deg, var(--success), #059669)',
               fontSize: '12px',
             }}
           >
-            DOWNLOAD REEL
+            Download reel
           </button>
         ) : (
           <button
@@ -294,7 +294,7 @@ export default function ClipActionBar({
               ...(isYouTubeSource ? { color: 'var(--primary)', borderColor: 'var(--primary-glow)' } : {}),
             }}
           >
-            {isYouTubeSource ? 'PREVIEW IN STUDIO' : 'CUSTOMIZE REEL'}
+            {isYouTubeSource ? 'Preview in studio' : 'Edit reel'}
           </button>
         )}
       </div>

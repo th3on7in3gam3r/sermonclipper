@@ -7,7 +7,7 @@ export default function Results() {
   return (
     <ResultsErrorBoundary>
       <StudioHelpShell>
-        <main style={{ minHeight: '100vh', background: 'var(--background)', color: '#fff' }}>
+        <main style={{ minHeight: '100vh', background: 'var(--background)', color: 'var(--text-main)' }}>
           <Suspense fallback={null}>
             <ResultsView />
           </Suspense>

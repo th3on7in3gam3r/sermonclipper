@@ -33,9 +33,9 @@ export default function AchievementsSettingsPanel() {
               style={{
                 padding: '12px 14px',
                 borderRadius: '12px',
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid rgb(var(--fg-rgb) / 0.08)',
                 opacity: unlocked ? 1 : 0.45,
-                background: unlocked ? 'rgba(139,92,246,0.08)' : 'transparent',
+                background: unlocked ? 'rgb(var(--primary-rgb) / 0.08)' : 'transparent',
               }}
             >
               <div style={{ fontWeight: 800 }}>{MILESTONE_LABELS[type]}</div>

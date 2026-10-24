@@ -11,9 +11,9 @@ export default function ApiChangelogPage() {
         <section key={entry.version} style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '16px', marginBottom: '12px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 800 }}>{entry.version}</h2>
-            <span style={{ color: '#71717A', fontSize: '14px' }}>{entry.date}</span>
+            <span style={{ color: 'var(--text-dim)', fontSize: '14px' }}>{entry.date}</span>
           </div>
-          <ul style={{ color: '#A1A1AA', lineHeight: 1.8, paddingLeft: '20px' }}>
+          <ul style={{ color: 'var(--text-muted)', lineHeight: 1.8, paddingLeft: '20px' }}>
             {entry.changes.map((c) => (
               <li key={c}>{c}</li>
             ))}

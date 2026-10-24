@@ -20,10 +20,9 @@ function NavLink({ href, label, isMobile }: { href: string; label: string; isMob
       href={href}
       style={{
         textDecoration: 'none',
-        fontSize: isMobile ? 12 : 14,
-        fontWeight: 700,
+        fontSize: isMobile ? 13 : 15,
+        fontWeight: 500,
         color: 'var(--text-muted)',
-        letterSpacing: '0.1em',
         transition: 'color 0.2s',
       }}
       onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
@@ -37,7 +36,7 @@ function NavLink({ href, label, isMobile }: { href: string; label: string; isMob
 export default function ResultsHeader({ isMobile, signedIn, userStatus, onOpenTour }: Props) {
   return (
     <header
-      className="glass-card"
+      className="results-header"
       style={{
         position: 'fixed',
         top: 16,
@@ -57,16 +56,14 @@ export default function ResultsHeader({ isMobile, signedIn, userStatus, onOpenTo
       <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/vesper-logo-icon.png" alt="Vesper Studio logo" width={31} height={32} style={{ height: 32, width: 'auto' }} />
-        <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: '0.15em', color: '#fff' }}>
-          <span style={{ color: '#8B5CF6' }}>VES</span>PER
-        </div>
+        <span style={{ fontSize: 19, fontWeight: 700, letterSpacing: '0.02em', color: 'var(--text-main)' }}>Vesper</span>
       </Link>
       <div style={{ display: 'flex', gap: isMobile ? 12 : 32, alignItems: 'center' }}>
         {signedIn ? (
           <>
             <nav style={{ display: 'flex', gap: isMobile ? 12 : 24 }}>
-              <NavLink href="/" label="HOME" isMobile={isMobile} />
-              <NavLink href="/dashboard" label="ARCHIVE" isMobile={isMobile} />
+              <NavLink href="/" label="Home" isMobile={isMobile} />
+              <NavLink href="/dashboard" label="Your sermons" isMobile={isMobile} />
             </nav>
             <button
               type="button"
@@ -95,7 +92,7 @@ export default function ResultsHeader({ isMobile, signedIn, userStatus, onOpenTo
               className="vesper-btn vesper-btn-primary shimmer-effect"
               style={{ padding: isMobile ? '8px 14px' : '10px 24px', fontSize: isMobile ? 11 : 14 }}
             >
-              SIGN IN
+              Sign in
             </button>
           </SignInButton>
         )}

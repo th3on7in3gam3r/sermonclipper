@@ -18,8 +18,8 @@ export default class ResultsErrorBoundary extends React.Component<{ children: Re
         role="alert"
         style={{
           minHeight: '100vh',
-          background: '#0A0A0F',
-          color: '#fff',
+          background: 'var(--bg)',
+          color: 'var(--text-main)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -32,7 +32,7 @@ export default class ResultsErrorBoundary extends React.Component<{ children: Re
             ⚠️
           </div>
           <h2 style={{ fontSize: 24, fontWeight: 900, marginBottom: 16 }}>Something went wrong</h2>
-          <p style={{ color: '#A1A1AA', fontSize: 16, lineHeight: 1.6, marginBottom: 32 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.6, marginBottom: 32 }}>
             {this.state.error || 'An unexpected error occurred while loading your media kit.'}
           </p>
           <button

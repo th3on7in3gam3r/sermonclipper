@@ -48,17 +48,10 @@ export default function HeroImportHub({
   const [activeTab, setActiveTab] = useState<ImportTab>('upload');
 
   return (
-    <div className="hero-import-hub animate-in" style={{ animationDelay: '0.15s' }}>
-      <div className="hero-import-hub-card glass-card premium-border">
-        <header className="hero-import-hub-header">
-          <p className="hero-import-hub-kicker">Get started</p>
-          <h2 className="hero-import-hub-title">Import your sermon</h2>
-          <p className="hero-import-hub-subtitle">
-            Choose how you want to bring content into Vesper — one workspace, three flexible paths.
-          </p>
-        </header>
-
-        <div className="hero-import-tabs" role="tablist" aria-label="Import method">
+    <div className="hero-import-hub">
+      <div className="hero-import-hub-card glass-card">
+        <h2 className="sr-only">Bring in your sermon</h2>
+        <div className="hero-import-tabs" role="tablist" aria-label="How to bring in your sermon">
           {TABS.map((tab) => {
             const selected = activeTab === tab.id;
             return (

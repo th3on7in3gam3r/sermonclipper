@@ -33,7 +33,7 @@ export default function SiteFooter() {
           <LanguageSelector compact />
         </div>
 
-        <p className="site-footer-copy">{t('footer.copyright')}</p>
+        <p className="site-footer-copy">{t('footer.copyright', { year: new Date().getFullYear() })}</p>
       </div>
     </footer>
   );

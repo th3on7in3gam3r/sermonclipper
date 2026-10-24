@@ -30,9 +30,9 @@ export default function BioPageClient({ username }: { username: string }) {
 
   if (error) {
     return (
-      <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0d0d14', color: '#fff' }}>
+      <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--surface)', color: 'var(--text-main)' }}>
         <p>{error}</p>
-        <Link href="/" style={{ color: '#a78bfa' }}>
+        <Link href="/" style={{ color: 'var(--primary-soft)' }}>
           ← Vesper
         </Link>
       </main>
@@ -40,7 +40,7 @@ export default function BioPageClient({ username }: { username: string }) {
   }
 
   if (!bio) {
-    return <main style={{ minHeight: '100vh', background: '#0d0d14' }} />;
+    return <main style={{ minHeight: '100vh', background: 'var(--surface)' }} />;
   }
 
   return (

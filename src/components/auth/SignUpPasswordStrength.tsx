@@ -19,7 +19,7 @@ function scorePassword(password: string) {
 }
 
 const STRENGTH_LABELS = ['', 'Weak', 'Fair', 'Good', 'Strong'];
-const STRENGTH_COLORS = ['', '#EF4444', '#F59E0B', '#8B5CF6', '#10B981'];
+const STRENGTH_COLORS = ['', 'var(--error)', '#F59E0B', 'var(--primary)', 'var(--success)'];
 
 /** Live password strength feedback for Clerk sign-up forms. */
 export default function SignUpPasswordStrength() {
@@ -52,7 +52,7 @@ export default function SignUpPasswordStrength() {
           <span
             key={i}
             className="signup-password-strength-segment"
-            style={{ background: i <= score ? STRENGTH_COLORS[score] : 'rgba(255,255,255,0.08)' }}
+            style={{ background: i <= score ? STRENGTH_COLORS[score] : 'rgb(var(--fg-rgb) / 0.08)' }}
           />
         ))}
       </div>
@@ -61,7 +61,7 @@ export default function SignUpPasswordStrength() {
       </p>
       <ul className="signup-password-strength-rules">
         {RULES.map((rule) => (
-          <li key={rule.label} style={{ color: rule.test(password) ? '#10B981' : '#71717A' }}>
+          <li key={rule.label} style={{ color: rule.test(password) ? 'var(--success)' : 'var(--text-dim)' }}>
             {rule.test(password) ? '✓' : '○'} {rule.label}
           </li>
         ))}

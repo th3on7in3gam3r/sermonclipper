@@ -31,7 +31,7 @@
     "help": "도움말 센터",
     "contact": "문의 / 지원",
     "sitemap": "사이트맵",
-    "copyright": "© 2025 Vesper Studio. All rights reserved."
+    "copyright": "© {{year}} Vesper Studio. All rights reserved."
   },
   "settings": {
     "languageTitle": "언어",

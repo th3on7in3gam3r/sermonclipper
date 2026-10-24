@@ -64,10 +64,7 @@ export default function ClipCard({
   const end = clip.end ?? clip.end_time;
 
   return (
-    <article
-      className="glass-card premium-border animate-in"
-      style={{ animationDelay: `${(index + 1) * 0.1}s`, overflow: 'visible', display: 'flex', flexDirection: 'column' }}
-    >
+    <article className="glass-card clip-card">
       <div style={{ position: 'relative', aspectRatio: '16/9', background: '#000', overflow: 'hidden', borderRadius: 'inherit' }}>
         {videoId ? (
           <iframe
@@ -89,7 +86,7 @@ export default function ClipCard({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#71717A',
+                color: 'var(--text-dim)',
                 fontSize: 13,
                 fontWeight: 700,
               }}
@@ -100,7 +97,7 @@ export default function ClipCard({
         ) : null}
 
         <div className="vesper-badge" style={{ ...overlayBadge, left: 16, background: 'rgba(0,0,0,0.6)', color: '#fff' }}>
-          NEURAL CLIP {index + 1}
+          Clip {index + 1}
           {(clip.is_audio || isAudioSource) && (
             <span className="clip-badge-audio" style={{ marginLeft: 8 }}>
               🎙️ Audio
@@ -110,11 +107,11 @@ export default function ClipCard({
 
         {clip.viral_score ? (
           <div
-            className="vesper-badge badge-violet"
+            className="vesper-badge media-badge"
             style={{ ...overlayBadge, right: 16, display: 'inline-flex', alignItems: 'center', gap: 2 }}
           >
-            🔥 {clip.viral_score}% VIRAL
-            <HelpTooltip content={HELP_TOOLTIPS.impactScore} label="About Impact Score" />
+            Impact {clip.viral_score}
+            <HelpTooltip content={HELP_TOOLTIPS.impactScore} label="About the impact score" />
           </div>
         ) : null}
 
@@ -138,12 +135,8 @@ export default function ClipCard({
       </div>
 
       <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ color: 'var(--primary)', fontSize: 18, fontWeight: 900, marginBottom: 12, letterSpacing: '0.02em' }}>
-          {clip.hook_title}
-        </h3>
-        <p style={{ fontStyle: 'italic', color: '#fff', fontSize: 15, lineHeight: 1.5, marginBottom: 24, opacity: 0.9 }}>
-          &ldquo;{clip.main_quote}&rdquo;
-        </p>
+        <h3 className="clip-card-title">{clip.hook_title}</h3>
+        <blockquote className="clip-card-quote">&ldquo;{clip.main_quote}&rdquo;</blockquote>
 
         <ClipActionBar
           clip={clip}

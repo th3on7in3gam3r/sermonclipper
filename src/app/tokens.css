@@ -1,0 +1,105 @@
+/*
+ * Vesper design tokens — "Vespers": dusk in a sanctuary.
+ * Violet and pewter come from the logo's metalwork; candle gold is the one
+ * warm accent, kept for "your reel is ready" moments.
+ *
+ * *-rgb channels exist so translucent tints follow the theme:
+ *   background: rgb(var(--primary-rgb) / 0.12);
+ * --fg-rgb is the foreground channel (white on dusk, ink on lilac paper) for
+ * hairlines and subtle fills that must flip with the theme.
+ * --on-media is for text over video/photos and never flips.
+ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #0e0b16; /* dusk */
+  --bg-rgb: 14 11 22;
+  --surface: #171324; /* nave */
+  --surface-rgb: 23 19 36;
+  --surface-2: #211b33;
+  --surface-3: #2a2340;
+  --line: rgb(var(--fg-rgb) / 0.09);
+  --line-strong: rgb(var(--fg-rgb) / 0.16);
+  --fg-rgb: 255 255 255;
+
+  /* Text */
+  --text-main: #f2f0f7; /* pewter */
+  --text-muted: #b3aec4;
+  --text-dim: #8a84a0;
+
+  /* Brand */
+  --primary: #8a6cf0;
+  --primary-rgb: 138 108 240;
+  --primary-strong: #7457e3;
+  --primary-strong-rgb: 116 87 227;
+  --primary-soft: #c4b5fd; /* violet text on dark */
+  --primary-soft-rgb: 196 181 253;
+  --primary-ink: #ffffff; /* text on violet */
+  --accent: #e8b14f; /* candle */
+  --accent-rgb: 232 177 79;
+  --accent-ink: #1d1404;
+
+  /* Status */
+  --success: #34c38f;
+  --success-rgb: 52 195 143;
+  --error: #f0646a;
+  --error-rgb: 240 100 106;
+
+  --on-media: #ffffff;
+  --shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 18px 40px rgb(0 0 0 / 0.35);
+
+  /* Legacy aliases (kept so existing styles resolve) */
+  --background: var(--bg);
+  --card-bg: var(--surface);
+  --card-border: var(--line);
+  --input-bg: rgb(var(--fg-rgb) / 0.04);
+  --primary-glow: rgb(var(--primary-rgb) / 0.35);
+  --secondary: var(--primary-soft);
+  --accent-glow: rgb(var(--accent-rgb) / 0.3);
+  --glass-blur: 20px;
+
+  /* Shape */
+  --radius-lg: 20px; /* panels */
+  --radius-md: 14px; /* cards inside panels */
+  --radius-sm: 10px; /* buttons, inputs */
+
+  /* Type */
+  --font-ui: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --font-title: 'Playfair Display', Georgia, 'Times New Roman', serif;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f6f4fa; /* lilac paper */
+  --bg-rgb: 246 244 250;
+  --surface: #ffffff;
+  --surface-rgb: 255 255 255;
+  --surface-2: #f0edf7;
+  --surface-3: #e7e2f2;
+  --fg-rgb: 28 23 48;
+
+  --text-main: #1c1730; /* ink */
+  --text-muted: #5e5874;
+  --text-dim: #77718c;
+
+  --primary: #6a4bdc;
+  --primary-rgb: 106 75 220;
+  --primary-strong: #5537c4;
+  --primary-strong-rgb: 85 55 196;
+  --primary-soft: #5537c4; /* violet text on light needs depth, not pastel */
+  --primary-soft-rgb: 85 55 196;
+  --accent: #b9791a;
+  --accent-rgb: 185 121 26;
+  --accent-ink: #ffffff;
+
+  --success: #138a5e;
+  --success-rgb: 19 138 94;
+  --error: #c9343c;
+  --error-rgb: 201 52 60;
+
+  --shadow: 0 1px 2px rgb(28 23 48 / 0.06), 0 12px 32px rgb(28 23 48 / 0.08);
+}

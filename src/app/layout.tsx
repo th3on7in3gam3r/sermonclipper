@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import './fonts.css';
+import './tokens.css';
 import './globals.css';
 import './theme-extensions.css';
 import './clerk-overrides.css';
+import './landing.css';
+import './results.css';
 import { OG_IMAGE_PATH, SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from '@/lib/siteConfig';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from 'react-hot-toast';
@@ -26,7 +29,7 @@ if (process.env.NODE_ENV === 'development' && !process.env.NEXT_PUBLIC_CLERK_PUB
 }
 
 export const viewport: Viewport = {
-  themeColor: '#7c3aed',
+  themeColor: 'var(--primary-strong)',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -109,8 +112,8 @@ export default function RootLayout({
                       position="bottom-center"
                       toastOptions={{
                         style: {
-                          background: '#1A1A1A',
-                          color: '#fff',
+                          background: 'var(--surface)',
+                          color: 'var(--text-main)',
                           border: '1px solid #333',
                           borderRadius: '99px',
                           padding: '12px 24px',
@@ -119,7 +122,7 @@ export default function RootLayout({
                         },
                         success: {
                           iconTheme: {
-                            primary: '#8B5CF6',
+                            primary: 'var(--primary)',
                             secondary: '#fff',
                           },
                         },

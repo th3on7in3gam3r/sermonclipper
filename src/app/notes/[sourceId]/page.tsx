@@ -34,14 +34,14 @@ export default async function NotesPage({ params }: Props) {
 
   if (!notes) {
     return (
-      <main style={{ maxWidth: '720px', margin: '80px auto', padding: '0 20px', color: '#fff' }}>
+      <main style={{ maxWidth: '720px', margin: '80px auto', padding: '0 20px', color: 'var(--text-main)' }}>
         <h1>Notes not found</h1>
       </main>
     );
   }
 
   return (
-    <main style={{ maxWidth: '720px', margin: '0 auto', padding: '48px 20px 80px', color: '#fff' }}>
+    <main style={{ maxWidth: '720px', margin: '0 auto', padding: '48px 20px 80px', color: 'var(--text-main)' }}>
       <p className="vesper-badge badge-violet" style={{ marginBottom: '16px' }}>
         Sermon Notes
       </p>
@@ -76,7 +76,7 @@ export default async function NotesPage({ params }: Props) {
               margin: '0 0 16px',
               padding: '16px 20px',
               borderLeft: '4px solid var(--primary)',
-              background: 'rgba(139,92,246,0.08)',
+              background: 'rgb(var(--primary-rgb) / 0.08)',
               borderRadius: '8px',
               fontStyle: 'italic',
             }}

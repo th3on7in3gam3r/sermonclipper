@@ -104,11 +104,11 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
             >
               <span
                 id="onboarding-progress-label"
-                style={{ fontSize: '15px', fontWeight: 900, color: '#fff', letterSpacing: '-0.01em' }}
+                style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '-0.01em' }}
               >
                 Step {step + 1} of {totalSteps}
               </span>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#A78BFA' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary-soft)' }}>
                 {Math.round(((step + 1) / totalSteps) * 100)}% complete
               </span>
             </div>
@@ -133,8 +133,8 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
                     border: 'none',
                     padding: 0,
                     cursor: 'pointer',
-                    background: i < step ? '#10B981' : i === step ? '#8B5CF6' : 'rgba(255,255,255,0.12)',
-                    boxShadow: i === step ? '0 0 12px rgba(139,92,246,0.5)' : 'none',
+                    background: i < step ? 'var(--success)' : i === step ? 'var(--primary)' : 'rgb(var(--fg-rgb) / 0.12)',
+                    boxShadow: i === step ? '0 0 12px rgb(var(--primary-rgb) / 0.5)' : 'none',
                     transition: 'background 0.25s, box-shadow 0.25s',
                   }}
                 />
@@ -154,7 +154,7 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
                     cursor: 'pointer',
                     fontSize: '9px',
                     fontWeight: i === step ? 800 : 600,
-                    color: i === step ? '#E9D5FF' : i < step ? '#6EE7B7' : '#71717A',
+                    color: i === step ? '#E9D5FF' : i < step ? '#6EE7B7' : 'var(--text-dim)',
                     lineHeight: 1.2,
                     textAlign: 'center',
                   }}
@@ -172,8 +172,8 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
                 width: '56px',
                 height: '56px',
                 borderRadius: '16px',
-                background: 'rgba(139,92,246,0.15)',
-                border: '1px solid rgba(139,92,246,0.3)',
+                background: 'rgb(var(--primary-rgb) / 0.15)',
+                border: '1px solid rgb(var(--primary-rgb) / 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -189,7 +189,7 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
             <p
               style={{
                 fontSize: '13px',
-                color: '#A78BFA',
+                color: 'var(--primary-soft)',
                 fontWeight: 800,
                 letterSpacing: '0.04em',
                 marginBottom: '8px',
@@ -206,7 +206,7 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
               letterSpacing: '-0.02em',
               lineHeight: 1.2,
               marginBottom: '16px',
-              color: '#fff',
+              color: 'var(--text-main)',
             }}
           >
             {current.title}
@@ -216,7 +216,7 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
           <p
             style={{
               fontSize: '14px',
-              color: '#D4D4D8',
+              color: 'var(--text-main)',
               lineHeight: 1.7,
               marginBottom: '16px',
               whiteSpace: 'pre-line',
@@ -233,8 +233,8 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
               gap: '8px',
               padding: '8px 14px',
               borderRadius: '99px',
-              background: 'rgba(139,92,246,0.12)',
-              border: '1px solid rgba(139,92,246,0.3)',
+              background: 'rgb(var(--primary-rgb) / 0.12)',
+              border: '1px solid rgb(var(--primary-rgb) / 0.3)',
               marginBottom: '28px',
             }}
           >
@@ -254,8 +254,8 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
                 padding: '16px',
                 borderRadius: '14px',
                 cursor: 'pointer',
-                background: acknowledged ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.03)',
-                border: acknowledged ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                background: acknowledged ? 'rgb(var(--success-rgb) / 0.08)' : 'rgb(var(--fg-rgb) / 0.03)',
+                border: acknowledged ? '1px solid rgb(var(--success-rgb) / 0.3)' : '1px solid rgb(var(--fg-rgb) / 0.08)',
                 marginBottom: '24px',
                 transition: 'all 0.2s',
               }}
@@ -266,21 +266,21 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
                   height: '22px',
                   borderRadius: '6px',
                   flexShrink: 0,
-                  border: acknowledged ? '2px solid #10B981' : '2px solid #52525B',
-                  background: acknowledged ? '#10B981' : 'transparent',
+                  border: acknowledged ? '2px solid var(--success)' : '2px solid var(--text-dim)',
+                  background: acknowledged ? 'var(--success)' : 'transparent',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   transition: 'all 0.2s',
                 }}
               >
-                {acknowledged && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 900 }}>✓</span>}
+                {acknowledged && <span style={{ color: 'var(--text-main)', fontSize: '12px', fontWeight: 900 }}>✓</span>}
               </div>
               <div>
-                <p style={{ fontSize: '13px', color: '#fff', fontWeight: 700, marginBottom: '4px' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-main)', fontWeight: 700, marginBottom: '4px' }}>
                   I understand how Vesper works
                 </p>
-                <p style={{ fontSize: '11px', color: '#71717A', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '11px', color: 'var(--text-dim)', lineHeight: 1.5 }}>
                   I acknowledge that YouTube links provide AI analysis only, and full reel export requires
                   uploading an MP4 file directly.
                 </p>
@@ -297,10 +297,10 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
                 style={{
                   flex: 1,
                   padding: '14px',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgb(var(--fg-rgb) / 0.04)',
+                  border: '1px solid rgb(var(--fg-rgb) / 0.1)',
                   borderRadius: '12px',
-                  color: '#A1A1AA',
+                  color: 'var(--text-muted)',
                   fontSize: '13px',
                   fontWeight: 700,
                   cursor: 'pointer',

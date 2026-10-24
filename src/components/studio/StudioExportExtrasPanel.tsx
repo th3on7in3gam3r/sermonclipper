@@ -33,7 +33,7 @@ export default function StudioExportExtrasPanel({ extras, onChange, activeSectio
               padding: '14px',
               textAlign: 'left',
               borderColor: extras.captionAnimation === anim.id ? 'var(--primary)' : 'var(--card-border)',
-              background: extras.captionAnimation === anim.id ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.02)',
+              background: extras.captionAnimation === anim.id ? 'rgb(var(--primary-rgb) / 0.1)' : 'rgb(var(--fg-rgb) / 0.02)',
             }}
           >
             <div className={anim.previewClass} style={{ fontWeight: 800, fontSize: '15px', marginBottom: '4px' }}>
@@ -72,7 +72,7 @@ export default function StudioExportExtrasPanel({ extras, onChange, activeSectio
             max={30}
             value={Math.round(extras.musicVolume * 100)}
             onChange={(e) => onChange({ musicVolume: Number(e.target.value) / 100 })}
-            style={{ width: '100%', accentColor: '#8B5CF6' }}
+            style={{ width: '100%', accentColor: 'var(--primary)' }}
           />
         </label>
         <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -120,7 +120,7 @@ export default function StudioExportExtrasPanel({ extras, onChange, activeSectio
         <select
           value={extras.ctaType}
           onChange={(e) => onChange({ ctaType: e.target.value as ExportExtras['ctaType'] })}
-          style={{ width: '100%', marginBottom: '8px', padding: '10px', background: '#0a0a0f', color: '#fff', borderRadius: '8px' }}
+          style={{ width: '100%', marginBottom: '8px', padding: '10px', background: 'var(--bg)', color: 'var(--text-main)', borderRadius: '8px' }}
         >
           {CTA_TYPES.map((c) => (
             <option key={c.id} value={c.id}>
@@ -132,13 +132,13 @@ export default function StudioExportExtrasPanel({ extras, onChange, activeSectio
           placeholder={t('studio.cta.customText')}
           value={extras.ctaText}
           onChange={(e) => onChange({ ctaText: e.target.value })}
-          style={{ width: '100%', marginBottom: '8px', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+          style={{ width: '100%', marginBottom: '8px', padding: '10px', borderRadius: '8px', background: 'rgb(var(--fg-rgb) / 0.03)', border: '1px solid rgb(var(--fg-rgb) / 0.1)', color: 'var(--text-main)' }}
         />
         <input
           placeholder={t('studio.cta.customUrl')}
           value={extras.ctaUrl}
           onChange={(e) => onChange({ ctaUrl: e.target.value })}
-          style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+          style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgb(var(--fg-rgb) / 0.03)', border: '1px solid rgb(var(--fg-rgb) / 0.1)', color: 'var(--text-main)' }}
         />
       </section>
 
@@ -155,7 +155,7 @@ export default function StudioExportExtrasPanel({ extras, onChange, activeSectio
         <select
           value={extras.bumperStyle}
           onChange={(e) => onChange({ bumperStyle: e.target.value })}
-          style={{ width: '100%', marginBottom: '8px', padding: '10px', background: '#0a0a0f', color: '#fff', borderRadius: '8px' }}
+          style={{ width: '100%', marginBottom: '8px', padding: '10px', background: 'var(--bg)', color: 'var(--text-main)', borderRadius: '8px' }}
         >
           {INTRO_OUTRO_STYLES.map((s) => (
             <option key={s.id} value={s.id}>
@@ -174,9 +174,9 @@ export default function StudioExportExtrasPanel({ extras, onChange, activeSectio
               marginBottom: '8px',
               padding: '10px',
               borderRadius: '8px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: '#fff',
+              background: 'rgb(var(--fg-rgb) / 0.03)',
+              border: '1px solid rgb(var(--fg-rgb) / 0.1)',
+              color: 'var(--text-main)',
             }}
           />
         ))}

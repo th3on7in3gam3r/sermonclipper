@@ -31,7 +31,7 @@
     "help": "مركز المساعدة",
     "contact": "اتصل / الدعم",
     "sitemap": "خريطة الموقع",
-    "copyright": "© 2025 Vesper Studio. جميع الحقوق محفوظة."
+    "copyright": "© {{year}} Vesper Studio. جميع الحقوق محفوظة."
   },
   "settings": {
     "languageTitle": "اللغة",

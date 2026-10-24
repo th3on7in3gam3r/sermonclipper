@@ -100,7 +100,7 @@ export default function StudioClipAnalyticsPanel({ clipId, clipTitle }: Props) {
                     <span style={{ fontWeight: 800 }}>
                       {meta.icon} {meta.label}
                     </span>
-                    <span style={{ fontSize: '12px', color: platform.connected ? '#10B981' : 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '12px', color: platform.connected ? 'var(--success)' : 'var(--text-muted)' }}>
                       {platform.available ? `${platform.views.toLocaleString()} views` : platform.connected ? 'Awaiting publish' : 'Not connected'}
                     </span>
                   </div>
@@ -125,11 +125,11 @@ export default function StudioClipAnalyticsPanel({ clipId, clipTitle }: Props) {
             </div>
             <ResponsiveContainer width="100%" height="85%">
               <LineChart data={data.trend}>
-                <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="date" tick={{ fill: '#71717A', fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
-                <YAxis tick={{ fill: '#71717A', fontSize: 10 }} width={32} />
+                <CartesianGrid stroke="rgb(var(--fg-rgb) / 0.05)" vertical={false} />
+                <XAxis dataKey="date" tick={{ fill: 'var(--text-dim)', fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
+                <YAxis tick={{ fill: 'var(--text-dim)', fontSize: 10 }} width={32} />
                 <Tooltip contentStyle={{ background: '#14141D', border: '1px solid #333', borderRadius: 8 }} />
-                <Line type="monotone" dataKey="views" stroke="#8B5CF6" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="views" stroke="var(--primary)" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -137,14 +137,14 @@ export default function StudioClipAnalyticsPanel({ clipId, clipTitle }: Props) {
           {data.bestEngagementHour != null && (
             <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
               Best engagement window: around{' '}
-              <strong style={{ color: '#fff' }}>
+              <strong style={{ color: 'var(--text-main)' }}>
                 {data.bestEngagementHour === 0 ? '12 AM' : data.bestEngagementHour <= 12 ? `${data.bestEngagementHour} AM` : `${data.bestEngagementHour - 12} PM`}
               </strong>
             </p>
           )}
 
           {data.totals.avgCompletionRate > 0 && (
-            <p style={{ fontSize: '13px', color: data.totals.avgCompletionRate >= 50 ? '#10B981' : 'var(--text-muted)' }}>
+            <p style={{ fontSize: '13px', color: data.totals.avgCompletionRate >= 50 ? 'var(--success)' : 'var(--text-muted)' }}>
               Avg completion: {data.totals.avgCompletionRate.toFixed(0)}%
               {data.totals.avgCompletionRate >= 50 ? ' — excellent for sermon content' : ''}
             </p>

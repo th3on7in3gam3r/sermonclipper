@@ -49,9 +49,9 @@ export default function LanguageSelector({ compact }: Props) {
           width: compact ? 'auto' : '100%',
           padding: '10px 14px',
           borderRadius: '8px',
-          border: '1px solid rgba(255,255,255,0.1)',
-          background: '#0a0a0f',
-          color: '#fff',
+          border: '1px solid rgb(var(--fg-rgb) / 0.1)',
+          background: 'var(--bg)',
+          color: 'var(--text-main)',
           minWidth: compact ? '140px' : undefined,
         }}
       >

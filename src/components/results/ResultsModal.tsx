@@ -91,8 +91,8 @@ export function ModalCloseButton({ onClose }: { onClose: () => void }) {
       aria-label="Close"
       style={{
         background: 'none',
-        border: '1px solid rgba(255,255,255,0.1)',
-        color: '#fff',
+        border: '1px solid rgb(var(--fg-rgb) / 0.1)',
+        color: 'var(--text-main)',
         width: 36,
         height: 36,
         borderRadius: '50%',

@@ -60,16 +60,11 @@ export default function FAQ() {
     <section
       id="faq"
       className="landing-anchor"
-      style={{ padding: '120px 20px', maxWidth: '900px', margin: '0 auto' }}
+      style={{ padding: 'clamp(72px, 10vw, 128px) 20px', maxWidth: '1080px', margin: '0 auto', width: '100%' }}
     >
-      <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-        <div className="vesper-badge badge-violet" style={{ marginBottom: '24px' }}>
-          Support
-        </div>
-        <h2 className="title-xl" style={{ fontSize: 'clamp(32px, 5vw, 48px)', marginBottom: '16px' }}>
-          Frequently Asked Questions
-        </h2>
-      </div>
+      <h2 className="landing-section-title" style={{ marginBottom: 40 }}>
+        Questions churches ask
+      </h2>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {FAQ_DATA.map((item, i) => {
@@ -82,7 +77,7 @@ export default function FAQ() {
               className="glass-card premium-border"
               style={{
                 padding: 0,
-                background: isOpen ? 'rgba(255,255,255,0.02)' : 'transparent',
+                background: isOpen ? 'rgb(var(--fg-rgb) / 0.02)' : 'transparent',
                 borderColor: isOpen ? 'var(--primary)' : 'var(--card-border)',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
@@ -102,7 +97,7 @@ export default function FAQ() {
                   padding: '24px 32px',
                   background: 'none',
                   border: 'none',
-                  color: '#fff',
+                  color: 'var(--text-main)',
                   fontSize: '16px',
                   fontWeight: 800,
                   textAlign: 'left',

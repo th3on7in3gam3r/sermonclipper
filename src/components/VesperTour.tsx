@@ -99,21 +99,21 @@ export default function VesperTour({ forceOpen, onClose }: VesperTourProps) {
         style={{
           width: '100%',
           maxWidth: '520px',
-          background: '#0D0D12',
-          border: '1px solid rgba(139,92,246,0.3)',
+          background: 'var(--surface)',
+          border: '1px solid rgb(var(--primary-rgb) / 0.3)',
           borderRadius: '28px',
           overflow: 'hidden',
-          boxShadow: '0 40px 120px rgba(0,0,0,0.8), 0 0 0 1px rgba(139,92,246,0.1)',
+          boxShadow: '0 40px 120px rgba(0,0,0,0.8), 0 0 0 1px rgb(var(--primary-rgb) / 0.1)',
           animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         {/* Progress bar */}
-        <div style={{ height: '3px', background: 'rgba(255,255,255,0.05)' }}>
+        <div style={{ height: '3px', background: 'rgb(var(--fg-rgb) / 0.05)' }}>
           <div
             style={{
               height: '100%',
               width: `${((step + 1) / STEPS.length) * 100}%`,
-              background: 'linear-gradient(90deg, #8B5CF6, #D8B4FE)',
+              background: 'linear-gradient(90deg, var(--primary), var(--primary-soft))',
               transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           />
@@ -128,8 +128,8 @@ export default function VesperTour({ forceOpen, onClose }: VesperTourProps) {
                 width: '52px',
                 height: '52px',
                 borderRadius: '16px',
-                background: 'rgba(139,92,246,0.1)',
-                border: '1px solid rgba(139,92,246,0.2)',
+                background: 'rgb(var(--primary-rgb) / 0.1)',
+                border: '1px solid rgb(var(--primary-rgb) / 0.2)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -139,7 +139,7 @@ export default function VesperTour({ forceOpen, onClose }: VesperTourProps) {
             >
               {current.icon}
             </div>
-            <div style={{ fontSize: '10px', fontWeight: 900, color: '#8B5CF6', letterSpacing: '0.2em' }}>
+            <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--primary)', letterSpacing: '0.2em' }}>
               {current.tag}
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function VesperTour({ forceOpen, onClose }: VesperTourProps) {
               letterSpacing: '-0.02em',
               lineHeight: 1.15,
               marginBottom: '16px',
-              color: '#fff',
+              color: 'var(--text-main)',
             }}
           >
             {current.title}
@@ -162,7 +162,7 @@ export default function VesperTour({ forceOpen, onClose }: VesperTourProps) {
           <p
             style={{
               fontSize: '15px',
-              color: '#A1A1AA',
+              color: 'var(--text-muted)',
               lineHeight: 1.7,
               marginBottom: '20px',
             }}
@@ -178,13 +178,13 @@ export default function VesperTour({ forceOpen, onClose }: VesperTourProps) {
               gap: '8px',
               padding: '8px 14px',
               borderRadius: '99px',
-              background: 'rgba(244,185,66,0.06)',
-              border: '1px solid rgba(244,185,66,0.15)',
+              background: 'rgb(var(--accent-rgb) / 0.06)',
+              border: '1px solid rgb(var(--accent-rgb) / 0.15)',
               marginBottom: '32px',
             }}
           >
             <span style={{ fontSize: '12px' }}>💡</span>
-            <span style={{ fontSize: '11px', color: '#F4B942', fontWeight: 700 }}>{current.tip}</span>
+            <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 700 }}>{current.tip}</span>
           </div>
 
           {/* Step dots */}
@@ -198,7 +198,7 @@ export default function VesperTour({ forceOpen, onClose }: VesperTourProps) {
                   height: '6px',
                   borderRadius: '99px',
                   cursor: 'pointer',
-                  background: i === step ? '#8B5CF6' : 'rgba(255,255,255,0.1)',
+                  background: i === step ? 'var(--primary)' : 'rgb(var(--fg-rgb) / 0.1)',
                   transition: 'all 0.3s',
                 }}
               />
@@ -213,10 +213,10 @@ export default function VesperTour({ forceOpen, onClose }: VesperTourProps) {
                 style={{
                   flex: 1,
                   padding: '14px',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgb(var(--fg-rgb) / 0.04)',
+                  border: '1px solid rgb(var(--fg-rgb) / 0.1)',
                   borderRadius: '14px',
-                  color: '#A1A1AA',
+                  color: 'var(--text-muted)',
                   fontSize: '12px',
                   fontWeight: 800,
                   cursor: 'pointer',
@@ -231,7 +231,7 @@ export default function VesperTour({ forceOpen, onClose }: VesperTourProps) {
               style={{
                 flex: 2,
                 padding: '14px',
-                background: 'linear-gradient(90deg, #8B5CF6, #D8B4FE, #8B5CF6)',
+                background: 'linear-gradient(90deg, var(--primary), var(--primary-soft), var(--primary))',
                 backgroundSize: '200% auto',
                 animation: 'shimmer 4s linear infinite',
                 border: 'none',
@@ -251,9 +251,9 @@ export default function VesperTour({ forceOpen, onClose }: VesperTourProps) {
                 style={{
                   padding: '14px 16px',
                   background: 'none',
-                  border: '1px solid rgba(255,255,255,0.06)',
+                  border: '1px solid rgb(var(--fg-rgb) / 0.06)',
                   borderRadius: '14px',
-                  color: '#52525B',
+                  color: 'var(--text-dim)',
                   fontSize: '11px',
                   fontWeight: 700,
                   cursor: 'pointer',

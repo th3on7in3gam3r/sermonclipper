@@ -31,20 +31,20 @@ export default function AdminSecretsHealthPage() {
   }, []);
 
   return (
-    <main style={{ maxWidth: '960px', margin: '0 auto', padding: '48px 20px', color: '#fff' }}>
+    <main style={{ maxWidth: '960px', margin: '0 auto', padding: '48px 20px', color: 'var(--text-main)' }}>
       <Link href="/admin" style={{ color: 'var(--primary)' }}>
         ← Admin
       </Link>
       <h1 style={{ fontSize: '32px', fontWeight: 900, margin: '16px 0' }}>Secrets health</h1>
 
-      {error && <p style={{ color: '#ef4444' }}>{error}</p>}
+      {error && <p style={{ color: 'var(--error)' }}>{error}</p>}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
         {secrets.map((s) => (
-          <div key={s.id} className="glass-card" style={{ padding: '14px', borderColor: s.overdue ? '#ef4444' : undefined }}>
+          <div key={s.id} className="glass-card" style={{ padding: '14px', borderColor: s.overdue ? 'var(--error)' : undefined }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
               <strong>{s.label}</strong>
-              <span style={{ fontSize: '12px', color: s.overdue ? '#ef4444' : 'var(--text-muted)' }}>
+              <span style={{ fontSize: '12px', color: s.overdue ? 'var(--error)' : 'var(--text-muted)' }}>
                 {s.overdue ? 'Overdue' : s.daysUntilRotation != null ? `${s.daysUntilRotation}d until rotation` : 'Set LAST_ROTATED env'}
               </span>
             </div>
