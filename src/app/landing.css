@@ -309,3 +309,19 @@ a.vesper-btn:hover {
   color: var(--primary-ink);
   background: var(--primary);
 }
+
+/* --- Marketing (SEO) pages share the landing's title treatment --- */
+
+.seo-hero h1 {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.seo-kicker {
+  font-size: 14px;
+  font-weight: 600;
+}

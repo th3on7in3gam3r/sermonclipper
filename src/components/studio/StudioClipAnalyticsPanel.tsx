@@ -129,7 +129,7 @@ export default function StudioClipAnalyticsPanel({ clipId, clipTitle }: Props) {
                 <XAxis dataKey="date" tick={{ fill: 'var(--text-dim)', fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
                 <YAxis tick={{ fill: 'var(--text-dim)', fontSize: 10 }} width={32} />
                 <Tooltip contentStyle={{ background: '#14141D', border: '1px solid #333', borderRadius: 8 }} />
-                <Line type="monotone" dataKey="views" stroke="var(--primary)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="views" stroke="#8a6cf0" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>

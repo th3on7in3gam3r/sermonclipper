@@ -16,7 +16,7 @@ export default function OpenGraphImage() {
         flexDirection: 'column',
         justifyContent: 'center',
         padding: '72px 80px',
-        background: 'linear-gradient(135deg, #0A0A0F 0%, #1a1030 45%, #0A0A0F 100%)',
+        background: 'linear-gradient(135deg, #0e0b16 0%, #211b33 50%, #0e0b16 100%)',
         color: '#fff',
         fontFamily: 'system-ui, sans-serif',
       }}
@@ -26,7 +26,7 @@ export default function OpenGraphImage() {
           fontSize: 28,
           fontWeight: 800,
           letterSpacing: '0.35em',
-          color: '#A78BFA',
+          color: '#E8B14F',
           marginBottom: 24,
         }}
       >
@@ -44,7 +44,7 @@ export default function OpenGraphImage() {
       >
         Cinematic Sermon Reels for Churches
       </div>
-      <div style={{ fontSize: 28, lineHeight: 1.45, color: '#C4B5FD', maxWidth: 880 }}>
+      <div style={{ fontSize: 28, lineHeight: 1.45, color: '#CFCADC', maxWidth: 880 }}>
         {SITE_DESCRIPTION}
       </div>
       <div

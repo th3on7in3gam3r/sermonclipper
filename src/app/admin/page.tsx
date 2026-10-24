@@ -140,7 +140,7 @@ export default function AdminPage() {
             <XAxis dataKey="date" tick={{ fill: '#888', fontSize: 10 }} />
             <YAxis tick={{ fill: '#888', fontSize: 10 }} />
             <Tooltip />
-            <Bar dataKey="clips" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="clips" fill="#8a6cf0" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </section>
@@ -157,7 +157,7 @@ export default function AdminPage() {
               <XAxis dataKey="score" tick={{ fill: '#888', fontSize: 10 }} />
               <YAxis tick={{ fill: '#888', fontSize: 10 }} allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="count" fill="var(--success)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" fill="#34c38f" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           {metrics.nps.feedback.length > 0 && (

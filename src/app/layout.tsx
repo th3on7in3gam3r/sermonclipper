@@ -29,7 +29,7 @@ if (process.env.NODE_ENV === 'development' && !process.env.NEXT_PUBLIC_CLERK_PUB
 }
 
 export const viewport: Viewport = {
-  themeColor: 'var(--primary-strong)',
+  themeColor: '#0e0b16',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,

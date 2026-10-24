@@ -1,11 +1,11 @@
 {
   "name": "Vesper Studio",
   "short_name": "Vesper",
-  "description": "Neural-powered sermon harvesting and social media kit generation.",
+  "description": "Turn Sunday sermons into captioned vertical reels for Instagram, TikTok and YouTube Shorts.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d0d14",
-  "theme_color": "#7c3aed",
+  "background_color": "#0e0b16",
+  "theme_color": "#0e0b16",
   "icons": [
     {
       "src": "/icon-192.png",
