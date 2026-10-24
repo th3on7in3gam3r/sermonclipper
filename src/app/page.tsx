@@ -2,7 +2,6 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useState, useEffect, useCallback } from 'react';
-import ProcessingView from '@/components/home/ProcessingView';
 import Pricing from '@/components/home/Pricing';
 import HeroDemo from '@/components/home/HeroDemo';
 import ShowcasePromo from '@/components/showcase/ShowcasePromo';
@@ -11,10 +10,13 @@ import HeroImportHub from '@/components/home/HeroImportHub';
 import ChurchSocialProof from '@/components/home/ChurchSocialProof';
 import FAQ from '@/components/FAQ';
 import { LandingStructuredData } from '@/components/seo/StructuredData';
-import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
-import VideoTrimmer from '@/components/VideoTrimmer';
+import dynamic from 'next/dynamic';
+import { useOnboarding } from '@/components/useOnboarding';
+
+const OnboardingModal = dynamic(() => import('@/components/OnboardingModal'), { ssr: false });
+const ProcessingView = dynamic(() => import('@/components/home/ProcessingView'), { ssr: false });
+const VideoTrimmer = dynamic(() => import('@/components/VideoTrimmer'), { ssr: false });
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
 import {
   MAX_DIRECT_UPLOAD_BYTES,

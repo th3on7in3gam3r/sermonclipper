@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@clerk/nextjs';
-import { isOnboardingCompleteLocally, markOnboardingCompleteLocally } from '@/lib/onboardingStorage';
+import { useState } from 'react';
 import { MAX_DIRECT_UPLOAD_LABEL } from '@/lib/uploadLimits';
 import { useFocusTrap } from '@/lib/useFocusTrap';
 
@@ -334,83 +332,4 @@ export default function OnboardingModal({ onComplete, onSkip }: OnboardingModalP
       </div>
     </div>
   );
-}
-
-/** Hook to check if onboarding should show for signed-in users only */
-export function useOnboarding(forceShow = false) {
-  const { isLoaded, userId } = useAuth();
-  const [needsOnboarding, setNeedsOnboarding] = useState(forceShow);
-  const [isChecking, setIsChecking] = useState(!forceShow);
-
-  const completeOnboarding = useCallback(async () => {
-    if (userId) {
-      markOnboardingCompleteLocally(userId);
-      try {
-        await fetch('/api/user/onboarding', { method: 'POST' });
-      } catch {
-        // localStorage fallback keeps the wizard dismissed for this browser
-      }
-    }
-    setNeedsOnboarding(false);
-  }, [userId]);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    if (!userId) {
-      setNeedsOnboarding(false);
-      setIsChecking(false);
-      return;
-    }
-
-    if (forceShow) {
-      setNeedsOnboarding(true);
-      setIsChecking(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    async function resolveOnboardingState() {
-      setIsChecking(true);
-
-      if (isOnboardingCompleteLocally(userId!)) {
-        try {
-          await fetch('/api/user/onboarding', { method: 'POST' });
-        } catch {
-          // Already stored locally; server sync can retry on next visit
-        }
-        if (!cancelled) {
-          setNeedsOnboarding(false);
-          setIsChecking(false);
-        }
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/user/status');
-        if (!res.ok) {
-          if (!cancelled) setNeedsOnboarding(false);
-          return;
-        }
-        const data = await res.json();
-        if (!cancelled) {
-          setNeedsOnboarding(!data.onboardingComplete);
-        }
-      } catch {
-        if (!cancelled) setNeedsOnboarding(false);
-      } finally {
-        if (!cancelled) setIsChecking(false);
-      }
-    }
-
-    resolveOnboardingState();
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoaded, userId, forceShow]);
-
-  const showOnboarding = isLoaded && Boolean(userId) && !isChecking && needsOnboarding;
-
-  return { showOnboarding, completeOnboarding };
 }

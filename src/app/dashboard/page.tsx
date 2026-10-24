@@ -16,7 +16,10 @@ import WhatsNewBell from '@/components/dashboard/WhatsNewBell';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 import { ShortcutsHelpPanel, useKeyboardShortcuts } from '@/lib/useKeyboardShortcuts';
 import SiteFooter from '@/components/layout/SiteFooter';
-import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
+import dynamic from 'next/dynamic';
+import { useOnboarding } from '@/components/useOnboarding';
+
+const OnboardingModal = dynamic(() => import('@/components/OnboardingModal'), { ssr: false });
 import StudioHelpShell from '@/components/help/StudioHelpShell';
 import HelpNavButton from '@/components/help/HelpNavButton';
 import { vesperClerkAppearance } from '@/lib/clerkAppearance';
