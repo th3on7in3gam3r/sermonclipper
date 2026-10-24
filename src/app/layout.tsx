@@ -10,6 +10,7 @@ import { Suspense } from 'react';
 import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
 import { FeatureFlagsProvider } from '@/components/providers/FeatureFlagsProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { themeInitScript } from '@/lib/theme';
 import { I18nProvider } from '@/components/providers/I18nProvider';
 import VesperErrorBoundary from '@/components/shared/VesperErrorBoundary';
 import CookieConsent from '@/components/consent/CookieConsent';
@@ -85,6 +86,7 @@ export default function RootLayout({
     >
       <html lang="en" suppressHydrationWarning>
         <head>
+          <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
           <link
             rel="preload"
             href="/fonts/outfit-latin-wght-normal.woff2"

@@ -4,7 +4,8 @@ import path from 'path';
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    // DOM tests opt in per file with `// @vitest-environment jsdom`.
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
   },
   resolve: {
     alias: {

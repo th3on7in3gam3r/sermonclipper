@@ -1,8 +1,7 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-
-type Theme = 'dark' | 'light';
+import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from 'react';
+import { LIGHT_QUERY, THEME_STORAGE_KEY, type Theme } from '@/lib/theme';
 
 type ThemeContextValue = {
   theme: Theme;
@@ -10,51 +9,64 @@ type ThemeContextValue = {
   setTheme: (theme: Theme) => void;
 };
 
-const STORAGE_KEY = 'vesper-theme';
-
 const ThemeContext = createContext<ThemeContextValue>({
   theme: 'dark',
   toggleTheme: () => {},
   setTheme: () => {},
 });
 
-function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark';
-  const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-  if (stored === 'light' || stored === 'dark') return stored;
-  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+/*
+ * Theme lives in a tiny external store (localStorage + OS preference) read via
+ * useSyncExternalStore. The provider always renders the same tree: an earlier
+ * version swapped `<>children</>` for `<Provider>children</Provider>` after
+ * mount, which made React remount the entire app (and re-run every effect and
+ * API call) right after hydration.
+ */
+
+const listeners = new Set<() => void>();
+
+function readTheme(): Theme {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+  } catch {
+    /* storage unavailable */
+  }
+  return window.matchMedia(LIGHT_QUERY).matches ? 'light' : 'dark';
+}
+
+function subscribe(onChange: () => void) {
+  listeners.add(onChange);
+  const mq = window.matchMedia(LIGHT_QUERY);
+  mq.addEventListener('change', onChange);
+  window.addEventListener('storage', onChange);
+  return () => {
+    listeners.delete(onChange);
+    mq.removeEventListener('change', onChange);
+    window.removeEventListener('storage', onChange);
+  };
+}
+
+function writeTheme(next: Theme) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, next);
+  } catch {
+    /* storage unavailable */
+  }
+  listeners.forEach((l) => l());
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
+  const theme = useSyncExternalStore(subscribe, readTheme, () => 'dark' as Theme);
 
   useEffect(() => {
-    const initial = getInitialTheme();
-    setThemeState(initial);
-    document.documentElement.setAttribute('data-theme', initial);
-    setMounted(true);
-  }, []);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
-  const setTheme = useCallback((next: Theme) => {
-    setThemeState(next);
-    localStorage.setItem(STORAGE_KEY, next);
-    document.documentElement.setAttribute('data-theme', next);
-  }, []);
-
-  const toggleTheme = useCallback(() => {
-    setThemeState((prev) => {
-      const next = prev === 'dark' ? 'light' : 'dark';
-      localStorage.setItem(STORAGE_KEY, next);
-      document.documentElement.setAttribute('data-theme', next);
-      return next;
-    });
-  }, []);
+  const setTheme = useCallback((next: Theme) => writeTheme(next), []);
+  const toggleTheme = useCallback(() => writeTheme(readTheme() === 'dark' ? 'light' : 'dark'), []);
 
   const value = useMemo(() => ({ theme, toggleTheme, setTheme }), [theme, toggleTheme, setTheme]);
-
-  if (!mounted) return <>{children}</>;
-
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
