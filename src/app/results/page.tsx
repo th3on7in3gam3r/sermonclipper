@@ -33,19 +33,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import { planAllowsExport, UPGRADE_COPY } from '@/lib/plans';
 import { normalizeSermonAnalysis } from '@/lib/studioNavigation';
 // Google Fonts loaded via <link> in layout — preloaded here for instant availability
-const GOOGLE_FONTS_URL =
-  'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap';
-
 function ResultsContent() {
-  // Inject Google Fonts once on mount so Outfit & Playfair Display render correctly
-  useEffect(() => {
-    if (document.getElementById('vesper-gfonts')) return;
-    const link = document.createElement('link');
-    link.id = 'vesper-gfonts';
-    link.rel = 'stylesheet';
-    link.href = GOOGLE_FONTS_URL;
-    document.head.appendChild(link);
-  }, []);
   const searchParams = useSearchParams();
   const videoUrl = searchParams.get('videoUrl');
   const finalPathParam = searchParams.get('finalPath');

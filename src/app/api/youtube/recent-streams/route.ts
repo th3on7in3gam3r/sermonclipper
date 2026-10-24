@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { google } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-
-const oauth2Client = new OAuth2Client(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.NEXT_PUBLIC_APP_URL}/api/youtube/callback`
-);
+import { youtubeFor } from '@/lib/google/youtubeClient';
 
 /** Last 5 live/broadcast streams from the connected YouTube channel. */
 export async function GET(_req: NextRequest) {
@@ -26,8 +19,7 @@ export async function GET(_req: NextRequest) {
   }
 
   try {
-    oauth2Client.setCredentials(tokens);
-    const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
+    const youtube = youtubeFor(tokens);
 
     const channelRes = await youtube.channels.list({
       part: ['contentDetails'],

@@ -1,11 +1,4 @@
-import { google } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
-
-const oauth2Client = new OAuth2Client(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL}/api/youtube/callback`
-);
+import { youtubeAnalyticsFor, youtubeFor } from '@/lib/google/youtubeClient';
 
 export type YouTubeMetricRow = {
   views: number;
@@ -27,8 +20,7 @@ export async function fetchYouTubeVideoMetrics(
 ): Promise<YouTubeMetricRow | null> {
   if (!videoId) return null;
 
-  oauth2Client.setCredentials(tokens);
-  const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
+  const youtube = youtubeFor(tokens);
 
   const statsRes = await youtube.videos.list({
     part: ['statistics', 'contentDetails'],
@@ -49,7 +41,7 @@ export async function fetchYouTubeVideoMetrics(
   let completionRate = 0;
 
   try {
-    const youtubeAnalytics = google.youtubeAnalytics({ version: 'v2', auth: oauth2Client });
+    const youtubeAnalytics = youtubeAnalyticsFor(tokens);
     const end = new Date().toISOString().slice(0, 10);
     const start = new Date(Date.now() - 28 * 86400000).toISOString().slice(0, 10);
 

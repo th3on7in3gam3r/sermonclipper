@@ -1,22 +1,9 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Outfit } from 'next/font/google';
+import './fonts.css';
 import './globals.css';
 import './theme-extensions.css';
 import './clerk-overrides.css';
 import { OG_IMAGE_PATH, SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from '@/lib/siteConfig';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const outfit = Outfit({
-  subsets: ['latin'],
-  variable: '--font-outfit',
-  display: 'swap',
-});
-
 import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from 'react-hot-toast';
 import { Suspense } from 'react';
@@ -30,7 +17,12 @@ import PwaProvider from '@/components/pwa/PwaProvider';
 import AuthSessionWatcher from '@/components/auth/AuthSessionWatcher';
 import { vesperClerkAppearance, vesperClerkLocalization } from '@/lib/clerkAppearance';
 
-let hasWarnedMissingClerkKey = false;
+if (process.env.NODE_ENV === 'development' && !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+  // Dev-only startup warning to avoid silent auth failures on localhost (runs once at module load).
+  console.warn(
+    '[Auth] NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is missing. Clerk auth modals will not initialize in development.'
+  );
+}
 
 export const viewport: Viewport = {
   themeColor: '#7c3aed',
@@ -81,15 +73,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-  const isDev = process.env.NODE_ENV === 'development';
-
-  if (isDev && !clerkPublishableKey && !hasWarnedMissingClerkKey) {
-    // Dev-only startup warning to avoid silent auth failures on localhost.
-    console.warn(
-      '[Auth] NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is missing. Clerk auth modals will not initialize in development.'
-    );
-    hasWarnedMissingClerkKey = true;
-  }
 
   return (
     <ClerkProvider
@@ -100,8 +83,15 @@ export default function RootLayout({
       signUpFallbackRedirectUrl="/dashboard?onboarding=1"
       afterSignOutUrl="/"
     >
-      <html lang="en" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning>
         <head>
+          <link
+            rel="preload"
+            href="/fonts/outfit-latin-wght-normal.woff2"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
           <link rel="icon" href="/favicon.png" />
           <link rel="shortcut icon" href="/favicon.png" />
           <link rel="apple-touch-icon" href="/vesper-logo.png" />

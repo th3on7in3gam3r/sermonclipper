@@ -1,11 +1,4 @@
-import { google } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
-
-const oauth2Client = new OAuth2Client(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.NEXT_PUBLIC_APP_URL}/api/youtube/callback`
-);
+import { createOAuthClient, youtubeFor } from '@/lib/google/youtubeClient';
 
 export const getAuthUrl = (state?: string) => {
   const scopes = [
@@ -14,7 +7,7 @@ export const getAuthUrl = (state?: string) => {
     'https://www.googleapis.com/auth/yt-analytics.readonly',
   ];
 
-  return oauth2Client.generateAuthUrl({
+  return createOAuthClient().generateAuthUrl({
     access_type: 'offline',
     scope: scopes,
     include_granted_scopes: true,
@@ -23,7 +16,7 @@ export const getAuthUrl = (state?: string) => {
 };
 
 export const getTokens = async (code: string) => {
-  const { tokens } = await oauth2Client.getToken(code);
+  const { tokens } = await createOAuthClient().getToken(code);
   return tokens;
 };
 
@@ -31,8 +24,7 @@ export const uploadVideo = async (
   tokens: Record<string, unknown>,
   videoData: { title: string; description: string; url: string }
 ) => {
-  oauth2Client.setCredentials(tokens);
-  const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
+  const youtube = youtubeFor(tokens);
 
   // Download video to buffer
   const response = await fetch(videoData.url);

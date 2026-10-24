@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { google } from 'googleapis';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.NEXT_PUBLIC_APP_URL}/api/youtube/callback`
-);
+import { youtubeFor } from '@/lib/google/youtubeClient';
 
 export async function GET(req: NextRequest) {
   const { userId } = await auth();
@@ -25,8 +19,7 @@ export async function GET(req: NextRequest) {
     (r: { clipIndex?: number }) => (r.clipIndex ?? 0) === clipIndex
   );
 
-  oauth2Client.setCredentials(dbUser.youtubeTokens as Record<string, string>);
-  const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
+  const youtube = youtubeFor(dbUser.youtubeTokens as Record<string, unknown>);
 
   const variants: {
     id: string;
