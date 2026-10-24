@@ -1,17 +1,42 @@
 type ClerkLikeUser = {
-  emailAddresses?: { emailAddress: string }[];
+  emailAddresses?: { emailAddress: string; verification?: { status?: string | null } | null }[];
   firstName?: string | null;
 } | null;
 
-/** Matches /api/user/status admin bypass — keeps export in sync with dashboard plan display. */
+/** The owner's Clerk user id — always an admin. */
+const OWNER_USER_ID = 'user_3DYwuXu2bJd40YjKuyIoEh0Mvm4';
+
+function envList(name: string, lowercase: boolean): Set<string> {
+  return new Set(
+    (process.env[name] || '')
+      .split(',')
+      .map((s) => (lowercase ? s.trim().toLowerCase() : s.trim()))
+      .filter(Boolean)
+  );
+}
+
+/**
+ * Admins are matched EXACTLY, never by substring:
+ *  - the owner's Clerk user id,
+ *  - any id in VESPER_ADMIN_IDS (comma-separated),
+ *  - any VERIFIED email in VESPER_ADMIN_EMAILS (comma-separated).
+ *
+ * Previously anyone whose email *contained* certain words, or whose first name
+ * contained "jerless", was an admin — all values a new user chooses at sign-up.
+ *
+ * Matches /api/user/status admin bypass — keeps export in sync with dashboard plan display.
+ */
 export function isVesperAdmin(userId: string, clerkUser: ClerkLikeUser): boolean {
-  if (!clerkUser) return false;
-  return (
-    userId === 'user_3DYwuXu2bJd40YjKuyIoEh0Mvm4' ||
-    clerkUser.emailAddresses?.some((e) => e.emailAddress.includes('yahweh')) ||
-    clerkUser.emailAddresses?.some((e) => e.emailAddress.includes('theonlinegamer')) ||
-    clerkUser.firstName?.toLowerCase().includes('jerless') ||
-    false
+  if (!userId) return false;
+  if (userId === OWNER_USER_ID) return true;
+  if (envList('VESPER_ADMIN_IDS', false).has(userId)) return true; // Clerk ids are case-sensitive
+
+  const adminEmails = envList('VESPER_ADMIN_EMAILS', true);
+  if (!clerkUser || adminEmails.size === 0) return false;
+  return Boolean(
+    clerkUser.emailAddresses?.some(
+      (e) => e.verification?.status === 'verified' && adminEmails.has(e.emailAddress.trim().toLowerCase())
+    )
   );
 }
 
