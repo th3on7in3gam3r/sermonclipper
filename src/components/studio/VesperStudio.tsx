@@ -115,6 +115,7 @@ export default function VesperStudio({
   const [platformId, setPlatformId] = useState<string>(STUDIO_PLATFORMS[0].id);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [sourceDuration, setSourceDuration] = useState<number | null>(null);
   const [upgradePrompt, setUpgradePrompt] = useState<UpgradeFeature | null>(null);
 
   const clipIndex = selectedClip.index;
@@ -129,7 +130,7 @@ export default function VesperStudio({
         ? 'ai'
         : 'quote';
 
-  const trim = useTrim(parseTime(selectedClip.start), parseTime(selectedClip.end));
+  const trim = useTrim(parseTime(selectedClip.start), parseTime(selectedClip.end), sourceDuration);
   const { playbackUrl, refresh } = useStudioPlayback({ playableVideoUrl, videoUrl, videoId, authLoaded, userId });
   const youtube = useYouTubePublish({
     renderUrl: renderState?.status === 'complete' ? renderState.url : undefined,
@@ -175,7 +176,7 @@ export default function VesperStudio({
       setUpgradePrompt('export');
       return;
     }
-    startExport(selectedClip, buildExportSettings(style, trim.trim, caption, extras));
+    startExport(selectedClip, buildExportSettings(style, trim.trim, caption, extras, sourceDuration));
     if (isMobile) setMobileView('share');
   };
 
@@ -318,6 +319,7 @@ export default function VesperStudio({
               isMuted={isMuted}
               isMobile={isMobile}
               onPlayingChange={setIsPlaying}
+              onSourceDuration={setSourceDuration}
               onMutedChange={setIsMuted}
               onRefreshSrc={refresh}
             />

@@ -10,9 +10,11 @@ const PREVIEW_DEBOUNCE_MS = 350;
  * handles after a short pause, so dragging and keyboard arrows both update it
  * without re-seeking the video on every step.
  */
-export function useTrim(clipStart: number, clipEnd: number) {
-  const window = useMemo(() => trimWindow(clipStart, clipEnd), [clipStart, clipEnd]);
-  const [trim, setTrim] = useState({ start: clipStart, end: clipEnd });
+export function useTrim(clipStart: number, clipEnd: number, sourceDuration?: number | null) {
+  const window = useMemo(() => trimWindow(clipStart, clipEnd, sourceDuration), [clipStart, clipEnd, sourceDuration]);
+  const [rawTrim, setTrim] = useState({ start: clipStart, end: clipEnd });
+  // Once the video's real length is known, the handles can't sit past its end.
+  const trim = useMemo(() => clampTrim(rawTrim, window, 'end'), [rawTrim, window]);
   const [preview, setPreview] = useState({ start: clipStart, end: clipEnd });
 
   useEffect(() => {

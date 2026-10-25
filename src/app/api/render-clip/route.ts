@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import Sermon from '@/models/Sermon';
+import JobProgress from '@/models/JobProgress';
+import { getAccessibleUserIds } from '@/lib/teamAccess';
+import { chooseRenderSource } from '@/lib/renderSource';
 import { progressManager } from '../../../lib/progress';
 import { planAllowsExport } from '@/lib/plans';
 import { effectivePlan } from '@/lib/adminBypass';
@@ -22,6 +26,16 @@ import {
 } from '@/lib/studio/exportOptions';
 
 const INTRO_DURATION = 2.5;
+
+/** True if the file exists at a public URL Shotstack will fetch. */
+async function isPubliclyAvailable(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
 const OUTRO_DURATION = 4;
 const CTA_DURATION = 4;
 
@@ -216,16 +230,39 @@ export async function POST(req: NextRequest) {
       tagline = '',
       website = '',
       socialHandle = '',
+      sourceDuration,
     } = body;
+    const warnings: string[] = [];
 
     if (!jobId || !clip) {
       return NextResponse.json({ error: 'Missing jobId or clip data' }, { status: 400 });
     }
 
-    const state = await progressManager.get(jobId);
-    const resolvedVideoUrl = state?.finalPath || bodyVideoUrl;
+    // Only render sermons in this user's account (or their team's).
+    const [jobDoc, sermonDoc, accessible] = await Promise.all([
+      JobProgress.findOne({ jobId }).lean<{ userId?: string; finalPath?: string }>(),
+      Sermon.findOne({ jobId }).lean<{ userId?: string; finalPath?: string; videoUrl?: string }>(),
+      getAccessibleUserIds(userId),
+    ]);
+    const owner = jobDoc?.userId || sermonDoc?.userId;
+    if (owner && !accessible.includes(owner)) {
+      return NextResponse.json({ error: 'This sermon isn’t in your account.' }, { status: 404 });
+    }
 
-    console.log('[Render] State finalPath:', state?.finalPath, 'bodyVideoUrl:', bodyVideoUrl);
+    const state = await progressManager.get(jobId);
+    const resolvedVideoUrl = chooseRenderSource({
+      jobId,
+      progressPath: state?.finalPath || jobDoc?.finalPath,
+      sermonPath: sermonDoc?.finalPath,
+      sermonVideoUrl: sermonDoc?.videoUrl,
+      clientUrl: bodyVideoUrl,
+    });
+
+    console.log('[Render] Source:', resolvedVideoUrl ? 'resolved' : 'missing', {
+      fromProgress: Boolean(state?.finalPath || jobDoc?.finalPath),
+      fromSermon: Boolean(sermonDoc?.finalPath),
+      fromClient: Boolean(bodyVideoUrl),
+    });
 
     if (!resolvedVideoUrl || !isDownloadableMasterUrl(resolvedVideoUrl)) {
       return NextResponse.json(
@@ -281,11 +318,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!state?.finalPath && bodyVideoUrl) {
+    // Remember the source on the job so later exports don't depend on the browser.
+    if (!state?.finalPath && resolvedVideoUrl) {
       await progressManager.update(jobId, {
         step: 'Render',
         status: 'loading',
-        finalPath: bodyVideoUrl,
+        finalPath: resolvedVideoUrl,
       });
     }
 
@@ -299,8 +337,15 @@ export async function POST(req: NextRequest) {
     const aspectRatio = format === '1:1' ? '1:1' : format === '16:9' ? '16:9' : '9:16';
     const resolution = quality === 'high' ? '1080' : 'hd';
 
-    const start = parseTime(clip.start);
-    const end = parseTime(clip.end);
+    let start = parseTime(clip.start);
+    let end = parseTime(clip.end);
+    // A clip that runs past the end of the source video fails the render, so
+    // cap it at the length the browser measured (when it could).
+    const measured = Number(sourceDuration);
+    if (Number.isFinite(measured) && measured > 1 && end > measured - 0.1) {
+      end = Math.max(measured - 0.1, 1);
+      start = Math.min(start, Math.max(end - 1, 0));
+    }
     const duration = Math.max(end - start, 1);
     const introLen = includeIntro ? INTRO_DURATION : 0;
     const outroLen = includeOutro ? OUTRO_DURATION : 0;
@@ -496,9 +541,11 @@ export async function POST(req: NextRequest) {
       const mood = musicAutoMatch ? 'uplifting' : undefined;
       const resolvedTrackId = musicAutoMatch ? pickMusicForMood(mood || 'uplifting') : musicTrackId;
       const track = BACKGROUND_MUSIC_TRACKS.find((t) => t.id === resolvedTrackId);
-      if (track) {
-        const origin = req.nextUrl.origin;
-        const musicSrc = `${origin}${track.src}`;
+      const musicSrc = track ? `${req.nextUrl.origin}${track.src}` : '';
+      if (track && !(await isPubliclyAvailable(musicSrc))) {
+        console.warn('[Render] Music track missing, exporting without it:', musicSrc);
+        warnings.push('Background music isn’t set up yet, so this reel is exporting without music.');
+      } else if (track) {
         tracks.push({
           clips: [
             {
@@ -589,6 +636,7 @@ export async function POST(req: NextRequest) {
         success: true,
         shotstackId: data.response.id,
         status: 'queued',
+        ...(warnings.length ? { warnings } : {}),
       });
     }
 

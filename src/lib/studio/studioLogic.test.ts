@@ -88,6 +88,12 @@ describe('trim', () => {
     expect(trimWindow(300, 340)).toEqual({ min: 240, max: 400 });
   });
 
+  it('never reaches past the end of the source video once its length is known', () => {
+    expect(trimWindow(300, 340, 362.7)).toEqual({ min: 240, max: 362 });
+    expect(trimWindow(30, 90, null)).toEqual({ min: 0, max: 150 });
+    expect(trimWindow(30, 90, Number.NaN)).toEqual({ min: 0, max: 150 });
+  });
+
   it('keeps handles inside the window and at least a second apart', () => {
     const w = { min: 0, max: 100 };
     expect(clampTrim({ start: -5, end: 120 }, w, 'start')).toEqual({ start: 0, end: 100 });
@@ -107,5 +113,14 @@ describe('buildExportSettings', () => {
     );
     expect(settings).toMatchObject({ template: 'fire', trimStart: 65, trimEnd: 102, caption: 'He ran.' });
     expect(settings.musicTrackId).toBe(DEFAULT_EXPORT_EXTRAS.musicTrackId);
+  });
+});
+
+describe('buildExportSettings with source length', () => {
+  it('sends the measured source length so the server can cap the clip', () => {
+    const style = { template: 'minimal', filter: 'none', font: 'outfit', animation: 'fade' };
+    const extras = extrasFromBrandKit(null);
+    expect(buildExportSettings(style, { start: 1, end: 9 }, 'c', extras, 120.5).sourceDuration).toBe(120.5);
+    expect(buildExportSettings(style, { start: 1, end: 9 }, 'c', extras).sourceDuration).toBeUndefined();
   });
 });

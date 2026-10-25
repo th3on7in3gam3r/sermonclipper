@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import HelpTooltip from '@/components/help/HelpTooltip';
@@ -226,10 +227,31 @@ export function CaptionSection({
 
 /* --- Music ------------------------------------------------------------- */
 
+/** True once we know the music files are missing from the deployment. */
+function useMusicMissing() {
+  const [missing, setMissing] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    fetch(BACKGROUND_MUSIC_TRACKS[0].src, { method: 'HEAD' })
+      .then((res) => alive && setMissing(!res.ok))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return missing;
+}
+
 export function MusicSection({ extras, onExtras }: { extras: ExportExtras; onExtras: (patch: Partial<ExportExtras>) => void }) {
   const { t } = useTranslation();
+  const musicMissing = useMusicMissing();
   return (
     <>
+      {musicMissing && (
+        <p className="studio-note" role="status">
+          Background music isn’t set up yet, so reels export without music for now.
+        </p>
+      )}
       <Toggle
         label="Background music"
         hint="Plays quietly under the sermon audio."

@@ -1010,3 +1010,27 @@ legend.studio-group-title {
   outline: none;
   box-shadow: none;
 }
+
+.studio-error-detail {
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+
+.studio-error-detail span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+
+.studio-note {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-dim);
+  background: rgb(var(--accent-rgb) / 0.12);
+  border: 1px solid rgb(var(--accent-rgb) / 0.35);
+}

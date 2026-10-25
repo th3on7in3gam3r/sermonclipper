@@ -101,6 +101,11 @@ export default function StudioSharePanel({
         ) : status === 'error' ? (
           <div role="alert">
             <p className="studio-error-text">{renderState?.error || 'The export didn’t finish.'}</p>
+            {renderState?.detail && (
+              <p className="studio-error-detail">
+                Details from the render service: <span>{renderState.detail}</span>
+              </p>
+            )}
             <div className="studio-card-links">
               <button type="button" className="studio-link-btn" onClick={onExport}>
                 Try again

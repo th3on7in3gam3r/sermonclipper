@@ -30,6 +30,8 @@ interface StudioPhonePreviewProps {
   onPlayingChange: (playing: boolean) => void;
   onMutedChange: (muted: boolean) => void;
   onRefreshSrc?: () => Promise<string | null>;
+  /** Reports the source video's real length so trims and exports can't run past its end. */
+  onSourceDuration?: (seconds: number) => void;
 }
 
 export default function StudioPhonePreview({
@@ -55,6 +57,7 @@ export default function StudioPhonePreview({
   onPlayingChange,
   onMutedChange,
   onRefreshSrc,
+  onSourceDuration,
 }: StudioPhonePreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mediaState, setMediaState] = useState<MediaState>('idle');
@@ -356,6 +359,10 @@ export default function StudioPhonePreview({
                 muted={isMuted}
                 preload="auto"
                 onLoadedData={() => setMediaState('ready')}
+                onDurationChange={(e) => {
+                  const d = e.currentTarget.duration;
+                  if (Number.isFinite(d) && d > 0) onSourceDuration?.(d);
+                }}
                 onPlay={() => onPlayingChange(true)}
                 onPause={() => onPlayingChange(false)}
                 onError={() => {

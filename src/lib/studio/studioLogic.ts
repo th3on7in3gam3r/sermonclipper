@@ -79,8 +79,14 @@ export function buildPlatformCaption(platformId: string, caption: string, topQuo
 /** How far the trim handles can move: one minute either side of the AI's clip. */
 export const TRIM_PADDING_SECONDS = 60;
 
-export function trimWindow(clipStart: number, clipEnd: number) {
-  return { min: Math.max(0, clipStart - TRIM_PADDING_SECONDS), max: clipEnd + TRIM_PADDING_SECONDS };
+/** Never past the end of the source video, once its length is known. */
+export function trimWindow(clipStart: number, clipEnd: number, sourceDuration?: number | null) {
+  const min = Math.max(0, clipStart - TRIM_PADDING_SECONDS);
+  let max = clipEnd + TRIM_PADDING_SECONDS;
+  if (sourceDuration && Number.isFinite(sourceDuration) && sourceDuration > 1) {
+    max = Math.min(max, Math.floor(sourceDuration));
+  }
+  return { min, max: Math.max(max, min + 1) };
 }
 
 /** Keep start < end (at least 1s apart) and both inside the window. */
@@ -105,9 +111,11 @@ export function buildExportSettings(
   style: StyleState,
   trim: { start: number; end: number },
   caption: string,
-  extras: ExportExtras
+  extras: ExportExtras,
+  sourceDuration?: number | null
 ): ExportSettings {
   return {
+    ...(sourceDuration && Number.isFinite(sourceDuration) ? { sourceDuration } : {}),
     template: style.template,
     filter: style.filter,
     font: style.font,

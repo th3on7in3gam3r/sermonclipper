@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { planAllowsExport } from '@/lib/plans';
+import { describeRenderFailure } from '@/lib/studio/renderErrors';
 import type { ExportSettings, RenderState, SermonClip } from '@/lib/studio/types';
 import type { AnalysisClip, ResultsUserStatus } from '@/lib/results/types';
 
@@ -59,7 +60,7 @@ export function useClipRendering({ jobId, clips, sourceUrl, userStatus, isYouTub
   const pollStatus = useCallback(
     async (id: string, index: number, toastId: string) => {
       while (alive.current) {
-        let data: { status?: string; percent?: number; url?: string };
+        let data: { status?: string; percent?: number; url?: string; error?: string };
         try {
           const res = await fetch(`/api/render-status?id=${encodeURIComponent(id)}`);
           data = await res.json();
@@ -97,8 +98,9 @@ export function useClipRendering({ jobId, clips, sourceUrl, userStatus, isYouTub
           return;
         }
         if (data.status === 'failed') {
-          setState(index, { status: 'error', error: 'Cloud render failed.' });
-          toast.error('Cloud render failed.', { id: toastId });
+          const failure = describeRenderFailure(data.error);
+          setState(index, { status: 'error', error: failure.message, detail: failure.detail });
+          toast.error(failure.message, { id: toastId, duration: 8000 });
           return;
         }
         await sleep(POLL_MS);
@@ -167,11 +169,15 @@ export function useClipRendering({ jobId, clips, sourceUrl, userStatus, isYouTub
         if (data.shotstackId) {
           setPercent(index, 8);
           toast.loading('Exporting your reel…', { id: toastId });
+          if (Array.isArray(data.warnings)) {
+            for (const w of data.warnings as string[]) toast(w, { duration: 7000 });
+          }
           void pollStatus(data.shotstackId, index, toastId);
         } else {
           const errMsg = data.error || `Export failed (${res.status}).`;
-          setState(index, { status: 'error', error: errMsg });
-          toast.error(errMsg, { id: toastId, duration: 6000 });
+          const detail = typeof data.shotstackDetail === 'string' ? data.shotstackDetail.slice(0, 300) : undefined;
+          setState(index, { status: 'error', error: errMsg, detail });
+          toast.error(errMsg, { id: toastId, duration: 8000 });
         }
       } catch {
         setState(index, { status: 'error', error: 'Network error during rendering.' });

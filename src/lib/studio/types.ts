@@ -34,12 +34,16 @@ export interface ExportSettings {
   tagline?: string;
   website?: string;
   socialHandle?: string;
+  /** Length of the source video in seconds, measured by the browser (lets the server cap the clip). */
+  sourceDuration?: number;
 }
 
 export interface RenderState {
   status: string;
   url?: string;
   error?: string;
+  /** Raw reason from the render service, for support. */
+  detail?: string;
 }
 
 export interface UserStatus {

@@ -27,6 +27,8 @@ export async function GET(req: NextRequest) {
         progress?: number;
         percentage?: number;
         percent?: number;
+        /** Shotstack's reason when status is "failed". */
+        error?: string;
       };
       message?: string;
       error?: string;
@@ -53,10 +55,15 @@ export async function GET(req: NextRequest) {
       if (percent > 0 && percent <= 1) percent = percent * 100;
       percent = Math.max(0, Math.min(100, percent));
 
+      if (status === 'failed') {
+        console.error(`[Shotstack] Render ${id} failed:`, data.response.error || '(no reason given)');
+      }
+
       return NextResponse.json({
         status,
         url,
         percent,
+        ...(status === 'failed' ? { error: data.response.error || '' } : {}),
       });
     }
 
