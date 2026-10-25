@@ -202,7 +202,7 @@ export async function probeShotstackRender(
                 asset: { type: 'video', src: SAMPLE_VIDEO, trim: 0 },
                 start: 0,
                 length: 2,
-                fit: 'cover',
+                fit: 'crop',
               },
             ],
           },

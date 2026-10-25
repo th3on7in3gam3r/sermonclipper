@@ -521,7 +521,9 @@ export async function POST(req: NextRequest) {
         asset: { type: 'video', src: shotstackVideoUrl, trim: start },
         start: introLen,
         length: duration,
-        fit: 'cover',
+        // Shotstack's 'cover' STRETCHES to fill (squashes a 16:9 sermon into 9:16).
+        // 'crop' fills the frame and keeps proportions, trimming the sides instead.
+        fit: 'crop',
       };
 
       // Apply color filter if selected (Shotstack filter property on clip)
