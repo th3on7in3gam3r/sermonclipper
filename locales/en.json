@@ -73,7 +73,11 @@
       "analytics": "Analytics",
       "marketplace": "Marketplace",
       "quotes": "Quotes",
-      "inspiration": "Inspiration"
+      "inspiration": "Inspiration",
+      "branding": "Branding",
+      "edit": "Edit",
+      "preview": "Preview",
+      "share": "Share"
     },
     "trim": {
       "start": "START",
@@ -96,7 +100,7 @@
       "tryAgain": "Try again"
     },
     "captions": {
-      "animationStyle": "Caption Animation",
+      "animationStyle": "Caption animation",
       "animationHint": "Burned into the exported MP4 during cloud render.",
       "wordPop": "Word-by-word pop",
       "slideUp": "Slide up",

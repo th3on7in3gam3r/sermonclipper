@@ -76,7 +76,7 @@ export function useClipRendering({ jobId, clips, sourceUrl, userStatus, isYouTub
         if (data.status === 'done') {
           setState(index, { status: 'complete', url: data.url });
           setPercent(index, 100);
-          toast.success('Your reel is ready — download or share below.', { id: toastId, duration: 6000 });
+          toast.success('Your reel is ready to download.', { id: toastId, duration: 6000 });
 
           const clip = clipsRef.current?.[index];
           if (jobId && data.url) {
@@ -122,7 +122,7 @@ export function useClipRendering({ jobId, clips, sourceUrl, userStatus, isYouTub
       const { index } = clip;
       setState(index, { status: 'loading' });
       setPercent(index, 2);
-      const toastId = toast.loading('Starting cloud render…');
+      const toastId = toast.loading('Starting export…');
 
       const {
         template = 'minimal',
@@ -166,7 +166,7 @@ export function useClipRendering({ jobId, clips, sourceUrl, userStatus, isYouTub
         }
         if (data.shotstackId) {
           setPercent(index, 8);
-          toast.loading('Neural rendering in progress…', { id: toastId });
+          toast.loading('Exporting your reel…', { id: toastId });
           void pollStatus(data.shotstackId, index, toastId);
         } else {
           const errMsg = data.error || `Export failed (${res.status}).`;
@@ -184,7 +184,7 @@ export function useClipRendering({ jobId, clips, sourceUrl, userStatus, isYouTub
   const batchExport = useCallback(async () => {
     const all = clipsRef.current;
     if (!all) return;
-    toast.success('Batch export initiated! Firing up neural engines...', { icon: '🚀' });
+    toast.success('Exporting all clips. Each one shows its progress as it renders.');
     for (let i = 0; i < all.length; i += BATCH_SIZE) {
       const batch = all.slice(i, i + BATCH_SIZE);
       await Promise.all(batch.map((clip, j) => startExport({ ...clip, index: i + j } as SermonClip)));

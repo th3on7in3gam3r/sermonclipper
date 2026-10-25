@@ -6,7 +6,7 @@ export const HELP_TOOLTIPS = {
   impactScore:
     'Impact Score rates this moment on energy, emotion, and theological language. Higher = more likely to stop the scroll.',
   socialKit:
-    'Generates platform-optimized captions for Instagram, TikTok, YouTube Shorts, X, and Facebook — one click.',
+    'A post caption for TikTok, Instagram, YouTube Shorts or X, checked against that platform’s character limit. Copy it straight into your post.',
   thumbnailStudio:
     'Create a custom thumbnail image for YouTube or a preview card for Instagram using frames from your clip.',
   quota:

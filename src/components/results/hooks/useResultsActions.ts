@@ -76,11 +76,4 @@ export function useMasterDownload(masterDownloadUrl: string | null) {
   return { isDownloading, download };
 }
 
-export async function copyToClipboard(text: string, message: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast.success(message);
-  } catch {
-    toast.error('Could not copy — your browser blocked clipboard access.');
-  }
-}
+export { copyToClipboard } from '@/lib/clipboard';

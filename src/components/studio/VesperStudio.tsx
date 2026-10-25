@@ -1,79 +1,44 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import dynamic from 'next/dynamic';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@clerk/nextjs';
+import './studio.css';
 import toast from 'react-hot-toast';
-import { resolveClientPlaybackUrl } from '@/lib/resolvePlaybackUrl';
-import StudioPhonePreview from './StudioPhonePreview';
-import StudioExportPanel from './StudioExportPanel';
-import StudioExportExtrasPanel, { DEFAULT_EXPORT_EXTRAS } from './StudioExportExtrasPanel';
-import StudioClipAnalyticsPanel from './StudioClipAnalyticsPanel';
-import MarketplaceTemplatesPanel from './MarketplaceTemplatesPanel';
-import QuotableMomentsPanel from './QuotableMomentsPanel';
-import InspirationPanel from './InspirationPanel';
-import type { QuotableMoment } from '@/lib/quotes/extractQuotables';
-import { getStudioTemplateOptions, type SeasonalTemplate } from '@/lib/seasonalTemplates';
-import HelpTooltip from '@/components/help/HelpTooltip';
-import { HELP_TOOLTIPS } from '@/lib/helpTooltips';
-import UpgradePromptModal from '@/components/shared/UpgradePromptModal';
-import EmptyState from '@/components/shared/EmptyState';
-import { parseTime, formatTime } from '@/lib/parseTime';
-import { loadBrandKit, migrateStoredBrandKit, saveBrandKit } from '@/lib/studio/brandKit';
-import { planAllowsTemplate, planAllowsExport, UPGRADE_COPY, type UpgradeFeature } from '@/lib/plans';
-import {
-  STUDIO_TEMPLATES,
-  STUDIO_FILTERS,
-  STUDIO_FONTS,
-  STUDIO_ANIMATIONS,
-  STUDIO_PLATFORMS,
-  STUDIO_TABS,
-  MOBILE_TABS,
-} from '@/lib/studio/constants';
-import type { ExportSettings, RenderState, SermonClip, UserStatus } from '@/lib/studio/types';
+import { useFocusTrap } from '@/lib/useFocusTrap';
+import { parseTime } from '@/lib/parseTime';
 import { triggerReelDownload } from '@/lib/reelDownload';
+import { loadBrandKit, migrateStoredBrandKit, saveBrandKit } from '@/lib/studio/brandKit';
+import { planAllowsExport, planAllowsTemplate, UPGRADE_COPY, type UpgradeFeature } from '@/lib/plans';
+import { getStudioTemplateOptions, type SeasonalTemplate } from '@/lib/seasonalTemplates';
+import {
+  buildExportSettings,
+  defaultCaption,
+  extrasFromBrandKit,
+  styleFromBrandKit,
+  type StyleState,
+} from '@/lib/studio/studioLogic';
 import type { ExportExtras } from '@/lib/studio/exportOptions';
-import { CAPTION_ANIMATIONS } from '@/lib/studio/exportOptions';
+import { STUDIO_PLATFORMS } from '@/lib/studio/constants';
+import type { ExportSettings, RenderState, SermonClip, UserStatus } from '@/lib/studio/types';
+import type { QuotableMoment } from '@/lib/quotes/extractQuotables';
+import StudioPhonePreview from './StudioPhonePreview';
+import StudioTopBar from './StudioTopBar';
+import StudioTrimBar from './StudioTrimBar';
+import StudioSharePanel from './StudioSharePanel';
+import {
+  BrandingSection,
+  CaptionSection,
+  MusicSection,
+  StyleSection,
+  type StudioSectionId,
+} from './StudioEditSections';
+import { useTrim } from './hooks/useTrim';
+import { useStudioPlayback } from './hooks/useStudioPlayback';
+import { useYouTubePublish } from './hooks/useYouTubePublish';
 
-const STUDIO_TAB_LABEL_KEYS: Record<string, string> = {
-  templates: 'style',
-  marketplace: 'marketplace',
-  quotes: 'quotes',
-  inspiration: 'inspiration',
-  filters: 'filter',
-  fonts: 'font',
-  motion: 'motion',
-  captions: 'captions',
-  audio: 'audio',
-  trim: 'trim',
-  publish: 'sync',
-  analytics: 'analytics',
-};
-
-function getInitialExportExtras(): ExportExtras {
-  const kit = loadBrandKit();
-  if (!kit) return { ...DEFAULT_EXPORT_EXTRAS };
-  return {
-    ...DEFAULT_EXPORT_EXTRAS,
-    captionAnimation: (kit.captionAnimation as ExportExtras['captionAnimation']) || DEFAULT_EXPORT_EXTRAS.captionAnimation,
-    musicEnabled: Boolean(kit.musicEnabled),
-    musicTrackId: (kit.musicTrackId as string) || DEFAULT_EXPORT_EXTRAS.musicTrackId,
-    musicVolume: typeof kit.musicVolume === 'number' ? kit.musicVolume : DEFAULT_EXPORT_EXTRAS.musicVolume,
-    musicFade: kit.musicFade !== false,
-    musicAutoMatch: Boolean(kit.musicAutoMatch),
-    ctaEnabled: Boolean(kit.ctaEnabled),
-    ctaType: (kit.ctaType as ExportExtras['ctaType']) || DEFAULT_EXPORT_EXTRAS.ctaType,
-    ctaText: (kit.ctaText as string) || '',
-    ctaUrl: (kit.ctaUrl as string) || '',
-    includeIntro: Boolean(kit.includeIntro),
-    includeOutro: Boolean(kit.includeOutro),
-    bumperStyle: (kit.bumperStyle as string) || DEFAULT_EXPORT_EXTRAS.bumperStyle,
-    churchName: (kit.churchName as string) || '',
-    tagline: (kit.tagline as string) || '',
-    website: (kit.website as string) || '',
-    socialHandle: (kit.socialHandle as string) || '',
-  };
-}
+const UpgradePromptModal = dynamic(() => import('@/components/shared/UpgradePromptModal'), { ssr: false });
 
 interface VesperStudioProps {
   selectedClip: SermonClip & { index: number };
@@ -92,19 +57,23 @@ interface VesperStudioProps {
   onOpenQuoteCard?: (quote: string) => void;
 }
 
-function getDefaultCaption(clip: SermonClip, overrides: Record<number, string>): string {
-  return overrides[clip.index] ?? clip.suggested_captions?.[0] ?? clip.main_quote ?? '';
-}
+type MobileView = 'edit' | 'preview' | 'share';
 
-function getInitialStyleState() {
-  const kit = loadBrandKit();
-  return {
-    template: kit?.template ?? 'minimal',
-    filter: kit?.filter ?? 'none',
-    font: kit?.font ?? 'outfit',
-    animation: kit?.animation ?? 'fade',
-  };
-}
+const SECTIONS: { id: StudioSectionId; labelKey: string }[] = [
+  { id: 'style', labelKey: 'studio.tabs.style' },
+  { id: 'caption', labelKey: 'studio.tabs.captions' },
+  { id: 'music', labelKey: 'studio.tabs.audio' },
+  { id: 'branding', labelKey: 'studio.tabs.branding' },
+];
+
+const MOBILE_VIEWS: { id: MobileView; labelKey: string }[] = [
+  { id: 'edit', labelKey: 'studio.tabs.edit' },
+  { id: 'preview', labelKey: 'studio.tabs.preview' },
+  { id: 'share', labelKey: 'studio.tabs.share' },
+];
+
+const isTextEntry = (el: EventTarget | null) =>
+  el instanceof HTMLElement && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName));
 
 export default function VesperStudio({
   selectedClip,
@@ -124,953 +93,291 @@ export default function VesperStudio({
 }: VesperStudioProps) {
   const { t } = useTranslation();
   const { isLoaded: authLoaded, userId } = useAuth();
-  const clipStart = parseTime(selectedClip.start);
-  const clipEnd = parseTime(selectedClip.end);
-  const initialStyle = getInitialStyleState();
-  const [studioPlaybackUrl, setStudioPlaybackUrl] = useState<string | null>(playableVideoUrl);
+  const titleId = useId();
+  const tabIdBase = useId();
+  const trapRef = useFocusTrap(true);
+  const sectionTabs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  const [activeTab, setActiveTab] = useState<string>('templates');
-  const [mobileTab, setMobileTab] = useState('style');
+  // Saved look and templates are read once from the brand kit.
+  const [savedKit] = useState(() => {
+    migrateStoredBrandKit();
+    return loadBrandKit();
+  });
+  const [templateOptions] = useState(() =>
+    getStudioTemplateOptions((savedKit?.customSeasonalTemplates as SeasonalTemplate[]) || [])
+  );
 
-  const [selectedTemplate, setSelectedTemplate] = useState(initialStyle.template);
-  const [selectedFilter, setSelectedFilter] = useState(initialStyle.filter);
-  const [selectedFont, setSelectedFont] = useState(initialStyle.font);
-  const [selectedAnimation, setSelectedAnimation] = useState(initialStyle.animation);
-
-  const [trimStart, setTrimStart] = useState(clipStart);
-  const [trimEnd, setTrimEnd] = useState(clipEnd);
-  const [previewStart, setPreviewStart] = useState(clipStart);
-  const [previewEnd, setPreviewEnd] = useState(clipEnd);
-
-  const [captionOverrides, setCaptionOverrides] = useState<Record<number, string>>({});
+  const [style, setStyle] = useState<StyleState>(() => styleFromBrandKit(savedKit));
+  const [extras, setExtras] = useState<ExportExtras>(() => extrasFromBrandKit(savedKit));
+  const [caption, setCaption] = useState(() => defaultCaption(selectedClip));
+  const [section, setSection] = useState<StudioSectionId>('style');
+  const [mobileView, setMobileView] = useState<MobileView>('preview');
+  const [platformId, setPlatformId] = useState<string>(STUDIO_PLATFORMS[0].id);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [selectedPlatform, setSelectedPlatform] = useState('tiktok');
-  const [isUploadingYT, setIsUploadingYT] = useState(false);
   const [upgradePrompt, setUpgradePrompt] = useState<UpgradeFeature | null>(null);
-  const [exportExtras, setExportExtras] = useState<ExportExtras>(getInitialExportExtras);
-
-  const patchExportExtras = useCallback((patch: Partial<ExportExtras>) => {
-    setExportExtras((prev) => ({ ...prev, ...patch }));
-  }, []);
 
   const clipIndex = selectedClip.index;
   const clipId = jobId ? `${jobId}:${clipIndex}` : null;
-  const customSeasonalTemplates = (loadBrandKit()?.customSeasonalTemplates as SeasonalTemplate[]) || [];
-  const templateOptions = useMemo(
-    () => getStudioTemplateOptions(customSeasonalTemplates),
-    [customSeasonalTemplates]
-  );
+  const clipTitle = selectedClip.hook_title || selectedClip.main_quote || 'Sermon clip';
   const renderState = rendering[clipIndex];
-  const caption = useMemo(
-    () => getDefaultCaption(selectedClip, captionOverrides),
-    [selectedClip, captionOverrides]
-  );
+  const [initialCaption] = useState(caption);
+  const captionOrigin =
+    caption !== initialCaption
+      ? 'edited'
+      : selectedClip.suggested_captions?.some((c) => c?.trim())
+        ? 'ai'
+        : 'quote';
 
+  const trim = useTrim(parseTime(selectedClip.start), parseTime(selectedClip.end));
+  const { playbackUrl, refresh } = useStudioPlayback({ playableVideoUrl, videoUrl, videoId, authLoaded, userId });
+  const youtube = useYouTubePublish({
+    renderUrl: renderState?.status === 'complete' ? renderState.url : undefined,
+    isYouTubeSource,
+    youtubeConnected: Boolean(userStatus?.youtubeConnected),
+    title: selectedClip.hook_title || 'Sermon Clip',
+    description: caption,
+    clipId,
+    clipIndex,
+  });
+
+  const patchExtras = useCallback((patch: Partial<ExportExtras>) => setExtras((prev) => ({ ...prev, ...patch })), []);
+  const patchStyle = (patch: Partial<StyleState>) => setStyle((prev) => ({ ...prev, ...patch }));
+
+  // Start on the dialog's title (what screen readers announce) rather than the first button.
   useEffect(() => {
-    migrateStoredBrandKit();
+    document.getElementById(titleId)?.focus();
+  }, [titleId]);
+
+  // Lock page scroll behind the studio; Escape closes unless typing or a nested dialog is open.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, []);
 
-  const refreshStudioPlayback = useCallback(async () => {
-    const source = videoUrl || playableVideoUrl;
-    if (!source || videoId) return null;
-    try {
-      const resolved = await resolveClientPlaybackUrl(source);
-      setStudioPlaybackUrl(resolved);
-      return resolved;
-    } catch {
-      setStudioPlaybackUrl(null);
-      return null;
-    }
-  }, [videoUrl, playableVideoUrl, videoId]);
+  const onDialogKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Escape' || isTextEntry(e.target)) return;
+    const nested = trapRef.current?.querySelector('[role="dialog"]');
+    if (nested) return;
+    e.stopPropagation();
+    onClose();
+  };
 
-  // Resolve auth-gated storage keys when parent hasn't finished yet.
-  useEffect(() => {
-    if (playableVideoUrl) {
-      setStudioPlaybackUrl(playableVideoUrl);
+  const handleExport = () => {
+    if (isYouTubeSource) {
+      toast.error('Reels from YouTube links can be previewed but not exported. Upload the MP4 to export.');
       return;
     }
-    if (videoId || !videoUrl) {
-      setStudioPlaybackUrl(null);
+    if (!planAllowsExport(userStatus?.plan) && userStatus?.isAdmin !== true) {
+      setUpgradePrompt('export');
       return;
     }
-    if (!authLoaded || !userId) return;
+    startExport(selectedClip, buildExportSettings(style, trim.trim, caption, extras));
+    if (isMobile) setMobileView('share');
+  };
 
-    let cancelled = false;
-    resolveClientPlaybackUrl(videoUrl)
-      .then((resolved) => {
-        if (!cancelled) setStudioPlaybackUrl(resolved);
-      })
-      .catch(() => {
-        if (!cancelled) setStudioPlaybackUrl(null);
-      });
+  const handleDownload = () => {
+    if (!renderState?.url) return;
+    triggerReelDownload(renderState.url, clipTitle);
+    toast.success('Download started');
+  };
 
-    return () => {
-      cancelled = true;
-    };
-  }, [playableVideoUrl, videoUrl, videoId, authLoaded, userId]);
-
-  const applyTrimPreview = useCallback(() => {
-    setPreviewStart(trimStart);
-    setPreviewEnd(trimEnd);
-  }, [trimStart, trimEnd]);
-
-  const handleSaveProfile = () => {
-    if (userStatus?.plan === 'free' || userStatus?.plan === null || userStatus?.plan === undefined) {
+  const handleSaveDefault = () => {
+    if (!userStatus?.plan || userStatus.plan === 'free') {
       setUpgradePrompt('custom_branding');
       return;
     }
-    saveBrandKit({
-      template: selectedTemplate,
-      filter: selectedFilter,
-      font: selectedFont,
-      animation: selectedAnimation,
-      ...exportExtras,
-    });
+    saveBrandKit({ ...style, ...extras });
     toast.success(t('studio.profileSaved'));
   };
 
-  const handleSelectTemplate = (templateId: string) => {
-    if (!planAllowsTemplate(userStatus?.plan, templateId)) {
-      setUpgradePrompt('caption_templates');
-      return;
-    }
-    setSelectedTemplate(templateId);
+  const onSectionKeyDown = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
+    const delta = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!delta && e.key !== 'Home' && e.key !== 'End') return;
+    e.preventDefault();
+    const next =
+      e.key === 'Home' ? 0 : e.key === 'End' ? SECTIONS.length - 1 : (i + delta + SECTIONS.length) % SECTIONS.length;
+    setSection(SECTIONS[next].id);
+    sectionTabs.current[next]?.focus();
   };
-
-  const handleStartExport = () => {
-    if (isYouTubeSource) {
-      toast.error('Export requires a direct MP4 upload. YouTube links can be previewed only.');
-      return;
-    }
-
-    const canExport = planAllowsExport(userStatus?.plan) || userStatus?.isAdmin === true;
-
-    if (!canExport) {
-      setUpgradePrompt('export');
-      toast.error('Export requires the Creator plan ($19/mo). Upgrade to generate reels.', {
-        duration: 5000,
-      });
-      return;
-    }
-
-    const settings: ExportSettings = {
-      template: selectedTemplate,
-      filter: selectedFilter,
-      font: selectedFont,
-      animation: selectedAnimation,
-      trimStart,
-      trimEnd,
-      caption,
-      ...exportExtras,
-    };
-    startExport(selectedClip, settings);
-  };
-
-  const handleYouTubeSync = async () => {
-    if (!renderState?.url) return toast.error('Render the reel first');
-    if (isYouTubeSource) return toast.error('YouTube source clips cannot be exported from Vesper');
-
-    setIsUploadingYT(true);
-    const toastId = toast.loading('Syncing with YouTube...');
-
-    try {
-      if (!userStatus?.youtubeConnected) {
-        const authRes = await fetch('/api/youtube/auth');
-        const authData = await authRes.json();
-        if (authData.url) {
-          window.location.href = authData.url;
-          return;
-        }
-      }
-
-      const res = await fetch('/api/youtube/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          videoUrl: renderState.url,
-          title: selectedClip.hook_title || 'Sermon Clip',
-          description: caption,
-          clipId,
-          clipIndex,
-        }),
-      });
-
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      if (clipId && data.youtubeId) {
-        await fetch('/api/clips/publication', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            clipId,
-            platform: 'youtube',
-            externalId: data.youtubeId,
-            postUrl: `https://youtube.com/shorts/${data.youtubeId}`,
-          }),
-        });
-      }
-      toast.success('Published to YouTube Shorts', { id: toastId });
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Upload failed';
-      toast.error(message, { id: toastId });
-    } finally {
-      setIsUploadingYT(false);
-    }
-  };
-
-  const selectedPlatformConfig = STUDIO_PLATFORMS.find((p) => p.id === selectedPlatform);
-  const topQuote = quotableMoments[0]?.text;
-  const platformCaption = topQuote
-    ? `${selectedPlatformConfig?.prefix ?? ''}"${topQuote}"\n\n${caption}`
-    : `${selectedPlatformConfig?.prefix ?? ''}${caption}`;
-  const charCount = platformCaption.length;
-  const overLimit = selectedPlatformConfig?.limit ? charCount > selectedPlatformConfig.limit : false;
-  const trimDuration = trimEnd - trimStart;
-  const hasSocialCaption = Boolean(
-    selectedClip.suggested_captions?.some((c) => c?.trim()) || captionOverrides[clipIndex]?.trim()
-  );
-  const hasExport = renderState?.status === 'complete' && renderState?.url;
 
   return (
     <div
-      className="vesper-mesh-bg-container"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 10000,
-        background: 'var(--bg)',
-        display: 'flex',
-        flexDirection: 'column',
-        animation: 'slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-      }}
+      ref={trapRef}
+      className="studio"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      tabIndex={-1}
+      data-view={mobileView}
+      onKeyDown={onDialogKeyDown}
     >
-      <div className="vesper-mesh-bg" />
+      <StudioTopBar
+        titleId={titleId}
+        clipNumber={clipIndex + 1}
+        clipTitle={clipTitle}
+        isYouTubeSource={isYouTubeSource}
+        renderState={renderState}
+        renderProgress={renderProgress[clipIndex] ?? 0}
+        onBack={onClose}
+        onExport={handleExport}
+        onDownload={handleDownload}
+      />
 
-      <header
-        className="glass-card"
-        style={{
-          height: '80px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 32px',
-          borderRadius: 0,
-          borderTop: 'none',
-          borderLeft: 'none',
-          borderRight: 'none',
-          zIndex: 100,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img
-            src="/vesper-logo-icon.png"
-            alt="Vesper Studio logo"
-            style={{ height: '32px', width: 'auto' }}
-          />
-          <div>
-            <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.15em', color: 'var(--text-main)' }}>
-              <span style={{ color: 'var(--primary)' }}>VES</span>PER{' '}
-              <span style={{ opacity: 0.5, fontWeight: 300, fontSize: '16px' }}>STUDIO</span>
-            </div>
-            <div
-              style={{
-                fontSize: '10px',
-                color: 'var(--text-muted)',
-                letterSpacing: '0.1em',
-                fontWeight: 700,
-              }}
-            >
-              NEURAL EDITING SUITE
-            </div>
-          </div>
-          {isYouTubeSource && !isMobile && (
-            <div className="vesper-badge badge-gold" style={{ marginLeft: '16px', fontSize: '11px' }}>
-              PREVIEW ONLY
-            </div>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="vesper-btn-outline shimmer-effect"
-          style={{ padding: '10px 20px' }}
-        >
-          ✕ {t('common.close').toUpperCase()}
-        </button>
-      </header>
-
-      <div
-        style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}
-      >
-        {/* Left: style tools */}
-        <aside
-          className="studio-panel"
-          style={{
-            width: isMobile ? '100%' : '340px',
-            display: isMobile ? (mobileTab === 'style' ? 'flex' : 'none') : 'flex',
-            flexDirection: 'column',
-            borderRadius: 0,
-            borderTop: 'none',
-            borderBottom: 'none',
-            borderLeft: 'none',
-            background: 'var(--surface)',
-          }}
-        >
-          <nav
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              borderBottom: '1px solid rgb(var(--fg-rgb) / 0.05)',
-            }}
-          >
-            {STUDIO_TABS.map((tab) => (
+      <div className="studio-body">
+        <aside className="studio-edit" aria-label={t('studio.tabs.edit')}>
+          <div className="studio-sections" role="tablist" aria-label="Edit sections">
+            {SECTIONS.map((s, i) => (
               <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={activeTab === tab.id ? 'studio-tab-active' : ''}
-                style={{
-                  position: 'relative',
-                  padding: '16px 4px',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: 'var(--text-dim)',
+                key={s.id}
+                ref={(el) => {
+                  sectionTabs.current[i] = el;
                 }}
+                type="button"
+                role="tab"
+                id={`${tabIdBase}-tab-${s.id}`}
+                aria-controls={`${tabIdBase}-panel`}
+                aria-selected={section === s.id}
+                tabIndex={section === s.id ? 0 : -1}
+                className={section === s.id ? 'is-active' : ''}
+                onClick={() => setSection(s.id)}
+                onKeyDown={(e) => onSectionKeyDown(e, i)}
               >
-                <span style={{ fontSize: '20px' }}>{tab.icon}</span>
-                <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.08em' }}>
-                  {t(`studio.tabs.${STUDIO_TAB_LABEL_KEYS[tab.id]}` as 'studio.tabs.style')}
-                </span>
+                {t(s.labelKey)}
               </button>
             ))}
-          </nav>
-
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '20px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            {activeTab === 'templates' &&
-              templateOptions.map((t) => (
-                <OptionCard
-                  key={t.id}
-                  selected={selectedTemplate === t.id}
-                  onSelect={() => handleSelectTemplate(t.id)}
-                  title={t.name}
-                  desc={t.desc}
-                  swatch={'color' in t ? t.color : 'var(--text-main)'}
-                  locked={!planAllowsTemplate(userStatus?.plan, t.id)}
-                />
-              ))}
-
-            {activeTab === 'marketplace' && (
-              <MarketplaceTemplatesPanel
-                selectedTemplate={selectedTemplate}
-                onSelect={setSelectedTemplate}
-              />
-            )}
-
-            {activeTab === 'quotes' && (
-              <QuotableMomentsPanel
-                quotes={quotableMoments}
-                onSeek={(seconds) => {
-                  setPreviewStart(seconds);
-                  setPreviewEnd(Math.max(seconds + 15, clipEnd));
-                  toast.success(`Preview at ${formatTime(seconds)}`);
-                }}
-                onCreateQuoteCard={(quote) => onOpenQuoteCard?.(quote)}
-              />
-            )}
-
-            {activeTab === 'inspiration' && <InspirationPanel />}
-
-            {activeTab === 'filters' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                {STUDIO_FILTERS.map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setSelectedFilter(f.id)}
-                    className="glass-card"
-                    style={{
-                      padding: 0,
-                      borderRadius: '16px',
-                      cursor: 'pointer',
-                      borderColor: selectedFilter === f.id ? 'var(--primary)' : 'var(--card-border)',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: '64px',
-                        background: f.previewGradient,
-                        filter: f.css === 'none' ? undefined : f.css,
-                      }}
-                    />
-                    <div style={{ padding: '8px', textAlign: 'center', fontSize: '12px', fontWeight: 800 }}>
-                      {f.name}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'fonts' &&
-              STUDIO_FONTS.map((f) => (
-                <OptionCard
-                  key={f.id}
-                  selected={selectedFont === f.id}
-                  onSelect={() => setSelectedFont(f.id)}
-                  title={f.name}
-                  desc={f.desc}
-                  fontFamily={f.family}
-                />
-              ))}
-
-            {activeTab === 'motion' &&
-              STUDIO_ANIMATIONS.map((a) => (
-                <OptionCard
-                  key={a.id}
-                  selected={selectedAnimation === a.id}
-                  onSelect={() => setSelectedAnimation(a.id)}
-                  title={a.name}
-                  desc={a.desc}
-                />
-              ))}
-
-            {activeTab === 'captions' && (
-              <StudioExportExtrasPanel
-                extras={exportExtras}
-                onChange={patchExportExtras}
-                activeSection="captions"
-              />
-            )}
-
-            {activeTab === 'audio' && (
-              <StudioExportExtrasPanel extras={exportExtras} onChange={patchExportExtras} activeSection="audio" />
-            )}
-
-            {activeTab === 'trim' && (
-              <div
-                style={{
-                  padding: '20px',
-                  background: 'rgb(var(--primary-rgb) / 0.04)',
-                  borderRadius: '20px',
-                  border: '1px solid rgb(var(--primary-rgb) / 0.15)',
-                }}
-              >
-                <label style={{ display: 'block', marginBottom: '20px' }}>
-                  <span style={{ fontSize: '13px', color: 'var(--text-dim)', fontWeight: 800 }}>START</span>
-                  <span style={{ float: 'right', fontFamily: 'monospace', fontWeight: 900 }}>
-                    {formatTime(trimStart)}
-                  </span>
-                  <input
-                    type="range"
-                    min={Math.max(0, parseTime(selectedClip.start) - 60)}
-                    max={trimEnd - 1}
-                    value={trimStart}
-                    onChange={(e) => setTrimStart(Number(e.target.value))}
-                    onMouseUp={applyTrimPreview}
-                    onTouchEnd={applyTrimPreview}
-                    style={{ width: '100%', accentColor: 'var(--primary)', marginTop: '8px' }}
-                  />
-                </label>
-                <label style={{ display: 'block', marginBottom: '20px' }}>
-                  <span style={{ fontSize: '13px', color: 'var(--text-dim)', fontWeight: 800 }}>END</span>
-                  <span style={{ float: 'right', fontFamily: 'monospace', fontWeight: 900 }}>
-                    {formatTime(trimEnd)}
-                  </span>
-                  <input
-                    type="range"
-                    min={trimStart + 1}
-                    max={parseTime(selectedClip.end) + 60}
-                    value={trimEnd}
-                    onChange={(e) => setTrimEnd(Number(e.target.value))}
-                    onMouseUp={applyTrimPreview}
-                    onTouchEnd={applyTrimPreview}
-                    style={{ width: '100%', accentColor: 'var(--primary)', marginTop: '8px' }}
-                  />
-                </label>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 900 }}>{trimDuration}s</span>
-                  <span
-                    style={{
-                      color: trimDuration > 60 ? 'var(--error)' : 'var(--success)',
-                      fontSize: '12px',
-                      fontWeight: 900,
-                    }}
-                  >
-                    {trimDuration > 60 ? 'OVER 60s LIMIT' : 'READY'}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'analytics' && clipId && (
-              <StudioClipAnalyticsPanel clipId={clipId} clipTitle={selectedClip.hook_title || selectedClip.main_quote || 'Sermon clip'} />
-            )}
-
-            {activeTab === 'publish' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {clipId && (
-                  <div className="glass-card" style={{ padding: '14px' }}>
-                    <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                      Share this clip in your church app or website.
-                    </p>
-                    <button
-                      type="button"
-                      className="vesper-btn-outline"
-                      style={{ width: '100%' }}
-                      onClick={() => {
-                        const watchUrl = `${window.location.origin}/watch/${encodeURIComponent(clipId)}`;
-                        void navigator.clipboard.writeText(watchUrl);
-                        toast.success('Watch link copied');
-                      }}
-                    >
-                      Copy Watch Link
-                    </button>
-                  </div>
-                )}
-                <StudioExportExtrasPanel
-                  extras={exportExtras}
-                  onChange={patchExportExtras}
-                  activeSection="export"
-                />
-                {!hasExport ? (
-                  <EmptyState
-                    compact
-                    icon="📥"
-                    headline="No exports yet"
-                    subtext="Customize your reel and hit Generate Reel to render a downloadable 9:16 MP4."
-                    ctaLabel="Generate Reel"
-                    onCtaClick={handleStartExport}
-                  />
-                ) : (
-                  <>
-                    <PublishCard
-                      title="YouTube Shorts"
-                      icon="▶️"
-                      desc="Publish rendered reel to your connected channel."
-                      actionLabel={userStatus?.youtubeConnected ? 'PUBLISH SHORT' : 'CONNECT CHANNEL'}
-                      disabled={renderState?.status !== 'complete' || isUploadingYT}
-                      onAction={handleYouTubeSync}
-                    />
-                    <PublishCard
-                      title="Download MP4"
-                      icon="📥"
-                      desc="Save the rendered file for TikTok or Instagram."
-                      actionLabel="DOWNLOAD"
-                      disabled={renderState?.status !== 'complete'}
-                      onAction={() => {
-                        if (!renderState?.url) return;
-                        triggerReelDownload(
-                          renderState.url,
-                          selectedClip.hook_title || selectedClip.main_quote || 'vesper-reel'
-                        );
-                        toast.success('Download started');
-                      }}
-                    />
-                  </>
-                )}
-              </div>
-            )}
           </div>
 
           <div
-            style={{
-              padding: '24px',
-              borderTop: '1px solid rgb(var(--fg-rgb) / 0.07)',
-              background: 'rgba(0,0,0,0.3)',
-            }}
+            className="studio-edit-scroll"
+            role="tabpanel"
+            id={`${tabIdBase}-panel`}
+            aria-labelledby={`${tabIdBase}-tab-${section}`}
+            tabIndex={0}
           >
-            <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
-              <strong style={{ color: 'var(--text-main)' }}>
-                {STUDIO_TEMPLATES.find((t) => t.id === selectedTemplate)?.name}
-              </strong>
-              {' · '}
-              {STUDIO_FILTERS.find((f) => f.id === selectedFilter)?.name}
-              {' · '}
-              {STUDIO_FONTS.find((f) => f.id === selectedFont)?.name}
-            </div>
-            <StudioExportPanel
-              renderState={renderState}
-              renderProgress={renderProgress[clipIndex] ?? 0}
-              isYouTubeSource={isYouTubeSource}
-              clipTitle={selectedClip.hook_title || selectedClip.main_quote || 'Sermon clip'}
-              onGenerate={handleStartExport}
-              onSaveProfile={handleSaveProfile}
-            />
+            {section === 'style' && (
+              <StyleSection
+                style={style}
+                templateOptions={templateOptions}
+                isTemplateLocked={(id) => !planAllowsTemplate(userStatus?.plan, id)}
+                lockedLabel="Creator"
+                onTemplate={(template) => patchStyle({ template })}
+                onTemplateLocked={() => setUpgradePrompt('caption_templates')}
+                onFilter={(filter) => patchStyle({ filter })}
+                onFont={(font) => patchStyle({ font })}
+                onAnimation={(animation) => patchStyle({ animation })}
+              />
+            )}
+            {section === 'caption' && (
+              <CaptionSection
+                caption={caption}
+                captionOrigin={captionOrigin}
+                onCaption={setCaption}
+                extras={extras}
+                onExtras={patchExtras}
+                quotes={quotableMoments}
+                onPreviewQuote={trim.previewFrom}
+                onQuoteCard={onOpenQuoteCard}
+              />
+            )}
+            {section === 'music' && <MusicSection extras={extras} onExtras={patchExtras} />}
+            {section === 'branding' && <BrandingSection extras={extras} onExtras={patchExtras} />}
+          </div>
+
+          <div className="studio-edit-footer">
+            <button type="button" className="vesper-btn vesper-btn-outline" onClick={handleSaveDefault}>
+              Save as my default
+            </button>
+            <p className="studio-muted">New clips will start with this look and branding.</p>
           </div>
         </aside>
 
-        {/* Center: preview */}
-        <section
-          style={{
-            flex: 1,
-            display: isMobile ? (mobileTab === 'preview' ? 'flex' : 'none') : 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: isMobile ? '20px 16px' : '40px',
-            overflow: 'hidden',
-          }}
-        >
-          <StudioPhonePreview
-            videoId={videoId}
-            videoUrl={videoUrl}
-            playableVideoUrl={studioPlaybackUrl}
-            selectedClip={selectedClip}
-            previewStart={previewStart}
-            previewEnd={previewEnd}
-            selectedTemplate={selectedTemplate}
-            selectedFilter={selectedFilter}
-            selectedFont={selectedFont}
-            selectedAnimation={selectedAnimation}
-            captionAnimation={exportExtras.captionAnimation}
-            ctaEnabled={exportExtras.ctaEnabled}
-            ctaText={exportExtras.ctaText}
-            ctaType={exportExtras.ctaType}
-            caption={caption}
-            selectedPlatform={selectedPlatform}
-            isPlaying={isPlaying}
-            isMuted={isMuted}
-            isMobile={isMobile}
-            onPlayingChange={setIsPlaying}
-            onMutedChange={setIsMuted}
-            onRefreshSrc={refreshStudioPlayback}
-          />
-
-          <div style={{ width: '100%', maxWidth: '330px', marginTop: '24px' }}>
-            <label
-              style={{
-                fontSize: '11px',
-                fontWeight: 900,
-                color: 'var(--text-dim)',
-                letterSpacing: '0.15em',
-                display: 'inline-flex',
-                alignItems: 'center',
-              }}
-            >
-              LIVE CAPTION
-              <HelpTooltip content={HELP_TOOLTIPS.burnCaptions} label="About burned captions" />
-            </label>
-            <textarea
-              value={captionOverrides[clipIndex] ?? caption}
-              onChange={(e) => setCaptionOverrides((prev) => ({ ...prev, [clipIndex]: e.target.value }))}
-              data-studio-live-caption
-              rows={2}
-              style={{
-                width: '100%',
-                marginTop: '8px',
-                background: 'rgb(var(--fg-rgb) / 0.03)',
-                border: '1px solid rgb(var(--fg-rgb) / 0.08)',
-                borderRadius: '16px',
-                padding: '16px',
-                color: 'var(--text-main)',
-                fontSize: '15px',
-                resize: 'none',
-                outline: 'none',
-              }}
+        <section className="studio-stage" aria-label={t('studio.tabs.preview')}>
+          <div className="studio-monitor">
+            <StudioPhonePreview
+              videoId={videoId}
+              videoUrl={videoUrl}
+              playableVideoUrl={playbackUrl}
+              selectedClip={selectedClip}
+              previewStart={trim.preview.start}
+              previewEnd={trim.preview.end}
+              selectedTemplate={style.template}
+              selectedFilter={style.filter}
+              selectedFont={style.font}
+              selectedAnimation={style.animation}
+              captionAnimation={extras.captionAnimation}
+              ctaEnabled={extras.ctaEnabled}
+              ctaText={extras.ctaText}
+              ctaType={extras.ctaType}
+              caption={caption}
+              selectedPlatform={platformId}
+              isPlaying={isPlaying}
+              isMuted={isMuted}
+              isMobile={isMobile}
+              onPlayingChange={setIsPlaying}
+              onMutedChange={setIsMuted}
+              onRefreshSrc={refresh}
             />
           </div>
+          <StudioTrimBar
+            start={trim.trim.start}
+            end={trim.trim.end}
+            window={trim.window}
+            duration={trim.duration}
+            isOriginal={trim.isOriginal}
+            onStart={trim.setStart}
+            onEnd={trim.setEnd}
+            onReset={trim.reset}
+          />
         </section>
 
-        {/* Right: social kit */}
-        <aside
-          className="studio-panel"
-          style={{
-            width: isMobile ? '100%' : '380px',
-            display: isMobile ? (mobileTab === 'social' || mobileTab === 'export' ? 'flex' : 'none') : 'flex',
-            flexDirection: 'column',
-            borderRadius: 0,
-            borderTop: 'none',
-            borderBottom: 'none',
-            borderRight: 'none',
-            background: 'var(--surface)',
-          }}
-        >
-          <div style={{ padding: '24px', borderBottom: '1px solid rgb(var(--fg-rgb) / 0.05)' }}>
-            <div className="vesper-badge badge-green" style={{ marginBottom: '8px' }}>
-              MEDIA KIT
-            </div>
-            <h3 style={{ fontSize: '20px', fontWeight: 900, display: 'inline-flex', alignItems: 'center' }}>
-              Social Distribution
-              <HelpTooltip content={HELP_TOOLTIPS.socialKit} label="About Social Kit" />
-            </h3>
-          </div>
-
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              {STUDIO_PLATFORMS.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setSelectedPlatform(p.id)}
-                  style={{
-                    flex: 1,
-                    padding: '12px 0',
-                    borderRadius: '12px',
-                    border: `1px solid ${selectedPlatform === p.id ? 'var(--primary)' : 'rgb(var(--fg-rgb) / 0.1)'}`,
-                    background: selectedPlatform === p.id ? 'rgb(var(--primary-rgb) / 0.2)' : 'rgb(var(--fg-rgb) / 0.03)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {p.icon}
-                </button>
-              ))}
-            </div>
-
-            {!hasSocialCaption ? (
-              <EmptyState
-                compact
-                icon="💬"
-                headline="No Social Kit captions yet"
-                subtext="Captions are generated during AI analysis. Edit the live caption below or re-run analysis on a new sermon."
-                ctaLabel="Edit Live Caption"
-                onCtaClick={() => {
-                  const textarea = document.querySelector<HTMLTextAreaElement>('[data-studio-live-caption]');
-                  textarea?.focus();
-                }}
-              />
-            ) : selectedPlatformConfig ? (
-              <div className="glass-card" style={{ padding: '20px', borderColor: 'var(--primary)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                  <span style={{ fontSize: '24px' }}>{selectedPlatformConfig.icon}</span>
-                  <span style={{ fontWeight: 900 }}>{selectedPlatformConfig.label}</span>
-                </div>
-                <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-main)', marginBottom: '12px' }}>
-                  {platformCaption}
-                </p>
-                <p
-                  style={{
-                    fontSize: '11px',
-                    color: overLimit ? 'var(--error)' : 'var(--text-dim)',
-                    marginBottom: '16px',
-                    fontWeight: 800,
-                  }}
-                >
-                  {charCount}
-                  {selectedPlatformConfig.limit ? ` / ${selectedPlatformConfig.limit}` : ''} chars
-                  {overLimit ? ' — over limit' : ''}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(platformCaption);
-                    toast.success(`${selectedPlatformConfig.label} caption copied`);
-                  }}
-                  className="vesper-btn vesper-btn-outline shimmer-effect"
-                  style={{ width: '100%', marginBottom: '12px' }}
-                >
-                  COPY CAPTION
-                </button>
-                {selectedPlatform === 'youtube' && (
-                  <button
-                    type="button"
-                    onClick={handleYouTubeSync}
-                    disabled={isUploadingYT || renderState?.status !== 'complete'}
-                    className="vesper-btn vesper-btn-primary shimmer-effect"
-                    style={{
-                      width: '100%',
-                      background: 'linear-gradient(90deg, #FF0000, #CC0000)',
-                      opacity: isUploadingYT || renderState?.status !== 'complete' ? 0.6 : 1,
-                    }}
-                  >
-                    {isUploadingYT ? 'PUBLISHING…' : 'PUBLISH YT SHORT'}
-                  </button>
-                )}
-              </div>
-            ) : null}
-
-            <div className="glass-card" style={{ padding: '20px', marginTop: '20px' }}>
-              <div
-                style={{ fontSize: '10px', fontWeight: 900, color: 'var(--primary)', marginBottom: '8px' }}
-              >
-                NEURAL HOOK
-              </div>
-              <p style={{ fontSize: '16px', color: 'var(--text-main)', lineHeight: 1.5, fontWeight: 700 }}>
-                &ldquo;{selectedClip.engagement_hook || 'High-impact theological insight.'}&rdquo;
-              </p>
-            </div>
-          </div>
-
-          {isMobile && mobileTab === 'export' && (
-            <div style={{ padding: '24px' }}>
-              <StudioExportPanel
-                renderState={renderState}
-                renderProgress={renderProgress[clipIndex] ?? 0}
-                isYouTubeSource={isYouTubeSource}
-                clipTitle={selectedClip.hook_title || selectedClip.main_quote || 'Sermon clip'}
-                onGenerate={handleStartExport}
-                showSaveSlot={false}
-              />
-            </div>
-          )}
+        <aside className="studio-side" aria-label={t('studio.tabs.share')}>
+          <StudioSharePanel
+            renderState={renderState}
+            renderProgress={renderProgress[clipIndex] ?? 0}
+            isYouTubeSource={isYouTubeSource}
+            clipTitle={clipTitle}
+            clipId={clipId}
+            caption={caption}
+            platformId={platformId}
+            onPlatform={setPlatformId}
+            topQuote={quotableMoments[0]?.text}
+            hook={selectedClip.engagement_hook?.trim() || undefined}
+            youtubeConnected={Boolean(userStatus?.youtubeConnected)}
+            isPublishing={youtube.isPublishing}
+            onExport={handleExport}
+            onDownload={handleDownload}
+            onPublishYouTube={youtube.publish}
+          />
         </aside>
       </div>
 
-      {isMobile && (
-        <nav
-          className="glass-card"
-          style={{
-            height: '84px',
-            borderRadius: '24px 24px 0 0',
-            display: 'flex',
-            borderBottom: 'none',
-            paddingBottom: '12px',
-          }}
-        >
-          {MOBILE_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setMobileTab(tab.id)}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '4px',
-                background: 'none',
-                border: 'none',
-                color: mobileTab === tab.id ? 'var(--primary)' : 'var(--text-dim)',
-              }}
-            >
-              <span style={{ fontSize: '24px' }}>{tab.icon}</span>
-              <span style={{ fontSize: '10px', fontWeight: 900 }}>{tab.label}</span>
-            </button>
-          ))}
-        </nav>
-      )}
+      <nav className="studio-mobile-nav" aria-label="Studio views">
+        {MOBILE_VIEWS.map((v) => (
+          <button
+            key={v.id}
+            type="button"
+            aria-pressed={mobileView === v.id}
+            className={mobileView === v.id ? 'is-active' : ''}
+            onClick={() => setMobileView(v.id)}
+          >
+            {t(v.labelKey)}
+          </button>
+        ))}
+      </nav>
 
-      <UpgradePromptModal
-        open={upgradePrompt !== null}
-        feature={upgradePrompt ? UPGRADE_COPY[upgradePrompt].feature : ''}
-        planName={upgradePrompt ? UPGRADE_COPY[upgradePrompt].plan : ''}
-        price={upgradePrompt ? UPGRADE_COPY[upgradePrompt].price : ''}
-        onClose={() => setUpgradePrompt(null)}
-      />
-    </div>
-  );
-}
-
-function OptionCard({
-  selected,
-  onSelect,
-  title,
-  desc,
-  swatch,
-  fontFamily,
-  locked,
-}: {
-  selected: boolean;
-  onSelect: () => void;
-  title: string;
-  desc: string;
-  swatch?: string;
-  fontFamily?: string;
-  locked?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className="glass-card"
-      style={{
-        padding: '16px',
-        borderRadius: '16px',
-        cursor: 'pointer',
-        width: '100%',
-        textAlign: 'left',
-        background: selected ? 'rgb(var(--primary-rgb) / 0.1)' : 'rgb(var(--fg-rgb) / 0.02)',
-        borderColor: selected ? 'var(--primary)' : 'var(--card-border)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-      }}
-    >
-      {swatch && (
-        <div
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '10px',
-            flexShrink: 0,
-            background: `linear-gradient(135deg, ${swatch}22, ${swatch}66)`,
-            border: `1px solid ${swatch}44`,
-          }}
+      {upgradePrompt && (
+        <UpgradePromptModal
+          open
+          feature={UPGRADE_COPY[upgradePrompt].feature}
+          planName={UPGRADE_COPY[upgradePrompt].plan}
+          price={UPGRADE_COPY[upgradePrompt].price}
+          onClose={() => setUpgradePrompt(null)}
         />
       )}
-      <div>
-        <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-main)', fontFamily }}>{title}</div>
-        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{desc}</div>
-        {locked && (
-          <span
-            style={{
-              marginLeft: 'auto',
-              fontSize: '10px',
-              fontWeight: 900,
-              color: '#FBBF24',
-              letterSpacing: '0.08em',
-            }}
-          >
-            PRO
-          </span>
-        )}
-      </div>
-    </button>
-  );
-}
-
-function PublishCard({
-  title,
-  icon,
-  desc,
-  actionLabel,
-  disabled,
-  onAction,
-}: {
-  title: string;
-  icon: string;
-  desc: string;
-  actionLabel: string;
-  disabled?: boolean;
-  onAction: () => void;
-}) {
-  return (
-    <div
-      style={{
-        padding: '24px',
-        background: 'rgb(var(--fg-rgb) / 0.02)',
-        borderRadius: '20px',
-        border: '1px solid rgb(var(--fg-rgb) / 0.05)',
-        textAlign: 'center',
-      }}
-    >
-      <div style={{ fontSize: '44px', marginBottom: '12px' }}>{icon}</div>
-      <h3 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '8px' }}>{title}</h3>
-      <p style={{ fontSize: '14px', color: 'var(--text-dim)', marginBottom: '20px', lineHeight: 1.5 }}>{desc}</p>
-      <button
-        type="button"
-        onClick={onAction}
-        disabled={disabled}
-        className="vesper-btn vesper-btn-primary shimmer-effect"
-        style={{ width: '100%', opacity: disabled ? 0.5 : 1 }}
-      >
-        {actionLabel}
-      </button>
     </div>
   );
 }

@@ -122,28 +122,6 @@ export const STUDIO_PLATFORMS = [
   { id: 'x', icon: '𝕏', label: 'X', format: '1:1 / 9:16', limit: 280, prefix: 'Powerful moment: ' },
 ] as const;
 
-export const STUDIO_TABS = [
-  { id: 'templates', icon: '◈', label: 'Style' },
-  { id: 'marketplace', icon: '🛒', label: 'Marketplace' },
-  { id: 'quotes', icon: '❝', label: 'Quotes' },
-  { id: 'inspiration', icon: '✦', label: 'Inspiration' },
-  { id: 'filters', icon: '◐', label: 'Filter' },
-  { id: 'fonts', icon: 'Aa', label: 'Font' },
-  { id: 'motion', icon: '▷', label: 'Motion' },
-  { id: 'captions', icon: '▤', label: 'Captions' },
-  { id: 'audio', icon: '♫', label: 'Audio' },
-  { id: 'trim', icon: '✂', label: 'Trim' },
-  { id: 'publish', icon: '↗', label: 'Sync' },
-  { id: 'analytics', icon: '📊', label: 'Stats' },
-] as const;
-
-export const MOBILE_TABS = [
-  { id: 'style', label: 'STYLE', icon: '🎨' },
-  { id: 'preview', label: 'PREVIEW', icon: '📱' },
-  { id: 'social', label: 'SOCIAL', icon: '📋' },
-  { id: 'export', label: 'FINISH', icon: '🚀' },
-] as const;
-
 export const BRAND_KIT_KEY = 'vesper-brand-kit';
 
 /** Core studio defaults; extra keys from older saves are preserved via spread in brandKit.ts */

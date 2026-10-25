@@ -64,7 +64,11 @@
       "audio": "Áudio",
       "trim": "Cortar",
       "sync": "Sincronizar",
-      "export": "Exportar"
+      "export": "Exportar",
+      "branding": "Marca",
+      "edit": "Editar",
+      "preview": "Pré-visualizar",
+      "share": "Compartilhar"
     },
     "trim": { "start": "INÍCIO", "end": "FIM", "ready": "PRONTO", "overLimit": "MAIS DE 60s" },
     "preview": {

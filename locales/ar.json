@@ -64,7 +64,11 @@
       "audio": "الصوت",
       "trim": "قص",
       "sync": "مزامنة",
-      "export": "تصدير"
+      "export": "تصدير",
+      "branding": "الهوية",
+      "edit": "تحرير",
+      "preview": "معاينة",
+      "share": "مشاركة"
     },
     "trim": { "start": "البداية", "end": "النهاية", "ready": "جاهز", "overLimit": "أكثر من 60 ثانية" },
     "preview": {

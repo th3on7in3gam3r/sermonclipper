@@ -64,7 +64,11 @@
       "audio": "오디오",
       "trim": "트림",
       "sync": "동기화",
-      "export": "내보내기"
+      "export": "내보내기",
+      "branding": "브랜딩",
+      "edit": "편집",
+      "preview": "미리보기",
+      "share": "공유"
     },
     "trim": { "start": "시작", "end": "끝", "ready": "준비됨", "overLimit": "60초 초과" },
     "preview": {
