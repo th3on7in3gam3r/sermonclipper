@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { STUDIO_FILTERS, STUDIO_FONTS, STUDIO_TEMPLATES } from '@/lib/studio/constants';
+import { STUDIO_ANIMATIONS, STUDIO_FILTERS, STUDIO_FONTS, STUDIO_TEMPLATES } from '@/lib/studio/constants';
 import { CAPTION_ANIMATIONS, resolveCtaText, type CaptionAnimationId, type CtaTypeId } from '@/lib/studio/exportOptions';
 import type { SermonClip } from '@/lib/studio/types';
 
@@ -63,12 +63,15 @@ export default function StudioPhonePreview({
   const [mediaState, setMediaState] = useState<MediaState>('idle');
   const [activeSrc, setActiveSrc] = useState('');
   const retriedRef = useRef(false);
+  // Bumped each time playback starts so the text entrance replays, like it will in the export.
+  const [entranceRun, setEntranceRun] = useState(0);
 
   const filterCss = STUDIO_FILTERS.find((f) => f.id === selectedFilter)?.css || 'none';
   const template = STUDIO_TEMPLATES.find((t) => t.id === selectedTemplate);
   const font = STUDIO_FONTS.find((f) => f.id === selectedFont);
   const captionAnimClass =
     CAPTION_ANIMATIONS.find((a) => a.id === captionAnimation)?.previewClass || 'animate-caption-slide-up';
+  const entranceClass = STUDIO_ANIMATIONS.find((a) => a.id === selectedAnimation)?.class || 'animate-studio-fade';
   const endCardText = ctaEnabled ? resolveCtaText(ctaType, ctaText) : '';
 
   const src = playableVideoUrl || videoUrl || '';
@@ -363,7 +366,10 @@ export default function StudioPhonePreview({
                   const d = e.currentTarget.duration;
                   if (Number.isFinite(d) && d > 0) onSourceDuration?.(d);
                 }}
-                onPlay={() => onPlayingChange(true)}
+                onPlay={() => {
+                  setEntranceRun((n) => n + 1);
+                  onPlayingChange(true);
+                }}
                 onPause={() => onPlayingChange(false)}
                 onError={() => {
                   onPlayingChange(false);
@@ -598,7 +604,11 @@ export default function StudioPhonePreview({
             </span>
           </div>
 
-          <div style={{ position: 'absolute', bottom: '22%', left: '8%', right: '8%', zIndex: 20 }}>
+          <div
+            key={`${selectedAnimation}-${entranceRun}-${selectedClip.index}`}
+            className={entranceClass}
+            style={{ position: 'absolute', bottom: '22%', left: '8%', right: '8%', zIndex: 20 }}
+          >
             <div
               key={`${captionAnimation}-${selectedClip.index}`}
               className={captionAnimClass}

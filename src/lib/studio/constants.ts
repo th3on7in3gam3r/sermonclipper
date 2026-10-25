@@ -96,7 +96,7 @@ export const STUDIO_FONTS = [
 
 export const STUDIO_ANIMATIONS = [
   { id: 'fade', name: 'Soft Fade', desc: 'Gentle opacity transition.', class: 'animate-studio-fade' },
-  { id: 'slideUp', name: 'Slide Up', desc: 'Text rises from below.', class: 'animate-hook-pop' },
+  { id: 'slideUp', name: 'Slide Up', desc: 'Text rises from below.', class: 'animate-studio-rise' },
   { id: 'zoom', name: 'Zoom', desc: 'Scale in from center.', class: 'animate-studio-zoom' },
   { id: 'carve', name: 'Carve', desc: 'Wipe reveal left to right.', class: 'animate-studio-carve' },
 ] as const;

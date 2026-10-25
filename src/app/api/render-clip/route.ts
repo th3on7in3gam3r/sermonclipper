@@ -19,11 +19,11 @@ import {
 } from '@/lib/marketplace/templateEngine';
 import {
   BACKGROUND_MUSIC_TRACKS,
-  CAPTION_ANIMATION_MAP,
   pickMusicForMood,
   resolveCtaText,
   type CtaTypeId,
 } from '@/lib/studio/exportOptions';
+import { captionTransition, WORD_BY_WORD } from '@/lib/studio/textMotion';
 
 const INTRO_DURATION = 2.5;
 
@@ -55,12 +55,12 @@ function buildCaptionTextClips(
   captionAnimation: string,
   fontFamily: string,
   captionColor: string,
-  transitionIn: string
+  animation?: string
 ) {
-  const capAnim = CAPTION_ANIMATION_MAP[captionAnimation] || CAPTION_ANIMATION_MAP.slideUp;
+  const motion = captionTransition(animation, captionAnimation);
   const perLine = captionLines.length > 0 ? segmentDuration / captionLines.length : segmentDuration;
 
-  if (captionAnimation === 'wordPop' || captionAnimation === 'typewriter' || captionAnimation === 'highlight') {
+  if (WORD_BY_WORD.has(captionAnimation)) {
     const clips: Record<string, unknown>[] = [];
 
     captionLines.forEach((line, lineIndex) => {
@@ -80,7 +80,7 @@ function buildCaptionTextClips(
           start: lineStart + wordIndex * wordDuration,
           length: wordDuration,
           position: 'bottom',
-          transition: { in: capAnim.in, out: 'fade' },
+          transition: motion,
         });
       });
     });
@@ -99,7 +99,7 @@ function buildCaptionTextClips(
     start: segmentStart + i * perLine,
     length: perLine,
     position: 'bottom',
-    transition: { in: capAnim.in, out: capAnim.out || transitionIn },
+    transition: motion,
   }));
 }
 
@@ -161,14 +161,6 @@ const FONT_FAMILIES: Record<string, string> = {
   georgia: 'Open Sans Bold',
   mono: 'Open Sans Regular',
   serif: 'Clear Sans',
-};
-
-// Map animation id → Shotstack transition (must match API allowed values)
-const ANIMATION_MAP: Record<string, string> = {
-  fade: 'fade',
-  slideUp: 'slideUp',
-  zoom: 'zoom',
-  carve: 'reveal',
 };
 
 // Map filter id → Shotstack filter (must match API allowed values)
@@ -368,7 +360,6 @@ export async function POST(req: NextRequest) {
       resolvedCaptionAnimation = applied.captionAnimation;
     }
 
-    const transitionIn = ANIMATION_MAP[animation] || 'fade';
 
     const captions = (clip.suggested_captions || [])
       .map((text: string) => String(text || '').trim())
@@ -389,7 +380,7 @@ export async function POST(req: NextRequest) {
       resolvedCaptionAnimation,
       fontFamily,
       captionColor,
-      transitionIn
+      animation
     );
 
     const overlayClips: Record<string, unknown>[] = [];
@@ -487,7 +478,7 @@ export async function POST(req: NextRequest) {
         resolvedCaptionAnimation,
         fontFamily,
         captionColor,
-        transitionIn
+        animation
       ).map((clipDef) => ({
         ...clipDef,
         asset: {
